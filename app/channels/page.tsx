@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { Channel } from "@/types";
@@ -9,6 +9,18 @@ import { Loader2, Filter } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function ChannelsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center py-12">
+        <Loader2 className="animate-spin text-primary" size={48} />
+      </div>
+    }>
+      <ChannelsContent />
+    </Suspense>
+  );
+}
+
+function ChannelsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialSearch = searchParams.get("search") || "";
