@@ -1,0 +1,20 @@
+# Backend .gitignore
+# Composer dependencies
+/vendor/
+# Environment variables
+.env
+# IDE files
+.idea/
+*.sublime-project
+*.sublime-workspace
+# OS files
+.DS_Store
+Thumbs.db
+# Logs
+*.log
+# Cache
+/storage/*.key
+/storage/framework/
+/storage/logs/
+# Build artifacts
+/public/build/

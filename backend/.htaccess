@@ -1,0 +1,33 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect root to /public
+    RewriteRule ^$ public/ [L]
+
+    # Rewrite everything except /public folder
+    RewriteRule ^((?!public/).*)$ public/$1 [L,NC]
+</IfModule>
+
+# ----------------------------------------------------
+# Disable All Caching (SiteGround + Apache)
+# ----------------------------------------------------
+
+<IfModule mod_headers.c>
+
+    # Disable caching globally
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+
+    # Remove ETags
+    Header unset ETag
+</IfModule>
+
+FileETag None
+
+# Disable caching for static files also
+<FilesMatch "\.(html|htm|js|css|jpg|jpeg|png|gif|webp|svg|ico|json|xml|txt|pdf)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    </IfModule>
+</FilesMatch>

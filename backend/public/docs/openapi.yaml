@@ -1,0 +1,271 @@
+openapi: 3.0.0
+info:
+  title: Nellai IPTV API
+  description: REST API for Nellai IPTV Backend
+  version: 1.0.0
+servers:
+  - url: http://localhost/api
+    description: Local Development Server (Clean URL)
+  - url: http://localhost/public/api
+    description: Local Development Server (Public Path)
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: System Health Check
+      security: []
+      responses:
+        '200':
+          description: System is healthy
+  /customers/register:
+    post:
+      summary: Register a new customer
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Registration successful
+  /customers/login:
+    post:
+      summary: Login customer
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+  /customers/refresh-token:
+    post:
+      summary: Refresh JWT Token
+      responses:
+        '200':
+          description: Token refreshed
+  /customers/profile:
+    get:
+      summary: Get customer profile
+      responses:
+        '200':
+          description: Profile data
+    put:
+      summary: Update customer profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+  /customers:
+    delete:
+      summary: Delete customer account
+      responses:
+        '200':
+          description: Account deleted
+  /channels:
+    get:
+      summary: List all channels
+      security: []
+      parameters:
+        - in: query
+          name: language_id
+          schema:
+            type: integer
+        - in: query
+          name: state_id
+          schema:
+            type: integer
+        - in: query
+          name: page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of channels
+  /channels/new:
+    get:
+      summary: Get newly added channels
+      security: []
+      responses:
+        '200':
+          description: List of new channels
+  /channels/{uuid}:
+    get:
+      summary: Get channel details
+      security: []
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Channel details
+  /channels/related/{uuid}:
+    get:
+      summary: Get related channels
+      security: []
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of related channels
+  /channels/{uuid}/rate:
+    post:
+      summary: Rate a channel
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+      responses:
+        '200':
+          description: Rating submitted
+  /channels/{uuid}/comments:
+    get:
+      summary: Get channel comments
+      security: []
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of comments
+    post:
+      summary: Add a comment
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Comment added
+  /channels/{uuid}/heartbeat:
+    post:
+      summary: Send heartbeat for real-time viewers
+      security: []
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_uuid:
+                  type: string
+      responses:
+        '200':
+          description: Heartbeat received, returns viewer count
+  /ads:
+    get:
+      summary: Get ads
+      security: []
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of ads
+  /ads/{uuid}/impression:
+    post:
+      summary: Record ad impression
+      security: []
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Impression recorded
+  /states:
+    get:
+      summary: List all states
+      security: []
+      responses:
+        '200':
+          description: List of states
+  /districts:
+    get:
+      summary: List all districts
+      security: []
+      responses:
+        '200':
+          description: List of districts
+  /languages:
+    get:
+      summary: List all languages
+      security: []
+      responses:
+        '200':
+          description: List of languages
