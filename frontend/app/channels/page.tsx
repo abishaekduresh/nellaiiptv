@@ -68,7 +68,18 @@ function ChannelsContent() {
       
       const response = await api.get('/channels', { params });
       if (response.data.status) {
-        setChannels(response.data.data.data || response.data.data);
+        let fetchedChannels = response.data.data.data || response.data.data;
+        
+        // Sort by channel_number ascending
+        if (Array.isArray(fetchedChannels)) {
+            fetchedChannels.sort((a: any, b: any) => {
+                const numA = Number(a.channel_number) || 0;
+                const numB = Number(b.channel_number) || 0;
+                return numA - numB;
+            });
+        }
+        
+        setChannels(fetchedChannels);
       } else {
         setChannels([]);
       }

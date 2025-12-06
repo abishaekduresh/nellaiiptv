@@ -17,8 +17,19 @@ use App\Middleware\CorsMiddleware;
 use App\Middleware\ErrorHandlerMiddleware;
 
 $app = require __DIR__ . '/../bootstrap/app.php';
-$basePath = (strpos($_SERVER['REQUEST_URI'], '/public') === 0) ? '/public' : '';
+$scriptName = $_SERVER['SCRIPT_NAME'];
+$basePath = str_replace('/index.php', '', $scriptName);
 $app->setBasePath($basePath);
+
+if (isset($_GET['debug'])) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'SCRIPT_NAME' => $_SERVER['SCRIPT_NAME'],
+        'REQUEST_URI' => $_SERVER['REQUEST_URI'],
+        'basePath' => $basePath,
+    ]);
+    exit;
+}
 
 // Custom Middleware
 $app->add(new CorsMiddleware()); 

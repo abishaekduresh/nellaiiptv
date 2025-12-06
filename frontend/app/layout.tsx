@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import BackendHealthCheck from "@/components/BackendHealthCheck";
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-slate-950 text-white">
+        <BackendHealthCheck />
         <Toaster position="top-right" />
         <Navbar />
         <main className="flex-grow">

@@ -18,11 +18,18 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
 
     const checkOnlineStatus = async () => {
       try {
+        console.log('Checking stream status for channel:', channel.uuid);
         const response = await api.get(`/channels/${channel.uuid}/stream-status`);
+        console.log('Stream status response:', response.data);
+        
         if (response.data.status && response.data.data) {
+          console.log('Setting isOnline to:', response.data.data.is_online);
           setIsOnline(response.data.data.is_online);
+        } else {
+          console.log('Invalid response structure:', response.data);
         }
       } catch (err) {
+        console.error('Stream status check failed:', err);
         setIsOnline(false);
       }
     };

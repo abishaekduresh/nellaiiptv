@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2025-12-07
+### Added
+- Search by channel number in Navbar (Backend & Frontend).
+- Optimistic UI updates for viewer count.
+
+### Changed
+- Channels are now sorted by channel number (ascending) on the channels page.
+- Refactored `ChannelPage` to prevent video player re-renders during state updates.
+
+### Fixed
+- Fixed Vercel build error by wrapping `useSearchParams` in `Suspense`.
+- Fixed 500 Internal Server Error caused by stale `.next` build artifacts.
+- Fixed viewer count not incrementing by resetting timer logic.
+- Fixed CORS issues by configuring Next.js rewrites.
+
 ## [1.0.0] - 2025-11-26
 ### Added
 - Initial release of Nellai IPTV project.

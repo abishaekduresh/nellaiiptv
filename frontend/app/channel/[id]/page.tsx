@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Channel } from '@/types';
@@ -38,86 +38,7 @@ export default function ChannelPage() {
   const [submittingComment, setSubmittingComment] = useState(false);
   const { user } = useAuthStore();
 
-  // Initial Fetch
-  useEffect(() => {
-    if (uuid) {
-      fetchChannelDetails();
-    }
-    return () => {
-      // Cleanup view on unmount if incremented
-      if (hasIncrementedRef.current) {
-        decrementView();
-      }
-      if (viewTimerRef.current) clearTimeout(viewTimerRef.current);
-      if (onlineCheckIntervalRef.current) clearInterval(onlineCheckIntervalRef.current);
-    };
-  }, [uuid]);
-
-  // Online Status Check
-  useEffect(() => {
-    if (!uuid) return;
-
-    const checkOnlineStatus = async () => {
-      try {
-        const response = await api.get(`/channels/${uuid}/stream-status`);
-        if (response.data.status && response.data.data) {
-          setIsOnline(response.data.data.is_online);
-        }
-      } catch (err) {
-        setIsOnline(false);
-      }
-    };
-
-    checkOnlineStatus();
-    onlineCheckIntervalRef.current = setInterval(checkOnlineStatus, 120000); // 2 minutes
-
-    return () => {
-      if (onlineCheckIntervalRef.current) clearInterval(onlineCheckIntervalRef.current);
-    };
-  }, [uuid]);
-
-  // Viewer Counting Logic
-  const handlePlayerReady = (player: Player) => {
-    playerRef.current = player;
-    
-    if (viewTimerRef.current) clearTimeout(viewTimerRef.current);
-    
-    viewTimerRef.current = setTimeout(() => {
-      checkAndIncrementView();
-    }, 10000);
-
-    player.on('play', () => {
-      if (!hasIncrementedRef.current && !viewTimerRef.current) {
-         viewTimerRef.current = setTimeout(() => {
-            checkAndIncrementView();
-          }, 10000);
-      }
-    });
-  };
-
-  const checkAndIncrementView = async () => {
-    if (playerRef.current && !playerRef.current.paused() && !hasIncrementedRef.current) {
-      try {
-        await api.post(`/channels/${uuid}/view`);
-        hasIncrementedRef.current = true;
-        // Refresh channel data to show updated count
-        fetchChannelDetails(false); 
-      } catch (err) {
-        // Failed to increment view
-      }
-    }
-  };
-
-  const decrementView = async () => {
-    try {
-      await api.post(`/channels/view/decrement`, { channel_uuid: uuid });
-      hasIncrementedRef.current = false;
-    } catch (err) {
-      // Failed to decrement view
-    }
-  };
-
-  const fetchChannelDetails = async (fullLoad = true) => {
+  const fetchChannelDetails = useCallback(async (fullLoad = true) => {
     try {
       if (fullLoad) {
         setLoading(true);
@@ -161,7 +82,91 @@ export default function ChannelPage() {
     } finally {
       if (fullLoad) setLoading(false);
     }
+  }, [uuid]);
+
+  const checkAndIncrementView = useCallback(async () => {
+    if (playerRef.current && !playerRef.current.paused() && !hasIncrementedRef.current) {
+      try {
+        await api.post(`/channels/${uuid}/view`);
+        hasIncrementedRef.current = true;
+        
+        // Optimistic update
+        setChannel((prev) => prev ? ({ ...prev, viewers_count: (prev.viewers_count || 0) + 1 }) : null);
+        
+        // Refresh channel data to ensure consistency
+        fetchChannelDetails(false); 
+      } catch (err) {
+        // Failed to increment view
+      }
+    }
+  }, [uuid, fetchChannelDetails]);
+
+  const decrementView = async () => {
+    try {
+      await api.post(`/channels/view/decrement`, { channel_uuid: uuid });
+      hasIncrementedRef.current = false;
+    } catch (err) {
+      // Failed to decrement view
+    }
   };
+
+  const handlePlayerReady = useCallback((player: Player) => {
+    playerRef.current = player;
+    
+    if (viewTimerRef.current) clearTimeout(viewTimerRef.current);
+    
+    viewTimerRef.current = setTimeout(() => {
+      checkAndIncrementView();
+      viewTimerRef.current = null;
+    }, 10000);
+
+    player.on('play', () => {
+      if (!hasIncrementedRef.current && !viewTimerRef.current) {
+         viewTimerRef.current = setTimeout(() => {
+            checkAndIncrementView();
+            viewTimerRef.current = null;
+          }, 10000);
+      }
+    });
+  }, [checkAndIncrementView]);
+
+  // Initial Fetch
+  useEffect(() => {
+    if (uuid) {
+      fetchChannelDetails();
+    }
+    return () => {
+      // Cleanup view on unmount if incremented
+      if (hasIncrementedRef.current) {
+        decrementView();
+      }
+      if (viewTimerRef.current) clearTimeout(viewTimerRef.current);
+      if (onlineCheckIntervalRef.current) clearInterval(onlineCheckIntervalRef.current);
+    };
+  }, [uuid, fetchChannelDetails]);
+
+  // Online Status Check
+  useEffect(() => {
+    if (!uuid) return;
+
+    const checkOnlineStatus = async () => {
+      try {
+        const response = await api.get(`/channels/${uuid}/stream-status`);
+        if (response.data.status && response.data.data) {
+          setIsOnline(response.data.data.is_online);
+        }
+      } catch (err) {
+        setIsOnline(false);
+      }
+    };
+
+    checkOnlineStatus();
+    onlineCheckIntervalRef.current = setInterval(checkOnlineStatus, 120000); // 2 minutes
+
+    return () => {
+      if (onlineCheckIntervalRef.current) clearInterval(onlineCheckIntervalRef.current);
+    };
+  }, [uuid]);
 
   const handleShare = async () => {
     if (navigator.share) {
