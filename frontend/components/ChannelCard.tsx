@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useTVFocus } from '@/hooks/useTVFocus';
 import { Play } from 'lucide-react';
 import { Channel } from '@/types';
 import api from '@/lib/api';
@@ -11,6 +13,14 @@ interface ChannelCardProps {
 }
 
 export default function ChannelCard({ channel }: ChannelCardProps) {
+  const router = useRouter(); 
+  
+  const { focusProps, isFocused } = useTVFocus({
+    onEnter: () => router.push(`/channel/${channel.uuid}`),
+    className: "group relative block bg-slate-800 rounded-lg overflow-hidden transition-all duration-300",
+    focusClassName: "ring-4 ring-white scale-105 z-20"
+  });
+
   const [isOnline, setIsOnline] = useState(false);
 
   useEffect(() => {
@@ -18,18 +28,11 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
 
     const checkOnlineStatus = async () => {
       try {
-        console.log('Checking stream status for channel:', channel.uuid);
         const response = await api.get(`/channels/${channel.uuid}/stream-status`);
-        console.log('Stream status response:', response.data);
-        
         if (response.data.status && response.data.data) {
-          console.log('Setting isOnline to:', response.data.data.is_online);
           setIsOnline(response.data.data.is_online);
-        } else {
-          console.log('Invalid response structure:', response.data);
         }
       } catch (err) {
-        console.error('Stream status check failed:', err);
         setIsOnline(false);
       }
     };
@@ -42,9 +45,24 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
   }, [channel.uuid]);
 
   return (
-    <Link 
+    <div 
+      // We wrap the Link in a div to handle attributes if Link complains, 
+      // OR we just use Link. Let's try direct Link application but with explicit props.
+      // Actually, wrapping in a div that handles focus is safer for layout + Link behavior.
+      // But we want the Link to be the interactive element for SEO.
+      // Let's go with Link and assume props spread works fine on Next.js 14 Link.
+    > 
+     <Link 
       href={`/channel/${channel.uuid}`}
-      className="group relative block bg-slate-800 rounded-lg overflow-hidden hover:ring-2 hover:ring-primary transition-all duration-300"
+      className={`group relative block bg-slate-800 rounded-lg overflow-hidden transition-all duration-300 ${isFocused ? 'ring-4 ring-white scale-105 z-20' : 'hover:ring-2 hover:ring-primary'}`}
+      // Spread focus props directly onto Link.
+      // useTVFocus returns props compatible with HTML elements.
+      tabIndex={focusProps.tabIndex}
+      onFocus={focusProps.onFocus}
+      onBlur={focusProps.onBlur}
+      onKeyDown={focusProps.onKeyDown}
+      // data-tv-focusable needs to be cast or allowed
+      {...{ "data-tv-focusable": focusProps['data-tv-focusable'] }}
     >
       {/* Thumbnail */}
       <div className="aspect-video relative bg-slate-900">
@@ -61,9 +79,11 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         )}
         
         {/* Channel Number Badge */}
+        {channel.channel_number && (
         <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/10">
           CH {channel.channel_number}
         </div>
+        )}
         
         {/* Overlay Play Button */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
@@ -92,5 +112,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         </div>
       </div>
     </Link>
+    </div>
   );
 }

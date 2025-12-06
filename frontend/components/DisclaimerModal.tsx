@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useTVFocus } from '@/hooks/useTVFocus';
 
 interface Props {
   isOpen: boolean;
@@ -16,6 +17,12 @@ export default function DisclaimerModal({ isOpen, onClose }: Props) {
       document.body.style.overflow = 'unset';
     }
   }, [isOpen]);
+
+  const { focusProps } = useTVFocus({
+    onEnter: onClose,
+    className: "w-full bg-primary hover:bg-cyan-600 text-white px-6 py-3 rounded-lg font-medium transition-colors mt-6",
+    focusClassName: "ring-4 ring-white scale-105 z-20"
+  });
 
   if (!isOpen) return null;
 
@@ -44,19 +51,13 @@ export default function DisclaimerModal({ isOpen, onClose }: Props) {
               <br/>NELLAI IPTV does not assume any responsibility or liability for any copyrighted materials, infringement claims, or legal issues arising from the content streamed by third-party channels. Users and content owners are advised to ensure compliance with applicable copyright laws in their respective jurisdictions.<br/>
               <br/>By using our service, you acknowledge and agree that NELLAI IPTV is not responsible for the legality, accuracy, or nature of the content provided by third-party sources.</p>
             
-            {/* <h3 className="text-lg font-semibold text-white">Age Restriction</h3>
-            <p>This service is intended for users aged 18 and above. By proceeding, you confirm that you are of legal age.</p>
-            
-            <h3 className="text-lg font-semibold text-white">Copyright Notice</h3>
-            <p>All trademarks and copyrights belong to their respective owners. If you believe any content infringes on your copyright, please contact us immediately.</p> */}
-            
             <h3 className="text-lg font-semibold text-white">Service Availability</h3>
             <p>We strive to provide uninterrupted service but cannot guarantee 100% uptime. Channels may be temporarily unavailable due to maintenance or technical issues.</p>
           </div>
           
           <button
             onClick={onClose}
-            className="w-full bg-primary hover:bg-cyan-600 text-white px-6 py-3 rounded-lg font-medium transition-colors mt-6"
+            {...focusProps}
           >
             I Understand & Accept
           </button>

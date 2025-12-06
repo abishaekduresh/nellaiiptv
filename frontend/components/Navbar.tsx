@@ -8,6 +8,7 @@ import { Settings, Search, X, Loader2, Menu } from 'lucide-react';
 import UserMenu from './UserMenu';
 import api from '@/lib/api';
 import { Channel } from '@/types';
+import { useTVFocus } from '@/hooks/useTVFocus';
 
 export default function Navbar() {
   const { user, isAdmin } = useAuthStore();
@@ -34,7 +35,7 @@ export default function Navbar() {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    if (searchQuery.trim().length > 1) {
+    if (searchQuery.trim().length > 0) {
       setIsSearching(true);
       searchTimeoutRef.current = setTimeout(async () => {
         try {
@@ -85,15 +86,9 @@ export default function Navbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <Link href="/" className="text-slate-300 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-md transition-all duration-200 text-sm font-medium">
-                Home
-              </Link>
-              <Link href="/channels" className="text-slate-300 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-md transition-all duration-200 text-sm font-medium">
-                Channels
-              </Link>
-              <Link href="/about" className="text-slate-300 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-md transition-all duration-200 text-sm font-medium">
-                About
-              </Link>
+              <NavButton href="/" label="Home" />
+              <NavButton href="/channels" label="Channels" />
+              <NavButton href="/about" label="About" />
             </div>
 
             {/* Right Side Actions */}
@@ -282,7 +277,7 @@ export default function Navbar() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for channels..."
+                  placeholder="Search for channels or number..."
                   className="flex-1 bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-primary focus:outline-none"
                   autoFocus
                 />
@@ -295,7 +290,7 @@ export default function Navbar() {
               </div>
 
               {/* Live Results Dropdown */}
-              {(isSearching || searchResults.length > 0) && searchQuery.length > 1 && (
+              {(isSearching || searchResults.length > 0) && searchQuery.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 rounded-lg border border-slate-700 shadow-xl overflow-hidden z-50 max-h-80 overflow-y-auto">
                   {isSearching ? (
                     <div className="p-4 text-center text-slate-400 flex items-center justify-center gap-2">
@@ -318,7 +313,12 @@ export default function Navbar() {
                               )}
                             </div>
                             <div>
-                              <p className="text-white font-medium text-sm">{channel.name}</p>
+                              <p className="text-white font-medium text-sm">
+                                {channel.channel_number ? (
+                                  <span className="text-primary font-bold mr-2">CH {channel.channel_number}</span>
+                                ) : null}
+                                {channel.name}
+                              </p>
                               <p className="text-slate-400 text-xs">{channel.language?.name}</p>
                             </div>
                           </button>
@@ -337,5 +337,19 @@ export default function Navbar() {
         </div>
       )}
     </>
+  );
+}
+
+function NavButton({ href, label }: { href: string; label: string }) {
+  const router = useRouter();
+  const { focusProps } = useTVFocus({
+    onEnter: () => router.push(href),
+    className: "text-slate-300 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-md transition-all duration-200 text-sm font-medium"
+  });
+
+  return (
+    <Link href={href} {...focusProps}>
+      {label}
+    </Link>
   );
 }

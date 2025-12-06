@@ -8,11 +8,46 @@ import VideoPlayer from '@/components/VideoPlayer';
 import ChannelRow from '@/components/ChannelRow';
 import AdBanner from '@/components/AdBanner';
 import ChannelCard from '@/components/ChannelCard';
-import { getDeviceUUID } from '@/lib/deviceId';
-import { Loader2, Eye, ThumbsUp, Share2, Clock, Wifi, WifiOff } from 'lucide-react';
+import { Loader2, Eye, ThumbsUp, Share2, Clock } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import toast from 'react-hot-toast';
 import Player from 'video.js/dist/types/player';
+import { useTVFocus } from '@/hooks/useTVFocus';
+
+// TV-friendly Button Component
+function TVButton({ onClick, className, children, ...props }: any) {
+  const { focusProps, isFocused } = useTVFocus({
+    onEnter: onClick,
+    className: `${className} outline-none transition-all`,
+    focusClassName: 'ring-4 ring-white scale-105 z-10 shadow-lg'
+  });
+  
+  return (
+    <button onClick={onClick} {...props} {...focusProps} className={`${className} ${isFocused ? 'ring-4 ring-white scale-105 z-10 shadow-lg' : ''} outline-none transition-all`}>
+      {children}
+    </button>
+  );
+}
+
+function TVStar({ star, currentRating, onClick }: any) {
+  const { focusProps, isFocused } = useTVFocus({
+    onEnter: onClick,
+    className: "text-2xl transition-all p-2 rounded-full outline-none",
+    focusClassName: "ring-2 ring-yellow-400 scale-125 bg-slate-800"
+  });
+  
+  return (
+    <button
+      onClick={onClick}
+      {...focusProps}
+      className={`text-2xl transition-all hover:scale-110 hover:text-yellow-400 focus:outline-none p-2 rounded-full ${isFocused ? 'ring-2 ring-yellow-400 scale-125 bg-slate-800' : ''}`}
+    >
+      <span className={star <= currentRating ? 'text-yellow-400' : 'text-slate-700'}>
+        ★
+      </span>
+    </button>
+  );
+}
 
 export default function ChannelPage() {
   const params = useParams();
@@ -128,6 +163,14 @@ export default function ChannelPage() {
           }, 10000);
       }
     });
+
+    // Auto-focus player container if possible
+    // Using a timeout to ensure DOM is ready and layout is stable
+    setTimeout(() => {
+      const playerEl = document.querySelector('[data-vjs-player]') as HTMLElement;
+      if (playerEl) playerEl.focus();
+    }, 500);
+
   }, [checkAndIncrementView]);
 
   // Initial Fetch
@@ -234,6 +277,13 @@ export default function ChannelPage() {
     }
   };
 
+  // Focusable Back to Home
+  const { focusProps: backFocusProps } = useTVFocus({
+      onEnter: () => router.push('/'),
+      className: "bg-primary hover:bg-cyan-600 text-white px-6 py-3 rounded-lg font-medium transition-colors outline-none",
+      focusClassName: "ring-4 ring-white scale-105"
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
@@ -249,7 +299,7 @@ export default function ChannelPage() {
         <p className="text-slate-400 mb-6">{error || 'This channel does not exist.'}</p>
         <button
           onClick={() => router.push('/')}
-          className="bg-primary hover:bg-cyan-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          {...backFocusProps}
         >
           Back to Home
         </button>
@@ -329,28 +379,25 @@ export default function ChannelPage() {
              {/* Integrated Rating */}
             <div className="flex items-center gap-1 bg-slate-900/50 px-4 py-2 rounded-lg border border-slate-800">
               {[1, 2, 3, 4, 5].map((star) => (
-                <button
+                <TVStar 
                   key={star}
+                  star={star}
+                  currentRating={userRating || rating}
                   onClick={() => handleRating(star)}
-                  className="text-2xl transition-all hover:scale-110 hover:text-yellow-400 focus:outline-none"
-                >
-                  <span className={star <= (userRating || rating) ? 'text-yellow-400' : 'text-slate-700'}>
-                    ★
-                  </span>
-                </button>
+                />
               ))}
               <span className="ml-2 text-sm font-bold text-white">
                  {userRating > 0 ? 'Thanks!' : 'Rate'}
               </span>
             </div>
 
-            <button 
+            <TVButton 
               onClick={handleShare}
               className="flex items-center gap-2 bg-primary hover:bg-cyan-600 text-white px-6 py-3 rounded-lg transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 font-medium"
             >
               <Share2 size={20} />
               <span>Share</span>
-            </button>
+            </TVButton>
           </div>
         </div>
 
@@ -384,13 +431,13 @@ export default function ChannelPage() {
                   rows={3}
                 />
                 <div className="flex justify-end mt-3">
-                  <button
+                  <TVButton
                     type="submit"
                     disabled={!newComment.trim() || submittingComment}
                     className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {submittingComment ? 'Posting...' : 'Post Comment'}
-                  </button>
+                  </TVButton>
                 </div>
               </form>
 
@@ -444,8 +491,6 @@ export default function ChannelPage() {
                   <div className="text-xs text-slate-400">Quality</div>
                </div>
             </div>
-
-
 
             <div className="sticky top-24">
               <h3 className="text-lg font-bold text-white mb-4">More Channels</h3>

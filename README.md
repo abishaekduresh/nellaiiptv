@@ -2,7 +2,7 @@
 
 ## Overview
 
-Nellai IPTV is a full‑stack video streaming platform.
+Nellai IPTV is a full‑stack video streaming platform optimized for both web and TV interfaces.
 - **Frontend**: Next.js (React) – located in `frontend/`
 - **Backend**: Slim PHP REST API – located in `backend/`
 

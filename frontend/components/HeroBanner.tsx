@@ -1,5 +1,7 @@
 'use client';
 
+import { useTVFocus } from '@/hooks/useTVFocus';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Play, Info, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -9,9 +11,17 @@ interface Props {
   channels: Channel[];
 }
 
+// ... imports
 export default function HeroBanner({ channels }: Props) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const featuredChannel = channels[currentIndex];
+
+  const { focusProps } = useTVFocus({
+    onEnter: () => router.push(`/channel/${featuredChannel.uuid}`),
+    className: "flex items-center gap-2 bg-white hover:bg-white/90 text-black px-8 py-3 rounded-md font-semibold text-lg transition-all transform hover:scale-105"
+  });
 
   useEffect(() => {
     if (channels.length <= 1) return;
@@ -32,8 +42,6 @@ export default function HeroBanner({ channels }: Props) {
   };
 
   if (!channels || channels.length === 0) return null;
-
-  const featuredChannel = channels[currentIndex];
 
   return (
     <div className="relative h-[70vh] md:h-[80vh] w-full overflow-hidden group">
@@ -87,18 +95,11 @@ export default function HeroBanner({ channels }: Props) {
             <div className="flex items-center justify-center gap-3 pt-4">
               <button
                 onClick={() => router.push(`/channel/${featuredChannel.uuid}`)}
-                className="flex items-center gap-2 bg-white hover:bg-white/90 text-black px-8 py-3 rounded-md font-semibold text-lg transition-all transform hover:scale-105"
+                {...focusProps}
               >
                 <Play size={24} fill="currentColor" />
                 Play Now
               </button>
-              {/* <button
-                onClick={() => router.push(`/channel/${featuredChannel.uuid}`)}
-                className="flex items-center gap-2 bg-slate-800/80 hover:bg-slate-700/80 text-white px-6 py-3 rounded-md font-semibold transition-all backdrop-blur-sm"
-              >
-                <Info size={20} />
-                More Info
-              </button> */}
             </div>
           </div>
         </div>

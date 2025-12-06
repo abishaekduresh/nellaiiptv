@@ -41,7 +41,11 @@ class ChannelService
             });
         }
         if (isset($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%');
+            $searchTerm = $filters['search'];
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('channel_number', 'like', '%' . $searchTerm . '%');
+            });
         }
 
         $limit = isset($filters['limit']) ? (int)$filters['limit'] : 20;

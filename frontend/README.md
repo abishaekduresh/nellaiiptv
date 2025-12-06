@@ -28,12 +28,40 @@ npm start       # serve the built app
 
 ```
 frontend/
+├─ app/          # Next.js App Router pages
 ├─ components/   # reusable UI components
-├─ pages/        # Next.js page routes
+├─ hooks/        # custom hooks (e.g., useTVFocus)
+├─ lib/          # api and utility functions
 ├─ public/       # static assets
 ├─ styles/       # global CSS / Tailwind config
 └─ package.json
 ```
+
+## Features
+
+- **TV-Friendly Interface**: Optimized for large screens and "10-foot" viewing distances.
+- **Spatial Navigation**: Full support for arrow-key navigation (D-pad) for easy browsing on TV.
+- **Responsive Design**: Works seamlessly on both desktop monitors and televisions.
+- **Smart Search**: Search by channel name or specific channel number (e.g., "CH 101" or just "1").
+- **Live Visuals**: Auto-scrolling banners and interactive channel cards.
+- **Accessible Disclaimer**: TV-navigable disclaimer modal with focus support.
+
+## TV Navigation Controls
+
+| Key | Action |
+| :--- | :--- |
+| **Arrow Keys** | Navigate between elements (Up, Down, Left, Right) |
+| **Enter (OK)** | Select / Play Channel |
+| **Backspace / Esc** | Go Back / Close Menus |
+
+## Video Player Controls
+
+| Key | Action |
+| :--- | :--- |
+| **Enter / Space** | Play / Pause |
+| **Arrow Up / Down** | Increase / Decrease Volume |
+| **Arrow Left / Right** | Seek Forward / Backward (10s) |
+| **Backspace / Esc** | Exit Player / Go Back |
 
 ## Contributing
 
