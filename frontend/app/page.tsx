@@ -95,7 +95,7 @@ import ClassicHome from '@/components/ClassicHome';
 
         // Sort 'Other' channels by viewers count (descending)
         if (grouped['Other']) {
-          grouped['Other'].sort((a, b) => (b.viewers_count || 0) - (a.viewers_count || 0));
+          grouped['Other'].sort((a: Channel, b: Channel) => (b.viewers_count || 0) - (a.viewers_count || 0));
         }
         
         setChannelsByLanguage(grouped);
