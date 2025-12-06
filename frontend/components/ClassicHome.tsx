@@ -16,7 +16,7 @@ interface ClassicHomeProps {
 
 export default function ClassicHome({ channels }: ClassicHomeProps) {
   const { toggleMode } = useViewMode();
-  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(channels.length > 0 ? channels[0] : null);
   const [viewersCount, setViewersCount] = useState(0);
   const [isOnline, setIsOnline] = useState(true);
   
@@ -25,11 +25,7 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
   const viewTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasIncrementedRef = useRef(false);
 
-  useEffect(() => {
-    if (channels.length > 0 && !selectedChannel) {
-      setSelectedChannel(channels[0]);
-    }
-  }, [channels, selectedChannel]);
+
 
   // Reset state when channel changes
   useEffect(() => {
@@ -96,11 +92,11 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
   const rating = selectedChannel.average_rating || 0;
 
   return (
-    <div className="container-custom py-6 h-[calc(100vh)] overflow-hidden mt-4">
+    <div className="w-full px-4 py-2 h-[calc(100vh)] overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
         {/* Left Side: Player */}
-        <div className="lg:col-span-8 flex flex-col h-full overflow-y-auto scrollbar-hide">
-          <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-800 relative z-10 shrink-0">
+        <div className="lg:col-span-6 flex flex-col h-full overflow-hidden">
+          <div className="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-800 relative z-10 shrink-0">
              <VideoPlayer 
                 src={selectedChannel.hls_url} 
                 poster={selectedChannel.thumbnail_url} 
@@ -108,9 +104,9 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
              />
           </div>
           
-          <div className="mt-4 space-y-4">
+          <div className="mt-2 space-y-2">
               {/* Channel Details */}
-              <div className="p-6 bg-slate-900/50 rounded-xl border border-slate-800">
+              <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
@@ -161,15 +157,15 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
               </div>
 
               {/* Banner Ad */}
-              <div className="w-full">
-                 <AdBanner type="banner" />
+              <div className="w-full min-h-[512px]">
+                 <AdBanner type="banner" key={selectedChannel?.uuid} />
               </div>
           </div>
         </div>
 
         {/* Right Side: Channel Grid */}
-        <div className="lg:col-span-4 bg-slate-900/30 rounded-xl border border-slate-800 overflow-hidden flex flex-col h-full">
-          <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
+        <div className="lg:col-span-6 bg-slate-900/30 rounded-xl border border-slate-800 overflow-hidden flex flex-col h-full">
+          <div className="p-2 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
             <h2 className="font-bold text-lg text-white">Channel List</h2>
              <div className="flex items-center gap-3">
                 <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded-full">{channels.length} Channels</span>
@@ -193,7 +189,7 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
              </div>
           </div>
           <div className="overflow-y-auto p-3 flex-1 scrollbar-hide">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {channels.map((channel, index) => (
                 <ChannelListItem 
                   key={channel.uuid} 
@@ -232,7 +228,7 @@ function ChannelListItem({ channel, index, isActive, onSelect }: { channel: Chan
       onKeyDown={(e) => {
         focusProps.onKeyDown?.(e);
         // If on top row (index 0 or 1), up arrow goes to switch button
-        if (index < 2 && e.key === 'ArrowUp') {
+        if (index < 3 && e.key === 'ArrowUp') {
             e.preventDefault();
             document.getElementById('switch-mode-btn')?.focus();
         }
