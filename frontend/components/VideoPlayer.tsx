@@ -94,7 +94,11 @@ function VideoPlayer({ src, poster, onReady }: Props) {
         }],
         html5: {
           vhs: {
-            overrideNative: true
+            enableLowInitialPlaylist: true,
+            smoothQualityChange: true,
+            limitRenditionByPlayerDimensions: true,
+            useDevicePixelRatio: true,
+            overrideNative: true,
           },
           nativeAudioTracks: false,
           nativeVideoTracks: false
