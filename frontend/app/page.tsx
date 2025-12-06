@@ -63,7 +63,9 @@ import ClassicHome from '@/components/ClassicHome';
       ]);
 
       if (featuredRes.data.status) {
-        setFeaturedChannels(featuredRes.data.data || []);
+        const featured = featuredRes.data.data || [];
+        featured.sort((a: Channel, b: Channel) => (a.channel_number || 9999) - (b.channel_number || 9999));
+        setFeaturedChannels(featured);
       }
 
       if (allRes.data.status) {
@@ -80,8 +82,8 @@ import ClassicHome from '@/components/ClassicHome';
           ottChannels = ottChannels.filter((c: Channel) => !featuredIds.has(c.uuid));
         }
 
-        const shuffled: Channel[] = shuffleArray(ottChannels); // Randomize order for OTT
-        setAllChannels(shuffled);
+        // const shuffled: Channel[] = shuffleArray(ottChannels); // Randomize order for OTT
+        setAllChannels(ottChannels);
         
         // Group channels by language
         const grouped = ottChannels.reduce((acc: Record<string, Channel[]>, channel: Channel) => {
@@ -90,6 +92,11 @@ import ClassicHome from '@/components/ClassicHome';
           acc[lang].push(channel);
           return acc;
         }, {});
+
+        // Sort 'Other' channels by viewers count (descending)
+        if (grouped['Other']) {
+          grouped['Other'].sort((a, b) => (b.viewers_count || 0) - (a.viewers_count || 0));
+        }
         
         setChannelsByLanguage(grouped);
       }

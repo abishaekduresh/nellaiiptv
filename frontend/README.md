@@ -40,6 +40,7 @@ frontend/
 ## Features
 
 - **TV-Friendly Interface**: Optimized for large screens and "10-foot" viewing distances.
+- **Classic Mode**: A streamlined, TV-like experience with a focused player, channel list, and integrated ads.
 - **Spatial Navigation**: Full support for arrow-key navigation (D-pad) for easy browsing on TV.
 - **Responsive Design**: Works seamlessly on both desktop monitors and televisions.
 - **Smart Search**: Search by channel name or specific channel number (e.g., "CH 101" or just "1").

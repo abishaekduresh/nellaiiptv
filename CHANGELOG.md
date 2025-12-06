@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2025-12-07
+### Added
+- **Classic Mode Layout**: New 3-column channel list grid on large screens for better density.
+- **Classic Mode Ads**: Enhanced ad visibility with optimized player height (50/50 split) and increased container height.
+- **OTT Home Sorting**: "Featured" and "All Channels" groups are now sorted by channel number (ascending).
+- **Popularity Sorting**: "Other Channels" in OTT mode are now sorted by viewer count (descending).
+
+### Changed
+- **Classic Mode**: Player width balanced to 50% to prevent vertical scrolling and ensure the banner ad is fully visible.
+- **Startup Performance**: Classic Home now initializes the first channel immediately, removing ad loading delays on mode switch.
+
 ## [1.3.1] - 2025-12-07
 ### Fixed
 - Fixed TypeScript error in VideoPlayer where `currentTime()` could be undefined.
