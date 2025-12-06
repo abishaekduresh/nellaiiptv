@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1] - 2025-12-07
+### Fixed
+- Fixed TypeScript error in VideoPlayer where `currentTime()` could be undefined.
+
 ## [1.3.0] - 2025-12-07
 ### Added
 - **TV Mode**: Full "10-foot UI" support with arrow key navigation (Spatial Navigation).

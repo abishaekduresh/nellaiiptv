@@ -2,7 +2,7 @@
 
 ## Overview
 
-The frontend of **Nellai IPTV** is built with **Next.js** and React.
+The frontend of **Nellai IPTV** is built with **Next.js**, **React**, and **Video.js**.
 
 ## Prerequisites
 

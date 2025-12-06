@@ -43,22 +43,26 @@ function VideoPlayer({ src, poster, onReady }: Props) {
       case 'ArrowUp':
         e.preventDefault();
         e.stopPropagation();
-        player.volume(Math.min(player.volume() + 0.1, 1));
+        const currentVolUp = player.volume() || 0;
+        player.volume(Math.min(currentVolUp + 0.1, 1));
         break;
       case 'ArrowDown':
         e.preventDefault();
         e.stopPropagation();
-        player.volume(Math.max(player.volume() - 0.1, 0));
+        const currentVolDown = player.volume() || 0;
+        player.volume(Math.max(currentVolDown - 0.1, 0));
         break;
       case 'ArrowRight':
          e.preventDefault();
          e.stopPropagation();
-         player.currentTime(player.currentTime() + 10);
+         const currentTimeForward = player.currentTime() || 0;
+         player.currentTime(currentTimeForward + 10);
         break;
       case 'ArrowLeft':
          e.preventDefault();
          e.stopPropagation();
-         player.currentTime(player.currentTime() - 10);
+         const currentTimeBack = player.currentTime() || 0;
+         player.currentTime(currentTimeBack - 10);
         break;
       case 'Backspace':
       case 'Escape':
