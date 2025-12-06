@@ -2,8 +2,9 @@
 
 import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Channel } from '@/types';
+import ChannelCard from './ChannelCard';
 
 interface Props {
   title: string;
@@ -52,40 +53,8 @@ export default function ChannelRow({ title, channels }: Props) {
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {channels.map((channel) => (
-          <div
-            key={channel.uuid}
-            className="flex-shrink-0 w-40 md:w-56 group/card cursor-pointer"
-            onClick={() => router.push(`/channel/${channel.uuid}`)}
-          >
-            <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-800 transform transition-all duration-300 group-hover/card:scale-110 group-hover/card:z-20 group-hover/card:shadow-2xl">
-              <img
-                src={channel.thumbnail_url}
-                alt={channel.name}
-                className="w-full h-full object-cover"
-              />
-              
-              {/* Overlay on hover */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity">
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <button className="bg-white hover:bg-white/90 text-black rounded-full p-2 transform transition-transform hover:scale-110">
-                        <Play size={16} fill="currentColor" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <h3 className="text-white text-sm font-medium mt-2 line-clamp-1 px-1">
-              {channel.name}
-            </h3>
-            {channel.language && (
-              <p className="text-slate-400 text-xs mt-1 px-1">
-                {channel.language.name}
-              </p>
-            )}
+          <div key={channel.uuid} className="flex-shrink-0 w-40 md:w-56">
+            <ChannelCard channel={channel} />
           </div>
         ))}
       </div>

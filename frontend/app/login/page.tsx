@@ -7,10 +7,16 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useTVFocus } from '@/hooks/useTVFocus';
 
 export default function LoginPage() {
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
+
+  const { focusProps, isFocused } = useTVFocus({
+      className: "w-full bg-primary hover:bg-cyan-600 text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed",
+      focusClassName: "ring-4 ring-white scale-105 shadow-xl"
+  });
 
   const [formData, setFormData] = useState({
     phone: '',
@@ -82,8 +88,9 @@ export default function LoginPage() {
 
           <button
             type="submit"
+            {...focusProps}
             disabled={loading}
-            className="w-full bg-primary hover:bg-cyan-600 text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`${focusProps.className} ${isFocused ? 'ring-4 ring-white scale-105 shadow-xl' : ''}`}
           >
             {loading ? (
               <>

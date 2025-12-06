@@ -1,6 +1,13 @@
+'use client';
+
 import Link from 'next/link';
+import { useViewMode } from '@/context/ViewModeContext';
 
 const Footer = () => {
+  const { mode } = useViewMode();
+
+  if (mode === 'Classic') return null;
+
   return (
     <footer className="bg-slate-900 border-t border-slate-800 mt-auto">
       <div className="container-custom py-8">

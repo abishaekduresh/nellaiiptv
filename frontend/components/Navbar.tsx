@@ -9,9 +9,12 @@ import UserMenu from './UserMenu';
 import api from '@/lib/api';
 import { Channel } from '@/types';
 import { useTVFocus } from '@/hooks/useTVFocus';
+import { useViewMode } from '@/context/ViewModeContext';
+import { Monitor, LayoutGrid } from 'lucide-react';
 
 export default function Navbar() {
   const { user, isAdmin } = useAuthStore();
+  const { mode, toggleMode } = useViewMode();
   const router = useRouter();
   const [showSearch, setShowSearch] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -71,6 +74,9 @@ export default function Navbar() {
     setSearchResults([]);
   };
 
+  /* Existing Logic */
+  if (mode === 'Classic') return null;
+
   return (
     <>
       <nav className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
@@ -93,6 +99,9 @@ export default function Navbar() {
 
             {/* Right Side Actions */}
             <div className="flex items-center space-x-4">
+              {/* View Mode Toggle */}
+              <ViewModeToggle />
+
               {/* Search Icon (Mobile/Desktop) */}
               <button 
                 onClick={() => setShowSearch(true)}
@@ -301,27 +310,10 @@ export default function Navbar() {
                     <ul>
                       {searchResults.map((channel) => (
                         <li key={channel.uuid}>
-                          <button
-                            onClick={() => handleResultClick(channel.uuid)}
-                            className="w-full flex items-center gap-3 p-3 hover:bg-slate-700 transition-colors text-left"
-                          >
-                            <div className="w-12 h-8 bg-slate-900 rounded overflow-hidden flex-shrink-0">
-                              {channel.thumbnail_url ? (
-                                <img src={channel.thumbnail_url} alt={channel.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-600 text-xs">IMG</div>
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-white font-medium text-sm">
-                                {channel.channel_number ? (
-                                  <span className="text-primary font-bold mr-2">CH {channel.channel_number}</span>
-                                ) : null}
-                                {channel.name}
-                              </p>
-                              <p className="text-slate-400 text-xs">{channel.language?.name}</p>
-                            </div>
-                          </button>
+                          <SearchResultItem 
+                            channel={channel} 
+                            onClick={() => handleResultClick(channel.uuid)} 
+                          />
                         </li>
                       ))}
                     </ul>
@@ -351,5 +343,58 @@ function NavButton({ href, label }: { href: string; label: string }) {
     <Link href={href} {...focusProps}>
       {label}
     </Link>
+  );
+}
+
+// Helper for View Mode Toggle Button with TV Focus
+function ViewModeToggle() {
+    const { mode, toggleMode } = useViewMode();
+    const { focusProps, isFocused } = useTVFocus({
+        onEnter: toggleMode,
+        className: "hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-slate-700 bg-slate-800/50 text-slate-300 hover:text-white transition-all outline-none"
+    });
+
+    return (
+        <button
+            onClick={toggleMode}
+            {...focusProps}
+            className={`${focusProps.className} ${isFocused ? 'ring-2 ring-primary bg-slate-800 text-white scale-105 shadow-lg' : ''}`}
+            title={`Switch to ${mode === 'OTT' ? 'Classic' : 'OTT'} Mode`}
+        >
+            {mode === 'OTT' ? <LayoutGrid size={18} /> : <Monitor size={18} />}
+            <span className="text-sm font-medium">{mode === 'OTT' ? 'Classic' : 'OTT'}</span>
+        </button>
+    );
+}
+
+function SearchResultItem({ channel, onClick }: { channel: Channel; onClick: () => void }) {
+  const { focusProps, isFocused } = useTVFocus({
+    onEnter: onClick,
+    className: "w-full flex items-center gap-3 p-3 hover:bg-slate-700 transition-colors text-left focus:outline-none"
+  });
+
+  return (
+    <button
+      onClick={onClick}
+      {...focusProps}
+      className={`${focusProps.className} ${isFocused ? 'bg-slate-700 ring-2 ring-primary z-10' : ''}`}
+    >
+      <div className="w-12 h-8 bg-slate-900 rounded overflow-hidden flex-shrink-0">
+        {channel.thumbnail_url ? (
+          <img src={channel.thumbnail_url} alt={channel.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-slate-600 text-xs">IMG</div>
+        )}
+      </div>
+      <div>
+        <p className="text-white font-medium text-sm">
+          {channel.channel_number ? (
+            <span className="text-primary font-bold mr-2">CH {channel.channel_number}</span>
+          ) : null}
+          {channel.name}
+        </p>
+        <p className="text-slate-400 text-xs">{channel.language?.name}</p>
+      </div>
+    </button>
   );
 }

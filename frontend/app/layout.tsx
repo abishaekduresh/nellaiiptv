@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import BackendHealthCheck from "@/components/BackendHealthCheck";
 import { Toaster } from 'react-hot-toast';
 import TVNavigationProvider from "@/components/TVNavigationProvider";
+import { ViewModeProvider } from "@/context/ViewModeContext";
 
 export const metadata: Metadata = {
   title: "Nellai IPTV - Premium Entertainment",
@@ -20,13 +21,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-slate-950 text-white">
         <TVNavigationProvider>
-          <BackendHealthCheck />
-          <Toaster position="top-right" />
-          <Navbar />
-          <main className="flex-grow">
-            {children}
-          </main>
-          <Footer />
+          <ViewModeProvider>
+            <BackendHealthCheck />
+            <Toaster position="top-right" />
+            <Navbar />
+            <main className="flex-grow">
+              {children}
+            </main>
+            <Footer />
+          </ViewModeProvider>
         </TVNavigationProvider>
       </body>
     </html>

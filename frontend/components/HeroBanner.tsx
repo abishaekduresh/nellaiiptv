@@ -92,7 +92,7 @@ export default function HeroBanner({ channels }: Props) {
             <p className="text-lg md:text-xl text-slate-200 line-clamp-3">
               Watch {featuredChannel.name} live. Premium entertainment streaming in HD quality.
             </p>
-            <div className="flex items-center justify-center gap-3 pt-4">
+            <div className="flex items-center justify-start gap-3 pt-4">
               <button
                 onClick={() => router.push(`/channel/${featuredChannel.uuid}`)}
                 {...focusProps}

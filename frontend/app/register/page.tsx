@@ -6,9 +6,15 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useTVFocus } from '@/hooks/useTVFocus';
 
 export default function RegisterPage() {
   const router = useRouter();
+
+  const { focusProps, isFocused } = useTVFocus({
+      className: "w-full bg-primary hover:bg-cyan-600 text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center mt-6 disabled:opacity-50 disabled:cursor-not-allowed",
+      focusClassName: "ring-4 ring-white scale-105 shadow-xl"
+  });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -121,8 +127,9 @@ export default function RegisterPage() {
 
           <button
             type="submit"
+            {...focusProps}
             disabled={loading}
-            className="w-full bg-primary hover:bg-cyan-600 text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`${focusProps.className} ${isFocused ? 'ring-4 ring-white scale-105 shadow-xl' : ''}`}
           >
             {loading ? (
               <>

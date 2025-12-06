@@ -9,9 +9,14 @@ import DisclaimerModal from '@/components/DisclaimerModal';
 import AdBanner from '@/components/AdBanner';
 import { Loader2 } from 'lucide-react';
 
-export default function Home() {
+import { useViewMode } from '@/context/ViewModeContext';
+import ClassicHome from '@/components/ClassicHome';
+
+  export default function Home() {
+  const { mode } = useViewMode();
   const [featuredChannels, setFeaturedChannels] = useState<Channel[]>([]);
-  const [allChannels, setAllChannels] = useState<Channel[]>([]);
+  const [allChannels, setAllChannels] = useState<Channel[]>([]); // Shuffled for OTT
+  const [rawChannels, setRawChannels] = useState<Channel[]>([]); // Sorted for Classic
   const [channelsByLanguage, setChannelsByLanguage] = useState<Record<string, Channel[]>>({});
   const [loading, setLoading] = useState(true);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
@@ -54,7 +59,7 @@ export default function Home() {
       
       const [featuredRes, allRes] = await Promise.all([
         api.get('/channels/featured?limit=10'),
-        api.get('/channels?limit=50')
+        api.get('/channels?limit=100') // Increased limit for Classic Mode to see more
       ]);
 
       if (featuredRes.data.status) {
@@ -64,17 +69,22 @@ export default function Home() {
       if (allRes.data.status) {
         let channels = allRes.data.data.data || allRes.data.data || [];
         
-        // Filter out featured channels if we have them
+        // Sort by channel number for Consistent Raw Data
+        channels.sort((a: Channel, b: Channel) => (a.channel_number || 9999) - (b.channel_number || 9999));
+        setRawChannels(channels);
+
+        // For OTT: Filter out featured and shuffle
+        let ottChannels = [...channels];
         if (featuredRes.data.status && featuredRes.data.data) {
           const featuredIds = new Set(featuredRes.data.data.map((c: Channel) => c.uuid));
-          channels = channels.filter((c: Channel) => !featuredIds.has(c.uuid));
+          ottChannels = ottChannels.filter((c: Channel) => !featuredIds.has(c.uuid));
         }
 
-        const shuffled: Channel[] = shuffleArray(channels); // Randomize order
+        const shuffled: Channel[] = shuffleArray(ottChannels); // Randomize order for OTT
         setAllChannels(shuffled);
         
         // Group channels by language
-        const grouped = channels.reduce((acc: Record<string, Channel[]>, channel: Channel) => {
+        const grouped = ottChannels.reduce((acc: Record<string, Channel[]>, channel: Channel) => {
           const lang = channel.language?.name || 'Other';
           if (!acc[lang]) acc[lang] = [];
           acc[lang].push(channel);
@@ -98,8 +108,19 @@ export default function Home() {
     );
   }
 
+  // Render Classic Mode if selected
+  if (mode === 'Classic') {
+    return (
+        <div className="min-h-screen bg-slate-950">
+            <DisclaimerModal isOpen={showDisclaimer} onClose={handleDisclaimerClose} />
+            <ClassicHome channels={rawChannels} />
+        </div>
+    )
+  }
+
+  // Render OTT Mode (Default)
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-950 pt-16"> {/* Added pt-16 for navbar spacing */}
       <DisclaimerModal isOpen={showDisclaimer} onClose={handleDisclaimerClose} />
       
       {/* Hero Banner */}
