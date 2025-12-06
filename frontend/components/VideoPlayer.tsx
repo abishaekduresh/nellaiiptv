@@ -94,14 +94,16 @@ function VideoPlayer({ src, poster, onReady }: Props) {
         }],
         html5: {
           vhs: {
+            // Use VHS on non-Safari browsers for better HLS handling (manual quality, etc.)
+            // Use Native on Safari (iOS/macOS) as it's optimized there and required for AirPlay
+            overrideNative: !videojs.browser.IS_ANY_SAFARI,
             enableLowInitialPlaylist: true,
             smoothQualityChange: true,
             limitRenditionByPlayerDimensions: true,
-            useDevicePixelRatio: true,
-            overrideNative: true,
           },
-          nativeAudioTracks: false,
-          nativeVideoTracks: false
+          // Enable native tracks only if we are using native player (Safari)
+          nativeAudioTracks: videojs.browser.IS_ANY_SAFARI,
+          nativeVideoTracks: videojs.browser.IS_ANY_SAFARI,
         }
       }, () => {
         if (onReady) {
