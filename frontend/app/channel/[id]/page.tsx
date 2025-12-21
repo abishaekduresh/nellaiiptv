@@ -124,12 +124,6 @@ export default function ChannelPage() {
       try {
         await api.post(`/channels/${uuid}/view`);
         hasIncrementedRef.current = true;
-        
-        // Optimistic update
-        setChannel((prev) => prev ? ({ ...prev, viewers_count: (prev.viewers_count || 0) + 1 }) : null);
-        
-        // Refresh channel data to ensure consistency
-        fetchChannelDetails(false); 
       } catch (err) {
         // Failed to increment view
       }
@@ -317,6 +311,8 @@ export default function ChannelPage() {
               src={channel.hls_url} 
               poster={channel.thumbnail_url}
               onReady={handlePlayerReady}
+              channelUuid={channel.uuid}
+              channelName={channel.name}
             />
           </div>
         </div>

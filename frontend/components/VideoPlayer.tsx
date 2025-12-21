@@ -1,22 +1,29 @@
 'use client';
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.css';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useRouter } from 'next/navigation';
+import ReportModal from './ReportModal';
+import { AlertTriangle } from 'lucide-react';
 
 interface Props {
   src: string;
   poster?: string;
   onReady?: (player: Player) => void;
+  channelUuid?: string;
+  channelName?: string;
 }
 
-function VideoPlayer({ src, poster, onReady }: Props) {
+function VideoPlayer({ src, poster, onReady, channelUuid, channelName }: Props) {
   const router = useRouter();
   const videoRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Player | null>(null);
+  
+  const [showReport, setShowReport] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Focus Handling
   const { focusProps, isFocused } = useTVFocus({
@@ -35,7 +42,7 @@ function VideoPlayer({ src, poster, onReady }: Props) {
         e.preventDefault();
         e.stopPropagation();
         if (player.paused()) {
-          player.play();
+          player.play()?.catch(() => {});
         } else {
           player.pause();
         }
@@ -94,14 +101,11 @@ function VideoPlayer({ src, poster, onReady }: Props) {
         }],
         html5: {
           vhs: {
-            // Use VHS on non-Safari browsers for better HLS handling (manual quality, etc.)
-            // Use Native on Safari (iOS/macOS) as it's optimized there and required for AirPlay
             overrideNative: !videojs.browser.IS_ANY_SAFARI,
             enableLowInitialPlaylist: true,
             smoothQualityChange: true,
             limitRenditionByPlayerDimensions: true,
           },
-          // Enable native tracks only if we are using native player (Safari)
           nativeAudioTracks: videojs.browser.IS_ANY_SAFARI,
           nativeVideoTracks: videojs.browser.IS_ANY_SAFARI,
         }
@@ -109,8 +113,15 @@ function VideoPlayer({ src, poster, onReady }: Props) {
         if (onReady) {
           onReady(player);
         }
-        // Auto focus element when ready
-        // videoRef.current?.focus(); 
+      });
+      
+      // Error handling
+       player.on('error', () => {
+        const error = player.error();
+        if (error) {
+           console.error('Video Player Error:', error);
+           setErrorMessage(error.message);
+        }
       });
 
       playerRef.current = player;
@@ -121,6 +132,7 @@ function VideoPlayer({ src, poster, onReady }: Props) {
       if (poster) {
         player.poster(poster);
       }
+      setErrorMessage(null); // Reset error on source change
     }
   }, [src, poster, onReady]);
 
@@ -134,22 +146,62 @@ function VideoPlayer({ src, poster, onReady }: Props) {
     };
   }, []);
 
-  // Sync focus state to player container if needed, or overlay focusing ring
   return (
+    <>
     <div 
       ref={videoRef}
       style={{ maxWidth: '1920px', width: '100%', height: '100%', margin: '0 auto' }}
       {...focusProps}
-      // Overwrite the onKeyDown from focusProps to include our player-specific Logic
-      // We must call the original one if we want generic behavior, 
-      // but here we likely want to intercept specific keys.
       onKeyDown={(e) => {
         handleKeyDown(e);
         if (focusProps.onKeyDown) focusProps.onKeyDown(e);
       }}
-      // Ensure we can be focused
       className={`${focusProps.className} ${isFocused ? 'ring-4 ring-white z-20 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : ''}`}
+    >
+        {/* Error Overlay */}
+        {errorMessage && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm grayscale">
+          <div className="text-center px-6 max-w-md">
+            <div className="inline-flex p-3 rounded-full bg-red-500/20 text-red-500 mb-4">
+                 <AlertTriangle size={32} />
+            </div>
+            <p className="text-white text-xl font-bold mb-2">
+              Playback Error
+            </p>
+            <p className="text-slate-400 text-sm mb-6">{errorMessage}</p>
+            
+            <button 
+                onClick={() => setShowReport(true)}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-lg hover:shadow-red-600/20"
+            >
+                Report Issue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Report Button (Top Right) */}
+      {!errorMessage && (
+        <button 
+        onClick={(e) => {
+            e.stopPropagation();
+            setShowReport(true);
+        }}
+        className="absolute top-4 right-4 z-[60] bg-black/40 hover:bg-red-600 text-white p-2.5 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-auto"
+        title="Report Stream Issue"
+        >
+            <AlertTriangle size={20} />
+        </button>  
+      )}
+    </div>
+
+    <ReportModal 
+      isOpen={showReport} 
+      onClose={() => setShowReport(false)} 
+      channelUuid={channelUuid}
+      channelName={channelName}
     />
+    </>
   );
 }
 

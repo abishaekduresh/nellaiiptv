@@ -39,6 +39,7 @@ export interface Channel {
   district?: District;
   language?: Language;
   average_rating?: number;
+  ratings_avg_rating?: number;
   total_ratings?: number;
 }
 

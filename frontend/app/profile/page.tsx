@@ -28,7 +28,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-24 pb-12 px-4 md:px-8">
+    <div className="min-h-screen bg-slate-950 pb-12 px-4 md:px-8">
       <div className="container-custom max-w-4xl">
         <div className="bg-slate-900 rounded-xl p-8 border border-slate-800">
           <div className="flex items-center justify-between mb-8">

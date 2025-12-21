@@ -351,7 +351,7 @@ function ViewModeToggle() {
     const { mode, toggleMode } = useViewMode();
     const { focusProps, isFocused } = useTVFocus({
         onEnter: toggleMode,
-        className: "hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-slate-700 bg-slate-800/50 text-slate-300 hover:text-white transition-all outline-none"
+        className: "flex items-center gap-2 p-2 md:px-4 md:py-2 rounded-full border border-slate-700 bg-slate-800/50 text-slate-300 hover:text-white transition-all outline-none"
     });
 
     return (
@@ -362,7 +362,7 @@ function ViewModeToggle() {
             title={`Switch to ${mode === 'OTT' ? 'Classic' : 'OTT'} Mode`}
         >
             {mode === 'OTT' ? <LayoutGrid size={18} /> : <Monitor size={18} />}
-            <span className="text-sm font-medium">{mode === 'OTT' ? 'Classic' : 'OTT'}</span>
+            <span className="hidden md:inline text-sm font-medium">{mode === 'OTT' ? 'Classic' : 'OTT'}</span>
         </button>
     );
 }

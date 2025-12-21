@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { Play } from 'lucide-react';
+import { Play, Eye, Star, Heart } from 'lucide-react';
 import { Channel } from '@/types';
 import api from '@/lib/api';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface ChannelCardProps {
   channel: Channel;
@@ -14,6 +15,8 @@ interface ChannelCardProps {
 
 export default function ChannelCard({ channel }: ChannelCardProps) {
   const router = useRouter(); 
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const liked = isFavorite(channel.uuid);
   
   const { focusProps, isFocused } = useTVFocus({
     onEnter: () => router.push(`/channel/${channel.uuid}`),
@@ -22,6 +25,15 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
   });
 
   const [isOnline, setIsOnline] = useState(false);
+  const [isLoadingImage, setIsLoadingImage] = useState(true);
+
+  // ... rest of effect ...
+  
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(channel.uuid);
+  };
 
   useEffect(() => {
     if (!channel.uuid) return;
@@ -66,13 +78,20 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
     >
       {/* Thumbnail */}
       <div className="aspect-video relative bg-slate-900">
+        {isLoadingImage && channel.thumbnail_url && (
+          <div className="absolute inset-0 bg-slate-800 animate-pulse z-10" />
+        )}
+        
         {channel.thumbnail_url ? (
           <img 
             src={channel.thumbnail_url} 
             alt={channel.name}
-            className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+            onLoad={() => setIsLoadingImage(false)}
+            onError={() => setIsLoadingImage(false)}
+            className={`w-full h-full object-contain p-2 opacity-90 group-hover:opacity-100 transition-opacity ${isLoadingImage ? 'opacity-0' : 'opacity-90'}`}
           />
         ) : (
+           /* No image case: No need for loader, just clear it immediately if logic requires, but basically we just show fallback */
           <div className="w-full h-full flex items-center justify-center text-slate-600 font-bold text-2xl">
             {channel.name.charAt(0)}
           </div>
@@ -96,6 +115,14 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         <div className={`absolute top-2 left-2 text-white text-[10px] font-bold px-1.5 py-0.5 rounded animate-pulse ${isOnline ? 'bg-green-600' : 'bg-red-600'}`}>
           {isOnline ? 'ONLINE' : 'OFFLINE'}
         </div>
+
+        {/* Favorite Button (Visible on hover or if liked) */}
+        <button 
+            onClick={handleFavoriteClick}
+            className={`absolute top-2 right-2 z-20 p-1.5 rounded-full backdrop-blur-sm transition-all hover:scale-110 ${liked ? 'bg-white/10 text-red-500' : 'bg-black/40 text-white opacity-0 group-hover:opacity-100'}`}
+        >
+            <Heart size={16} fill={liked ? "currentColor" : "none"} />
+        </button>
       </div>
 
       {/* Info */}
@@ -105,11 +132,19 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         </h3>
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>{channel.language?.name || 'Tamil'}</span>
-          <span className="flex items-center">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></span>
-            {channel.viewers_count || 0}
-          </span>
-        </div>
+      </div>
+      </div>
+      
+      {/* Rating & Viewers */}
+      <div className="flex items-center justify-between mt-1 px-3 pb-3">
+         <div className="flex items-center gap-1 text-[10px] text-yellow-500 font-bold">
+            <Star size={12} fill="currentColor" />
+            <span>{(Number(channel.ratings_avg_rating) || Number(channel.average_rating) || 0).toFixed(1)}</span>
+         </div>
+         <span className="flex items-center text-xs text-slate-400">
+            <Eye size={12} className="mr-1" />
+            {(channel.viewers_count || 0).toLocaleString()}
+         </span>
       </div>
     </Link>
     </div>

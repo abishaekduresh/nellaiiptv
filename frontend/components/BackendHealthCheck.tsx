@@ -15,7 +15,7 @@ export default function BackendHealthCheck() {
       try {
         const response = await api.get('/health');
         if (response.data && response.data.status) {
-          toast.success(response.data.message || 'Backend connected successfully');
+          // toast.success(response.data.message || 'Backend connected successfully');
         } else {
           toast.error('Backend connection issue: Invalid response');
         }

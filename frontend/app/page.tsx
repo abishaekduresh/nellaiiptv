@@ -8,14 +8,19 @@ import ChannelRow from '@/components/ChannelRow';
 import DisclaimerModal from '@/components/DisclaimerModal';
 import AdBanner from '@/components/AdBanner';
 import { Loader2 } from 'lucide-react';
+import ChannelCardSkeleton from '@/components/ChannelCardSkeleton';
+import { useFavorites } from '@/hooks/useFavorites';
 
 import { useViewMode } from '@/context/ViewModeContext';
 import ClassicHome from '@/components/ClassicHome';
 
   export default function Home() {
   const { mode } = useViewMode();
+  const { favorites } = useFavorites(); // Get favorites
+  
   const [featuredChannels, setFeaturedChannels] = useState<Channel[]>([]);
   const [allChannels, setAllChannels] = useState<Channel[]>([]); // Shuffled for OTT
+  const [favoriteChannels, setFavoriteChannels] = useState<Channel[]>([]); // Favorites list
   const [rawChannels, setRawChannels] = useState<Channel[]>([]); // Sorted for Classic
   const [channelsByLanguage, setChannelsByLanguage] = useState<Record<string, Channel[]>>({});
   const [loading, setLoading] = useState(true);
@@ -82,7 +87,6 @@ import ClassicHome from '@/components/ClassicHome';
           ottChannels = ottChannels.filter((c: Channel) => !featuredIds.has(c.uuid));
         }
 
-        // const shuffled: Channel[] = shuffleArray(ottChannels); // Randomize order for OTT
         setAllChannels(ottChannels);
         
         // Group channels by language
@@ -107,10 +111,35 @@ import ClassicHome from '@/components/ClassicHome';
     }
   };
 
+  // Sync favorites
+  useEffect(() => {
+    if (rawChannels.length > 0 && favorites.length > 0) {
+      const favs = rawChannels.filter(c => favorites.includes(c.uuid));
+      setFavoriteChannels(favs);
+    } else {
+      setFavoriteChannels([]);
+    }
+  }, [favorites, rawChannels]);
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <Loader2 className="animate-spin text-primary" size={48} />
+      <div className="min-h-screen bg-slate-950 px-4 md:px-12">
+        <div className="animate-pulse space-y-8 pb-20 mt-8">
+            {/* Hero Skeleton */}
+            <div className="w-full aspect-[21/9] bg-slate-900 rounded-2xl mb-12"></div>
+            
+            {/* Rows */}
+            {[1, 2, 3].map((i) => (
+                <div key={i} className="space-y-4">
+                    <div className="h-6 w-48 bg-slate-900 rounded"></div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {[1, 2, 3, 4, 5].map((j) => (
+                            <ChannelCardSkeleton key={j} />
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
       </div>
     );
   }
@@ -127,7 +156,7 @@ import ClassicHome from '@/components/ClassicHome';
 
   // Render OTT Mode (Default)
   return (
-    <div className="min-h-screen bg-slate-950 pt-16"> {/* Added pt-16 for navbar spacing */}
+    <div className="min-h-screen bg-slate-950">
       <DisclaimerModal isOpen={showDisclaimer} onClose={handleDisclaimerClose} />
       
       {/* Hero Banner */}
@@ -135,13 +164,18 @@ import ClassicHome from '@/components/ClassicHome';
 
       {/* Content Rows */}
       <div className="relative -mt-12 md:-mt-20 z-10 space-y-8 pb-20">
+        {/* Favorites Row */}
+        {favoriteChannels.length > 0 && (
+           <ChannelRow title="My Favorites" channels={favoriteChannels} />
+        )}
+
         {/* Featured Channels */}
         {featuredChannels.length > 0 && (
           <ChannelRow title="Featured Channels" channels={featuredChannels} />
         )}
 
         {/* Ad Banner */}
-        <div className="px-4 md:px-12">
+        <div className={mode === 'OTT' ? 'w-full mb-8' : 'px-4 md:px-12 mb-8'}>
           <AdBanner type="banner" />
         </div>
 
@@ -149,7 +183,6 @@ import ClassicHome from '@/components/ClassicHome';
         {Object.entries(channelsByLanguage).map(([language, channels]) => (
           <ChannelRow key={language} title={`${language} Channels`} channels={channels} />
         ))}
-
         {/* All Channels */}
         {allChannels.length > 0 && (
           <ChannelRow title="All Channels" channels={allChannels} />

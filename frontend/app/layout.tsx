@@ -6,10 +6,13 @@ import BackendHealthCheck from "@/components/BackendHealthCheck";
 import { Toaster } from 'react-hot-toast';
 import TVNavigationProvider from "@/components/TVNavigationProvider";
 import { ViewModeProvider } from "@/context/ViewModeContext";
+import ClassicModeGuard from "@/components/ClassicModeGuard";
+import NetworkStatusMonitor from "@/components/NetworkStatusMonitor";
 
 export const metadata: Metadata = {
   title: "Nellai IPTV - Premium Entertainment",
   description: "Watch free live TV channels online with Nellai IPTV — HD streaming, fast loading, 24/7 access, and a smooth OTT experience.",
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -23,10 +26,13 @@ export default function RootLayout({
         <TVNavigationProvider>
           <ViewModeProvider>
             <BackendHealthCheck />
+            <NetworkStatusMonitor />
             <Toaster position="top-right" />
             <Navbar />
-            <main className="flex-grow">
-              {children}
+            <main className="flex-grow pt-6">
+              <ClassicModeGuard>
+                {children}
+              </ClassicModeGuard>
             </main>
             <Footer />
           </ViewModeProvider>

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import api from '@/lib/api';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -10,14 +12,43 @@ export default function ContactPage() {
     subject: '',
     message: ''
   });
-  const [submitted, setSubmitted] = useState(false);
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In production, this would send to a backend API
-    console.log('Contact form submitted:', formData);
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    setIsSubmitting(true);
+    
+    try {
+      const response = await api.post('/contact', formData);
+      
+      if (response.data.status) {
+        toast.success(response.data.message || 'Message sent successfully!');
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: ''
+        });
+      } else {
+        toast.error(response.data.message || 'Failed to send message. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Error submitting form:', error);
+      console.log('Error response:', error.response?.data);
+      
+      // Display specific validation errors if available
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const errorMessages = Object.values(errors).flat().join(', ');
+        toast.error(`Validation failed: ${errorMessages}`);
+      } else {
+        const errorMessage = error.response?.data?.message || 'Failed to send message. Please try again.';
+        toast.error(errorMessage);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -28,7 +59,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-24 pb-12 px-4 md:px-8">
+    <div className="min-h-screen bg-slate-950 pb-12 px-4 md:px-8">
       <div className="container-custom max-w-6xl">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">Contact Us</h1>
@@ -84,12 +115,6 @@ export default function ContactPage() {
             <div className="bg-slate-900 rounded-xl p-8 border border-slate-800">
               <h2 className="text-2xl font-bold text-white mb-6">Send us a message</h2>
               
-              {submitted && (
-                <div className="mb-6 bg-green-500/10 border border-green-500/20 text-green-500 px-4 py-3 rounded-lg">
-                  Thank you! Your message has been sent successfully.
-                </div>
-              )}
-
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -150,10 +175,17 @@ export default function ContactPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-primary hover:bg-cyan-600 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="w-full bg-primary hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
-                  <Send size={20} />
-                  Send Message
+                  {isSubmitting ? (
+                    <>Sending...</>
+                  ) : (
+                    <>
+                      <Send size={20} />
+                      Send Message
+                    </>
+                  )}
                 </button>
               </form>
             </div>

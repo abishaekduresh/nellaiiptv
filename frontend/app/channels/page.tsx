@@ -91,7 +91,7 @@ function ChannelsContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-24 pb-12 px-4 md:px-8">
+    <div className="min-h-screen bg-slate-950 pb-12 px-4 md:px-8">
       <div className="container-custom">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div>

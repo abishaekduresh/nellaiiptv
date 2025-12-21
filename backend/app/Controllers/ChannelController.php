@@ -167,4 +167,35 @@ class ChannelController
             return ResponseFormatter::error($response, $e->getMessage(), 400);
         }
     }
+
+    public function report(Request $request, Response $response, string $uuid): Response
+    {
+        $data = $request->getParsedBody() ?? [];
+        
+        // Get customer if authenticated
+        $user = $request->getAttribute('user');
+        $customerId = null;
+        
+        if ($user && isset($user->sub)) {
+            $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
+            if ($customer) {
+                $customerId = $customer->id;
+            }
+        }
+
+        $errors = Validator::validate($data, [
+            'required' => [['issue_type']],
+            'lengthMin' => [['issue_type', 1]]
+        ]);
+
+        if ($errors) return ResponseFormatter::error($response, 'Validation failed', 400, $errors);
+
+        try {
+            $description = $data['description'] ?? null;
+            $report = $this->channelService->createReport($uuid, $data['issue_type'], $description, $customerId);
+            return ResponseFormatter::success($response, $report, 'Report submitted successfully', 201);
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 400);
+        }
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Channel;
 use App\Models\ChannelRating;
 use App\Models\ChannelComment;
+use App\Models\ChannelReport;
 use App\Models\LiveViewer;
 use Ramsey\Uuid\Uuid;
 use Exception;
@@ -14,7 +15,10 @@ class ChannelService
 {
     public function getAll(array $filters = []): array
     {
-        $query = Channel::query()->where('status', 'active');
+        $query = Channel::query()
+            ->where('status', 'active')
+            ->with(['language', 'state', 'district'])
+            ->withAvg('ratings', 'rating');
 
         if (isset($filters['language_id'])) {
             $query->where('language_id', $filters['language_id']);
@@ -183,5 +187,21 @@ class ChannelService
         LiveViewer::where('last_heartbeat', '<', date('Y-m-d H:i:s', strtotime('-2 minutes')))->delete();
 
         return LiveViewer::where('channel_id', $channel->id)->count();
+    }
+
+    public function createReport(string $uuid, string $issueType, ?string $description, ?int $customerId): ChannelReport
+    {
+        $channel = $this->getOne($uuid);
+
+        $report = new ChannelReport();
+        $report->uuid = Uuid::uuid4()->toString();
+        $report->channel_id = $channel->id;
+        $report->customer_id = $customerId;
+        $report->issue_type = $issueType;
+        $report->description = $description;
+        $report->status = 'pending';
+        $report->save();
+
+        return $report;
     }
 }

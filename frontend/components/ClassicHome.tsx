@@ -47,7 +47,6 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
       try {
         await api.post(`/channels/${selectedChannel.uuid}/view`);
         hasIncrementedRef.current = true;
-        setViewersCount(prev => prev + 1);
       } catch (err) {
         // Ignore error
       }
@@ -89,18 +88,20 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
       selectedChannel.state?.name
   ].filter(Boolean).join(', ');
 
-  const rating = selectedChannel.average_rating || 0;
+  const rating = Number(selectedChannel.ratings_avg_rating || 0) || Number(selectedChannel.average_rating) || 0;
 
   return (
-    <div className="w-full px-4 py-2 h-[calc(100vh)] overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+    <div className="w-full px-2 py-2 lg:px-4 lg:py-2 h-auto lg:h-[calc(100vh)] overflow-y-auto lg:overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 h-full">
         {/* Left Side: Player */}
-        <div className="lg:col-span-6 flex flex-col h-full overflow-hidden">
+        <div className="lg:col-span-6 flex flex-col h-auto lg:h-full overflow-visible lg:overflow-hidden shrink-0">
           <div className="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-800 relative z-10 shrink-0">
              <VideoPlayer 
                 src={selectedChannel.hls_url} 
                 poster={selectedChannel.thumbnail_url} 
                 onReady={handlePlayerReady}
+                channelUuid={selectedChannel.uuid}
+                channelName={selectedChannel.name}
              />
           </div>
           
@@ -109,14 +110,14 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
               <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
-                        <span className="bg-primary/20 text-primary px-3 py-1 rounded-lg text-lg">
+                        <h1 className="text-xl md:text-2xl font-bold text-white mb-2 flex items-center gap-3">
+                        <span className="bg-primary/20 text-primary px-2 py-1 md:px-3 rounded-lg text-base md:text-lg">
                             CH {selectedChannel.channel_number}
                         </span>
                         {selectedChannel.name}
                         </h1>
                         
-                        <div className="flex flex-wrap items-center gap-4 text-slate-400 text-sm mt-2">
+                        <div className="flex flex-wrap items-center gap-2 md:gap-4 text-slate-400 text-sm mt-2">
                              {/* Address */}
                              {address && (
                                 <span className="flex items-center gap-1.5">
@@ -132,7 +133,7 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 bg-slate-950/50 p-3 rounded-lg border border-slate-800/50">
+                    <div className="flex items-center gap-4 bg-slate-950/50 p-2 md:p-3 rounded-lg border border-slate-800/50 justify-around md:justify-start">
                          {/* Viewers */}
                          <div className="flex flex-col items-center px-2">
                             <span className="flex items-center gap-1.5 text-slate-300 font-bold">
@@ -157,18 +158,18 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
               </div>
 
               {/* Banner Ad */}
-              <div className="w-full min-h-[512px]">
-                 <AdBanner type="banner" key={selectedChannel?.uuid} />
+              <div className="w-full min-h-auto lg:min-h-[512px]">
+                 <AdBanner type="banner" />
               </div>
           </div>
         </div>
 
         {/* Right Side: Channel Grid */}
-        <div className="lg:col-span-6 bg-slate-900/30 rounded-xl border border-slate-800 overflow-hidden flex flex-col h-full">
-          <div className="p-2 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
+        <div className="lg:col-span-6 bg-slate-900/30 rounded-xl border border-slate-800 overflow-hidden flex flex-col h-[500px] lg:h-full mt-4 lg:mt-0">
+          <div className="p-2 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center shrink-0">
             <h2 className="font-bold text-lg text-white">Channel List</h2>
              <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded-full">{channels.length} Channels</span>
+                <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded-full whitespace-nowrap">{channels.length} Channels</span>
                 <button
                     id="switch-mode-btn"
                     onClick={toggleMode}
@@ -184,12 +185,13 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
                     title="Switch to OTT Mode"
                 >
                     <LogOut size={16} />
-                    <span className="text-xs font-bold">Switch to OTT</span>
+                    <span className="hidden md:inline text-xs font-bold">Switch to OTT</span>
+                    <span className="md:hidden text-xs font-bold">OTT</span>
                 </button>
              </div>
           </div>
           <div className="overflow-y-auto p-3 flex-1 scrollbar-hide">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
               {channels.map((channel, index) => (
                 <ChannelListItem 
                   key={channel.uuid} 
@@ -210,15 +212,29 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
 function ChannelListItem({ channel, index, isActive, onSelect }: { channel: Channel; index: number; isActive: boolean; onSelect: () => void }) {
   const { focusProps, isFocused } = useTVFocus({
     onEnter: onSelect,
-    className: `w-full flex items-start gap-4 p-3 rounded-lg transition-all duration-200 border group ${
-      isActive 
-        ? 'bg-primary/10 border-primary/50 ring-1 ring-primary/20' 
-        : 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600'
-    }`
+    className: "group relative block rounded-lg overflow-hidden transition-all duration-300"
   });
+  
+  const [isLoadingImage, setIsLoadingImage] = useState(true);
+  const [isOnline, setIsOnline] = useState(channel.status === 'active');
 
-  const rating = channel.average_rating || 0;
-  const address = [channel.village, channel.district?.name].filter(Boolean).join(', ');
+  const rating = Number(channel.ratings_avg_rating) || Number(channel.average_rating) || 0;
+
+  // Check online status on mount
+  useEffect(() => {
+    const checkOnlineStatus = async () => {
+      try {
+        const response = await api.get(`/channels/${channel.uuid}/stream-status`);
+        if (response.data.status && response.data.data) {
+          setIsOnline(response.data.data.is_online);
+        }
+      } catch (err) {
+        setIsOnline(false);
+      }
+    };
+
+    checkOnlineStatus();
+  }, [channel.uuid]);
 
   return (
     <button
@@ -234,53 +250,70 @@ function ChannelListItem({ channel, index, isActive, onSelect }: { channel: Chan
         }
       }}
       className={`
-        ${focusProps.className} flex-col items-start gap-2 h-auto
-        ${isFocused ? 'ring-2 ring-primary scale-[1.02] z-10 bg-slate-800 shadow-xl' : ''}
+        ${focusProps.className} w-full text-left bg-slate-800
+        ${isActive ? 'ring-2 ring-primary scale-[1.02] z-10 shadow-xl' : 'hover:ring-2 hover:ring-primary'}
+        ${isFocused ? 'ring-4 ring-white scale-105 z-20' : ''}
       `}
     >
-      {/* Thumbnail Card */}
-      <div className="w-full aspect-[4/3] bg-black rounded-lg overflow-hidden border border-slate-700 shadow-sm group-hover:shadow-md transition-shadow relative">
-        {channel.thumbnail_url ? (
-          <img src={channel.thumbnail_url} alt={channel.name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-600 text-[10px]">NO IMG</div>
-        )}
-        <div className="absolute top-1 left-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">
-            CH {channel.channel_number}
-        </div>
-        {isActive && (
-            <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                <Play size={24} className="text-white drop-shadow-lg animate-pulse" fill="currentColor" />
-            </div>
-        )}
+      
+      {/* Thumbnail Card - Aspect Video 16:9 */}
+    <div className="w-full aspect-video relative bg-slate-900 text-slate-800">
+      {channel.thumbnail_url ? (
+        <>
+            <div className={`absolute inset-0 bg-slate-800 animate-pulse ${isLoadingImage ? 'opacity-100 z-10' : 'opacity-0 -z-10'} transition-opacity`} />
+            <img
+            src={channel.thumbnail_url}
+            alt={channel.name}
+            onLoad={() => setIsLoadingImage(false)}
+            onError={() => setIsLoadingImage(false)}
+            className={`w-full h-full object-contain p-2 opacity-90 group-hover:opacity-100 transition-opacity ${isLoadingImage ? 'opacity-0' : 'opacity-90'}`}
+            />
+        </>
+      ) : (
+         <div className="w-full h-full flex items-center justify-center text-slate-600 font-bold text-2xl">
+            {channel.name.charAt(0)}
+          </div>
+      )}
+
+      {/* Channel Number Badge */}
+      <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/10">
+        CH {channel.channel_number}
+      </div>
+      
+       {/* Status Badge */}
+      <div className={`absolute top-2 left-2 text-white text-[10px] font-bold px-1.5 py-0.5 rounded animate-pulse ${isOnline ? 'bg-green-600' : 'bg-red-600'}`}>
+           {isOnline ? 'ONLINE' : 'OFFLINE'}
       </div>
 
-      {/* Info */}
-      <div className="w-full text-left min-w-0">
-        <p className={`font-bold text-sm truncate mb-0.5 ${isActive ? 'text-primary' : 'text-slate-200 group-hover:text-white'}`}>
-        {channel.name}
-        </p>
-        
-        {/* Address */}
-        {address && (
-            <p className="text-[10px] text-slate-500 truncate flex items-center gap-1 mb-1">
-                <MapPin size={8} />
-                {address}
-            </p>
-        )}
+      {/* Active Overlay */}
+      <div className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity backdrop-blur-[2px] ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
+             <Play fill="currentColor" size={20} className="ml-1" />
+           </div>
+      </div>
+    </div>
 
-        {/* Rating & Language Row */}
-        <div className="flex items-center justify-between mt-1">
-             <div className="flex items-center gap-1">
-                <Star size={10} className={rating > 0 ? "text-yellow-500" : "text-slate-600"} fill={rating > 0 ? "currentColor" : "none"} />
-                <span className={`text-[10px] font-medium ${rating > 0 ? 'text-yellow-500' : 'text-slate-500'}`}>
-                    {rating > 0 ? rating.toFixed(1) : '-'}
-                </span>
-            </div>
-             <span className="text-[10px] text-slate-600 font-medium px-1.5 py-0.5 border border-slate-700/50 rounded bg-black/20">
-                {channel.language?.name?.slice(0, 3).toUpperCase() || 'TV'}
-            </span>
+      {/* Info */}
+      <div className="w-full p-3 pb-0">
+        <h3 className="font-medium text-white truncate text-sm mb-1" title={channel.name}>
+             {channel.name}
+        </h3>
+        
+        <div className="flex items-center justify-between text-xs text-slate-400">
+           <span>{channel.language?.name || 'Tamil'}</span>
         </div>
+      </div>
+
+      {/* Rating & Viewers - Matches ChannelCard layout */}
+      <div className="w-full flex items-center justify-between mt-1 px-3 pb-3">
+             <div className="flex items-center gap-1 text-[10px] text-yellow-500 font-bold">
+                <Star size={12} fill="currentColor" />
+                <span>{rating > 0 ? rating.toFixed(1) : '0.0'}</span>
+            </div>
+             <div className="flex items-center text-xs text-slate-400">
+                <Eye size={12} className="mr-1" />
+                <span>{(channel.viewers_count || 0).toLocaleString()}</span>
+             </div>
       </div>
     </button>
   );

@@ -48,6 +48,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->post('/channels/{uuid}/heartbeat', [\App\Controllers\ChannelController::class, 'heartbeat']);
     $group->post('/channels/{uuid}/view', [\App\Controllers\ChannelController::class, 'incrementView']);
     $group->get('/channels/{uuid}/stream-status', [\App\Controllers\StreamController::class, 'checkStatus']);
+    $group->post('/channels/{uuid}/report', [\App\Controllers\ChannelController::class, 'report']);
 
     // Ads
     $group->get('/ads', [\App\Controllers\AdController::class, 'index']);
@@ -59,7 +60,8 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->get('/languages', [\App\Controllers\GeoController::class, 'getLanguages']);
     $group->get('/categories', [\App\Controllers\GeoController::class, 'getCategories']);
 
-
+    // Contact
+    $group->post('/contact', [\App\Controllers\ContactController::class, 'submit']);
 
     // Settings (Public)
     $group->get('/settings/disclaimer', [\App\Controllers\Admin\SettingController::class, 'getDisclaimer']);

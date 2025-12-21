@@ -2,6 +2,56 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2025-12-21
+### Added
+- **Channel Report System**: Complete backend and frontend integration for reporting channel issues
+  - Created `channel_reports` table with MyISAM engine compatibility
+  - Added `ChannelReport` model with channel and customer relationships
+  - Implemented `createReport` method in `ChannelService`
+  - Added `/api/channels/{uuid}/report` endpoint with validation
+  - Integrated `ReportModal` with backend API, sends customer UUID when logged in
+  - Report modal now available in both Classic and OTT modes
+- **Contact Form Backend**: Replaced webhook with database storage
+  - Created `contact_messages` table for storing contact form submissions
+  - Added `ContactMessage` model and `ContactController` with validation
+  - Implemented `/api/contact` endpoint with email format and length validation
+  - Frontend now uses backend API instead of external webhook
+- **Classic Mode Enhancements**:
+  - Added real-time stream status checking for each channel card
+  - Channels now display accurate ONLINE/OFFLINE status based on stream availability
+  - Implemented navigation guard to prevent accessing other pages in Classic mode
+  - Users are automatically redirected to home page when trying to navigate away
+- **Network Status Monitoring**:
+  - Added global internet connection status monitoring
+  - Toast notifications appear when connection is lost (stays visible until restored)
+  - Toast notifications appear when connection is restored (auto-dismisses after 3 seconds)
+  - Offline toast automatically dismisses when connection returns
+
+### Changed
+- **UI/UX Improvements**:
+  - Removed gap between navbar and content in OTT mode (removed `pt-16` and `pt-24` padding)
+  - Added `pt-6` padding to main content area for better spacing below navbar
+  - Improved skeleton loading - now only shows during initial page load, not after content loads
+- **Classic Mode**:
+  - Updated `VideoPlayer` to accept and pass `channelUuid` and `channelName` props
+  - Channel status badges now use real-time stream status instead of database status field
+- **Contact Page**:
+  - Enhanced error handling to display specific validation errors from backend
+  - Better user feedback with detailed error messages
+
+### Fixed
+- **Channel Report**:
+  - Fixed SQL foreign key constraint errors by using MyISAM engine instead of InnoDB
+  - Fixed "Channel information missing" error by passing channel props through all components
+- **Contact Form**:
+  - Fixed validation errors by using correct Valitron rule syntax
+  - Removed unsupported `lengthMax` validation rule
+- **Classic Mode**:
+  - Fixed incorrect channel status display (was showing database status instead of stream status)
+  - Fixed navigation issues by implementing `ClassicModeGuard` component
+- **Network Monitoring**:
+  - Fixed offline toast persisting after connection restored by implementing toast ID tracking
+
 ## [1.4.0] - 2025-12-07
 ### Added
 - **Classic Mode Layout**: New 3-column channel list grid on large screens for better density.
