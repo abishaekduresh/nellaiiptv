@@ -1,6 +1,6 @@
 <?php
 
-// Handle CORS preflight requests
+// 1. CORS Headers
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
@@ -11,42 +11,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-use Slim\Factory\AppFactory;
-use App\Middleware\JsonBodyParserMiddleware;
-use App\Middleware\CorsMiddleware;
-use App\Middleware\ErrorHandlerMiddleware;
+/**
+ * 2. Bootstrap the Application
+ */
+$rootDir = dirname(__DIR__);
+require $rootDir . '/vendor/autoload.php';
+$app = require $rootDir . '/bootstrap/app.php';
 
-$app = require __DIR__ . '/../bootstrap/app.php';
-$scriptName = $_SERVER['SCRIPT_NAME'];
-$basePath = str_replace('/index.php', '', $scriptName);
-$app->setBasePath($basePath);
+use Slim\Exception\HttpNotFoundException;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
-if (isset($_GET['debug'])) {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'SCRIPT_NAME' => $_SERVER['SCRIPT_NAME'],
-        'REQUEST_URI' => $_SERVER['REQUEST_URI'],
-        'basePath' => $basePath,
-    ]);
-    exit;
+/**
+ * 3. 🚀 SELF-CORRECTING BASE PATH
+ * This logic handles root-level rewrites common in cPanel/shared hosting.
+ */
+$scriptName = $_SERVER['SCRIPT_NAME']; // e.g. /public/index.php
+$requestUri = $_SERVER['REQUEST_URI']; // e.g. /api/health
+
+// Calculate base path by stripping index.php and optionally /public
+$basePath = str_replace(['/public/index.php', '/index.php'], '', $scriptName);
+$basePath = rtrim($basePath, '/');
+
+// On server root, basePath MUST be an empty string
+if (empty($basePath) || $basePath === '/' || $basePath === '.') {
+    $basePath = '';
 }
 
-// Custom Middleware
-$app->add(new CorsMiddleware()); 
-$app->add(new JsonBodyParserMiddleware());
+$app->setBasePath($basePath);
 
-// Routing Middleware (Must run before Cors)
+/**
+ * 4. Load App Routes
+ */
+require $rootDir . '/app/Routes/api.php';
+require $rootDir . '/app/Routes/admin.php';
+
+/**
+ * 5. Middleware Stack
+ */
 $app->addRoutingMiddleware();
-
-// Body Parsing Middleware
 $app->addBodyParsingMiddleware();
 
-// Error Middleware
-$app->add(new ErrorHandlerMiddleware());
-$errorMiddleware = $app->addErrorMiddleware($_ENV['APP_DEBUG'] === 'true', true, true);
-
-// Routes
-require __DIR__ . '/../app/Routes/api.php';
-require __DIR__ . '/../app/Routes/admin.php';
+/**
+ * 6. CUSTOM ERROR HANDLER (Diagnostic Mode)
+ * If a route is not found, it returns the server variables so we can see the path mismatch.
+ */
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+$errorMiddleware->setErrorHandler(HttpNotFoundException::class, function (Request $request) use ($basePath) {
+    $response = new \Slim\Psr7\Response();
+    $data = [
+        'status' => false,
+        'message' => 'Endpoint not found',
+        'diagnostics' => [
+            'request_path' => $request->getUri()->getPath(),
+            'detected_base_path' => $basePath ?: '(root)',
+            'script_name' => $_SERVER['SCRIPT_NAME'],
+            'request_uri' => $_SERVER['REQUEST_URI'],
+            'hint' => 'Check if the URL should be ' . $basePath . '/api/health'
+        ]
+    ];
+    $response->getBody()->write(json_encode($data));
+    return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
+});
 
 $app->run();

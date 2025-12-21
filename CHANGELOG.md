@@ -25,7 +25,10 @@ All notable changes to this project will be documented in this file.
   - Added global internet connection status monitoring
   - Toast notifications appear when connection is lost (stays visible until restored)
   - Toast notifications appear when connection is restored (auto-dismisses after 3 seconds)
-  - Offline toast automatically dismisses when connection returns
+- **Backend Deployment & Troubleshooting**:
+  - Implemented automatic base path detection in `public/index.php` for root and subfolder deployments
+  - Added diagnostic debug mode (`?debug=1`) for health check and routing troubleshooting
+  - Optimized middleware execution order for better error reporting in production
 
 ### Changed
 - **UI/UX Improvements**:

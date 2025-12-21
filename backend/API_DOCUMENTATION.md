@@ -1,226 +1,661 @@
-# Nellai IPTV Backend API - Complete Documentation
+# Nellai IPTV - API Documentation
 
-## Base URLs
-- **User API**: `http://localhost/api`
-- **Admin API**: `http://localhost/api/admin`
+**Version 1.5.0**
 
-## Admin Setup
+Base URL: `/api`
 
-### Default Admin Credentials
-- **Username**: `admin`
-- **Email**: `admin@nellaiiptv.com`
-- **Password**: `admin123`
+## Table of Contents
 
-### Database Migration
-Run this SQL file to create admin tables:
-```bash
-mysql -u root -p nellai_iptv < database/migrations/admin_tables.sql
+- [Authentication](#authentication)
+- [Channels](#channels)
+- [Channel Interactions](#channel-interactions)
+- [Contact](#contact)
+- [Advertisements](#advertisements)
+- [Metadata](#metadata)
+- [System](#system)
+
+---
+
+## Authentication
+
+### Register User
+
+**Endpoint**: `POST /customers/register`
+
+**Request Body**:
+```json
+{
+  "name": "John Doe",
+  "phone": "1234567890",
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+**Response** (201):
+```json
+{
+  "status": true,
+  "message": "Registration successful. Please login.",
+  "data": {
+    "uuid": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}
 ```
 
 ---
 
-## Admin API Endpoints
+### Login
 
-### Authentication
+**Endpoint**: `POST /customers/login`
 
-#### Admin Login
-```
-POST /api/admin/login
-Content-Type: application/json
-
+**Request Body**:
+```json
 {
-  "username": "admin",
-  "password": "admin123"
+  "phone": "1234567890",
+  "password": "password123"
 }
+```
 
-Response:
+**Response** (200):
+```json
 {
   "status": true,
   "message": "Login successful",
   "data": {
-    "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-    "token_type": "Bearer",
-    "expires_in": 86400,
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
     "user": {
-      "uuid": "...",
-      "username": "admin",
-      "email": "admin@nellaiiptv.com",
-      "role": "super_admin"
+      "uuid": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "John Doe",
+      "email": "john@example.com"
     }
   }
 }
 ```
 
-#### Refresh Token
-```
-POST /api/admin/refresh-token
-Authorization: Bearer {admin_token}
-```
-
 ---
 
-### Channel Management (Admin)
+### Forgot Password
 
-#### List All Channels
-```
-GET /api/admin/channels?page=1&per_page=20&state_id=1&status=active
-Authorization: Bearer {admin_token}
-```
+**Endpoint**: `POST /customers/forgot-password`
 
-#### Create Channel
-```
-POST /api/admin/channels
-Authorization: Bearer {admin_token}
-Content-Type: application/json
-
+**Request Body**:
+```json
 {
-  "name": "Test Channel",
-  "stream_url": "https://example.com/stream.m3u8",
-  "logo": "https://example.com/logo.png",
-  "state_id": 1,
-  "district_id": 1,
-  "language_id": 1,
-  "status": "active"
+  "email": "john@example.com"
 }
 ```
 
-#### Update Channel
-```
-PUT /api/admin/channels/{uuid}
-Authorization: Bearer {admin_token}
-Content-Type: application/json
-
+**Response** (200):
+```json
 {
-  "name": "Updated Channel Name",
-  "status": "inactive"
-}
-```
-
-#### Delete Channel
-```
-DELETE /api/admin/channels/{uuid}
-Authorization: Bearer {admin_token}
-```
-
----
-
-### Customer Management (Admin)
-
-#### List Customers
-```
-GET /api/admin/customers?page=1&search=john&status=active
-Authorization: Bearer {admin_token}
-```
-
-#### Update Customer Status
-```
-PUT /api/admin/customers/{uuid}
-Authorization: Bearer {admin_token}
-Content-Type: application/json
-
-{
-  "status": "inactive"
-}
-```
-
-#### Delete Customer
-```
-DELETE /api/admin/customers/{uuid}
-Authorization: Bearer {admin_token}
-```
-
----
-
-### Settings Management (Admin)
-
-#### Get All Settings
-```
-GET /api/admin/settings
-Authorization: Bearer {admin_token}
-```
-
-#### Update Setting
-```
-PUT /api/admin/settings/disclaimer_text
-Authorization: Bearer {admin_token}
-Content-Type: application/json
-
-{
-  "value": "New disclaimer text here..."
+  "status": true,
+  "message": "Password reset link has been sent to your email"
 }
 ```
 
 ---
 
-## Public API Endpoints
+### Reset Password
 
-### Advanced Search
-```
-GET /api/channels/search?q=channel&state_id=1&language_id=2&district_id=3&page=1
+**Endpoint**: `POST /customers/reset-password`
+
+**Request Body**:
+```json
+{
+  "token": "reset-token-here",
+  "password": "newpassword123"
+}
 ```
 
-### Get Disclaimer
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "Password has been reset successfully"
+}
 ```
-GET /api/settings/disclaimer
 
-Response:
+---
+
+### Refresh Token
+
+**Endpoint**: `POST /customers/refresh-token`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "Token refreshed successfully",
+  "data": {
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+  }
+}
+```
+
+---
+
+## Customer Profile
+
+### Get Profile
+
+**Endpoint**: `GET /customers/profile`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Response** (200):
+```json
 {
   "status": true,
   "data": {
-    "disclaimer": "Nellai IPTV provides streaming services..."
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "1234567890"
   }
 }
 ```
 
 ---
 
-## Testing with cURL
+### Update Profile
 
-### Admin Login
-```bash
-curl -X POST http://localhost/api/admin/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}'
-```
+**Endpoint**: `PUT /customers/profile`
 
-### Create Channel (Admin)
-```bash
-curl -X POST http://localhost/api/admin/channels \
-  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Test Channel",
-    "stream_url": "https://example.com/stream.m3u8",
-    "state_id": 1,
-    "language_id": 1
-  }'
-```
+**Headers**: `Authorization: Bearer <token>`
 
-### Search Channels
-```bash
-curl "http://localhost/api/channels/search?q=test&state_id=1"
-```
-
----
-
-## Error Responses
-
-All errors follow this format:
+**Request Body**:
 ```json
 {
-  "status": false,
-  "message": "Error message",
-  "errors": {
-    "field": ["Validation error"]
+  "name": "John Updated",
+  "email": "johnupdated@example.com"
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "Profile updated successfully"
+}
+```
+
+---
+
+### Delete Account
+
+**Endpoint**: `DELETE /customers`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "Account deleted successfully"
+}
+```
+
+---
+
+## Channels
+
+### List Channels
+
+**Endpoint**: `GET /channels`
+
+**Query Parameters**:
+- `limit` (optional): Number of results (default: 50)
+- `offset` (optional): Pagination offset
+- `search` (optional): Search by name or channel number
+- `state_id` (optional): Filter by state
+- `district_id` (optional): Filter by district
+- `language_id` (optional): Filter by language
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "data": {
+    "data": [
+      {
+        "uuid": "channel-uuid",
+        "name": "Channel Name",
+        "channel_number": 1,
+        "hls_url": "https://...",
+        "thumbnail_url": "https://...",
+        "viewers_count": 150,
+        "is_featured": true,
+        "language": { "name": "Tamil" },
+        "state": { "name": "Tamil Nadu" },
+        "district": { "name": "Tirunelveli" }
+      }
+    ],
+    "total": 100,
+    "limit": 50,
+    "offset": 0
   }
 }
 ```
 
-Common HTTP Status Codes:
-- `200` - Success
-- `201` - Created
-- `400` - Bad Request / Validation Error
-- `401` - Unauthorized
-- `403` - Forbidden (Insufficient permissions)
-- `404` - Not Found
-- `500` - Internal Server Error
+---
+
+### Get Featured Channels
+
+**Endpoint**: `GET /channels/featured`
+
+**Query Parameters**:
+- `limit` (optional): Number of results (default: 10)
+
+**Response**: Same format as List Channels
+
+---
+
+### Get New Channels
+
+**Endpoint**: `GET /channels/new`
+
+**Query Parameters**:
+- `limit` (optional): Number of results (default: 10)
+
+**Response**: Same format as List Channels
+
+---
+
+### Get Channel Details
+
+**Endpoint**: `GET /channels/{uuid}`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "data": {
+    "uuid": "channel-uuid",
+    "name": "Channel Name",
+    "channel_number": 1,
+    "hls_url": "https://...",
+    "thumbnail_url": "https://...",
+    "viewers_count": 150,
+    "village": "Village Name",
+    "language": { "name": "Tamil" },
+    "state": { "name": "Tamil Nadu" },
+    "district": { "name": "Tirunelveli" },
+    "ratings_avg_rating": 4.5,
+    "ratings_count": 25
+  }
+}
+```
+
+---
+
+### Search Channels
+
+**Endpoint**: `GET /channels/search`
+
+**Query Parameters**:
+- `q`: Search query (name or channel number)
+
+**Response**: Same format as List Channels
+
+---
+
+### Get Related Channels
+
+**Endpoint**: `GET /channels/related/{uuid}`
+
+**Query Parameters**:
+- `limit` (optional): Number of results (default: 6)
+
+**Response**: Same format as List Channels
+
+---
+
+## Channel Interactions
+
+### Rate Channel
+
+**Endpoint**: `POST /channels/{uuid}/rate`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Request Body**:
+```json
+{
+  "rating": 5
+}
+```
+
+**Response** (201):
+```json
+{
+  "status": true,
+  "message": "Rating submitted successfully",
+  "data": {
+    "rating": 5,
+    "average_rating": 4.5
+  }
+}
+```
+
+---
+
+### Get Channel Ratings
+
+**Endpoint**: `GET /channels/{uuid}/ratings`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "data": {
+    "average": 4.5,
+    "count": 25,
+    "ratings": [
+      {
+        "rating": 5,
+        "customer": { "name": "John Doe" },
+        "created_at": "2025-12-21T10:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### Add Comment
+
+**Endpoint**: `POST /channels/{uuid}/comments`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Request Body**:
+```json
+{
+  "comment": "Great channel!"
+}
+```
+
+**Response** (201):
+```json
+{
+  "status": true,
+  "message": "Comment added successfully"
+}
+```
+
+---
+
+### Get Channel Comments
+
+**Endpoint**: `GET /channels/{uuid}/comments`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "data": [
+    {
+      "uuid": "comment-uuid",
+      "comment": "Great channel!",
+      "customer": { "name": "John Doe" },
+      "created_at": "2025-12-21T10:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### Report Channel Issue
+
+**Endpoint**: `POST /channels/{uuid}/report`
+
+**Request Body**:
+```json
+{
+  "issue_type": "Other",
+  "description": "Custom issue description here"
+}
+```
+
+**Response** (201):
+```json
+{
+  "status": true,
+  "message": "Report submitted successfully. We will get back to you soon!"
+}
+```
+
+---
+
+### Heartbeat (Viewer Tracking)
+
+**Endpoint**: `POST /channels/{uuid}/heartbeat`
+
+**Request Body**:
+```json
+{
+  "device_uuid": "unique-device-id"
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "Heartbeat recorded"
+}
+```
+
+---
+
+### Increment View Count
+
+**Endpoint**: `POST /channels/{uuid}/view`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "View count incremented"
+}
+```
+
+---
+
+### Check Stream Status
+
+**Endpoint**: `GET /channels/{uuid}/stream-status`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "data": {
+    "is_online": true,
+    "checked_at": "2025-12-21T10:00:00Z"
+  }
+}
+```
+
+---
+
+## Contact
+
+### Submit Contact Form
+
+**Endpoint**: `POST /contact`
+
+**Request Body**:
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "subject": "Question about service",
+  "message": "I have a question..."
+}
+```
+
+**Response** (201):
+```json
+{
+  "status": true,
+  "message": "Message sent successfully. We will get back to you soon!"
+}
+```
+
+---
+
+## Advertisements
+
+### Get Ads
+
+**Endpoint**: `GET /ads`
+
+**Query Parameters**:
+- `type` (optional): Ad type (banner, inline, video)
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "data": [
+    {
+      "uuid": "ad-uuid",
+      "title": "Ad Title",
+      "type": "banner",
+      "media_url": "https://...",
+      "url": "https://..."
+    }
+  ]
+}
+```
+
+---
+
+### Track Ad Impression
+
+**Endpoint**: `POST /ads/{uuid}/impression`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "Impression recorded"
+}
+```
+
+---
+
+## Metadata
+
+### Get States
+
+**Endpoint**: `GET /states`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "data": [
+    {
+      "id": 1,
+      "uuid": "state-uuid",
+      "name": "Tamil Nadu",
+      "code": "TN"
+    }
+  ]
+}
+```
+
+---
+
+### Get Districts
+
+**Endpoint**: `GET /districts`
+
+**Response**: Same format as Get States
+
+---
+
+### Get Languages
+
+**Endpoint**: `GET /languages`
+
+**Response**: Same format as Get States
+
+---
+
+### Get Categories
+
+**Endpoint**: `GET /categories`
+
+**Response**: Same format as Get States
+
+---
+
+## System
+
+### Health Check
+
+**Endpoint**: `GET /health`
+
+**Debug Mode**: `GET /health?debug=1` (Returns detailed server environment and routing info)
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "System is healthy",
+  "data": {
+    "status": "healthy",
+    "timestamp": "2025-12-21T10:00:00+00:00",
+    "service": "Nellai IPTV Backend"
+  }
+}
+```
+
+---
+
+### Get Disclaimer
+
+**Endpoint**: `GET /settings/disclaimer`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "data": {
+    "content": "Disclaimer text..."
+  }
+}
+```
+
+---
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| 200 | Success |
+| 201 | Created |
+| 400 | Bad Request / Validation Error |
+| 401 | Unauthorized |
+| 404 | Not Found |
+| 500 | Internal Server Error |
+
+## Rate Limiting
+
+Currently, no rate limiting is implemented. This may be added in future versions.
+
+## Changelog
+
+See [CHANGELOG.md](../CHANGELOG.md) for version history and updates.
+
+---
+
+**Last Updated**: December 21, 2025 | **Version**: 1.5.0
