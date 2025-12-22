@@ -2,6 +2,17 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.6.0] - 2024-12-22
+
+### Added
+- **Global Channel Limit Removal**: Removed the hardcoded 100-channel limit across the entire application.
+- **Unlimited Fetching Support**: Added support for `limit=-1` parameter in the `GET /channels` endpoint to return all active channels without pagination.
+- **Updated Pagination Logic**: Refined `ChannelService` to branch between paginated results (default) and full results when `limit=-1` is specified.
+
+### Updated
+- **Category-Specific Fetching**: Updated language and state category pages to fetch all relevant channels at once.
+- **Search & Sidebar Synchronization**: Synchronized the channel limit removal across the main home page, channels list, and individual channel sidebar.
+
 ## [1.5.0] - 2024-12-21
 
 ### Added

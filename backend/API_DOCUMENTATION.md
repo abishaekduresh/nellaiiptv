@@ -1,6 +1,6 @@
 # Nellai IPTV - API Documentation
 
-**Version 1.5.0**
+**Version 1.6.0**
 
 Base URL: `/api`
 
@@ -207,12 +207,7 @@ Base URL: `/api`
 **Endpoint**: `GET /channels`
 
 **Query Parameters**:
-- `limit` (optional): Number of results (default: 50)
-- `offset` (optional): Pagination offset
-- `search` (optional): Search by name or channel number
-- `state_id` (optional): Filter by state
-- `district_id` (optional): Filter by district
-- `language_id` (optional): Filter by language
+- `limit` (optional): Number of results (default: 50). Use `-1` to fetch all channels without pagination.
 
 **Response** (200):
 ```json
@@ -658,4 +653,4 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history and updates.
 
 ---
 
-**Last Updated**: December 21, 2025 | **Version**: 1.5.0
+**Last Updated**: December 22, 2025 | **Version**: 1.6.0

@@ -52,6 +52,10 @@ class ChannelService
             });
         }
 
+        if (isset($filters['limit']) && (int)$filters['limit'] === -1) {
+            return $query->get()->toArray();
+        }
+
         $limit = isset($filters['limit']) ? (int)$filters['limit'] : 20;
         return $query->paginate($limit)->toArray();
     }

@@ -1,4 +1,4 @@
-# Frontend (Next.js)
+# Frontend (Next.js) - v1.6.0
 
 ## Overview
 
@@ -46,6 +46,7 @@ frontend/
 - **Smart Search**: Search by channel name or specific channel number (e.g., "CH 101" or just "1").
 - **Live Visuals**: Auto-scrolling banners and interactive channel cards.
 - **Accessible Disclaimer**: TV-navigable disclaimer modal with focus support.
+- **Unlimited Browsing (v1.6.0)**: No more 100-channel limit; browse and search our entire channel catalog without restriction.
 
 ## TV Navigation Controls
 

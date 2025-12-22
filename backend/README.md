@@ -1,6 +1,6 @@
 # Nellai IPTV - Backend API
 
-**Version 1.5.0** | RESTful API built with Slim PHP Framework
+**Version 1.6.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -209,8 +209,13 @@ CORS is configured to allow requests from the frontend application. Modify `Cors
 ./vendor/bin/phpunit tests/Unit/AuthTest.php
 ```
 
-## Recent Updates (v1.5.0)
+## Recent Updates (v1.6.0)
+- ✅ Global channel limit removal (no more 100-channel cap)
+- ✅ Integrated support for `limit=-1` to fetch all channels across all pages
+- ✅ Category pages (Language/State) now load all channels instantly
+- ✅ Synchronized Classic Mode and OTT Mode data fetching logic
 
+## Previous Updates (v1.5.0)
 - ✅ Added channel reporting system with support for custom descriptions
 - ✅ Implemented contact form backend with persistent storage and validation
 - ✅ Added automatic base path detection for flexible deployment (root or subfolder)

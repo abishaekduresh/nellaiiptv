@@ -64,7 +64,7 @@ function ChannelsContent() {
       if (selectedLanguage) params.language_uuid = selectedLanguage;
       if (selectedCategory) params.category_uuid = selectedCategory; // or state_uuid
       if (searchQuery) params.search = searchQuery;
-      params.limit = 100; // Fetch more channels
+      params.limit = -1; // Fetch more channels
       
       const response = await api.get('/channels', { params });
       if (response.data.status) {

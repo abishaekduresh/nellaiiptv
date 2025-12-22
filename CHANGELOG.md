@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2024-12-22
+### Added
+- **Unlimited Channel Browsing**: Removed the hardcoded 100-channel limit across the entire platform.
+- **Support for Full Data Fetching**:
+  - Implemented `limit=-1` support in the backend `ChannelService` to bypass pagination.
+  - Updated all frontend pages (Home, Channels, Language, State) to use unlimited fetching.
+- **Enhanced Classic Mode**: Users can now browse and navigate the entire channel catalog without being capped at 100 items.
+- **Complete Feature Documentation**: Updated READMEs and API documentation across root, frontend, and backend folders.
+
+### Fixed
+- **Inconsistency in List Sizes**: Standardized fetching logic across category pages and related channels sidebar.
+
 ## [1.5.0] - 2025-12-21
 ### Added
 - **Channel Report System**: Complete backend and frontend integration for reporting channel issues

@@ -26,7 +26,7 @@ export default function StatePage() {
       setLoading(true);
       
       // Fetch channels for this state
-      const channelsRes = await api.get(`/channels?state_uuid=${uuid}`);
+      const channelsRes = await api.get(`/channels?state_uuid=${uuid}&limit=-1`);
       
       // Fetch all states to find the name
       const statesRes = await api.get('/states');

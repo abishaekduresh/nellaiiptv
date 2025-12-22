@@ -26,7 +26,7 @@ export default function LanguagePage() {
       setLoading(true);
       
       // Fetch channels for this language
-      const channelsRes = await api.get(`/channels?language_uuid=${uuid}`);
+      const channelsRes = await api.get(`/channels?language_uuid=${uuid}&limit=-1`);
       
       // Fetch all languages to find the name (optimization: backend should provide single language endpoint)
       const languagesRes = await api.get('/languages');

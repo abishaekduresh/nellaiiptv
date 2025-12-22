@@ -82,7 +82,7 @@ export default function ChannelPage() {
 
       const [channelRes, relatedRes, commentsRes] = await Promise.all([
         api.get(`/channels/${uuid}`),
-        fullLoad ? api.get(`/channels?limit=100`) : Promise.resolve({ data: { status: false } }),
+        fullLoad ? api.get(`/channels?limit=-1`) : Promise.resolve({ data: { status: false } }),
         fullLoad ? api.get(`/channels/${uuid}/comments`) : Promise.resolve({ data: { status: false } })
       ]);
 

@@ -64,7 +64,7 @@ import ClassicHome from '@/components/ClassicHome';
       
       const [featuredRes, allRes] = await Promise.all([
         api.get('/channels/featured?limit=10'),
-        api.get('/channels?limit=100') // Increased limit for Classic Mode to see more
+        api.get('/channels?limit=-1') // Fetch all channels for Classic Mode
       ]);
 
       if (featuredRes.data.status) {

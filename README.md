@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version 1.5.0** | A modern IPTV streaming platform with dual-mode interface
+**Version 1.6.0** | A modern IPTV streaming platform with dual-mode interface
 
 ## Overview
 
@@ -29,6 +29,7 @@ Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT
 - **Ratings & Comments**: Rate and comment on channels
 - **Channel Reports**: Report issues with channels (stored in database)
 - **Contact Form**: Submit inquiries via database-backed contact system
+- **Unlimited Browsing**: Support for fetching and browsing thousands of channels without hardcoded limits (v1.6.0)
 
 ### 🌐 Network & Connectivity
 - Real-time internet connection monitoring
@@ -161,8 +162,13 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ### Backend
 Configure database connection and JWT secret in your environment or config files.
 
-## Recent Updates (v1.5.0)
+## Recent Updates (v1.6.0)
+- ✅ Global removal of the 100-channel limit
+- ✅ Integrated `limit=-1` API support for unlimited data fetching
+- ✅ Full synchronization of "no limit" behavior across all modes and categories
+- ✅ Updated documentation and changelogs for v1.6.0
 
+## Previous Updates (v1.5.0)
 - ✅ Channel reporting system with database storage
 - ✅ Contact form backend integration
 - ✅ Real-time stream status monitoring
