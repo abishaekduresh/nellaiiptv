@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Channel } from '@/types';
+import { formatViewers } from '@/lib/utils';
 import VideoPlayer from '@/components/VideoPlayer';
 import ChannelRow from '@/components/ChannelRow';
 import AdBanner from '@/components/AdBanner';
@@ -63,6 +64,7 @@ export default function ChannelPage() {
   // State
   const [channel, setChannel] = useState<Channel | null>(null);
   const [relatedChannels, setRelatedChannels] = useState<Channel[]>([]);
+  const [allChannelsList, setAllChannelsList] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isOnline, setIsOnline] = useState(true);
@@ -98,6 +100,7 @@ export default function ChannelPage() {
 
       if (fullLoad && relatedRes.data.status) {
         const allChannels = relatedRes.data.data.data || relatedRes.data.data || [];
+        setAllChannelsList(allChannels);
         setRelatedChannels(allChannels.filter((ch: Channel) => ch.uuid !== uuid));
       }
 
@@ -313,6 +316,12 @@ export default function ChannelPage() {
               onReady={handlePlayerReady}
               channelUuid={channel.uuid}
               channelName={channel.name}
+              channels={allChannelsList}
+              currentGroup="All Channels"
+              onChannelSelect={(c) => router.push(`/channel/${c.uuid}`)}
+              viewersCount={channel.viewers_count || 0}
+              topTrending={relatedChannels.slice(0, 10)}
+              useCustomOverlay={false}
             />
           </div>
         </div>
@@ -360,7 +369,7 @@ export default function ChannelPage() {
               )}
               <span className="flex items-center gap-2 text-white font-medium">
                 <Eye size={18} className="text-primary" />
-                {channel.viewers_count} Viewers
+                {formatViewers(channel.viewers_count)} Viewers
               </span>
               {/* Explicit Average Rating Display */}
               <span className="flex items-center gap-2 text-yellow-400 font-bold">

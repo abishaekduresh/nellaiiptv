@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version 1.7.0** | A modern IPTV streaming platform with dual-mode interface
+**Version 1.8.0** | A modern IPTV streaming platform with dual-mode interface
 
 ## Overview
 
@@ -21,6 +21,7 @@ Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT
 - HLS video streaming with Video.js player
 - Real-time stream status monitoring
 - Quality selector and playback controls
+- **Premium UI**: Custom "Dual Ring" animated loader and persistent branding watermark
 - TV remote control support (Play/Pause, Volume, Seek)
 
 ### 🔍 Advanced Features
@@ -161,6 +162,11 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 
 ### Backend
 Configure database connection and JWT secret in your environment or config files.
+
+## Latest Updates (v1.8.0)
+- ✅ **Premium UI Elements**: New "Dual Ring" animated video loader and persistent channel watermark.
+- ✅ **OTT Mode Refined**: Native Controls for Embedded/OTT channel view; Custom Overlay for Classic Mode.
+- ✅ **Bug Fixes**: Fixed top trending viewer counts available.
 
 ## Recent Updates (v1.7.0)
 - ✅ **Advanced Classic Mode**: Complete mobile redesign and TV navigation improvements.

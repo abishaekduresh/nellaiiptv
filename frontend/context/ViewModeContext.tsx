@@ -23,6 +23,11 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
     const savedMode = localStorage.getItem('viewMode') as ViewMode;
     if (savedMode && (savedMode === 'OTT' || savedMode === 'Classic')) {
       setModeState(savedMode);
+      
+      // Track initial mode
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('set', 'user_properties', { view_mode: savedMode });
+      }
     }
     setIsInitialized(true);
   }, []);
@@ -30,6 +35,16 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
   const setMode = (newMode: ViewMode) => {
     setModeState(newMode);
     localStorage.setItem('viewMode', newMode);
+
+    // Track mode change
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'switch_view_mode', {
+            event_category: 'Interface',
+            event_label: newMode,
+            mode: newMode
+        });
+        (window as any).gtag('set', 'user_properties', { view_mode: newMode });
+    }
   };
 
   const toggleMode = () => {

@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.7.0
+# Frontend (Next.js) - v1.8.0
 
 ## Overview
 
@@ -47,10 +47,10 @@ frontend/
 - **Live Visuals**: Auto-scrolling banners and interactive channel cards.
 - **Accessible Disclaimer**: TV-navigable disclaimer modal with focus support.
 - **Unlimited Browsing (v1.6.0)**: No more 100-channel limit; browse and search our entire channel catalog without restriction.
-- **Advanced Classic Mode (v1.7.0)**: 
-  - Complete mobile redesign with auto-scroll and compact layout.
-  - "Cycle Button" filtering for Language and Category.
-  - Native TV navigation optimizations.
+- **Premium UI (v1.8.0)**: 
+  - **Animated Loader**: "Dual Ring" glowing active states.
+  - **Persistent Watermark**: Responsive branding visible in fullscreen.
+  - **OTT Improvements**: Separate Native Control experience for Embedded player.
 
 ## TV Navigation Controls
 
@@ -65,8 +65,8 @@ frontend/
 | Key | Action |
 | :--- | :--- |
 | **Enter / Space** | Play / Pause |
-| **Arrow Up / Down** | Increase / Decrease Volume |
-| **Arrow Left / Right** | Seek Forward / Backward (10s) |
+| **Arrow Up / Down** | Next / Previous Channel |
+| **Arrow Left / Right** | Increase / Decrease Volume |
 | **Backspace / Esc** | Exit Player / Go Back |
 
 ## Contributing

@@ -9,6 +9,7 @@ import AdBanner from './AdBanner';
 import api from '@/lib/api';
 import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
+import { formatViewers } from '@/lib/utils';
 
 interface ClassicHomeProps {
   channels: Channel[];
@@ -78,7 +79,7 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
     }
   }, [selectedChannel]);
 
-  const handlePlayerReady = (player: Player) => {
+  const handlePlayerReady = useCallback((player: Player) => {
     playerRef.current = player;
     
     player.on('play', () => {
@@ -97,7 +98,7 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
             viewTimerRef.current = null;
         }, 10000);
     }
-  };
+  }, [checkAndIncrementView]);
 
   /* Ref for Scroll to Top logic */
   const topRef = useRef<HTMLDivElement>(null);
@@ -211,6 +212,23 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
       );
   };
 
+  // Navigation for Player Overlay
+  const gotoNextGroup = useCallback(() => {
+      const keys = groupKeys;
+      if (keys.length === 0) return;
+      const currentIndex = keys.indexOf(effectiveActiveGroup);
+      const nextIndex = (currentIndex + 1) % keys.length;
+      setActiveGroup(keys[nextIndex]);
+  }, [groupKeys, effectiveActiveGroup]);
+
+  const gotoPrevGroup = useCallback(() => {
+    const keys = groupKeys;
+    if (keys.length === 0) return;
+    const currentIndex = keys.indexOf(effectiveActiveGroup);
+    const prevIndex = (currentIndex - 1 + keys.length) % keys.length;
+    setActiveGroup(keys[prevIndex]);
+  }, [groupKeys, effectiveActiveGroup]);
+
   return (
     <div ref={topRef} className="w-full px-0 py-0 lg:px-4 lg:py-2 h-auto lg:h-[calc(100vh)] overflow-y-auto lg:overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-1 lg:gap-6 h-full">
@@ -228,6 +246,15 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                             onReady={handlePlayerReady}
                             channelUuid={selectedChannel.uuid}
                             channelName={selectedChannel.name}
+                            
+                            // STB Overlay Props
+                            channels={groups[effectiveActiveGroup] || []}
+                            topTrending={topTrending || []}
+                            viewersCount={viewersCount}
+                            currentGroup={effectiveActiveGroup}
+                            onChannelSelect={handleChannelClick} // Use existing handler
+                            onNextGroup={gotoNextGroup}
+                            onPrevGroup={gotoPrevGroup}
                          />
                     </div>
                 </div>
@@ -267,7 +294,7 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                                 <div className="flex flex-col items-center">
                                 <span className="flex items-center gap-1 text-white font-bold text-xs lg:text-sm">
                                     <Eye size={12} className={isOnline ? "text-emerald-500" : "text-slate-600"} />
-                                    {viewersCount.toLocaleString()}
+                                    {formatViewers(viewersCount)}
                                 </span>
                                 <span className="text-[9px] text-slate-500 font-medium uppercase tracking-wider">Views</span>
                                 </div>
@@ -351,16 +378,20 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                 <div className="mb-2 lg:mb-4">
                     <h3 className="text-[10px] lg:text-xs font-bold text-primary mb-1.5 lg:mb-2 uppercase tracking-wider pl-1 border-l-2 border-primary">Top Trending</h3>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2"> {/* Changed to 4 columns desktop, 2 mobile */}
-                        {topTrending.slice(0, 8).map((channel, i) => (
-                             <ChannelListItem 
-                                key={`trend-${channel.uuid}`} 
-                                channel={channel} 
-                                index={i}
-                                isActive={selectedChannel.uuid === channel.uuid}
-                                onSelect={() => handleChannelClick(channel)}
-                                compact={true}
-                              />
-                        ))}
+                        {topTrending.slice(0, 8).map((channel, i) => {
+                             // Enrich trending data with main channel data (for fresh viewer counts)
+                             const enrichedChannel = channels.find(c => c.uuid === channel.uuid) || channel;
+                             return (
+                                 <ChannelListItem 
+                                    key={`trend-${channel.uuid}`} 
+                                    channel={enrichedChannel} 
+                                    index={i}
+                                    isActive={selectedChannel.uuid === channel.uuid}
+                                    onSelect={() => handleChannelClick(enrichedChannel)}
+                                    compact={true}
+                                  />
+                             );
+                        })}
                     </div>
                 </div>
             )}
@@ -492,9 +523,9 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
                 <Star size={10} fill="currentColor" />
                 <span>{rating > 0 ? rating.toFixed(1) : '0.0'}</span>
             </div>
-             <div className="flex items-center text-[10px] text-slate-400">
-                <Eye size={10} className="mr-1" />
-                <span>{(channel.viewers_count || 0).toLocaleString()}</span>
+             <div className="flex items-center text-[10px] text-slate-300 font-medium">
+                <Eye size={10} className="mr-1 text-slate-400" />
+                <span>{channel.viewers_count ? formatViewers(channel.viewers_count) : '0'}</span>
              </div>
       </div>
     </button>

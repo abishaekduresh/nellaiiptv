@@ -7,6 +7,7 @@ import { useTVFocus } from '@/hooks/useTVFocus';
 import { Play, Eye, Star, Heart } from 'lucide-react';
 import { Channel } from '@/types';
 import api from '@/lib/api';
+import { formatViewers } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useStreamStatusStore } from '@/stores/streamStatusStore';
 
@@ -135,8 +136,8 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
          <span className="flex items-center text-xs text-slate-400" title={channel.daily_views !== undefined ? "Views" : "Total Views"}>
             <Eye size={12} className="mr-1" />
             {channel.daily_views !== undefined 
-                ? <>{(channel.daily_views || 0).toLocaleString()}<span className="hidden sm:inline"> </span></>
-                : (channel.viewers_count || 0).toLocaleString()}
+                ? <>{formatViewers(channel.daily_views || 0)}<span className="hidden sm:inline"> </span></>
+                : formatViewers(channel.viewers_count || 0)}
          </span>
       </div>
     </Link>
