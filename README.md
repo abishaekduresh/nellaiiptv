@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version 1.6.0** | A modern IPTV streaming platform with dual-mode interface
+**Version 1.7.0** | A modern IPTV streaming platform with dual-mode interface
 
 ## Overview
 
@@ -103,10 +103,10 @@ cd backend
 composer install
 # Configure database connection in .env or config
 # Run SQL migrations from database/migrations/
-php -S localhost:8080 -t public
+php -S localhost:80 -t public
 ```
 
-Backend API will be available at `http://localhost:8080`
+Backend API will be available at `http://localhost:80`
 
 ### Database Setup
 
@@ -162,7 +162,13 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ### Backend
 Configure database connection and JWT secret in your environment or config files.
 
-## Recent Updates (v1.6.0)
+## Recent Updates (v1.7.0)
+- ✅ **Advanced Classic Mode**: Complete mobile redesign and TV navigation improvements.
+- ✅ **Enhanced Filtering**: Grouping by Language and Category with improved sorting.
+- ✅ **Performance**: Optimized channel loading and rendering.
+- ✅ **IP Tracking**: Implemented channel view tracking with client IPs.
+
+## Previous Updates (v1.6.0)
 - ✅ Global removal of the 100-channel limit
 - ✅ Integrated `limit=-1` API support for unlimited data fetching
 - ✅ Full synchronization of "no limit" behavior across all modes and categories

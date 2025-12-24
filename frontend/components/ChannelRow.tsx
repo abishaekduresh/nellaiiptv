@@ -25,7 +25,7 @@ export default function ChannelRow({ title, channels }: Props) {
   if (!channels || channels.length === 0) return null;
 
   return (
-    <div className="group relative mb-10">
+    <div className="relative mb-10">
       <h2 className="text-xl md:text-2xl font-bold text-white mb-4 px-4 md:px-12">
         {title}
       </h2>

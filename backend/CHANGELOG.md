@@ -2,6 +2,18 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.7.0] - 2025-12-24
+
+### Added
+- **Channel Views Tracking**: Added `channel_views` table to track views with client IP addresses (`client_ip` column).
+- **Improved Sorting**: Implemented `top_trending` sort logic in `ChannelService`, calculating views based on the last 3 days.
+- **Category Relationship**: Added direct relationship between `Channel` and `Category` models, eager loaded in API responses.
+- **Heartbeat & View Logic**: Updated view increment logic to verify unique IPs per session/day (basic implementation for accurate counting).
+
+### Changed
+- **API Response**: `Channel` objects now include a full `category` object.
+- **CORS Policies**: Refined CORS headers for better cross-origin support during development.
+
 ## [1.6.0] - 2024-12-22
 
 ### Added

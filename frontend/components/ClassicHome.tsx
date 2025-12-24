@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Channel } from '@/types';
 import VideoPlayer from './VideoPlayer';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { Play, Eye, MapPin, Star, LogOut } from 'lucide-react';
+import { Play, Eye, MapPin, Star, LogOut, ChevronDown } from 'lucide-react';
 import AdBanner from './AdBanner';
 import api from '@/lib/api';
 import Player from 'video.js/dist/types/player';
@@ -12,20 +12,45 @@ import { useViewMode } from '@/context/ViewModeContext';
 
 interface ClassicHomeProps {
   channels: Channel[];
+  topTrending?: Channel[];
 }
 
-export default function ClassicHome({ channels }: ClassicHomeProps) {
+export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeProps) {
   const { toggleMode } = useViewMode();
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(channels.length > 0 ? channels[0] : null);
   const [viewersCount, setViewersCount] = useState(0);
   const [isOnline, setIsOnline] = useState(true);
   
+  // Filtering State
+  const [groupBy, setGroupBy] = useState<'all' | 'language' | 'category'>('all');
+  const [activeGroup, setActiveGroup] = useState<string>('All');
+
   // Refs for tracking view logic
   const playerRef = useRef<Player | null>(null);
   const viewTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasIncrementedRef = useRef(false);
 
+  // Grouping Logic
+  const getGroupedData = useCallback(() => {
+     if (groupBy === 'all') return { 'All Channels': channels };
 
+     const grouped: { [key: string]: Channel[] } = {};
+     channels.forEach(channel => {
+        let key = 'Others';
+        if (groupBy === 'language') {
+            key = channel.language?.name || 'Others';
+        } else if (groupBy === 'category') {
+             if ((channel as any).category?.name) {
+                 key = (channel as any).category.name;
+             } else {
+                 key = 'Others';
+             }
+        }
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(channel);
+     });
+     return grouped;
+  }, [channels, groupBy]);
 
   // Reset state when channel changes
   useEffect(() => {
@@ -74,6 +99,18 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
     }
   };
 
+  /* Ref for Scroll to Top logic */
+  const topRef = useRef<HTMLDivElement>(null);
+
+  /* Handle Channel Selection with Mobile Scroll */
+  const handleChannelClick = (channel: Channel) => {
+      setSelectedChannel(channel);
+      // Scroll to player on mobile (lg breakpoint is 1024px)
+      if (window.innerWidth < 1024 && topRef.current) {
+          topRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+  };
+
   /* Focus for Exit Button */
   const { focusProps: exitFocus, isFocused: isExitFocused } = useTVFocus({
       onEnter: toggleMode,
@@ -90,117 +127,260 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
 
   const rating = Number(selectedChannel.ratings_avg_rating || 0) || Number(selectedChannel.average_rating) || 0;
 
-  return (
-    <div className="w-full px-2 py-2 lg:px-4 lg:py-2 h-auto lg:h-[calc(100vh)] overflow-y-auto lg:overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 h-full">
-        {/* Left Side: Player */}
-        <div className="lg:col-span-6 flex flex-col h-auto lg:h-full overflow-visible lg:overflow-hidden shrink-0">
-          <div className="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-800 relative z-10 shrink-0">
-             <VideoPlayer 
-                src={selectedChannel.hls_url} 
-                poster={selectedChannel.thumbnail_url} 
-                onReady={handlePlayerReady}
-                channelUuid={selectedChannel.uuid}
-                channelName={selectedChannel.name}
-             />
+  /* Logic to cycle grouping modes */
+  const cycleGrouping = useCallback(() => {
+      const options = ['all', 'language', 'category'] as const;
+      const currentIndex = options.indexOf(groupBy);
+      const nextIndex = (currentIndex + 1) % options.length;
+      const newGroup = options[nextIndex];
+      setGroupBy(newGroup);
+      setActiveGroup(''); // Reset active filter
+  }, [groupBy]);
+
+  /* Focus for Group Switcher */
+  const { focusProps: groupFocus, isFocused: isGroupFocused } = useTVFocus({
+      onEnter: cycleGrouping,
+      className: "border-primary ring-2 ring-primary/50 bg-slate-900",
+  });
+
+  // Process groups
+  const groups = getGroupedData();
+  
+  // Sorting Priority Logic (Same as OTT)
+  const languageOrder = ['Tamil', 'Malayalam', 'Telugu', 'English', 'Others'];
+  const categoryOrder = ['Entertainment', 'Movies', 'Music', 'Kids', 'News', 'Sports', 'Others'];
+
+  const getPriority = useCallback((key: string, type: 'language' | 'category') => {
+      const order = type === 'language' ? languageOrder : categoryOrder;
+      const index = order.findIndex(o => o.toLowerCase() === key.toLowerCase());
+      return index !== -1 ? index : 999;
+  }, []);
+
+  const getSortedKeys = useCallback(() => {
+      const keys = Object.keys(groups);
+      return keys.sort((a, b) => {
+          if (groupBy === 'all') return 0;
+          const type = groupBy === 'category' ? 'category' : 'language';
+          const pA = getPriority(a, type);
+          const pB = getPriority(b, type);
+          if (pA !== pB) return pA - pB;
+          return a.localeCompare(b);
+      });
+  }, [groups, groupBy, getPriority]);
+
+  const groupKeys = getSortedKeys();
+
+  // Handle Group Change and Auto-Select First Option
+  const handleGroupChange = (newGroup: 'all' | 'language' | 'category') => {
+      setGroupBy(newGroup);
+      // When changing group type, reset activeGroup.
+      // The useEffect below will then set it to the first key of the new group.
+      setActiveGroup(''); 
+  };
+
+  // Effect to set activeGroup to the first key when groupBy changes or groups update
+  useEffect(() => {
+    if (groupBy === 'all') {
+      setActiveGroup('All Channels');
+    } else if (groupKeys.length > 0 && !groupKeys.includes(activeGroup)) {
+      setActiveGroup(groupKeys[0]);
+    } else if (groupKeys.length === 0) {
+      setActiveGroup(''); // No groups available
+    }
+  }, [groupBy, groupKeys, activeGroup]);
+
+  // Determine active keys for display
+  const effectiveActiveGroup = activeGroup || (groupBy === 'all' ? 'All Channels' : groupKeys[0]);
+  const displayChannels = groupBy === 'all' ? channels : (groups[effectiveActiveGroup] || []);
+
+  // Language/Category Tabs
+  const renderFilterTabs = () => {
+      if (groupBy === 'all') return null;
+      return (
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-2">
+              {groupKeys.map(key => (
+                  <button
+                      key={key}
+                      onClick={() => setActiveGroup(key)}
+                      className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${effectiveActiveGroup === key ? 'bg-primary text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+                  >
+                      {key}
+                  </button>
+              ))}
           </div>
-          
-          <div className="mt-2 space-y-2">
-              {/* Channel Details */}
-              <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                    <div>
-                        <h1 className="text-xl md:text-2xl font-bold text-white mb-2 flex items-center gap-3">
-                        <span className="bg-primary/20 text-primary px-2 py-1 md:px-3 rounded-lg text-base md:text-lg">
-                            CH {selectedChannel.channel_number}
-                        </span>
-                        {selectedChannel.name}
+      );
+  };
+
+  return (
+    <div ref={topRef} className="w-full px-0 py-0 lg:px-4 lg:py-2 h-auto lg:h-[calc(100vh)] overflow-y-auto lg:overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-1 lg:gap-6 h-full">
+        {/* Left Side: Player Section (Flex Column) */}
+        <div className="lg:col-span-7 flex flex-col h-auto lg:h-full overflow-hidden shrink-0 p-1 lg:pb-2">
+           
+           {/* Player Wrapper: Takes available space, centers video */}
+           <div className="flex-1 min-h-0 w-full flex items-center justify-center bg-black rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-700/50 relative mb-1 lg:mb-2">
+                <div className="w-full h-full max-w-full max-h-full flex items-center justify-center">
+                    {/* Constrain video to aspect ratio but ensure it fits in the box */}
+                    <div className="aspect-video w-full h-full max-h-full max-w-full flex items-center justify-center">
+                         <VideoPlayer 
+                            src={selectedChannel.hls_url} 
+                            poster={selectedChannel.thumbnail_url} 
+                            onReady={handlePlayerReady}
+                            channelUuid={selectedChannel.uuid}
+                            channelName={selectedChannel.name}
+                         />
+                    </div>
+                </div>
+           </div>
+              
+           {/* Channel Info Card - Fixed Size */}
+           <div className="w-full bg-slate-900/90 backdrop-blur-sm rounded-xl border border-slate-700/50 p-2 lg:p-3 shadow-lg shrink-0 mb-1 lg:mb-2">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-lg lg:text-xl font-bold text-white mb-1 flex items-center gap-2 truncate">
+                            <span className="bg-primary px-2 py-0.5 rounded-md text-white text-xs lg:text-sm font-bold shadow-sm shadow-primary/20">
+                                CH {selectedChannel.channel_number}
+                            </span>
+                            <span className="truncate">{selectedChannel.name}</span>
                         </h1>
                         
-                        <div className="flex flex-wrap items-center gap-2 md:gap-4 text-slate-400 text-sm mt-2">
-                             {/* Address */}
-                             {address && (
-                                <span className="flex items-center gap-1.5">
-                                    <MapPin size={14} className="text-slate-500" />
-                                    {address}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-400 text-[10px] lg:text-xs">
+                                {selectedChannel.language?.name && (
+                                    <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800 rounded border border-slate-700/50 text-slate-300">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    {selectedChannel.language.name}
+                                    </span>
+                                )}
+                                
+                                {address && (
+                                <span className="flex items-center gap-1.5 truncate">
+                                    <MapPin size={12} className="text-slate-500 shrink-0" />
+                                    <span className="truncate">{address}</span>
                                 </span>
-                             )}
-                             
-                             {/* Language */}
-                             <span className="px-2 py-0.5 bg-slate-800 rounded text-xs border border-slate-700">
-                                {selectedChannel.language?.name || 'Unknown'}
-                             </span>
+                                )}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 bg-slate-950/50 p-2 md:p-3 rounded-lg border border-slate-800/50 justify-around md:justify-start">
-                         {/* Viewers */}
-                         <div className="flex flex-col items-center px-2">
-                            <span className="flex items-center gap-1.5 text-slate-300 font-bold">
-                                <Eye size={16} className={isOnline ? "text-primary" : "text-slate-600"} />
-                                {viewersCount.toLocaleString()}
-                            </span>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Viewers</span>
-                         </div>
-                         
-                         <div className="w-px h-8 bg-slate-800"></div>
+                    <div className="flex items-stretch gap-3 shrink-0">
+                            {/* Stats Box */}
+                            <div className="bg-slate-950/80 rounded-lg border border-slate-800 p-1.5 lg:p-2 flex items-center gap-3">
+                                <div className="flex flex-col items-center">
+                                <span className="flex items-center gap-1 text-white font-bold text-xs lg:text-sm">
+                                    <Eye size={12} className={isOnline ? "text-emerald-500" : "text-slate-600"} />
+                                    {viewersCount.toLocaleString()}
+                                </span>
+                                <span className="text-[9px] text-slate-500 font-medium uppercase tracking-wider">Views</span>
+                                </div>
+                                
+                                <div className="w-px h-6 bg-slate-800"></div>
 
-                         {/* Rating */}
-                         <div className="flex flex-col items-center px-2">
-                            <span className="flex items-center gap-1.5 text-yellow-400 font-bold">
-                                <Star size={16} fill="currentColor" />
-                                {rating > 0 ? rating.toFixed(1) : '-'}
-                            </span>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Rating</span>
-                         </div>
+                                <div className="flex flex-col items-center">
+                                <span className="flex items-center gap-1 text-white font-bold text-xs lg:text-sm">
+                                    <Star size={12} className="text-amber-400 fill-amber-400" />
+                                    {rating > 0 ? rating.toFixed(1) : '-'}
+                                </span>
+                                <span className="text-[9px] text-slate-500 font-medium uppercase tracking-wider">Rating</span>
+                                </div>
+                            </div>
                     </div>
                 </div>
-              </div>
+           </div>
 
-              {/* Banner Ad */}
-              <div className="w-full min-h-auto lg:min-h-[512px]">
-                 <AdBanner type="banner" />
-              </div>
-          </div>
+           {/* Banner Ad - Responsive Height (Auto fit content) */}
+           <div className="w-full h-auto min-h-[50px] lg:min-h-[180px] shrink-0 overflow-hidden rounded-xl bg-slate-900/30 border border-slate-800/30 flex items-center justify-center p-1">
+                <AdBanner type="banner" />
+           </div>
+
         </div>
 
-        {/* Right Side: Channel Grid */}
-        <div className="lg:col-span-6 bg-slate-900/30 rounded-xl border border-slate-800 overflow-hidden flex flex-col h-[500px] lg:h-full mt-4 lg:mt-0">
-          <div className="p-2 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center shrink-0">
-            <h2 className="font-bold text-lg text-white">Channel List</h2>
-             <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded-full whitespace-nowrap">{channels.length} Channels</span>
-                <button
+        {/* Right Side: Channel Grid - Increased Width (Col-5) */}
+        <div className="lg:col-span-5 bg-slate-900/30 rounded-xl border border-slate-800 overflow-hidden flex flex-col h-auto min-h-[500px] lg:h-full mt-1 lg:mt-0">
+          <div className="p-2 lg:p-3 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md flex flex-col gap-2 lg:gap-3 shrink-0">
+             
+             {/* Header with Branding & Switch */}
+             <div className="flex justify-between items-center">
+                 <div className="flex items-center gap-2 lg:gap-3">
+                    {/* Branding Logo - Increased Size */}
+                    <img src="/icon.jpg" alt="Logo" className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg object-contain bg-black" />
+                    <div>
+                        <h2 className="font-bold text-white text-sm lg:text-base leading-tight">Nellai IPTV</h2>
+                        <span className="text-[10px] text-primary font-medium tracking-wide">CLASSIC MODE</span>
+                    </div>
+                 </div>
+
+                 <button
                     id="switch-mode-btn"
                     onClick={toggleMode}
                     {...exitFocus}
-                    onKeyDown={(e) => {
-                        exitFocus.onKeyDown?.(e);
-                        if (e.key === 'ArrowDown') {
-                            e.preventDefault();
-                            document.getElementById('channel-0')?.focus();
-                        }
-                    }}
-                    className={`${exitFocus.className} ${isExitFocused ? 'ring-4 ring-white bg-slate-700 scale-105 z-50 shadow-xl' : 'bg-slate-800/50'} flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 transition-all`}
+                    className={`${exitFocus.className} ${isExitFocused ? 'ring-2 ring-white bg-slate-700 scale-105 z-50 shadow-xl' : 'bg-slate-800/50 text-slate-400'} px-2 py-1 lg:px-3 lg:py-1.5 rounded-lg border border-slate-700 transition-all text-[10px] lg:text-xs font-bold flex items-center gap-1.5`}
                     title="Switch to OTT Mode"
                 >
-                    <LogOut size={16} />
-                    <span className="hidden md:inline text-xs font-bold">Switch to OTT</span>
-                    <span className="md:hidden text-xs font-bold">OTT</span>
+                    <LogOut size={12} />
+                    <span className="hidden sm:inline">Back</span>
                 </button>
              </div>
+
+             {/* Filters - TV Friendly Cycle Button */}
+             <div className="flex gap-2">
+                 <button
+                    onClick={cycleGrouping}
+                    {...groupFocus}
+                    className={`flex-1 flex items-center justify-between bg-slate-950 text-white text-xs p-2 lg:p-2.5 rounded border transition-all ${isGroupFocused ? 'border-primary ring-2 ring-primary/50 bg-slate-900' : 'border-slate-800'}`}
+                 >
+                    <div className="flex items-center gap-2">
+                        <span className="text-slate-400 font-medium">Group by:</span>
+                        <span className="font-bold text-primary">
+                            {groupBy === 'all' && 'All Channels'}
+                            {groupBy === 'language' && 'Language'}
+                            {groupBy === 'category' && 'Category'}
+                        </span>
+                    </div>
+                    <ChevronDown size={14} className="text-slate-500" />
+                 </button>
+             </div>
+             
+             {/* Dynamic Filter Tabs */}
+             {renderFilterTabs()}
+
           </div>
-          <div className="overflow-y-auto p-3 flex-1 scrollbar-hide">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
-              {channels.map((channel, index) => (
-                <ChannelListItem 
-                  key={channel.uuid} 
-                  channel={channel} 
-                  index={index}
-                  isActive={selectedChannel.uuid === channel.uuid}
-                  onSelect={() => setSelectedChannel(channel)}
-                />
-              ))}
+          
+          <div className="overflow-visible lg:overflow-y-auto p-2 lg:p-3 flex-1 scrollbar-hide space-y-4 lg:space-y-6">
+            
+            {/* Top Trending Section */}
+            {topTrending.length > 0 && groupBy === 'all' && (
+                <div className="mb-2 lg:mb-4">
+                    <h3 className="text-[10px] lg:text-xs font-bold text-primary mb-1.5 lg:mb-2 uppercase tracking-wider pl-1 border-l-2 border-primary">Top Trending</h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2"> {/* Changed to 4 columns desktop, 2 mobile */}
+                        {topTrending.slice(0, 8).map((channel, i) => (
+                             <ChannelListItem 
+                                key={`trend-${channel.uuid}`} 
+                                channel={channel} 
+                                index={i}
+                                isActive={selectedChannel.uuid === channel.uuid}
+                                onSelect={() => handleChannelClick(channel)}
+                                compact={true}
+                              />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Main List */}
+            <div>
+                 <h3 className="text-[10px] lg:text-xs font-bold text-slate-400 mb-1.5 lg:mb-2 uppercase tracking-wider pl-1">
+                    {groupBy === 'all' ? 'All Channels' : (effectiveActiveGroup || 'Select Group')} <span className="text-slate-600">({displayChannels.length})</span>
+                 </h3>
+                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {displayChannels.map((channel, index) => (
+                    <ChannelListItem 
+                      key={channel.uuid} 
+                      channel={channel} 
+                      index={index}
+                      isActive={selectedChannel.uuid === channel.uuid}
+                      onSelect={() => handleChannelClick(channel)}
+                    />
+                  ))}
+                </div>
             </div>
           </div>
         </div>
@@ -209,7 +389,7 @@ export default function ClassicHome({ channels }: ClassicHomeProps) {
   );
 }
 
-function ChannelListItem({ channel, index, isActive, onSelect }: { channel: Channel; index: number; isActive: boolean; onSelect: () => void }) {
+function ChannelListItem({ channel, index, isActive, onSelect, compact = false }: { channel: Channel; index: number; isActive: boolean; onSelect: () => void; compact?: boolean }) {
   const { focusProps, isFocused } = useTVFocus({
     onEnter: onSelect,
     className: "group relative block rounded-lg overflow-hidden transition-all duration-300"
@@ -294,24 +474,26 @@ function ChannelListItem({ channel, index, isActive, onSelect }: { channel: Chan
     </div>
 
       {/* Info */}
-      <div className="w-full p-3 pb-0">
-        <h3 className="font-medium text-white truncate text-sm mb-1" title={channel.name}>
+      <div className={`w-full p-2 ${compact ? 'pb-1' : 'pb-0'}`}>
+        <h3 className={`font-medium text-white truncate ${compact ? 'text-xs' : 'text-sm'} mb-1`}>
              {channel.name}
         </h3>
         
+        {!compact && (
         <div className="flex items-center justify-between text-xs text-slate-400">
            <span>{channel.language?.name || 'Tamil'}</span>
         </div>
+        )}
       </div>
 
       {/* Rating & Viewers - Matches ChannelCard layout */}
-      <div className="w-full flex items-center justify-between mt-1 px-3 pb-3">
+      <div className={`w-full flex items-center justify-between mt-1 px-2 ${compact ? 'pb-2' : 'px-3 pb-3'}`}>
              <div className="flex items-center gap-1 text-[10px] text-yellow-500 font-bold">
-                <Star size={12} fill="currentColor" />
+                <Star size={10} fill="currentColor" />
                 <span>{rating > 0 ? rating.toFixed(1) : '0.0'}</span>
             </div>
-             <div className="flex items-center text-xs text-slate-400">
-                <Eye size={12} className="mr-1" />
+             <div className="flex items-center text-[10px] text-slate-400">
+                <Eye size={10} className="mr-1" />
                 <span>{(channel.viewers_count || 0).toLocaleString()}</span>
              </div>
       </div>

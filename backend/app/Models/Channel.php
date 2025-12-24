@@ -10,7 +10,7 @@ class Channel extends Model
     protected $fillable = [
         'uuid', 'name', 'channel_number', 'hls_url', 'village', 
         'category_id', 'state_id', 'language_id', 'district_id', 'thumbnail_url', 
-        'viewers_count', 'is_featured', 'expiry_at', 'status', 'created_at'
+        'is_featured', 'expiry_at', 'status', 'created_at'
     ];
     public $timestamps = true;
     const UPDATED_AT = null;
@@ -30,6 +30,11 @@ class Channel extends Model
         return $this->belongsTo(Language::class);
     }
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
     public function ratings()
     {
         return $this->hasMany(ChannelRating::class);
@@ -38,5 +43,10 @@ class Channel extends Model
     public function comments()
     {
         return $this->hasMany(ChannelComment::class);
+    }
+
+    public function views()
+    {
+        return $this->hasMany(ChannelView::class);
     }
 }

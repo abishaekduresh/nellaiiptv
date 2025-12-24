@@ -2,6 +2,28 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.7.0] - 2025-12-24
+
+### Added
+- **Advanced Classic Mode**:
+    - Complete mobile interface redesign (compact layout, auto-scroll to player).
+    - TV Native Navigation with directional arrow support and "Cycle Button" filtering.
+    - Enhanced "Top Trending" section with 4-column desktop and 2-column mobile layout.
+    - Flexbox-based player layout for perfect viewport fitting.
+- **Improved Filter System**: 
+    - Added "Group By Category" support with backend integration.
+    - Implemented smart sorting for languages and categories (priority-based).
+- **Responsive Ad Banner**: 
+    - Adaptive ad sizing (90px mobile, 180px desktop).
+    - Removed fixed aspect ratios for better mobile fit.
+
+### Changed
+- **UI/UX Optimizations**:
+    - Unified player/details/ad layout in Classic Mode.
+    - Improved focus visibility for TV users (rings, borders).
+    - Smoother scrolling behaviors.
+- **Dependencies**: Updated `Channel` interface to support categories.
+
 ## [1.6.0] - 2024-12-22
 
 ### Added

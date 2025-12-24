@@ -8,6 +8,7 @@ import { Play, Eye, Star, Heart } from 'lucide-react';
 import { Channel } from '@/types';
 import api from '@/lib/api';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useStreamStatusStore } from '@/stores/streamStatusStore';
 
 interface ChannelCardProps {
   channel: Channel;
@@ -24,7 +25,8 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
     focusClassName: "ring-4 ring-white scale-105 z-20"
   });
 
-  const [isOnline, setIsOnline] = useState(false);
+  const { statuses, checkStatus } = useStreamStatusStore();
+  const isOnline = statuses[channel.uuid] ?? false; 
   const [isLoadingImage, setIsLoadingImage] = useState(true);
 
   // ... rest of effect ...
@@ -37,32 +39,22 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
 
   useEffect(() => {
     if (!channel.uuid) return;
-
-    const checkOnlineStatus = async () => {
-      try {
-        const response = await api.get(`/channels/${channel.uuid}/stream-status`);
-        if (response.data.status && response.data.data) {
-          setIsOnline(response.data.data.is_online);
-        }
-      } catch (err) {
-        setIsOnline(false);
-      }
-    };
-
-    checkOnlineStatus();
-    // Check every 2 minutes
-    const interval = setInterval(checkOnlineStatus, 120000);
-
+    checkStatus(channel.uuid);
+    
+    const interval = setInterval(() => checkStatus(channel.uuid), 120000);
     return () => clearInterval(interval);
-  }, [channel.uuid]);
+  }, [channel.uuid, checkStatus]);
+
+  const handleClick = (e: React.MouseEvent) => {
+      // Don't block navigation, but fire-and-forget the view increment
+      setTimeout(() => {
+          api.post(`/channels/${channel.uuid}/view`).catch(err => console.error(err));
+      }, 3000);
+  };
 
   return (
     <div 
-      // We wrap the Link in a div to handle attributes if Link complains, 
-      // OR we just use Link. Let's try direct Link application but with explicit props.
-      // Actually, wrapping in a div that handles focus is safer for layout + Link behavior.
-      // But we want the Link to be the interactive element for SEO.
-      // Let's go with Link and assume props spread works fine on Next.js 14 Link.
+      onClick={handleClick}
     > 
      <Link 
       href={`/channel/${channel.uuid}`}
@@ -91,7 +83,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
             className={`w-full h-full object-contain p-2 opacity-90 group-hover:opacity-100 transition-opacity ${isLoadingImage ? 'opacity-0' : 'opacity-90'}`}
           />
         ) : (
-           /* No image case: No need for loader, just clear it immediately if logic requires, but basically we just show fallback */
           <div className="w-full h-full flex items-center justify-center text-slate-600 font-bold text-2xl">
             {channel.name.charAt(0)}
           </div>
@@ -141,9 +132,11 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
             <Star size={12} fill="currentColor" />
             <span>{(Number(channel.ratings_avg_rating) || Number(channel.average_rating) || 0).toFixed(1)}</span>
          </div>
-         <span className="flex items-center text-xs text-slate-400">
+         <span className="flex items-center text-xs text-slate-400" title={channel.daily_views !== undefined ? "Views" : "Total Views"}>
             <Eye size={12} className="mr-1" />
-            {(channel.viewers_count || 0).toLocaleString()}
+            {channel.daily_views !== undefined 
+                ? <>{(channel.daily_views || 0).toLocaleString()}<span className="hidden sm:inline"> </span></>
+                : (channel.viewers_count || 0).toLocaleString()}
          </span>
       </div>
     </Link>

@@ -84,29 +84,20 @@ export default function AdBanner({ type = 'banner', className = '' }: Props) {
       {type === 'banner' && (
         <div
           className={`relative overflow-hidden cursor-pointer group ${
-            mode === 'OTT' ? 'w-full h-auto rounded-none' : 'aspect-[16/5] rounded-lg'
+            mode === 'OTT' ? 'w-full h-auto rounded-none' : 'w-full h-full rounded-lg'
           }`}
           onClick={handleClick}
         >
-          {/* Background fill - Only for Classic/framed mode to handle aspect ratio gaps */}
-          {mode !== 'OTT' && (
-            <img
-                src={ad.media_url}
-                className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-40"
-                aria-hidden
-            />
-          )}
-
           {/* Main banner */}
           <img
             src={ad.media_url}
             alt={ad.title}
-            className={`relative w-full ${mode === 'OTT' ? 'h-auto' : 'h-full object-contain'}`}
+            className={`relative w-full h-full ${mode === 'OTT' ? 'object-cover' : 'object-cover lg:object-contain'}`} 
           />
 
           {mode !== 'OTT' && (
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-                <p className="text-slate-300 text-xs"># Ad</p>
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1 px-2">
+                <p className="text-slate-300 text-[10px]"># Ad</p>
             </div>
           )}
         </div>

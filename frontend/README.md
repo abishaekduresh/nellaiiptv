@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.6.0
+# Frontend (Next.js) - v1.7.0
 
 ## Overview
 
@@ -47,6 +47,10 @@ frontend/
 - **Live Visuals**: Auto-scrolling banners and interactive channel cards.
 - **Accessible Disclaimer**: TV-navigable disclaimer modal with focus support.
 - **Unlimited Browsing (v1.6.0)**: No more 100-channel limit; browse and search our entire channel catalog without restriction.
+- **Advanced Classic Mode (v1.7.0)**: 
+  - Complete mobile redesign with auto-scroll and compact layout.
+  - "Cycle Button" filtering for Language and Category.
+  - Native TV navigation optimizations.
 
 ## TV Navigation Controls
 

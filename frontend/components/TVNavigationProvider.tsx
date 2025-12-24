@@ -72,19 +72,21 @@ export default function TVNavigationProvider({ children }: TVNavigationProviderP
       const dx = candidateCenter.x - currentCenter.x;
       const dy = candidateCenter.y - currentCenter.y;
       
-      // Basic directional checks (can be improved with strict angle checking)
+      const coneMultiplier = 4; // Allow for wider angles (steep diagonals)
+
+      // Basic directional checks
       switch (e.key) {
         case 'ArrowRight':
-          isValidDirection = dx > 0 && Math.abs(dy) < Math.abs(dx); // Roughly horizontal
+          isValidDirection = dx > 0 && Math.abs(dy) < Math.abs(dx) * coneMultiplier;
           break;
         case 'ArrowLeft':
-          isValidDirection = dx < 0 && Math.abs(dy) < Math.abs(dx);
+          isValidDirection = dx < 0 && Math.abs(dy) < Math.abs(dx) * coneMultiplier;
           break;
         case 'ArrowDown':
-          isValidDirection = dy > 0 && Math.abs(dx) < Math.abs(dy); // Roughly vertical
+          isValidDirection = dy > 0 && Math.abs(dx) < Math.abs(dy) * coneMultiplier;
           break;
         case 'ArrowUp':
-          isValidDirection = dy < 0 && Math.abs(dx) < Math.abs(dy);
+          isValidDirection = dy < 0 && Math.abs(dx) < Math.abs(dy) * coneMultiplier;
           break;
       }
 

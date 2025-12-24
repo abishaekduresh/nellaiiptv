@@ -25,6 +25,8 @@ import ClassicHome from '@/components/ClassicHome';
   const [channelsByLanguage, setChannelsByLanguage] = useState<Record<string, Channel[]>>({});
   const [loading, setLoading] = useState(true);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
+  
+  const [topTrending, setTopTrending] = useState<Channel[]>([]);
 
   useEffect(() => {
     fetchChannels();
@@ -48,61 +50,58 @@ import ClassicHome from '@/components/ClassicHome';
     }
   };
 
-  // Shuffle array utility
-  const shuffleArray = <T,>(array: T[]): T[] => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
-
   const fetchChannels = async () => {
     try {
       setLoading(true);
       
-      const [featuredRes, allRes] = await Promise.all([
+      const [featuredRes, allRes, topRes] = await Promise.all([
         api.get('/channels/featured?limit=10'),
-        api.get('/channels?limit=-1') // Fetch all channels for Classic Mode
+        api.get('/channels?limit=-1'),
+        api.get('/channels?sort=top_trending&limit=10')
       ]);
 
       if (featuredRes.data.status) {
-        const featured = featuredRes.data.data || [];
-        featured.sort((a: Channel, b: Channel) => (a.channel_number || 9999) - (b.channel_number || 9999));
-        setFeaturedChannels(featured);
+        setFeaturedChannels(featuredRes.data.data || []);
+      }
+      
+      if (topRes.data.status) {
+         setTopTrending(topRes.data.data.data || topRes.data.data || []);
       }
 
       if (allRes.data.status) {
         let channels = allRes.data.data.data || allRes.data.data || [];
-        
-        // Sort by channel number for Consistent Raw Data
+        // Sort by channel number
         channels.sort((a: Channel, b: Channel) => (a.channel_number || 9999) - (b.channel_number || 9999));
         setRawChannels(channels);
 
-        // For OTT: Filter out featured and shuffle
-        let ottChannels = [...channels];
-        if (featuredRes.data.status && featuredRes.data.data) {
-          const featuredIds = new Set(featuredRes.data.data.map((c: Channel) => c.uuid));
-          ottChannels = ottChannels.filter((c: Channel) => !featuredIds.has(c.uuid));
-        }
-
-        setAllChannels(ottChannels);
+        // For OTT: Filter out featured from main list to avoid duplication if desired, 
+        // but typically rows reuse content. We will keep them.
+        setAllChannels(channels);
         
         // Group channels by language
-        const grouped = ottChannels.reduce((acc: Record<string, Channel[]>, channel: Channel) => {
+        const grouped = channels.reduce((acc: Record<string, Channel[]>, channel: Channel) => {
           const lang = channel.language?.name || 'Other';
           if (!acc[lang]) acc[lang] = [];
           acc[lang].push(channel);
           return acc;
         }, {});
-
-        // Sort 'Other' channels by viewers count (descending)
-        if (grouped['Other']) {
-          grouped['Other'].sort((a: Channel, b: Channel) => (b.viewers_count || 0) - (a.viewers_count || 0));
-        }
         
-        setChannelsByLanguage(grouped);
+        // Sort keys to prioritize Tamil, Malayalam, etc.
+        const priority = ['Tamil', 'Malayalam', 'Telugu', 'English'];
+        const sortedGrouped: Record<string, Channel[]> = {};
+        
+        priority.forEach(lang => {
+             if (grouped[lang]) {
+                 sortedGrouped[lang] = grouped[lang];
+                 delete grouped[lang];
+             }
+        });
+        // Add others sorted alphabetically
+        Object.keys(grouped).sort().forEach(key => {
+            sortedGrouped[key] = grouped[key];
+        });
+        
+        setChannelsByLanguage(sortedGrouped);
       }
     } catch (error) {
       console.error('Error fetching channels:', error);
@@ -125,10 +124,7 @@ import ClassicHome from '@/components/ClassicHome';
     return (
       <div className="min-h-screen bg-slate-950 px-4 md:px-12">
         <div className="animate-pulse space-y-8 pb-20 mt-8">
-            {/* Hero Skeleton */}
             <div className="w-full aspect-[21/9] bg-slate-900 rounded-2xl mb-12"></div>
-            
-            {/* Rows */}
             {[1, 2, 3].map((i) => (
                 <div key={i} className="space-y-4">
                     <div className="h-6 w-48 bg-slate-900 rounded"></div>
@@ -149,7 +145,7 @@ import ClassicHome from '@/components/ClassicHome';
     return (
         <div className="min-h-screen bg-slate-950">
             <DisclaimerModal isOpen={showDisclaimer} onClose={handleDisclaimerClose} />
-            <ClassicHome channels={rawChannels} />
+            <ClassicHome channels={rawChannels} topTrending={topTrending} />
         </div>
     )
   }
@@ -167,6 +163,11 @@ import ClassicHome from '@/components/ClassicHome';
         {/* Favorites Row */}
         {favoriteChannels.length > 0 && (
            <ChannelRow title="My Favorites" channels={favoriteChannels} />
+        )}
+
+        {/* Top Trending Channels */}
+        {topTrending.length > 0 && (
+          <ChannelRow title="Top Trending Channels" channels={topTrending} />
         )}
 
         {/* Featured Channels */}

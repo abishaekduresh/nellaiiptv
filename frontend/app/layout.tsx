@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 };
 
+import GoogleAnalytics from "@/components/GoogleAnalytics";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -23,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-slate-950 text-white">
+        <GoogleAnalytics />
         <TVNavigationProvider>
           <ViewModeProvider>
             <BackendHealthCheck />

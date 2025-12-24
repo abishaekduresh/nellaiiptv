@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS `channel_views` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `channel_id` INT UNSIGNED NOT NULL,
+  `view_date` DATE NOT NULL,
+  `count` INT NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_channel_date` (`channel_id`, `view_date`),
+  FOREIGN KEY (`channel_id`) REFERENCES `channels` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

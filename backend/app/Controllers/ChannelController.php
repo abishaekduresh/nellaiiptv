@@ -161,7 +161,13 @@ class ChannelController
     public function incrementView(Request $request, Response $response, string $uuid): Response
     {
         try {
-            $this->channelService->incrementView($uuid);
+            $ip = $request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0';
+            // Handle proxy headers if necessary (though simple REMOTE_ADDR is often safer unless trusted proxy)
+            if (isset($request->getServerParams()['HTTP_X_FORWARDED_FOR'])) {
+                 $ip = explode(',', $request->getServerParams()['HTTP_X_FORWARDED_FOR'])[0];
+            }
+            
+            $this->channelService->incrementView($uuid, trim($ip));
             return ResponseFormatter::success($response, null, 'View count incremented');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 400);

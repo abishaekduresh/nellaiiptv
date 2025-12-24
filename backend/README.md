@@ -1,6 +1,6 @@
 # Nellai IPTV - Backend API
 
-**Version 1.6.0** | RESTful API built with Slim PHP Framework
+**Version 1.7.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -131,6 +131,7 @@ For **root folder deployments** (e.g., when uploading the contents of `backend/`
 ### Main Tables
 
 - `channels` - Channel information
+- `channel_views` - IP-based view tracking logs
 - `channel_reports` - User-submitted channel reports
 - `channel_ratings` - Channel ratings by users
 - `channel_comments` - User comments on channels
@@ -209,7 +210,14 @@ CORS is configured to allow requests from the frontend application. Modify `Cors
 ./vendor/bin/phpunit tests/Unit/AuthTest.php
 ```
 
-## Recent Updates (v1.6.0)
+
+## Recent Updates (v1.7.0)
+- ✅ Added 'category' object to Channel API response for better grouping.
+- ✅ Implemented `sort=top_trending` logic (3-day view count).
+- ✅ Added `channel_views` table migration for accurate IP-based view counting.
+- ✅ Optimized sorting and filtering queries.
+
+## Previous Updates (v1.6.0)
 - ✅ Global channel limit removal (no more 100-channel cap)
 - ✅ Integrated support for `limit=-1` to fetch all channels across all pages
 - ✅ Category pages (Language/State) now load all channels instantly

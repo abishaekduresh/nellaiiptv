@@ -29,6 +29,7 @@ export interface Channel {
   village: string;
   state_id: number;
   language_id: number;
+  category_id?: number;
   district_id: number;
   thumbnail_url: string;
   viewers_count: number;
@@ -38,9 +39,11 @@ export interface Channel {
   state?: State;
   district?: District;
   language?: Language;
+  category?: Category;
   average_rating?: number;
   ratings_avg_rating?: number;
   total_ratings?: number;
+  daily_views?: number;
 }
 
 export interface State {
@@ -62,6 +65,13 @@ export interface Language {
   uuid: string;
   name: string;
   code: string;
+}
+
+export interface Category {
+  id: number;
+  uuid: string;
+  name: string;
+  slug: string;
 }
 
 export interface Comment {

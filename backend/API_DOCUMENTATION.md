@@ -1,6 +1,6 @@
 # Nellai IPTV - API Documentation
 
-**Version 1.6.0**
+**Version 1.7.0**
 
 Base URL: `/api`
 
@@ -208,6 +208,7 @@ Base URL: `/api`
 
 **Query Parameters**:
 - `limit` (optional): Number of results (default: 50). Use `-1` to fetch all channels without pagination.
+- `sort` (optional): Sorting criteria. Options: `top_daily`, `top_trending` (3 days), `top_all_time`, `newest`.
 
 **Response** (200):
 ```json
@@ -224,6 +225,7 @@ Base URL: `/api`
         "viewers_count": 150,
         "is_featured": true,
         "language": { "name": "Tamil" },
+        "category": { "name": "Entertainment" },
         "state": { "name": "Tamil Nadu" },
         "district": { "name": "Tirunelveli" }
       }
@@ -653,4 +655,4 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history and updates.
 
 ---
 
-**Last Updated**: December 22, 2025 | **Version**: 1.6.0
+**Last Updated**: December 24, 2025 | **Version**: 1.7.0

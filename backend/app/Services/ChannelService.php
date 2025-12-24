@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Channel;
 use App\Models\ChannelRating;
+use App\Models\ChannelView;
 use App\Models\ChannelComment;
 use App\Models\ChannelReport;
 use App\Models\LiveViewer;
@@ -17,8 +18,9 @@ class ChannelService
     {
         $query = Channel::query()
             ->where('status', 'active')
-            ->with(['language', 'state', 'district'])
-            ->withAvg('ratings', 'rating');
+            ->with(['language', 'state', 'district', 'category'])
+            ->withAvg('ratings', 'rating')
+            ->withSum('views as viewers_count', 'count');
 
         if (isset($filters['language_id'])) {
             $query->where('language_id', $filters['language_id']);
@@ -52,6 +54,34 @@ class ChannelService
             });
         }
 
+        // Sorting logic
+        if (isset($filters['sort'])) {
+            if ($filters['sort'] === 'top_daily') {
+                $today = date('Y-m-d');
+                $query->join('channel_views', function($join) use ($today) {
+                    $join->on('channels.id', '=', 'channel_views.channel_id')
+                         ->where('channel_views.view_date', '=', $today);
+                })
+                ->select('channels.*', DB::raw('SUM(channel_views.count) as daily_views'))
+                ->groupBy('channels.id')
+                ->orderBy('daily_views', 'desc');
+            } elseif ($filters['sort'] === 'top_trending') {
+                // Top trending: Most views in last 3 days
+                $statsDate = date('Y-m-d', strtotime('-3 days'));
+                $query->join('channel_views', function($join) use ($statsDate) {
+                    $join->on('channels.id', '=', 'channel_views.channel_id')
+                         ->where('channel_views.view_date', '>=', $statsDate);
+                })
+                ->select('channels.*', DB::raw('SUM(channel_views.count) as daily_views'))
+                ->groupBy('channels.id')
+                ->orderBy('daily_views', 'desc');
+            } elseif ($filters['sort'] === 'top_all_time') {
+                $query->orderBy('viewers_count', 'desc');
+            } elseif ($filters['sort'] === 'newest') {
+                $query->orderBy('created_at', 'desc');
+            }
+        }
+
         if (isset($filters['limit']) && (int)$filters['limit'] === -1) {
             return $query->get()->toArray();
         }
@@ -65,6 +95,7 @@ class ChannelService
         return Channel::where('status', 'active')
             ->where('is_featured', 1)
             ->with(['state', 'district', 'language'])
+            ->withSum('views as viewers_count', 'count')
             ->limit($limit)
             ->get()
             ->toArray();
@@ -75,6 +106,7 @@ class ChannelService
         $channel = Channel::where('uuid', $uuid)
             ->where('status', 'active')
             ->with(['state', 'district', 'language'])
+            ->withSum('views as viewers_count', 'count')
             ->first();
 
         if (!$channel) {
@@ -156,6 +188,7 @@ class ChannelService
         return Channel::where('language_id', $channel->language_id)
             ->where('uuid', '!=', $uuid)
             ->where('status', 'active')
+            ->withSum('views as viewers_count', 'count')
             ->limit(10)
             ->get()
             ->toArray();
@@ -165,16 +198,31 @@ class ChannelService
     {
         return Channel::where('status', 'active')
             ->orderBy('created_at', 'desc')
+            ->withSum('views as viewers_count', 'count')
             ->limit(10)
             ->get()
             ->toArray();
     }
 
-    public function incrementView(string $uuid): void
+    public function incrementView(string $uuid, string $ip = '0.0.0.0'): void
     {
         $channel = Channel::where('uuid', $uuid)->first();
         if ($channel) {
-            $channel->increment('viewers_count');
+            // Only update daily views now, total is calculated
+            try {
+                $today = date('Y-m-d');
+                $view = ChannelView::firstOrCreate(
+                    [
+                        'channel_id' => $channel->id, 
+                        'view_date' => $today,
+                        'client_ip' => $ip
+                    ],
+                    ['count' => 0]
+                );
+                $view->increment('count');
+            } catch (Exception $e) {
+                error_log("Error incrementing daily view: " . $e->getMessage());
+            }
         }
     }
 
