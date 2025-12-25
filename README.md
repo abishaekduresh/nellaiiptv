@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version Info** | Frontend **v1.9.0** | Backend **v1.8.0**
+**Version Info** | Frontend **v1.9.2** | Backend **v1.8.0**
 
 ## Overview
 
@@ -165,6 +165,13 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 Configure database connection and JWT secret in your environment or config files.
 
 ## Latest Updates
+### Frontend (v1.9.2)
+- ✅ **SEO**: Enabled search engine indexing (reverted 'noindex' policy).
+
+### Frontend (v1.9.1)
+- ✅ **Privacy & SEO**: Enforced strict `noindex` rules to prevent search engine indexing.
+- ✅ **Analytics**: Integrated simultaneous Google Tag Manager (GTM) and Google Analytics (GA4) support.
+
 ### Frontend (v1.9.0)
 - ✅ **Sidebar Search**: Integrated search bar in the video player overlay.
 - ✅ **Fullscreen Toggle**: One-click fullscreen button in OTT header.

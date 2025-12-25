@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.9.0
+# Frontend (Next.js) - v1.9.2
 
 ## Overview
 
@@ -54,6 +54,9 @@ frontend/
 - **Enhanced Player Ops (v1.9.0)**:
   - **Sidebar Search**: In-player channel search with immediate filtering.
   - **OTT Header Fullscreen**: One-click fullscreen toggle in the top-right navbar.
+- **SEO & Analytics (v1.9.1)**:
+  - **Dual Tracking**: Simultaneous support for Google Tag Manager (GTM) and direct Google Analytics (GA4).
+  - **SEO Ready (v1.9.2)**: Indexed by search engines enabled (`index: true`).
 
 ## TV Navigation Controls
 

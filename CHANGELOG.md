@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 
 
+## [Frontend 1.9.2] - 2025-12-25
+### Changed
+- **SEO Policy**: Enabled `index: true` and `follow: true` to allow search engines to crawl and index the site.
+
+## [Frontend 1.9.1] - 2025-12-25
+### Added
+- **Private SEO mode**: Configured metadata to explicitly prevent indexing (`noindex`, `nofollow`).
+- **Hybrid Analytics**: Supported both GTM and GA4 scripts running simultaneously in the application layout.
+
 ## [Frontend 1.9.0] - 2025-12-25
 ### Added
 - **Sidebar Search**: In-player channel search with immediate filtering (Name/Number).

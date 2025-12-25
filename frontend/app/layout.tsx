@@ -12,9 +12,28 @@ import NetworkStatusMonitor from "@/components/NetworkStatusMonitor";
 export const metadata: Metadata = {
   title: "Nellai IPTV - Premium Entertainment",
   description: "Watch free live TV channels online with Nellai IPTV — HD streaming, fast loading, 24/7 access, and a smooth OTT experience.",
+  keywords: ["Nellai IPTV", "Live TV", "Online Streaming", "Tamil TV", "Free IPTV", "HD Channels", "OTT Platform"],
+  authors: [{ name: "Nellai IPTV" }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  openGraph: {
+    title: "Nellai IPTV - Premium Entertainment",
+    description: "Watch free live TV channels online with Nellai IPTV.",
+    url: "https://nellaiiptv.com",
+    siteName: "Nellai IPTV",
+    locale: "en_US",
+    type: "website",
+  },
   manifest: '/manifest.json',
 };
 
+import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 export default function RootLayout({
@@ -26,6 +45,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-slate-950 text-white">
         <GoogleAnalytics />
+        <GoogleTagManager />
         <TVNavigationProvider>
           <ViewModeProvider>
             <BackendHealthCheck />
