@@ -29,6 +29,13 @@ interface Props {
   onNextGroup?: () => void;
   onPrevGroup?: () => void;
   useCustomOverlay?: boolean;
+  
+  // Advanced Grouping
+  allGroupedChannels?: { [key: string]: Channel[] };
+  groupKeys?: string[];
+  currentGroupType?: 'all' | 'language' | 'category';
+  onGroupTypeChange?: (type: 'all' | 'language' | 'category') => void;
+  onGroupSelect?: (group: string) => void;
 }
 
 // Helper to extract video ID and create embed URL
@@ -39,10 +46,31 @@ const getYoutubeEmbedUrl = (url: string) => {
     return id ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=0&enablejsapi=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0` : url;
 };
 
+// Internal TV-Focusable Report Button
+function TVReportButton({ onClick, className }: { onClick: (e: any) => void; className: string }) {
+    const { focusProps, isFocused } = useTVFocus({
+        onEnter: () => onClick({} as any), // Mock event or just call it
+        className: className,
+        focusClassName: 'ring-2 ring-red-500 scale-110 bg-red-600'
+    });
+
+    return (
+        <button 
+            onClick={onClick} 
+            {...focusProps} 
+            className={`${className} ${isFocused ? 'ring-2 ring-red-500 scale-110 bg-red-600' : ''}`}
+            title="Report Stream Issue"
+        >
+            <AlertTriangle size={20} />
+        </button>
+    );
+}
+
 function VideoPlayer({ 
   src, poster, channelUuid, channelName, 
   channels, topTrending, viewersCount = 0, currentGroup, onChannelSelect, onNextGroup, onPrevGroup,
-  useCustomOverlay = true
+  useCustomOverlay = true,
+  allGroupedChannels, groupKeys, currentGroupType, onGroupTypeChange, onGroupSelect
 }: Props) {
   const router = useRouter();
   
@@ -81,6 +109,21 @@ function VideoPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Preloader State (Youtube handles its own mostly)
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
+
+  // Quality State
+  interface VideoQuality {
+      index: number;
+      label: string;
+  }
+  const [qualities, setQualities] = useState<VideoQuality[]>([]);
+  const [currentQuality, setCurrentQuality] = useState(-1); // -1 = Auto
+
+  const handleQualityChange = useCallback((index: number) => {
+      if (hlsRef.current) {
+          hlsRef.current.currentLevel = index;
+          setCurrentQuality(index);
+      }
+  }, []);
 
   // Sync current channel for overlay display
   useEffect(() => {
@@ -256,23 +299,27 @@ function VideoPlayer({
     switch (e.key) {
       case 'Enter':
       case ' ': 
-        if (document.activeElement?.tagName === 'INPUT') return; 
+        if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'BUTTON') return; 
         e.preventDefault();
         handlePlayPause();
         break;
       case 'ArrowUp':
+        if (document.activeElement?.tagName === 'BUTTON') return;
         e.preventDefault();
         handleNextChannel();
         break;
       case 'ArrowDown':
+        if (document.activeElement?.tagName === 'BUTTON') return;
         e.preventDefault();
         handlePrevChannel();
         break;
       case 'ArrowRight':
+         if (document.activeElement?.tagName === 'BUTTON') return;
          e.preventDefault();
          handleVolumeChange(volume + 0.1);
         break;
       case 'ArrowLeft':
+         if (document.activeElement?.tagName === 'BUTTON') return;
          e.preventDefault();
          handleVolumeChange(volume - 0.1);
         break;
@@ -315,9 +362,25 @@ function VideoPlayer({
         hls.attachMedia(video);
         
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            const levels = hls?.levels || [];
+            const mappedLevels = levels.map((level, index) => {
+                let label = '';
+                if (level.height) {
+                    label = `${level.height}p`;
+                } else if (level.bitrate) {
+                    const kbps = Math.round(level.bitrate / 1000);
+                    label = `${kbps} Kbps`;
+                } else {
+                    label = `Stream ${index + 1}`;
+                }
+                return { index, label };
+            });
+            
+            // Add Auto option at the beginning
+            setQualities([{ index: -1, label: 'Auto' }, ...mappedLevels.reverse()]); // Reverse to show highest first? usually standard.
+            
             video.play().catch(e => console.log("HLS Auto-play failed", e));
             setIsPlaying(true);
-            // Don't hide loading yet, wait for data
         });
 
         hls.on(Hls.Events.FRAG_BUFFERED, () => {
@@ -456,6 +519,18 @@ function VideoPlayer({
       onNextGroup={onNextGroup || (() => {})}
       onPrevGroup={onPrevGroup || (() => {})}
       onClose={() => setControlsVisible(false)}
+
+      // Grouping
+      groupedChannels={allGroupedChannels}
+      groupKeys={groupKeys}
+      currentGroupType={currentGroupType}
+      onGroupTypeChange={onGroupTypeChange}
+      onGroupSelect={onGroupSelect}
+      
+      // Quality Props
+      qualities={qualities}
+      currentQuality={currentQuality}
+      onQualityChange={handleQualityChange}
     />,
     mountTarget as Element
   ) : null;
@@ -551,17 +626,14 @@ function VideoPlayer({
       )}
 
       {/* Manual Report Button */}
-      {!errorMessage && controlsVisible && (
-        <button
-        onClick={(e) => {
-            e.stopPropagation();
-            setShowReport(true);
-        }}
-        className="absolute top-4 right-4 z-[40] bg-black/40 hover:bg-red-600 text-white p-2.5 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto animate-in fade-in pointer-events-auto"
-        title="Report Stream Issue"
-        >
-            <AlertTriangle size={20} />
-        </button>
+      {!errorMessage && (controlsVisible || !isPlaying || isLoading) && (
+        <TVReportButton 
+            onClick={(e) => {
+                e.stopPropagation();
+                setShowReport(true);
+            }}
+            className="absolute top-4 right-4 z-[60] bg-black/40 hover:bg-red-600 text-white p-2.5 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto"
+        />
       )}
 
       {/* Inject Portal */}
@@ -571,7 +643,7 @@ function VideoPlayer({
       <img 
           src="/png_logo.png" 
           alt="Watermark" 
-          className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 w-16 sm:w-24 md:w-32 lg:w-40 opacity-60 pointer-events-none select-none z-30 drop-shadow-md transition-all duration-300"
+          className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 w-16 sm:w-24 md:w-32 lg:w-40 opacity-60 pointer-events-none select-none z-20 drop-shadow-md transition-all duration-300"
       />
     </div>
 

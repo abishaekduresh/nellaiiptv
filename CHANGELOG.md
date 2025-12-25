@@ -3,7 +3,18 @@
 All notable changes to this project will be documented in this file.
 
 
+## [Frontend 1.9.0] - 2025-12-25
+### Added
+- **Sidebar Search**: In-player channel search with immediate filtering (Name/Number).
+- **OTT Header Fullscreen**: Dedicated fullscreen toggle button in the top navigation bar.
+
+## [Backend 1.8.0] - 2025-12-25
+### Note
+- Backend remains at v1.8.0 (Stable). Versioning is now decoupled from Frontend.
+
 ## [1.8.0] - 2025-12-25
+### Note
+- **Last Unified Version**: Versions split after this release (Frontend -> 1.9.0).
 ### Added
 - **Premium Video Loader**: Replaced default spinner with a high-end "Dual Ring" animated loader featuring glowing gradients and theme-aligned colors (Cyan & Yellow).
 - **Persistent Watermark**: Added a permanent, responsive watermark logotype (`png_logo.png`) to the video player. It adapts to screen size and remains visible in Fullscreen mode across all player variations (Classic & OTT).

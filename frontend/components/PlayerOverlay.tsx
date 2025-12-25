@@ -1,13 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Channel } from '@/types';
-import { 
-    ChevronLeft, ChevronRight, Tv, Eye, 
+import { useTVFocus } from '@/hooks/useTVFocus';
+import {
+    ChevronLeft, ChevronRight, Tv, Eye,
     Play, Pause, Volume2, VolumeX, SkipBack, SkipForward,
-    TrendingUp, List, X, Search, Radio, Maximize, Minimize, Star
+    List, X, Radio, Maximize, Minimize, Star, Settings, Check,
+    Layers, Globe, Grid, Search // Icons for grouping
 } from 'lucide-react';
 
 interface Props {
-  visible: boolean; 
+  visible: boolean;
   channels: Channel[];
   topTrending?: Channel[];
   currentGroup: string;
@@ -15,7 +17,7 @@ interface Props {
   onNextGroup: () => void;
   onPrevGroup: () => void;
   onClose: () => void;
-  
+
   // Player State
   isPlaying: boolean;
   isMuted?: boolean;
@@ -27,18 +29,30 @@ interface Props {
   onPrevChannel: () => void;
   currentChannel: Channel | null;
   viewersCount: number;
-  
+
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+
+  // Quality
+  qualities?: { index: number; label: string }[];
+  currentQuality?: number;
+  onQualityChange?: (index: number) => void;
+
+  // new grouping props
+  groupedChannels?: { [key: string]: Channel[] };
+  groupKeys?: string[];
+  currentGroupType?: 'all' | 'language' | 'category';
+  onGroupTypeChange?: (type: 'all' | 'language' | 'category') => void;
+  onGroupSelect?: (group: string) => void;
 }
 
-export default function PlayerOverlay({ 
-  visible, 
+export default function PlayerOverlay({
+  visible,
   channels,
   topTrending = [],
-  currentGroup, 
-  onSelect, 
-  onNextGroup, 
+  currentGroup,
+  onSelect,
+  onNextGroup,
   onPrevGroup,
   onClose,
   isPlaying,
@@ -52,12 +66,49 @@ export default function PlayerOverlay({
   currentChannel,
   viewersCount,
   isFullscreen = false,
-  onToggleFullscreen
+  onToggleFullscreen,
+  qualities = [],
+  currentQuality = -1,
+  onQualityChange,
+  groupedChannels,
+  groupKeys,
+  currentGroupType = 'all',
+  onGroupTypeChange,
+  onGroupSelect
 }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Navigation State
   const [activeTab, setActiveTab] = useState<'list' | 'trending'>('list');
+  // 'root' = showing list of groups (Language list), 'channels' = showing channels in selected group
+  const [menuView, setMenuView] = useState<'root' | 'channels'>('channels'); 
+  
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [selectedIndex, setSelectedIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
+
+  // Helper for TV Focusable Buttons
+  function TVButton({ onClick, className, children, title, ...props }: any) {
+      const { focusProps, isFocused } = useTVFocus({
+          onEnter: onClick,
+          className: className,
+          focusClassName: 'ring-4 ring-white z-50 scale-110 bg-white/20'
+      });
+      return (
+          <button
+            onClick={onClick}
+            {...props}
+            {...focusProps}
+            className={`${className} ${isFocused ? 'ring-4 ring-white z-50 scale-110 bg-white/20' : ''}`}
+            title={title}
+          >
+              {children}
+          </button>
+      );
+  }
 
   const formatViewers = (count: number) => {
     if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
@@ -65,23 +116,138 @@ export default function PlayerOverlay({
     return count.toString();
   };
 
-  // Auto-close sidebar when minimizing (exiting fullscreen)
+  // Auto-close sidebar when minimizing
   useEffect(() => {
     if (!isFullscreen) {
         setSidebarOpen(false);
     }
   }, [isFullscreen]);
 
-  const activeList = activeTab === 'list' ? channels : topTrending;
+  // Determine what list to show
+  // If activeTab is 'trending', always show trending channels.
+  // If activeTab is 'list':
+  //    If currentGroupType is 'all', show 'channels' directly.
+  //    If currentGroupType is 'language'/'category':
+  //         If menuView is 'root', show list of groups.
+  //         If menuView is 'channels', show channels in currentGroup.
 
-  // Reset index on group change
-  useEffect(() => setSelectedIndex(0), [currentGroup]);
+  const isRootView = activeTab === 'list' && currentGroupType !== 'all' && menuView === 'root' && !searchQuery;
+  
+  // List Items
+  const listItems = useMemo(() => {
+      // 1. Search Logic
+      if (searchQuery.trim().length > 0) {
+          const query = searchQuery.toLowerCase();
+          
+          // Flatten all channels for global search
+          let sourceChannels: Channel[] = [];
+          
+          if (groupedChannels) {
+              sourceChannels = Object.values(groupedChannels).flat();
+              // Remove duplicates if any (though typically API returns unique uuids)
+              sourceChannels = Array.from(new Map(sourceChannels.map(c => [c.uuid, c])).values());
+          } else {
+              sourceChannels = channels;
+          }
+
+          return sourceChannels.filter(c => 
+              c.name.toLowerCase().includes(query) || 
+              c.channel_number.toString().includes(query)
+          );
+      }
+
+      // 2. Normal Logic
+      if (activeTab === 'trending') return topTrending;
+      if (isRootView && groupKeys) {
+          // Return list of groups as pseudo-channels or just strings
+          return groupKeys; 
+      }
+      return channels;
+  }, [activeTab, isRootView, topTrending, groupKeys, channels, searchQuery, groupedChannels]);
+
+  // Handle Selection
+  const handleItemSelect = (item: any, index: number) => {
+      if (searchQuery.trim().length > 0) {
+          // Selecting a search result (Channel)
+          onSelect(item as Channel);
+          if (window.innerWidth < 768) setSidebarOpen(false);
+          // Optional: Clear search on select?
+          // setSearchQuery(''); 
+      } else if (activeTab === 'trending') {
+          onSelect(item as Channel);
+          if (window.innerWidth < 768) setSidebarOpen(false);
+      } else if (isRootView) {
+          // User selected a group
+          if (onGroupSelect) onGroupSelect(item as string);
+          setMenuView('channels');
+          setSelectedIndex(0); // Reset for channel list
+      } else {
+          // User selected a channel
+          onSelect(item as Channel);
+          if (window.innerWidth < 768) setSidebarOpen(false);
+      }
+  };
+
+  // Handle Back (Left Arrow or Back Button) in Menu
+  const handleBack = () => {
+      if (searchQuery) {
+          setSearchQuery('');
+          setSelectedIndex(0);
+          return;
+      }
+
+      if (activeTab === 'list' && currentGroupType !== 'all' && menuView === 'channels') {
+          setMenuView('root');
+          setSelectedIndex(0);
+      } else {
+          setSidebarOpen(false);
+      }
+  };
+
+  // Reset index on tab change
+  useEffect(() => {
+      setSelectedIndex(0);
+      if (activeTab === 'list' && currentGroupType !== 'all') {
+          // When switching to list tab, maybe go to root?
+          // Let's stay where we were unless logic demands otherwise.
+      }
+  }, [activeTab]);
+
+  // Reset to root if group type changes
+  useEffect(() => {
+      if (currentGroupType !== 'all') {
+         setMenuView('root');
+      } else {
+         setMenuView('channels');
+      }
+      setSelectedIndex(0);
+      setSearchQuery(''); // Clear search on type change
+  }, [currentGroupType]);
+
 
   // Keyboard Navigation
   useEffect(() => {
     if (!visible && !sidebarOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+        // Ignore navigation keys if input is focused, except for Enter/Escape/Down/Up maybe?
+        // Actually, if input is focused, we probably want normal input behavior.
+        if (document.activeElement?.tagName === 'INPUT') {
+            if (e.key === 'Escape') {
+                (document.activeElement as HTMLElement).blur();
+                setSidebarOpen(false);
+            }
+            if (e.key === 'ArrowDown') {
+                 // Move focus to list?
+                 e.preventDefault();
+                 (document.activeElement as HTMLElement).blur();
+                 setSelectedIndex(0);
+                 // We need to focus the list container or body to capture keys again?
+                 // The window listener keeps capturing, so just blurring is enough.
+            }
+            return; 
+        }
+
         switch (e.key) {
             case 'ArrowUp':
                 if (sidebarOpen) {
@@ -92,39 +258,30 @@ export default function PlayerOverlay({
             case 'ArrowDown':
                 if (sidebarOpen) {
                     e.preventDefault(); e.stopPropagation();
-                    setSelectedIndex(prev => Math.min(activeList.length - 1, prev + 1));
+                    setSelectedIndex(prev => Math.min(listItems.length - 1, prev + 1));
                 }
                 break;
              case 'Enter':
-                 if (sidebarOpen && activeList[selectedIndex]) {
+                 if (sidebarOpen && listItems[selectedIndex]) {
                      e.preventDefault(); e.stopPropagation();
-                     onSelect(activeList[selectedIndex]);
-                     // Optional: setSidebarOpen(false);
-                 } else if (!sidebarOpen) {
-                     // Maybe toggle play/pause or open menu?
-                     // onPlayPause();
+                     handleItemSelect(listItems[selectedIndex], selectedIndex);
                  }
                  break;
             case 'ArrowLeft':
-                if (sidebarOpen && activeTab === 'list') {
+                if (sidebarOpen) {
                      e.preventDefault(); e.stopPropagation();
-                     onPrevGroup();
-                } else if (!sidebarOpen) {
-                     e.preventDefault(); e.stopPropagation();
-                     onPrevChannel();
+                     handleBack();
                 }
                 break;
             case 'ArrowRight':
-                if (sidebarOpen && activeTab === 'list') {
+                // Maybe drill down if on a group?
+                if (sidebarOpen && isRootView && listItems[selectedIndex]) {
                     e.preventDefault(); e.stopPropagation();
-                    onNextGroup();
-                } else if (!sidebarOpen) {
-                    e.preventDefault(); e.stopPropagation();
-                    onNextChannel();
+                    handleItemSelect(listItems[selectedIndex], selectedIndex);
                 }
                 break;
              case 'Escape':
-                if (sidebarOpen) setSidebarOpen(false);
+                if (sidebarOpen) handleBack();
                 else onClose();
                 break;
              case ' ': // Spacebar
@@ -134,11 +291,14 @@ export default function PlayerOverlay({
              case 'm':
                 if (onToggleMute) onToggleMute();
                 break;
+             case 's':
+                 setShowSettings(prev => !prev);
+                 break;
         }
     };
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [visible, sidebarOpen, activeList, selectedIndex, onSelect, onNextGroup, onPrevGroup, onClose, activeTab, onPlayPause, onToggleMute, onNextChannel, onPrevChannel]);
+  }, [visible, sidebarOpen, listItems, selectedIndex, activeTab, isRootView, onPlayPause, onToggleMute, searchQuery]); // Added searchQuery to deps to rest listener if needed
 
   // Scroll Sync
   useEffect(() => {
@@ -148,147 +308,228 @@ export default function PlayerOverlay({
     }
   }, [selectedIndex, sidebarOpen]);
 
-  
+
   // UI Visibility Logic
-  const showUI = visible || sidebarOpen;
   const showSidebar = (isFullscreen && visible) || sidebarOpen;
 
   return (
     <div className="absolute inset-0 z-50 font-sans text-white transition-all duration-300 pointer-events-none">
-        
-        {/* --- BACKDROP (Darkens video when internal UI (Sidebar) is active & manually pinned) --- */}
-        <div 
-            className={`absolute inset-0 bg-black/40 transition-opacity duration-500 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
+
+        {/* --- BACKDROP --- */}
+        <div
+            className={`absolute inset-0 bg-black/40 transition-opacity duration-500 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             onClick={() => setSidebarOpen(false)}
         />
 
-        {/* --- SIDEBAR DRAWER (Floating Glass Panel) --- */}
-        <div 
-            className={`absolute left-0 sm:left-4 top-0 sm:top-4 bottom-0 w-[85vw] sm:w-64 md:w-80 max-w-[400px] bg-black/80 md:bg-black/60 backdrop-blur-2xl border-r sm:border border-white/10 sm:rounded-3xl sm:rounded-b-none sm:border-b-0 flex flex-col shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] z-40 pointer-events-auto ${showSidebar ? 'translate-x-0 opacity-100' : '-translate-x-full sm:-translate-x-[120%] opacity-0'}`}
+        {/* --- SIDEBAR DRAWER --- */}
+        <div
+            className={`fixed sm:absolute left-0 top-0 bottom-0 w-full sm:w-80 md:w-96 max-w-[90vw] bg-slate-950/95 sm:bg-black/80 backdrop-blur-2xl sm:border-r border-white/10 sm:rounded-r-2xl shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] z-[60] pointer-events-auto flex flex-col ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}
             onClick={(e) => e.stopPropagation()}
         >
-             {/* Drawer Header */}
-             <div className="h-12 sm:h-16 flex items-center px-4 sm:px-6 border-b border-white/5 shrink-0">
-                 <Radio className="text-primary mr-3" size={18} />
-                 <h2 className="font-bold text-sm sm:text-base tracking-wider text-white/90">CHANNELS</h2>
+             {/* Header */}
+             <div className="flex flex-col shrink-0 border-b border-white/5 bg-black/20">
+                 <div className="h-14 flex items-center px-4 justify-between">
+                     <div className="flex items-center gap-2">
+                        <Radio className="text-primary" size={20} />
+                        <h2 className="font-bold text-lg tracking-wide text-white">CHANNELS</h2>
+                     </div>
+                     <button onClick={() => setSidebarOpen(false)} className="p-2 -mr-2 text-slate-400 hover:text-white"><X size={20}/></button>
+                 </div>
+                 
+                 {/* Search Input */}
+                 <div className="px-4 pb-3">
+                     <div className="relative group">
+                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-white transition-colors" size={16} />
+                         <input 
+                            type="text" 
+                            placeholder="Search channel..." 
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setSelectedIndex(0); // Reset selection on search
+                            }}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:bg-white/10 focus:border-white/30 transition-all"
+                         />
+                         {searchQuery && (
+                             <button 
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                             >
+                                 <X size={14} />
+                             </button>
+                         )}
+                     </div>
+                 </div>
+
+                 {/* Main Tabs */}
+                 {!searchQuery && (
+                 <div className="flex px-4 pb-3 gap-2">
+                    <button
+                        onClick={() => setActiveTab('list')}
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all border ${activeTab === 'list' ? 'bg-primary border-primary text-white' : 'border-white/10 text-slate-400 hover:bg-white/5'}`}
+                    >
+                        CHANNELS
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('trending')}
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all border ${activeTab === 'trending' ? 'bg-amber-600 border-amber-600 text-white' : 'border-white/10 text-slate-400 hover:bg-white/5'}`}
+                    >
+                        TRENDING
+                    </button>
+                </div>
+                )}
+                
+                {/* Group Type Selector (Only in List Tab) */}
+                {activeTab === 'list' && onGroupTypeChange && !searchQuery && (
+                    <div className="flex items-center gap-1 px-4 pb-3 overflow-x-auto scrollbar-hide">
+                         {[
+                            { id: 'all', label: 'All', icon: List },
+                            { id: 'language', label: 'Language', icon: Globe },
+                            { id: 'category', label: 'Category', icon: Layers },
+                         ].map(type => (
+                             <button
+                                key={type.id}
+                                onClick={() => {
+                                    if (currentGroupType !== type.id) {
+                                        onGroupTypeChange(type.id as any);
+                                        // Menu view reset handled by effect
+                                    } else if (type.id !== 'all') {
+                                        // If clicking active type (lang/cat), go back to root
+                                        setMenuView('root');
+                                    }
+                                }}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border transition-all ${currentGroupType === type.id ? 'bg-white text-black border-white' : 'bg-transparent text-slate-400 border-white/10 hover:border-white/30'}`}
+                             >
+                                 <type.icon size={12} />
+                                 {type.label}
+                             </button>
+                         ))}
+                    </div>
+                )}
              </div>
 
-             {/* Tabs */}
-             <div className="flex p-2 gap-2 border-b border-white/5 shrink-0">
-                <button 
-                    onClick={() => setActiveTab('list')}
-                    className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'list' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
-                >
-                    ALL LIST
-                </button>
-                <button 
-                    onClick={() => setActiveTab('trending')}
-                    className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'trending' ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
-                >
-                    TRENDING
-                </button>
-            </div>
+             {/* Sub-Header / Breadcrumb */}
+             {activeTab === 'list' && !isRootView && currentGroupType !== 'all' && !searchQuery && (
+                 <div className="flex items-center gap-2 px-4 py-2 bg-white/5 text-xs font-bold text-slate-300 border-b border-white/5 shrink-0">
+                     <button onClick={() => setMenuView('root')} className="hover:text-white flex items-center gap-1">
+                         <ChevronLeft size={14} />
+                         Back
+                     </button>
+                     <span className="text-slate-600">/</span>
+                     <span className="text-primary truncate">{currentGroup}</span>
+                 </div>
+             )}
 
-            {/* Group Navigation */}
-            {activeTab === 'list' && (
-                <div className="flex items-center justify-between p-2 mx-2 mt-2 bg-white/5 rounded-xl border border-white/5 shrink-0">
-                    <button onClick={(e) => { e.stopPropagation(); onPrevGroup(); }} className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"><ChevronLeft size={16}/></button>
-                    <span className="text-xs font-bold text-slate-300 truncate px-2">{currentGroup || 'All Channels'}</span>
-                    <button onClick={(e) => { e.stopPropagation(); onNextGroup(); }} className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"><ChevronRight size={16}/></button>
-                </div>
-            )}
-
-            {/* List */}
+            {/* Content List */}
              <div ref={listRef} className="flex-1 overflow-y-auto scrollbar-hide p-2 pointer-events-auto pb-32">
-                 {activeList.map((channel, idx) => (
-                    <div 
-                        key={channel.uuid}
-                        className={`group flex items-center gap-3 p-3 mb-1 rounded-xl cursor-pointer transition-all border border-transparent ${
-                            idx === selectedIndex 
-                            ? 'bg-primary/20 border-primary/30 shadow-inner' 
-                            : 'hover:bg-white/5 hover:border-white/5'
-                        }`}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedIndex(idx);
-                            onSelect(channel);
-                            if (window.innerWidth < 768) setSidebarOpen(false);
-                        }}
-                    >
-                         {/* Thumbnail */}
-                         <div className="w-9 h-9 rounded-lg bg-black/40 flex items-center justify-center overflow-hidden border border-white/5 group-hover:border-white/20 transition-colors">
-                             {channel.thumbnail_url ? (
-                                 <img src={channel.thumbnail_url} className="w-full h-full object-contain p-0.5" alt={channel.name} />
-                             ) : (
-                                 <Tv size={14} className="text-slate-600" />
-                             )}
-                         </div>
-                         
-                         {/* Text */}
-                         <div className="flex-1 min-w-0">
-                             <h4 className={`text-sm font-bold truncate ${idx === selectedIndex ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>
-                                 {channel.name}
-                             </h4>
-                             <div className="flex items-center gap-2 mt-0.5 overflow-hidden w-full">
-                                 <span className="text-[10px] text-slate-500 font-mono bg-white/5 px-1 rounded shrink-0">CH {channel.channel_number}</span>
-                                 {/* Star Rating */}
-                                 <div className="flex items-center gap-1 text-[10px] text-amber-500 bg-amber-500/10 px-1 rounded shrink-0">
-                                     <Star size={8} fill="currentColor" />
-                                     <span className="font-bold">{channel.average_rating ? channel.average_rating.toFixed(1) : '0.0'}</span>
-                                 </div>
-                                 
-                                 {/* Language */}
-                                 {channel.language?.name && (
-                                     <span className="text-[10px] text-slate-500 truncate border-l border-white/10 pl-2 shrink-0 max-w-[60px]">{channel.language.name}</span>
-                                 )}
-                                 
-                                  {/* Category */}
-                                 {channel.category?.name && (
-                                     <span className="text-[10px] text-slate-500 truncate border-l border-white/10 pl-2 opacity-70">{channel.category.name}</span>
-                                 )}
-                             </div>
-                         </div>
+                 {/* EMPTY STATE */}
+                 {listItems.length === 0 && (
+                     <div className="flex flex-col items-center justify-center py-10 text-slate-500">
+                         <Radio size={32} className="opacity-50 mb-2" />
+                         <span className="text-sm">No items found</span>
+                     </div>
+                 )}
 
-                         {/* Active Indicator */}
-                         {currentChannel?.uuid === channel.uuid && (
-                             <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
-                         )}
-                    </div>
-                ))}
+                 {listItems.map((item, idx) => {
+                     // Check if item is a group key (string) or channel
+                     const isGroupItem = typeof item === 'string';
+                     const channel = !isGroupItem ? (item as Channel) : null;
+                     const groupName = isGroupItem ? (item as string) : null;
+                     
+                     const isActive = isGroupItem 
+                        ? (currentGroup === groupName && !isRootView) // Highlight if this group is active (rarely happens in root view unless we want to mark selected)
+                        : (currentChannel?.uuid === channel?.uuid);
+
+                     return (
+                        <div
+                            key={isGroupItem ? groupName : channel?.uuid}
+                            className={`group flex items-center gap-3 p-3 mb-1 rounded-xl cursor-pointer transition-all border border-transparent ${
+                                idx === selectedIndex
+                                ? 'bg-white/10 border-white/10 shadow-lg'
+                                : 'hover:bg-white/5 hover:border-white/5'
+                            } ${isActive ? 'bg-primary/20 border-primary/30' : ''}`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedIndex(idx);
+                                handleItemSelect(item, idx);
+                            }}
+                        >
+                             {isGroupItem ? (
+                                 // GROUP ITEM RENDER
+                                 <>
+                                    <div className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400">
+                                        <Layers size={16} />
+                                    </div>
+                                    <div className="flex-1 font-bold text-sm text-slate-200">{groupName}</div>
+                                    <ChevronRight size={16} className="text-slate-500" />
+                                 </>
+                             ) : (
+                                 // CHANNEL ITEM RENDER
+                                 <>
+                                     <div className="w-9 h-9 rounded-lg bg-black/40 flex items-center justify-center overflow-hidden border border-white/5 shrink-0">
+                                         {channel?.thumbnail_url ? (
+                                             <img src={channel.thumbnail_url} className="w-full h-full object-contain p-0.5" alt="" />
+                                         ) : (
+                                             <Tv size={14} className="text-slate-600" />
+                                         )}
+                                     </div>
+                                     <div className="flex-1 min-w-0">
+                                         <h4 className={`text-sm font-bold truncate ${idx === selectedIndex ? 'text-white' : 'text-slate-300'}`}>
+                                             {channel?.name}
+                                         </h4>
+                                         <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500">
+                                             <span className="bg-white/5 px-1 rounded">CH {channel?.channel_number}</span>
+                                             {channel?.language?.name && <span className="truncate">{channel.language.name}</span>}
+                                         </div>
+                                     </div>
+                                      {/* Active Indicator */}
+                                     {currentChannel?.uuid === channel?.uuid && (
+                                         <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
+                                     )}
+                                 </>
+                             )}
+                        </div>
+                     );
+                 })}
             </div>
         </div>
 
-        {/* --- BOTTOM CONTROL BAR (Dock Style) --- */}
-        <div className={`absolute bottom-0 left-0 right-0 transition-transform duration-300 z-50 pointer-events-auto ${showUI ? 'translate-y-0' : 'translate-y-full'}`}>
-            
+        {/* --- BOTTOM CONTROL BAR --- */}
+        <div className="absolute bottom-0 left-0 right-0 transition-transform duration-300 z-50 pointer-events-auto">
+
              {/* Gradient Shade */}
              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent h-32 -z-10 bottom-0 pointer-events-none" />
 
-             <div className="container mx-auto max-w-5xl px-3 md:px-8 pb-3 md:pb-6 pt-8 md:pt-10 flex items-end justify-between gap-2 md:gap-4 relative">
-                 
+             {/* Mobile: Stack controls or simplified layout? 
+                 Desktop: Absolute center. 
+                 Solution: Flex layout that adapts.
+              */}
+             <div className="container mx-auto max-w-5xl px-3 md:px-8 pb-3 md:pb-6 pt-4 md:pt-10 flex items-center md:items-end justify-between gap-2 md:gap-4 relative">
+
                  {/* LEFT: Menu / Channel Info */}
                  <div className="flex-1 flex items-center justify-start gap-2 md:gap-4 min-w-0">
-                     <button 
-                        onClick={(e) => {
+                     <TVButton
+                        onClick={(e: any) => {
                             e.stopPropagation();
                             // Toggle Sidebar Menu
                             setSidebarOpen(prev => !prev);
                         }}
-                        className={`flex items-center gap-2 px-2 py-1.5 md:px-4 md:py-2.5 rounded-full backdrop-blur-md border transition-all group shrink-0 ${
-                            sidebarOpen 
-                            ? 'bg-white text-black border-white' 
+                        className={`flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 rounded-full backdrop-blur-md border transition-all group shrink-0 ${
+                            sidebarOpen
+                            ? 'bg-white text-black border-white'
                             : 'bg-white/10 text-white border-white/10 hover:bg-white/20'
                         }`}
                     >
-                         {sidebarOpen ? <X className="w-4 h-4 md:w-5 md:h-5" /> : <List className="w-4 h-4 md:w-5 md:h-5" />}
+                         <List className="w-5 h-5" />
                         <span className="hidden md:inline font-bold text-sm tracking-wide">
-                            {!isFullscreen ? '' : ' '}
+                            CHANNELS
                         </span>
-                     </button>
+                     </TVButton>
 
                      {/* Channel Info (Bottom) - Fills the gap */}
+                     {/* Hide on really small screens if they collide? Or just flex-shrink */}
                      {currentChannel && (
-                        <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500 min-w-0 overflow-hidden">
+                        <div className="hidden sm:flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500 min-w-0 overflow-hidden">
                              <div className="hidden sm:block w-12 h-12 bg-white/5 rounded-lg border border-white/10 p-1 backdrop-blur-sm shrink-0">
                                  {currentChannel.thumbnail_url ? (
                                      <img src={currentChannel.thumbnail_url} className="w-full h-full object-contain" alt="" />
@@ -302,87 +543,98 @@ export default function PlayerOverlay({
                                  </h3>
                                  <div className="flex items-center gap-2 text-[10px] md:text-xs text-slate-400 w-full overflow-hidden px-1 mt-0.5">
                                      <span className="bg-white/10 px-1.5 rounded text-slate-300 shrink-0">CH {currentChannel.channel_number}</span>
-                                     
-                                     {currentChannel.language?.name && (
-                                         <span className="truncate text-slate-400 border-l border-white/10 pl-2 hidden sm:inline">{currentChannel.language.name}</span>
-                                     )}
-                                     
-                                     {currentChannel.category?.name && (
-                                         <span className="truncate text-slate-400 border-l border-white/10 pl-2 hidden sm:inline">{currentChannel.category.name}</span>
-                                     )}
-                                     
-                                     <span className="w-1 h-1 rounded-full bg-white/20 shrink-0 hidden sm:block" />
-                                     <div className="flex items-center gap-1.5 text-slate-300 bg-black/20 px-1.5 py-0.5 rounded-md border border-white/5 shrink-0">
-                                         <Eye size={10} className="md:w-3 md:h-3" />
-                                         <span className="font-mono font-bold text-[10px] md:text-xs">{formatViewers(viewersCount || 0)}</span>
-                                     </div>
+                                     <span className="flex items-center gap-1">
+                                          <Eye size={10} />
+                                          {formatViewers(viewersCount)}
+                                     </span>
                                  </div>
                              </div>
                         </div>
                      )}
                  </div>
 
-                 {/* CENTER: Playback Controls (Absolutely Centered) */}
-                 <div className="absolute left-1/2 -translate-x-1/2 bottom-4 md:bottom-6 flex items-center gap-4 md:gap-6">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); onPrevChannel(); }}
-                        className="text-slate-400 hover:text-white hover:scale-110 transition-all active:scale-95 p-2"
-                        title="Previous Channel"
-                      >
-                          <SkipBack className="w-5 h-5 md:w-6 md:h-6" />
-                      </button>
+                 {/* CENTER: Playback Controls */}
+                 {/* Mobile: Relative/Flex (in flow). Desktop: Absolute center. */}
+                 <div className="relative md:absolute md:left-1/2 md:-translate-x-1/2 md:bottom-6 flex items-center gap-3 md:gap-6 shrink-0">
+                      <TVButton
+                        onClick={(e: any) => { e.stopPropagation(); onPrevChannel(); }}
+                        className="text-slate-400 hover:text-white hover:scale-110 transition-all active:scale-95 p-2 rounded-full hidden sm:block" 
+                      >{/* Hide buttons on super small screens if needed, or keep */}
+                          <SkipBack className="w-4 h-4 md:w-5 md:h-5" />
+                      </TVButton>
 
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); onPlayPause(); }}
-                        className="text-white hover:scale-110 active:scale-95 transition-all drop-shadow-lg p-2"
+                      <TVButton
+                        onClick={(e: any) => { e.stopPropagation(); onPlayPause(); }}
+                        className="text-white hover:scale-110 active:scale-95 transition-all drop-shadow-lg p-2 rounded-full"
                       >
                           {isPlaying ? (
-                              <Pause className="w-8 h-8 md:w-10 md:h-10" fill="currentColor" />
+                              <Pause className="w-6 h-6 md:w-8 md:h-8" fill="currentColor" />
                           ) : (
-                              <Play className="w-8 h-8 md:w-10 md:h-10" fill="currentColor" />
+                              <Play className="w-6 h-6 md:w-8 md:h-8" fill="currentColor" />
                           )}
-                      </button>
+                      </TVButton>
 
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); onNextChannel(); }}
-                        className="text-slate-400 hover:text-white hover:scale-110 transition-all active:scale-95 p-2"
-                        title="Next Channel"
+                      <TVButton
+                        onClick={(e: any) => { e.stopPropagation(); onNextChannel(); }}
+                        className="text-slate-400 hover:text-white hover:scale-110 transition-all active:scale-95 p-2 rounded-full hidden sm:block"
                       >
-                          <SkipForward className="w-5 h-5 md:w-6 md:h-6" />
-                      </button>
+                          <SkipForward className="w-4 h-4 md:w-5 md:h-5" />
+                      </TVButton>
                  </div>
 
-                 {/* RIGHT: Volume & Tools */}
-                 <div className="flex-1 flex justify-end items-center gap-4">
+                 {/* RIGHT: Tools */}
+                 <div className="flex-1 flex justify-end items-center gap-2 md:gap-4">
                       {onToggleMute && (
-                          <button 
-                            onClick={onToggleMute} 
-                            className={`p-2 rounded-full transition-colors ${isMuted ? 'bg-red-500/20 text-red-500' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+                          <TVButton
+                            onClick={onToggleMute}
+                            className={`p-2 rounded-full transition-colors hidden sm:block ${isMuted ? 'bg-red-500/20 text-red-500' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
                         >
                             {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                          </button>
+                          </TVButton>
                       )}
-                      
-                      <div className="hidden md:block w-28 h-1 bg-white/20 rounded-full overflow-hidden cursor-pointer group relative">
-                          <div className="absolute inset-0 bg-primary w-full origin-left transform scale-x-0 group-hover:scale-x-100 transition-transform duration-75" style={{ transform: `scaleX(${volume})` }} />
-                          <div className="absolute inset-0 bg-white w-full origin-left" style={{ transform: `scaleX(${volume})` }} /> {/* White bar for visibility */}
-                          <input 
-                            type="range" min="0" max="1" step="0.05" value={volume}
-                            onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-                            className="absolute inset-0 opacity-0 cursor-pointer"
-                          />
-                      </div>
-                      
-                      {/* Fullscreen Toggle */}
-                       {onToggleFullscreen && (
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); onToggleFullscreen(); }}
-                            className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors"
-                            title="Toggle Fullscreen"
-                          >
-                              {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
-                          </button>
+
+                      {/* Settings */}
+                      {onQualityChange && qualities.length > 0 && (
+                          <div className="relative">
+                              <TVButton
+                                onClick={(e: any) => { e.stopPropagation(); setShowSettings(!showSettings); }}
+                                className={`p-2 rounded-full transition-colors ${showSettings ? 'bg-white text-black' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+                              >
+                                  <Settings size={20} className={showSettings ? 'rotate-90 transition-transform' : ''} />
+                              </TVButton>
+
+                              {showSettings && (
+                                  <div className="absolute bottom-full right-0 mb-3 w-48 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                                      <div className="max-h-60 overflow-y-auto py-1">
+                                          {qualities.map((q) => (
+                                              <TVButton
+                                                  key={q.index}
+                                                  onClick={(e: any) => {
+                                                      e.stopPropagation();
+                                                      onQualityChange(q.index);
+                                                      setShowSettings(false);
+                                                  }}
+                                                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center justify-between hover:bg-white/10 transition-colors rounded-none ${currentQuality === q.index ? 'text-primary font-bold bg-primary/10' : 'text-slate-300'}`}
+                                              >
+                                                  <span>{q.label}</span>
+                                                  {currentQuality === q.index && <Check size={14} />}
+                                              </TVButton>
+                                          ))}
+                                      </div>
+                                  </div>
+                              )}
+                          </div>
                       )}
+
+                       {/* Fullscreen */}
+                        {onToggleFullscreen && (
+                           <TVButton
+                             onClick={(e: any) => { e.stopPropagation(); onToggleFullscreen(); }}
+                             className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                           >
+                               {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                           </TVButton>
+                       )}
                  </div>
              </div>
         </div>

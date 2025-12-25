@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.8.0
+# Frontend (Next.js) - v1.9.0
 
 ## Overview
 
@@ -51,6 +51,9 @@ frontend/
   - **Animated Loader**: "Dual Ring" glowing active states.
   - **Persistent Watermark**: Responsive branding visible in fullscreen.
   - **OTT Improvements**: Separate Native Control experience for Embedded player.
+- **Enhanced Player Ops (v1.9.0)**:
+  - **Sidebar Search**: In-player channel search with immediate filtering.
+  - **OTT Header Fullscreen**: One-click fullscreen toggle in the top-right navbar.
 
 ## TV Navigation Controls
 

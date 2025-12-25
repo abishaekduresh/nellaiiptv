@@ -31,6 +31,18 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   },
 
   toggleFavorite: async (channelUuid, channelName) => {
+    // Check Auth
+    // We need to access authStore non-reactively or import the hook logic carefully inside the action?
+    // Proper way in zustand outside of components is to import the store directly if possible, or pass it?
+    // Actually, we can import the hook/store.
+    // However, simplest way here given the structure is to check localStorage or use the store instance.
+    // Let's rely on localStorage token for a quick check, ensuring consistency with authStore.
+    const token = localStorage.getItem('token');
+    if (!token) {
+        toast.error('Please login to manage favorites');
+        return;
+    }
+
     const { favorites, isProcessing } = get();
     if (isProcessing) return;
 

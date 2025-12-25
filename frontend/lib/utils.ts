@@ -5,7 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatViewers(count: number): string {
+export function formatViewers(count: number | null | undefined): string {
+  if (!count) return '0';
   if (count >= 1000000) {
     return `${(count / 1000000).toFixed(1)}M`;
   }

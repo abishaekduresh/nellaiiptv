@@ -250,7 +250,16 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                             channels={groups[effectiveActiveGroup] || []}
                             topTrending={topTrending || []}
                             viewersCount={viewersCount}
+                            
+                            // Grouping Props
+                            allGroupedChannels={groups}
+                            groupKeys={groupKeys}
+                            currentGroupType={groupBy}
+                            onGroupTypeChange={handleGroupChange}
+                            
                             currentGroup={effectiveActiveGroup}
+                            onGroupSelect={setActiveGroup}
+                            
                             onChannelSelect={handleChannelClick} // Use existing handler
                             onNextGroup={gotoNextGroup}
                             onPrevGroup={gotoPrevGroup}

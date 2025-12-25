@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { Settings, Search, X, Loader2, Menu } from 'lucide-react';
+import { Settings, Search, X, Loader2, Menu, Maximize, Minimize } from 'lucide-react';
 import UserMenu from './UserMenu';
 import api from '@/lib/api';
 import { Channel } from '@/types';
@@ -99,6 +99,9 @@ export default function Navbar() {
 
             {/* Right Side Actions */}
             <div className="flex items-center space-x-4">
+              {/* Fullscreen Toggle */}
+              <FullScreenToggle />
+
               {/* View Mode Toggle */}
               <ViewModeToggle />
 
@@ -106,6 +109,7 @@ export default function Navbar() {
               <button 
                 onClick={() => setShowSearch(true)}
                 className="p-2 text-slate-400 hover:text-white transition-colors"
+                title="Search"
               >
                 <Search size={20} />
               </button>
@@ -363,6 +367,40 @@ function ViewModeToggle() {
         >
             {mode === 'OTT' ? <LayoutGrid size={18} /> : <Monitor size={18} />}
             <span className="hidden md:inline text-sm font-medium">{mode === 'OTT' ? 'Classic' : 'OTT'}</span>
+        </button>
+    );
+}
+
+function FullScreenToggle() {
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    useEffect(() => {
+        const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+        document.addEventListener('fullscreenchange', handleFsChange);
+        return () => document.removeEventListener('fullscreenchange', handleFsChange);
+    }, []);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(e => console.error(e));
+        } else {
+            document.exitFullscreen().catch(e => console.error(e));
+        }
+    };
+
+    const { focusProps, isFocused } = useTVFocus({
+        onEnter: toggleFullscreen,
+        className: "p-2 text-slate-400 hover:text-white transition-colors outline-none rounded-full"
+    });
+
+    return (
+        <button
+            onClick={toggleFullscreen}
+            {...focusProps}
+            className={`${focusProps.className} ${isFocused ? 'ring-2 ring-primary bg-slate-800 text-white' : ''}`}
+            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+        >
+            {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
         </button>
     );
 }

@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version 1.8.0** | A modern IPTV streaming platform with dual-mode interface
+**Version Info** | Frontend **v1.9.0** | Backend **v1.8.0**
 
 ## Overview
 
@@ -164,10 +164,15 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ### Backend
 Configure database connection and JWT secret in your environment or config files.
 
-## Latest Updates (v1.8.0)
-- ✅ **Premium UI Elements**: New "Dual Ring" animated video loader and persistent channel watermark.
-- ✅ **OTT Mode Refined**: Native Controls for Embedded/OTT channel view; Custom Overlay for Classic Mode.
-- ✅ **Bug Fixes**: Fixed top trending viewer counts available.
+## Latest Updates
+### Frontend (v1.9.0)
+- ✅ **Sidebar Search**: Integrated search bar in the video player overlay.
+- ✅ **Fullscreen Toggle**: One-click fullscreen button in OTT header.
+- ✅ **Premium UI**: "Dual Ring" animated loader and persistent watermark (from v1.8.0).
+
+### Backend (v1.8.0)
+- ✅ **Stable Core**: Robust API powering new frontend features.
+- ✅ **Performance**: Maintained high-performance channel serving.
 
 ## Recent Updates (v1.7.0)
 - ✅ **Advanced Classic Mode**: Complete mobile redesign and TV navigation improvements.

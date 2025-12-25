@@ -55,9 +55,15 @@ function TVStar({ star, currentRating, onClick }: any) {
 export default function ChannelPage() {
   const params = useParams();
   const router = useRouter();
-  const uuid = params.id as string;
+  const [uuid, setUuid] = useState(params.id as string);
+  
+  // Sync state with params for back/forward navigation
+  useEffect(() => {
+    if (params.id) setUuid(params.id as string);
+  }, [params.id]);
   
   // Refs
+
   const playerRef = useRef<Player | null>(null);
   const viewTimerRef = useRef<NodeJS.Timeout | null>(null);
   const onlineCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -219,47 +225,41 @@ export default function ChannelPage() {
     }
   };
 
-  const handleRating = async (stars: number) => {
+  const handleRating = async (value: number) => {
     if (!user) {
-      toast.error('Please login to rate this channel');
-      return;
+         toast.error("Please login to rate channels");
+         return;
     }
 
-    setUserRating(stars);
     try {
-      await api.post(`/channels/${uuid}/rate`, { rating: stars });
-      toast.success('Rating submitted successfully!');
-      // Refresh to get new average
-      fetchChannelDetails(false);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to submit rating');
+      const response = await api.post(`/channels/${uuid}/rate`, { rating: value });
+      if (response.data.status) {
+        setUserRating(value);
+        setRating(response.data.data.average_rating);
+        toast.success('Rating submitted!');
+      }
+    } catch (err) {
+      toast.error('Failed to submit rating');
     }
   };
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      toast.error('Please login to post a comment');
-      return;
-    }
-
     if (!newComment.trim()) return;
 
+    if (!user) {
+         toast.error("Please login to comment");
+         return;
+    }
+    
     setSubmittingComment(true);
     try {
-      await api.post(`/channels/${uuid}/comments`, { comment: newComment });
-      setNewComment('');
-      toast.success('Comment posted successfully!');
+      const response = await api.post(`/channels/${uuid}/comments`, { comment: newComment });
       
-      // Re-fetch comments
-      const res = await api.get(`/channels/${uuid}/comments`);
-      if (res.data.status) {
-         const commentsData = res.data.data;
-         if (Array.isArray(commentsData)) {
-             setComments(commentsData);
-         } else if (commentsData && Array.isArray(commentsData.data)) {
-             setComments(commentsData.data);
-         }
+      if (response.data.status) {
+        setNewComment('');
+        fetchChannelDetails(false); // Reload comments
+        toast.success('Comment posted!');
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to post comment. Please try again.');
@@ -274,6 +274,21 @@ export default function ChannelPage() {
       className: "bg-primary hover:bg-cyan-600 text-white px-6 py-3 rounded-lg font-medium transition-colors outline-none",
       focusClassName: "ring-4 ring-white scale-105"
   });
+
+  const handleChannelSelect = useCallback((c: Channel) => {
+      // 1. Silent URL Update
+      window.history.pushState(null, '', `/channel/${c.uuid}`);
+      
+      // 2. Optimistic Update (Switch Player Immediately)
+      setChannel(c);
+      
+      // 3. Trigger Full Data Load
+      setUuid(c.uuid);
+      
+      // 4. Reset Interaction States
+      setNewComment('');
+      // other states reset by fetchChannelDetails
+  }, []);
 
   if (loading) {
     return (
@@ -313,10 +328,10 @@ export default function ChannelPage() {
               channelName={channel.name}
               channels={allChannelsList}
               currentGroup="All Channels"
-              onChannelSelect={(c) => router.push(`/channel/${c.uuid}`)}
+              onChannelSelect={handleChannelSelect}
               viewersCount={channel.viewers_count || 0}
               topTrending={relatedChannels.slice(0, 10)}
-              useCustomOverlay={false}
+              useCustomOverlay={true}
             />
           </div>
         </div>
