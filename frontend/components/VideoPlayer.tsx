@@ -14,6 +14,9 @@ import { useViewMode } from '@/context/ViewModeContext';
 interface Props {
   src: string;
   poster?: string;
+  // Output Events
+  onVideoPlay?: () => void;
+  onVideoPause?: () => void;
   // onReady removed as it was specific to video.js player instance
   channelUuid?: string;
   channelName?: string;
@@ -505,7 +508,7 @@ function VideoPlayer({
           /* Video Element (Direct HLS) */
           <video
               ref={videoRef}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-fill"
               playsInline
               crossOrigin="anonymous"
               autoPlay

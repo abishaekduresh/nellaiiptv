@@ -147,33 +147,22 @@ export default function ChannelPage() {
     }
   };
 
-  const handlePlayerReady = useCallback((player: Player) => {
-    playerRef.current = player;
-    
-    if (viewTimerRef.current) clearTimeout(viewTimerRef.current);
-    
-    viewTimerRef.current = setTimeout(() => {
-      checkAndIncrementView();
-      viewTimerRef.current = null;
-    }, 10000);
-
-    player.on('play', () => {
-      if (!hasIncrementedRef.current && !viewTimerRef.current) {
+  /* New Video Playback Handlers for View Counting */
+  const handleVideoPlay = useCallback(() => {
+    if (!hasIncrementedRef.current && !viewTimerRef.current) {
          viewTimerRef.current = setTimeout(() => {
-            checkAndIncrementView();
-            viewTimerRef.current = null;
-          }, 10000);
-      }
-    });
-
-    // Auto-focus player container if possible
-    // Using a timeout to ensure DOM is ready and layout is stable
-    setTimeout(() => {
-      const playerEl = document.querySelector('[data-vjs-player]') as HTMLElement;
-      if (playerEl) playerEl.focus();
-    }, 500);
-
+             checkAndIncrementView();
+             viewTimerRef.current = null;
+         }, 10000);
+    }
   }, [checkAndIncrementView]);
+
+  const handleVideoPause = useCallback(() => {
+      if (viewTimerRef.current) {
+          clearTimeout(viewTimerRef.current);
+          viewTimerRef.current = null;
+      }
+  }, []);
 
   // Initial Fetch
   useEffect(() => {
@@ -318,7 +307,8 @@ export default function ChannelPage() {
             <VideoPlayer 
               src={channel.hls_url} 
               poster={channel.thumbnail_url}
-              onReady={handlePlayerReady}
+              onVideoPlay={handleVideoPlay}
+              onVideoPause={handleVideoPause}
               channelUuid={channel.uuid}
               channelName={channel.name}
               channels={allChannelsList}

@@ -80,26 +80,23 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
     }
   }, [selectedChannel]);
 
-  const handlePlayerReady = useCallback((player: Player) => {
-    playerRef.current = player;
-    
-    player.on('play', () => {
-       if (!hasIncrementedRef.current && !viewTimerRef.current) {
-          viewTimerRef.current = setTimeout(() => {
+  /* New Video Playback Handlers */
+  const handleVideoPlay = useCallback(() => {
+    if (!hasIncrementedRef.current && !viewTimerRef.current) {
+         viewTimerRef.current = setTimeout(() => {
              checkAndIncrementView();
              viewTimerRef.current = null;
-           }, 10000); // 10s threshold
-       }
-    });
-
-    // Initial check if autoplaying
-    if (!player.paused()) {
-        viewTimerRef.current = setTimeout(() => {
-            checkAndIncrementView();
-            viewTimerRef.current = null;
-        }, 10000);
+         }, 10000); // 10s threshold
     }
   }, [checkAndIncrementView]);
+
+  const handleVideoPause = useCallback(() => {
+      // If paused before threshold, cancel view count
+      if (viewTimerRef.current) {
+          clearTimeout(viewTimerRef.current);
+          viewTimerRef.current = null;
+      }
+  }, []);
 
   /* Ref for Scroll to Top logic */
   const topRef = useRef<HTMLDivElement>(null);
@@ -244,7 +241,8 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                          <VideoPlayer 
                             src={selectedChannel.hls_url} 
                             poster={selectedChannel.thumbnail_url} 
-                            onReady={handlePlayerReady}
+                            onVideoPlay={handleVideoPlay}
+                            onVideoPause={handleVideoPause}
                             channelUuid={selectedChannel.uuid}
                             channelName={selectedChannel.name}
                             
