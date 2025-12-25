@@ -17,7 +17,7 @@ interface ChannelCardProps {
 
 export default function ChannelCard({ channel }: ChannelCardProps) {
   const router = useRouter(); 
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const { isFavorite, toggleFavorite, isProcessing } = useFavorites();
   const liked = isFavorite(channel.uuid);
   
   const { focusProps, isFocused } = useTVFocus({
@@ -35,7 +35,8 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleFavorite(channel.uuid);
+    if (isProcessing) return; // Prevent multiple clicks
+    toggleFavorite(channel.uuid, channel.name);
   };
 
   useEffect(() => {
@@ -55,24 +56,26 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
 
   return (
     <div 
+      className="relative group block bg-slate-800 rounded-lg overflow-hidden transition-all duration-300"
       onClick={handleClick}
     > 
+     {/* Link covers the entire card area for navigation */}
      <Link 
       href={`/channel/${channel.uuid}`}
-      className={`group relative block bg-slate-800 rounded-lg overflow-hidden transition-all duration-300 ${isFocused ? 'ring-4 ring-white scale-105 z-20' : 'hover:ring-2 hover:ring-primary'}`}
-      // Spread focus props directly onto Link.
-      // useTVFocus returns props compatible with HTML elements.
+      className={`absolute inset-0 z-10 ${isFocused ? 'ring-4 ring-white scale-105' : 'hover:ring-2 hover:ring-primary'}`}
       tabIndex={focusProps.tabIndex}
       onFocus={focusProps.onFocus}
       onBlur={focusProps.onBlur}
       onKeyDown={focusProps.onKeyDown}
-      // data-tv-focusable needs to be cast or allowed
       {...{ "data-tv-focusable": focusProps['data-tv-focusable'] }}
     >
-      {/* Thumbnail */}
-      <div className="aspect-video relative bg-slate-900">
+      <span className="sr-only">Watch {channel.name}</span>
+    </Link>
+
+      {/* Visual Content (Not interactive, but visible) */}
+      <div className="aspect-video relative bg-slate-900 pointer-events-none">
         {isLoadingImage && channel.thumbnail_url && (
-          <div className="absolute inset-0 bg-slate-800 animate-pulse z-10" />
+          <div className="absolute inset-0 bg-slate-800 animate-pulse z-0" />
         )}
         
         {channel.thumbnail_url ? (
@@ -81,7 +84,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
             alt={channel.name}
             onLoad={() => setIsLoadingImage(false)}
             onError={() => setIsLoadingImage(false)}
-            className={`w-full h-full object-contain p-2 opacity-90 group-hover:opacity-100 transition-opacity ${isLoadingImage ? 'opacity-0' : 'opacity-90'}`}
+            className={`w-full h-full object-contain p-2 opacity-90 transition-opacity ${isLoadingImage ? 'opacity-0' : 'opacity-90'}`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-600 font-bold text-2xl">
@@ -91,12 +94,12 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         
         {/* Channel Number Badge */}
         {channel.channel_number && (
-        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/10">
+        <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/10 z-0">
           CH {channel.channel_number}
         </div>
         )}
         
-        {/* Overlay Play Button */}
+        {/* Overlay Play Button - Visual Only */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
           <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
             <Play fill="currentColor" size={20} className="ml-1" />
@@ -107,18 +110,10 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         <div className={`absolute top-2 left-2 text-white text-[10px] font-bold px-1.5 py-0.5 rounded animate-pulse ${isOnline ? 'bg-green-600' : 'bg-red-600'}`}>
           {isOnline ? 'ONLINE' : 'OFFLINE'}
         </div>
-
-        {/* Favorite Button (Visible on hover or if liked) */}
-        <button 
-            onClick={handleFavoriteClick}
-            className={`absolute top-2 right-2 z-20 p-1.5 rounded-full backdrop-blur-sm transition-all hover:scale-110 ${liked ? 'bg-white/10 text-red-500' : 'bg-black/40 text-white opacity-0 group-hover:opacity-100'}`}
-        >
-            <Heart size={16} fill={liked ? "currentColor" : "none"} />
-        </button>
       </div>
 
-      {/* Info */}
-      <div className="p-3">
+      {/* Info Content */}
+      <div className="p-3 pointer-events-none">
         <h3 className="font-medium text-white truncate text-sm mb-1" title={channel.name}>
           {channel.name}
         </h3>
@@ -128,19 +123,26 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
       </div>
       
       {/* Rating & Viewers */}
-      <div className="flex items-center justify-between mt-1 px-3 pb-3">
+      <div className="flex items-center justify-between mt-1 px-3 pb-3 pointer-events-none">
          <div className="flex items-center gap-1 text-[10px] text-yellow-500 font-bold">
             <Star size={12} fill="currentColor" />
             <span>{(Number(channel.ratings_avg_rating) || Number(channel.average_rating) || 0).toFixed(1)}</span>
          </div>
-         <span className="flex items-center text-xs text-slate-400" title={channel.daily_views !== undefined ? "Views" : "Total Views"}>
+         <span className="flex items-center text-xs text-slate-400">
             <Eye size={12} className="mr-1" />
             {channel.daily_views !== undefined 
                 ? <>{formatViewers(channel.daily_views || 0)}<span className="hidden sm:inline"> </span></>
                 : formatViewers(channel.viewers_count || 0)}
          </span>
       </div>
-    </Link>
+
+      {/* Favorite Button (Interactive, Z-Index 20 to sit above Link) */}
+      <button 
+          onClick={handleFavoriteClick}
+          className={`absolute top-2 right-2 z-20 p-1.5 rounded-full backdrop-blur-sm transition-all hover:scale-110 ${liked ? 'bg-white/10 text-red-500' : 'bg-black/40 text-white opacity-100 lg:opacity-0 lg:group-hover:opacity-100'}`}
+      >
+          <Heart size={16} fill={liked ? "currentColor" : "none"} />
+      </button>
     </div>
   );
 }

@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Channel } from '@/types';
 import VideoPlayer from './VideoPlayer';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { Play, Eye, MapPin, Star, LogOut, ChevronDown } from 'lucide-react';
+import { Play, Eye, MapPin, Star, LogOut, ChevronDown, Heart } from 'lucide-react';
+import { useFavorites } from '@/hooks/useFavorites';
 import AdBanner from './AdBanner';
 import api from '@/lib/api';
 import Player from 'video.js/dist/types/player';
@@ -262,53 +263,54 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
               
            {/* Channel Info Card - Fixed Size */}
            <div className="w-full bg-slate-900/90 backdrop-blur-sm rounded-xl border border-slate-700/50 p-2 lg:p-3 shadow-lg shrink-0 mb-1 lg:mb-2">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                        <h1 className="text-lg lg:text-xl font-bold text-white mb-1 flex items-center gap-2 truncate">
-                            <span className="bg-primary px-2 py-0.5 rounded-md text-white text-xs lg:text-sm font-bold shadow-sm shadow-primary/20">
+                <div className="flex flex-col gap-1.5">
+                    {/* Header Row: Name + Stats */}
+                    <div className="flex items-center justify-between gap-3">
+                         {/* Name - Left */}
+                         <div className="flex-1 min-w-0 flex items-center gap-2">
+                             <span className="bg-primary px-1.5 py-0.5 rounded text-white text-[10px] lg:text-xs font-bold shadow-sm shadow-primary/20 shrink-0">
                                 CH {selectedChannel.channel_number}
-                            </span>
-                            <span className="truncate">{selectedChannel.name}</span>
-                        </h1>
-                        
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-400 text-[10px] lg:text-xs">
-                                {selectedChannel.language?.name && (
-                                    <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800 rounded border border-slate-700/50 text-slate-300">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    {selectedChannel.language.name}
+                             </span>
+                             <h1 className="text-sm lg:text-lg font-bold text-white truncate leading-tight">
+                                {selectedChannel.name}
+                             </h1>
+                         </div>
+
+                         {/* Stats - Right (Integrated) */}
+                         <div className="bg-slate-950/80 rounded border border-slate-800 px-2 py-1 flex items-center gap-3 shrink-0">
+                                <div className="flex flex-col items-center">
+                                    <span className="flex items-center gap-1 text-white font-bold text-[10px] lg:text-xs">
+                                        <Eye size={10} className={isOnline ? "text-emerald-500" : "text-slate-600"} />
+                                        {formatViewers(viewersCount)}
                                     </span>
-                                )}
-                                
-                                {address && (
-                                <span className="flex items-center gap-1.5 truncate">
-                                    <MapPin size={12} className="text-slate-500 shrink-0" />
-                                    <span className="truncate">{address}</span>
-                                </span>
-                                )}
+                                    <span className="text-[8px] text-slate-500 font-medium uppercase tracking-wider scale-90">Views</span>
+                                </div>
+                                <div className="w-px h-5 bg-slate-800"></div>
+                                <div className="flex flex-col items-center">
+                                    <span className="flex items-center gap-1 text-white font-bold text-[10px] lg:text-xs">
+                                        <Star size={10} className="text-amber-400 fill-amber-400" />
+                                        {rating > 0 ? rating.toFixed(1) : '-'}
+                                    </span>
+                                    <span className="text-[8px] text-slate-500 font-medium uppercase tracking-wider scale-90">Rating</span>
+                                </div>
                         </div>
                     </div>
 
-                    <div className="flex items-stretch gap-3 shrink-0">
-                            {/* Stats Box */}
-                            <div className="bg-slate-950/80 rounded-lg border border-slate-800 p-1.5 lg:p-2 flex items-center gap-3">
-                                <div className="flex flex-col items-center">
-                                <span className="flex items-center gap-1 text-white font-bold text-xs lg:text-sm">
-                                    <Eye size={12} className={isOnline ? "text-emerald-500" : "text-slate-600"} />
-                                    {formatViewers(viewersCount)}
+                    {/* Metadata Row: Language + Location */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-400 text-[10px] lg:text-xs pl-0.5">
+                            {selectedChannel.language?.name && (
+                                <span className="flex items-center gap-1.5 text-slate-300">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    {selectedChannel.language.name}
                                 </span>
-                                <span className="text-[9px] text-slate-500 font-medium uppercase tracking-wider">Views</span>
-                                </div>
-                                
-                                <div className="w-px h-6 bg-slate-800"></div>
-
-                                <div className="flex flex-col items-center">
-                                <span className="flex items-center gap-1 text-white font-bold text-xs lg:text-sm">
-                                    <Star size={12} className="text-amber-400 fill-amber-400" />
-                                    {rating > 0 ? rating.toFixed(1) : '-'}
-                                </span>
-                                <span className="text-[9px] text-slate-500 font-medium uppercase tracking-wider">Rating</span>
-                                </div>
-                            </div>
+                            )}
+                            
+                            {address && (
+                            <span className="flex items-center gap-1 truncate text-slate-500 border-l border-slate-700/50 pl-3">
+                                <MapPin size={10} className="shrink-0" />
+                                <span className="truncate max-w-[200px]">{address}</span>
+                            </span>
+                            )}
                     </div>
                 </div>
            </div>
@@ -426,6 +428,16 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
     className: "group relative block rounded-lg overflow-hidden transition-all duration-300"
   });
   
+  const { isFavorite, toggleFavorite, isProcessing } = useFavorites();
+  const liked = isFavorite(channel.uuid);
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isProcessing) return;
+    toggleFavorite(channel.uuid, channel.name);
+  };
+  
   const [isLoadingImage, setIsLoadingImage] = useState(true);
   const [isOnline, setIsOnline] = useState(channel.status === 'active');
 
@@ -448,20 +460,21 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
   }, [channel.uuid]);
 
   return (
-    <button
+    <div
       id={`channel-${index}`}
       onClick={onSelect}
       {...focusProps}
       onKeyDown={(e) => {
         focusProps.onKeyDown?.(e);
-        // If on top row (index 0 or 1), up arrow goes to switch button
         if (index < 3 && e.key === 'ArrowUp') {
             e.preventDefault();
             document.getElementById('switch-mode-btn')?.focus();
         }
       }}
+      role="button"
+      tabIndex={0}
       className={`
-        ${focusProps.className} w-full text-left bg-slate-800
+        ${focusProps.className} w-full text-left bg-slate-800 cursor-pointer relative
         ${isActive ? 'ring-2 ring-primary scale-[1.02] z-10 shadow-xl' : 'hover:ring-2 hover:ring-primary'}
         ${isFocused ? 'ring-4 ring-white scale-105 z-20' : ''}
       `}
@@ -487,9 +500,18 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
       )}
 
       {/* Channel Number Badge */}
-      <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/10">
+      {/* Channel Number Badge */}
+      <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/10 z-10">
         CH {channel.channel_number}
       </div>
+      
+       {/* Favorite Button (Visible on hover or if liked) */}
+        <button 
+            onClick={handleFavoriteClick}
+            className={`absolute top-2 right-2 z-20 p-1.5 rounded-full backdrop-blur-sm transition-all hover:scale-110 ${liked ? 'bg-white/10 text-red-500' : 'bg-black/40 text-white opacity-100 lg:opacity-0 lg:group-hover:opacity-100'}`}
+        >
+            <Heart size={16} fill={liked ? "currentColor" : "none"} />
+        </button>
       
        {/* Status Badge */}
       <div className={`absolute top-2 left-2 text-white text-[10px] font-bold px-1.5 py-0.5 rounded animate-pulse ${isOnline ? 'bg-green-600' : 'bg-red-600'}`}>
@@ -497,7 +519,7 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
       </div>
 
       {/* Active Overlay */}
-      <div className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity backdrop-blur-[2px] ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+      <div className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity backdrop-blur-[2px] pointer-events-none ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
           <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
              <Play fill="currentColor" size={20} className="ml-1" />
            </div>
@@ -505,29 +527,29 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
     </div>
 
       {/* Info */}
-      <div className={`w-full p-2 ${compact ? 'pb-1' : 'pb-0'}`}>
-        <h3 className={`font-medium text-white truncate ${compact ? 'text-xs' : 'text-sm'} mb-1`}>
+      <div className={`w-full p-2 mb-0.5`}>
+        <h3 className={`font-bold text-white truncate text-xs sm:text-sm leading-tight`}>
              {channel.name}
         </h3>
         
         {!compact && (
-        <div className="flex items-center justify-between text-xs text-slate-400">
+        <div className="flex items-center justify-between text-[10px] text-slate-400 mt-0.5">
            <span>{channel.language?.name || 'Tamil'}</span>
         </div>
         )}
       </div>
 
-      {/* Rating & Viewers - Matches ChannelCard layout */}
-      <div className={`w-full flex items-center justify-between mt-1 px-2 ${compact ? 'pb-2' : 'px-3 pb-3'}`}>
-             <div className="flex items-center gap-1 text-[10px] text-yellow-500 font-bold">
-                <Star size={10} fill="currentColor" />
+      {/* Rating & Viewers - Vertical on mobile, Horizontal on Desktop */}
+      <div className={`w-full flex md:flex-row items-center justify-between px-2 pb-2 gap-1`}>
+             <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-yellow-500 font-bold bg-yellow-500/10 px-1 rounded-sm">
+                <Star size={8} fill="currentColor" />
                 <span>{rating > 0 ? rating.toFixed(1) : '0.0'}</span>
             </div>
-             <div className="flex items-center text-[10px] text-slate-300 font-medium">
-                <Eye size={10} className="mr-1 text-slate-400" />
+             <div className="flex items-center text-[9px] sm:text-[10px] text-slate-400 font-medium">
+                <Eye size={10} className="mr-1 text-slate-500" />
                 <span>{channel.viewers_count ? formatViewers(channel.viewers_count) : '0'}</span>
              </div>
       </div>
-    </button>
+    </div>
   );
 }

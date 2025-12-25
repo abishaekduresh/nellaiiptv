@@ -115,6 +115,7 @@ Backend API will be available at `http://localhost:80`
 2. Run migration files in order:
    - `create_channel_reports_table.sql`
    - `create_contact_messages_table.sql`
+   - `migrate_favorites.php` (Run via PHP: `php backend/migrate_favorites.php`)
    - (other migration files as needed)
 
 ## API Endpoints

@@ -2,29 +2,25 @@
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
-import videojs from 'video.js';
-import Player from 'video.js/dist/types/player';
-import 'video.js/dist/video-js.css';
+import Hls from 'hls.js';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useRouter } from 'next/navigation';
 import ReportModal from './ReportModal';
-import { AlertTriangle, List } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import PlayerOverlay from './PlayerOverlay';
 import { Channel } from '@/types';
 import { useViewMode } from '@/context/ViewModeContext';
 
-// This will replace the VideoPlayer component content.
-
 interface Props {
   src: string;
   poster?: string;
-  onReady?: (player: Player) => void;
+  // onReady removed as it was specific to video.js player instance
   channelUuid?: string;
   channelName?: string;
   // Overlay / STB Features
   channels?: Channel[];
-  topTrending?: Channel[]; // New
-  viewersCount?: number;   // New
+  topTrending?: Channel[]; 
+  viewersCount?: number;   
   currentGroup?: string;
   onChannelSelect?: (c: Channel) => void;
   onNextGroup?: () => void;
@@ -32,27 +28,55 @@ interface Props {
   useCustomOverlay?: boolean;
 }
 
+// Helper to extract video ID and create embed URL
+const getYoutubeEmbedUrl = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    const id = (match && match[2].length === 11) ? match[2] : null;
+    return id ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=0&enablejsapi=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0` : url;
+};
+
 function VideoPlayer({ 
-  src, poster, onReady, channelUuid, channelName, 
+  src, poster, channelUuid, channelName, 
   channels, topTrending, viewersCount = 0, currentGroup, onChannelSelect, onNextGroup, onPrevGroup,
   useCustomOverlay = true
 }: Props) {
   const router = useRouter();
-  const videoRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<Player | null>(null);
   
+  // Detect Media Type
+  const isYoutube = src && (src.includes('youtube.com') || src.includes('youtu.be'));
+
+  // Refs
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
   const [showReport, setShowReport] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
-  // Custom Controls Visibility State
+  // YouTube Command Helper
+  const sendYoutubeCommand = useCallback((func: string, args: any[] = []) => {
+      const iframe = containerRef.current?.querySelector('iframe');
+      if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage(JSON.stringify({
+              'event': 'command',
+              'func': func,
+              'args': args
+          }), '*');
+      }
+  }, []);
+
+  // Controls Visibility State
   const [controlsVisible, setControlsVisible] = useState(true);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Player State for Overlay
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false); // Default to unmuted
+  // Player State
+  const [isPlaying, setIsPlaying] = useState(true); // Default to playing for auto-play
+  const [isMuted, setIsMuted] = useState(false); 
   const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Preloader State (Youtube handles its own mostly)
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
 
   // Sync current channel for overlay display
@@ -79,11 +103,12 @@ function VideoPlayer({
      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
      controlsTimeoutRef.current = setTimeout(() => {
          // Only hide if playing
-         if (playerRef.current && !playerRef.current.paused()) {
-            setControlsVisible(false);
+         const vid = videoRef.current;
+         if (isPlaying) {
+             setControlsVisible(false);
          }
      }, 4000);
-  }, []);
+  }, [isYoutube]);
 
   const toggleControls = useCallback(() => {
       setControlsVisible(prev => {
@@ -104,47 +129,82 @@ function VideoPlayer({
           // Reset timer
           if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
           controlsTimeoutRef.current = setTimeout(() => {
-             if (playerRef.current && !playerRef.current.paused()) setControlsVisible(false);
+             const vid = videoRef.current;
+             if ((isYoutube || (vid && !vid.paused))) setControlsVisible(false);
           }, 4000);
       }
-  }, [controlsVisible, showControls]);
+  }, [controlsVisible, showControls, isYoutube]);
 
 
   // Controls Logic
   const handlePlayPause = useCallback(() => {
-      const player = playerRef.current;
-      if (!player) return;
-      if (player.paused()) player.play();
-      else player.pause();
+      if (isYoutube) {
+          const action = isPlaying ? 'pauseVideo' : 'playVideo';
+          sendYoutubeCommand(action);
+          setIsPlaying(!isPlaying);
+          showControls();
+          return;
+      }
+
+      const vid = videoRef.current;
+      if (!vid) return;
       
-      // Keep controls visible if paused
-      if (!player.paused()) {
+      if (vid.paused) {
+          vid.play().catch(e => console.error("Play failed", e));
+      } else {
+          vid.pause();
+      }
+      
+      // Update controls visibility
+      if (!vid.paused) {
           setControlsVisible(true);
           if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
       } else {
           showControls();
       }
-  }, [showControls]);
+  }, [showControls, isYoutube, isPlaying, sendYoutubeCommand]);
   
   const handleToggleMute = useCallback(() => {
-      const player = playerRef.current;
-      if (!player) return;
-      const newMuted = !player.muted();
-      player.muted(newMuted);
-      setIsMuted(newMuted);
+      if (isYoutube) {
+          const action = isMuted ? 'unMute' : 'mute';
+          sendYoutubeCommand(action);
+          setIsMuted(!isMuted);
+          showControls();
+          return;
+      }
+
+      const vid = videoRef.current;
+      if (!vid) return;
+      vid.muted = !vid.muted;
+      setIsMuted(vid.muted);
       showControls();
-  }, [showControls]);
+  }, [showControls, isYoutube, isMuted, sendYoutubeCommand]);
 
   const handleVolumeChange = useCallback((newVol: number) => {
-      const player = playerRef.current;
-      if (!player) return;
-      player.volume(Math.max(0, Math.min(1, newVol)));
-      if (newVol > 0 && player.muted()) {
-          player.muted(false);
+      const vol = Math.max(0, Math.min(1, newVol));
+      setVolume(vol);
+
+      if (isYoutube) {
+          sendYoutubeCommand('setVolume', [vol * 100]);
+          if (vol > 0 && isMuted) {
+             sendYoutubeCommand('unMute');
+             setIsMuted(false);
+          }
+          showControls();
+          return;
+      }
+
+      const vid = videoRef.current;
+      if (!vid) return;
+      
+      vid.volume = vol;
+      
+      if (vol > 0 && vid.muted) {
+          vid.muted = false;
           setIsMuted(false);
       }
-      showControls(); 
-  }, [showControls]);
+      showControls();
+  }, [showControls, isYoutube, isMuted, sendYoutubeCommand]);
 
   const handleNextChannel = useCallback(() => {
       showControls();
@@ -171,43 +231,25 @@ function VideoPlayer({
   }, [channels, currentChannel, onChannelSelect, showControls]);
 
   const toggleFullscreen = useCallback(() => {
-    const player = playerRef.current;
-    if (!player) return;
-    if (player.isFullscreen()) {
-      player.exitFullscreen();
-    } else {
-      player.requestFullscreen();
-    }
+      const el = containerRef.current;
+      if (!el) return;
+      
+      if (!document.fullscreenElement) {
+          el.requestFullscreen().catch(err => console.log(err));
+      } else {
+          document.exitFullscreen();
+      }
   }, []);
 
   const handleDoubleClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-      // Prevent standard click if needed, but double click is separate event usually
       toggleFullscreen();
   }, [toggleFullscreen]);
 
 
   // Custom key handler for player
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    showControls(); // Any key shows controls
-    if (!playerRef.current) return;
+    showControls(); 
     
-    // If controls are hidden (and this key showed them), default actions might still apply.
-    // Overlay handles keys if controlsVisible is true usually? 
-    // Actually Overlay `useEffect` handles keys when `visible` is true.
-    // If we preventDefault here, Overlay might not get it if we don't dispatch?
-    // Wait, Overlay uses window listener. It will get it.
-    // But we need to ensure we don't double handle.
-    // If Overlay handles navigation, we should let it.
-    
-    // If controlsVisible is true, overlay handles Arrow Keys for UI.
-    // But volume/seek might still be needed.
-    // Overlay logic: ArrowUp/Down moves selection IF sidebar open.
-    // If sidebar CLOSED, ArrowUp/Down does nothing in Overlay. Then we handle Volume here.
-
-    // ... existing Key Logic ...
-    const player = playerRef.current;
- 
-    // Map keys that Overlay doesn't handle when sidbar is closed
     switch (e.key) {
       case 'Enter':
       case ' ': 
@@ -237,140 +279,189 @@ function VideoPlayer({
         router.back();
         break;
     }
-  }, [router, handlePlayPause, handleVolumeChange, volume, showControls, handleNextChannel, handlePrevChannel]);
+  }, [router, handlePlayPause, handleVolumeChange, volume, showControls, handleNextChannel, handlePrevChannel, isYoutube]);
 
+  // -- Hls.js Logic --
   useEffect(() => {
-    if (!playerRef.current) {
-      const videoElement = document.createElement('video-js');
-      videoElement.classList.add('vjs-big-play-centered');
-      videoElement.setAttribute('playsinline', 'true');
-      videoElement.setAttribute('crossorigin', 'anonymous');
-      
-      if (videoRef.current) {
-         videoRef.current.appendChild(videoElement);
-      }
-
-      const player = videojs(videoElement, {
-        autoplay: true, // Auto-play enabled
-        controls: !useCustomOverlay, 
-        responsive: true,
-        fluid: true,
-        muted: false, 
-        aspectRatio: '16:9',
-        fill: true,
-        poster: poster,
-        sources: [{
-          src: src,
-          type: 'application/x-mpegURL'
-        }],
-        html5: {
-          vhs: {
-            overrideNative: false,
-            enableLowInitialPlaylist: true,
-            smoothQualityChange: true,
-            limitRenditionByPlayerDimensions: true,
-          },
-          nativeAudioTracks: true,
-          nativeVideoTracks: true,
-        }
-      }, () => {
-        if (onReady) {
-          onReady(player);
-        }
-        setIsPlaying(!player.paused());
-        setIsMuted(player.muted() || false); // Sync initial mute state
-        setVolume(player.volume() || 1);
-        showControls(); 
-      });
-      
-      player.on('play', () => { setIsPlaying(true); showControls(); });
-      player.on('pause', () => { setIsPlaying(false); setControlsVisible(true); });
-      player.on('volumechange', () => {
-          setVolume(player.volume() || 0);
-          setIsMuted(player.muted() || false);
-      });
-      player.on('fullscreenchange', () => {
-          setIsFullscreen(player.isFullscreen() || false);
-      });
-      player.on('useractivity', () => showControls());
-
-      player.on('error', () => {
-        const error = player.error();
-        if (error) {
-           console.error('Video Player Error:', error);
-           setErrorMessage(error.message);
-        }
-      });
-
-      playerRef.current = player;
-    } else {
-      const player = playerRef.current;
-      player.poster(''); 
-      player.autoplay(true); // Ensure autoplay is requested on source change
-      player.src([{ src: src, type: 'application/x-mpegURL' }]);
-      if (poster) player.poster(poster); else player.poster('');
-      setErrorMessage(null);
-      
-      // Attempt play (muted if needed happens automatically if browser blocks)
-      const playPromise = player.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-            // Auto-play was prevented
-            console.log('Autoplay prevented. Muting and retrying.', error);
-            player.muted(true);
-            player.play();
-        });
-      }
-      setIsPlaying(true);
+    // Skip HLS logic if youtube
+    if (isYoutube) {
+        setIsLoading(false);
+        return;
     }
-  }, [src, poster, onReady, showControls]);
 
-  useEffect(() => {
-    const player = playerRef.current;
+    let hls: Hls | null = null;
+    const video = videoRef.current;
+    
+    // Reset State on source change
+    setErrorMessage(null);
+    setIsLoading(true);
+
+    if (!video) return;
+
+    // Check if HLS.js is supported
+    if (Hls.isSupported()) {
+        hls = new Hls({
+             debug: false,
+             enableWorker: true,
+             lowLatencyMode: true,
+             backBufferLength: 90
+        });
+        hlsRef.current = hls;
+
+        hls.loadSource(src);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().catch(e => console.log("HLS Auto-play failed", e));
+            setIsPlaying(true);
+            // Don't hide loading yet, wait for data
+        });
+
+        hls.on(Hls.Events.FRAG_BUFFERED, () => {
+             setIsLoading(false);
+        });
+
+        hls.on(Hls.Events.ERROR, function (event, data) {
+            if (data.fatal) {
+               setIsLoading(false); // Stop loading on fatal error
+               switch (data.type) {
+                  case Hls.ErrorTypes.NETWORK_ERROR:
+                    console.log("fatal network error encountered, try to recover");
+                    hls?.startLoad();
+                    break;
+                  case Hls.ErrorTypes.MEDIA_ERROR:
+                    console.log("fatal media error encountered, try to recover");
+                    hls?.recoverMediaError();
+                    break;
+                  default:
+                    // cannot recover
+                    hls?.destroy();
+                    setErrorMessage("Stream failed (HLS Error)");
+                    break;
+              }
+            }
+        });
+    } 
+    // Native HLS (Safari, iOS, some Android)
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = src;
+        video.addEventListener('loadedmetadata', () => {
+            video.play().catch(e => console.log("Native HLS Play failed", e));
+            setIsPlaying(true);
+        });
+        video.addEventListener('canplay', () => setIsLoading(false));
+        video.addEventListener('error', () => {
+             setIsLoading(false);
+             setErrorMessage("Stream failed (Native Error)");
+        });
+    } else {
+        setIsLoading(false);
+        setErrorMessage("HLS not supported on this browser.");
+    }
+
     return () => {
-      if (player && !player.isDisposed()) {
-        player.dispose();
-        playerRef.current = null;
-      }
+        if (hls) {
+            hls.destroy();
+        }
+        hlsRef.current = null;
     };
-  }, []);
+  }, [src, isYoutube]);
 
-  // Render Portal for Overlay
-  const overlayPortal = (useCustomOverlay && playerRef.current && channels) ? createPortal(
-      <PlayerOverlay
-        visible={controlsVisible}
-        channels={channels}
-        topTrending={topTrending}
-        currentGroup={currentGroup || ''}
-        currentChannel={currentChannel}
-        viewersCount={viewersCount}
-        
-        isPlaying={isPlaying}
-        isMuted={isMuted}
-        volume={volume}
-        onPlayPause={handlePlayPause}
-        onToggleMute={handleToggleMute}
-        onVolumeChange={handleVolumeChange}
-        onNextChannel={handleNextChannel}
-        onPrevChannel={handlePrevChannel}
-        isFullscreen={isFullscreen}
-        onToggleFullscreen={toggleFullscreen}
-        
-        onSelect={(c) => {
-            if (onChannelSelect) onChannelSelect(c);
-        }}
-        onNextGroup={onNextGroup || (() => {})}
-        onPrevGroup={onPrevGroup || (() => {})}
-        onClose={() => setControlsVisible(false)}
-      />,
-      playerRef.current.el() as Element
+  // Loading Timeout Logic
+  useEffect(() => {
+    // Skip timeout if youtube
+    if (isYoutube) return;
+
+    let timeout: NodeJS.Timeout;
+    if (isLoading && !errorMessage) {
+        timeout = setTimeout(() => {
+            setErrorMessage("Connection Timeout");
+            setIsLoading(false);
+        }, 15000); // 15s Timeout
+    }
+    return () => clearTimeout(timeout);
+  }, [isLoading, errorMessage, isYoutube]);
+
+  // Handle native video events for state sync
+  useEffect(() => {
+      // Skip if youtube
+      if (isYoutube) return;
+
+      const vid = videoRef.current;
+      if (!vid) return;
+
+      const onPlay = () => setIsPlaying(true);
+      const onPause = () => setIsPlaying(false);
+      const onVolChange = () => {
+          setVolume(vid.volume);
+          setIsMuted(vid.muted);
+      };
+      const onFSChange = () => {
+          setIsFullscreen(document.fullscreenElement === containerRef.current);
+      }
+      
+      const onWaiting = () => setIsLoading(true);
+      const onPlaying = () => setIsLoading(false);
+      
+      // Initialize state from video element defaults
+      setVolume(vid.volume);
+      setIsMuted(vid.muted);
+
+      vid.addEventListener('play', onPlay);
+      vid.addEventListener('pause', onPause);
+      vid.addEventListener('volumechange', onVolChange);
+      vid.addEventListener('waiting', onWaiting);
+      vid.addEventListener('playing', onPlaying);
+      document.addEventListener('fullscreenchange', onFSChange);
+
+      return () => {
+          vid.removeEventListener('play', onPlay);
+          vid.removeEventListener('pause', onPause);
+          vid.removeEventListener('volumechange', onVolChange);
+          vid.removeEventListener('waiting', onWaiting);
+          vid.removeEventListener('playing', onPlaying);
+          document.removeEventListener('fullscreenchange', onFSChange);
+      }
+  }, [isYoutube]); // Run once on mount to attach listeners
+
+  // Portal Target
+  const mountTarget = overlayRef.current || containerRef.current;
+
+  const overlayPortal = (useCustomOverlay && channels && mountTarget) ? createPortal(
+    <PlayerOverlay
+      visible={controlsVisible}
+      channels={channels}
+      topTrending={topTrending}
+      currentGroup={currentGroup || ''}
+      currentChannel={currentChannel}
+      viewersCount={viewersCount}
+      
+      isPlaying={isPlaying}
+      isMuted={isMuted}
+      volume={volume}
+      onPlayPause={handlePlayPause}
+      onToggleMute={handleToggleMute}
+      onVolumeChange={handleVolumeChange}
+      onNextChannel={handleNextChannel}
+      onPrevChannel={handlePrevChannel}
+      isFullscreen={isFullscreen}
+      onToggleFullscreen={toggleFullscreen}
+      
+      onSelect={(c) => {
+          if (onChannelSelect) onChannelSelect(c);
+      }}
+      onNextGroup={onNextGroup || (() => {})}
+      onPrevGroup={onPrevGroup || (() => {})}
+      onClose={() => setControlsVisible(false)}
+    />,
+    mountTarget as Element
   ) : null;
 
   return (
     <>
     <div
-      ref={videoRef}
-      style={{ maxWidth: '1920px', width: '100%', height: '100%', margin: '0 auto', position: 'relative' }}
+      ref={containerRef}
+      style={{ maxWidth: '1920px', width: '100%', height: '100%', margin: '0 auto', position: 'relative', overflow: 'hidden' }}
       {...focusProps}
       onKeyDown={(e) => {
         handleKeyDown(e);
@@ -380,12 +471,63 @@ function VideoPlayer({
       onMouseMove={handleMouseMove}
       onClick={toggleControls}
       onDoubleClick={handleDoubleClick}
-      onTouchStart={showControls} /* Simple touch wake */
-      className={`${focusProps.className} ${isFocused ? 'ring-4 ring-white z-20 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : ''} cursor-pointer`} 
+      onTouchStart={showControls} 
+      className={`${focusProps.className} ${isFocused ? 'ring-4 ring-white z-20 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : ''} cursor-pointer bg-black`} 
     >
+      {/* RENDER LOGIC SWITCH */}
+      {isYoutube ? (
+          <div className="relative w-full h-full">
+              <iframe 
+                src={getYoutubeEmbedUrl(src)} 
+                className="absolute inset-0 w-full h-full border-none"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
+                loading="eager"
+                title={channelName}
+                style={{ pointerEvents: 'none' }} // Ensure clicks go to shim
+              />
+              {/* Interaction Overlay Shim for YouTube */}
+              <div 
+                  className="absolute inset-0 z-10 w-full h-full bg-transparent cursor-pointer"
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      handlePlayPause();
+                  }}
+                  onDoubleClick={(e) => {
+                      // Pass double click up or handle it
+                      // Double click naturally bubbles if not stopped here, but we might want to ensure it works
+                      // But let's let standard bubbling handle dblclick if we don't stop it.
+                      // Note: We are stopping Click propagation, not dblclick.
+                  }}
+              />
+          </div>
+      ) : (
+          /* Video Element (Direct HLS) */
+          <video
+              ref={videoRef}
+              className="w-full h-full object-contain"
+              playsInline
+              crossOrigin="anonymous"
+              autoPlay
+          />
+      )}
+
+      {/* Overlay Mount Point - Always Render */}
+      <div ref={overlayRef} className="absolute inset-0 w-full h-full pointer-events-none z-30" />
+
+      {/* Loading Spinner */}
+      {isLoading && !errorMessage && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
+              <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
+                  <p className="text-white font-medium animate-pulse">Loading...</p>
+              </div>
+          </div>
+      )}
+
       {/* Playback Error Overlay */}
       {errorMessage && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm grayscale">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black">
           <div className="text-center px-6 max-w-md">
             <div className="inline-flex p-3 rounded-full bg-red-500/20 text-red-500 mb-4">
                  <AlertTriangle size={32} />
@@ -393,7 +535,7 @@ function VideoPlayer({
             <p className="text-white text-xl font-bold mb-2">
               Playback Error
             </p>
-            <p className="text-slate-400 text-sm mb-6">The media could not be loaded, either because the server or network failed or because the format is not supported.</p>
+            <p className="text-slate-400 text-sm mb-6">{errorMessage}</p>
 
             <button
                 onClick={(e) => { e.stopPropagation(); setShowReport(true); }}
@@ -405,14 +547,14 @@ function VideoPlayer({
         </div>
       )}
 
-      {/* Manual Report Button (Top Right) - Only show if Controls Visible */}
+      {/* Manual Report Button */}
       {!errorMessage && controlsVisible && (
         <button
         onClick={(e) => {
             e.stopPropagation();
             setShowReport(true);
         }}
-        className="absolute top-4 right-4 z-[40] bg-black/40 hover:bg-red-600 text-white p-2.5 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto animate-in fade-in"
+        className="absolute top-4 right-4 z-[40] bg-black/40 hover:bg-red-600 text-white p-2.5 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto animate-in fade-in pointer-events-auto"
         title="Report Stream Issue"
         >
             <AlertTriangle size={20} />
@@ -422,15 +564,12 @@ function VideoPlayer({
       {/* Inject Portal */}
       {overlayPortal}
       
-      {/* Persistent Watermark Portal */}
-      {playerRef.current && createPortal(
-        <img 
-            src="/png_logo.png" 
-            alt="Watermark" 
-            className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 w-16 sm:w-24 md:w-32 lg:w-40 opacity-60 pointer-events-none select-none z-30 drop-shadow-md transition-all duration-300"
-        />,
-        playerRef.current.el() as Element
-      )}
+      {/* Watermark */}
+      <img 
+          src="/png_logo.png" 
+          alt="Watermark" 
+          className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 w-16 sm:w-24 md:w-32 lg:w-40 opacity-60 pointer-events-none select-none z-30 drop-shadow-md transition-all duration-300"
+      />
     </div>
 
     <ReportModal

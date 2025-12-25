@@ -3,7 +3,7 @@ import { Channel } from '@/types';
 import { 
     ChevronLeft, ChevronRight, Tv, Eye, 
     Play, Pause, Volume2, VolumeX, SkipBack, SkipForward,
-    TrendingUp, List, X, Search, Radio, Maximize, Star
+    TrendingUp, List, X, Search, Radio, Maximize, Minimize, Star
 } from 'lucide-react';
 
 interface Props {
@@ -164,13 +164,13 @@ export default function PlayerOverlay({
 
         {/* --- SIDEBAR DRAWER (Floating Glass Panel) --- */}
         <div 
-            className={`absolute left-0 sm:left-4 top-0 sm:top-4 bottom-0 w-64 md:w-80 max-w-[80vw] bg-black/80 md:bg-black/60 backdrop-blur-2xl border-r sm:border border-white/10 sm:rounded-3xl sm:rounded-b-none sm:border-b-0 flex flex-col shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] z-40 pointer-events-auto ${showSidebar ? 'translate-x-0 opacity-100' : '-translate-x-full sm:-translate-x-[120%] opacity-0'}`}
+            className={`absolute left-0 sm:left-4 top-0 sm:top-4 bottom-0 w-[85vw] sm:w-64 md:w-80 max-w-[400px] bg-black/80 md:bg-black/60 backdrop-blur-2xl border-r sm:border border-white/10 sm:rounded-3xl sm:rounded-b-none sm:border-b-0 flex flex-col shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] z-40 pointer-events-auto ${showSidebar ? 'translate-x-0 opacity-100' : '-translate-x-full sm:-translate-x-[120%] opacity-0'}`}
             onClick={(e) => e.stopPropagation()}
         >
              {/* Drawer Header */}
-             <div className="h-16 flex items-center px-6 border-b border-white/5 shrink-0">
-                 <Radio className="text-primary mr-3" size={20} />
-                 <h2 className="font-bold text-base tracking-wider text-white/90">CHANNELS</h2>
+             <div className="h-12 sm:h-16 flex items-center px-4 sm:px-6 border-b border-white/5 shrink-0">
+                 <Radio className="text-primary mr-3" size={18} />
+                 <h2 className="font-bold text-sm sm:text-base tracking-wider text-white/90">CHANNELS</h2>
              </div>
 
              {/* Tabs */}
@@ -264,33 +264,31 @@ export default function PlayerOverlay({
              {/* Gradient Shade */}
              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent h-32 -z-10 bottom-0 pointer-events-none" />
 
-             <div className="container mx-auto max-w-5xl px-4 md:px-8 pb-6 pt-10 flex items-end justify-between gap-4 relative">
+             <div className="container mx-auto max-w-5xl px-3 md:px-8 pb-3 md:pb-6 pt-8 md:pt-10 flex items-end justify-between gap-2 md:gap-4 relative">
                  
                  {/* LEFT: Menu / Channel Info */}
-                 <div className="flex-1 flex items-center justify-start gap-4">
+                 <div className="flex-1 flex items-center justify-start gap-2 md:gap-4 min-w-0">
                      <button 
-                        onClick={() => {
-                            if (!isFullscreen && onToggleFullscreen) {
-                                onToggleFullscreen();
-                            } else {
-                                setSidebarOpen(prev => !prev);
-                            }
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            // Toggle Sidebar Menu
+                            setSidebarOpen(prev => !prev);
                         }}
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-full backdrop-blur-md border transition-all group ${
+                        className={`flex items-center gap-2 px-2 py-1.5 md:px-4 md:py-2.5 rounded-full backdrop-blur-md border transition-all group shrink-0 ${
                             sidebarOpen 
                             ? 'bg-white text-black border-white' 
                             : 'bg-white/10 text-white border-white/10 hover:bg-white/20'
                         }`}
                     >
-                        {!isFullscreen ? <Maximize size={20} /> : (sidebarOpen ? <X size={20} /> : <List size={20} />)}
+                         {sidebarOpen ? <X className="w-4 h-4 md:w-5 md:h-5" /> : <List className="w-4 h-4 md:w-5 md:h-5" />}
                         <span className="hidden md:inline font-bold text-sm tracking-wide">
-                            {!isFullscreen ? ' ' : ' '}
+                            {!isFullscreen ? '' : ' '}
                         </span>
                      </button>
 
                      {/* Channel Info (Bottom) - Fills the gap */}
                      {currentChannel && (
-                        <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500 min-w-0">
+                        <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500 min-w-0 overflow-hidden">
                              <div className="hidden sm:block w-12 h-12 bg-white/5 rounded-lg border border-white/10 p-1 backdrop-blur-sm shrink-0">
                                  {currentChannel.thumbnail_url ? (
                                      <img src={currentChannel.thumbnail_url} className="w-full h-full object-contain" alt="" />
@@ -298,23 +296,25 @@ export default function PlayerOverlay({
                                      <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold text-xs">CH</div>
                                  )}
                              </div>
-                             <div className="min-w-0">
-                                 <h3 className="font-bold text-white text-sm md:text-base drop-shadow-md leading-tight truncate">{currentChannel.name}</h3>
-                                 <div className="flex items-center gap-2 text-xs text-slate-400 w-full overflow-hidden">
+                             <div className="min-w-0 flex-1">
+                                 <h3 className="font-bold text-white text-xs sm:text-sm md:text-base drop-shadow-md leading-tight truncate px-1">
+                                     {currentChannel.name}
+                                 </h3>
+                                 <div className="flex items-center gap-2 text-[10px] md:text-xs text-slate-400 w-full overflow-hidden px-1 mt-0.5">
                                      <span className="bg-white/10 px-1.5 rounded text-slate-300 shrink-0">CH {currentChannel.channel_number}</span>
                                      
                                      {currentChannel.language?.name && (
-                                         <span className="truncate text-slate-400 border-l border-white/10 pl-2">{currentChannel.language.name}</span>
+                                         <span className="truncate text-slate-400 border-l border-white/10 pl-2 hidden sm:inline">{currentChannel.language.name}</span>
                                      )}
                                      
                                      {currentChannel.category?.name && (
-                                         <span className="truncate text-slate-400 border-l border-white/10 pl-2">{currentChannel.category.name}</span>
+                                         <span className="truncate text-slate-400 border-l border-white/10 pl-2 hidden sm:inline">{currentChannel.category.name}</span>
                                      )}
                                      
-                                     <span className="w-1 h-1 rounded-full bg-white/20 shrink-0" />
+                                     <span className="w-1 h-1 rounded-full bg-white/20 shrink-0 hidden sm:block" />
                                      <div className="flex items-center gap-1.5 text-slate-300 bg-black/20 px-1.5 py-0.5 rounded-md border border-white/5 shrink-0">
-                                         <Eye size={12} />
-                                         <span className="font-mono font-bold text-xs">{formatViewers(viewersCount || 0)}</span>
+                                         <Eye size={10} className="md:w-3 md:h-3" />
+                                         <span className="font-mono font-bold text-[10px] md:text-xs">{formatViewers(viewersCount || 0)}</span>
                                      </div>
                                  </div>
                              </div>
@@ -323,20 +323,24 @@ export default function PlayerOverlay({
                  </div>
 
                  {/* CENTER: Playback Controls (Absolutely Centered) */}
-                 <div className="absolute left-1/2 -translate-x-1/2 bottom-6 flex items-center gap-8">
+                 <div className="absolute left-1/2 -translate-x-1/2 bottom-4 md:bottom-6 flex items-center gap-4 md:gap-6">
                       <button 
                         onClick={(e) => { e.stopPropagation(); onPrevChannel(); }}
                         className="text-slate-400 hover:text-white hover:scale-110 transition-all active:scale-95 p-2"
                         title="Previous Channel"
                       >
-                          <SkipBack size={32} />
+                          <SkipBack className="w-5 h-5 md:w-6 md:h-6" />
                       </button>
 
                       <button 
                         onClick={(e) => { e.stopPropagation(); onPlayPause(); }}
                         className="text-white hover:scale-110 active:scale-95 transition-all drop-shadow-lg p-2"
                       >
-                          {isPlaying ? <Pause size={48} fill="currentColor" /> : <Play size={48} fill="currentColor" />}
+                          {isPlaying ? (
+                              <Pause className="w-8 h-8 md:w-10 md:h-10" fill="currentColor" />
+                          ) : (
+                              <Play className="w-8 h-8 md:w-10 md:h-10" fill="currentColor" />
+                          )}
                       </button>
 
                       <button 
@@ -344,7 +348,7 @@ export default function PlayerOverlay({
                         className="text-slate-400 hover:text-white hover:scale-110 transition-all active:scale-95 p-2"
                         title="Next Channel"
                       >
-                          <SkipForward size={32} />
+                          <SkipForward className="w-5 h-5 md:w-6 md:h-6" />
                       </button>
                  </div>
 
@@ -368,6 +372,17 @@ export default function PlayerOverlay({
                             className="absolute inset-0 opacity-0 cursor-pointer"
                           />
                       </div>
+                      
+                      {/* Fullscreen Toggle */}
+                       {onToggleFullscreen && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); onToggleFullscreen(); }}
+                            className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                            title="Toggle Fullscreen"
+                          >
+                              {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                          </button>
+                      )}
                  </div>
              </div>
         </div>

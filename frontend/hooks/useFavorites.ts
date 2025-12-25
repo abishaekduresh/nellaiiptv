@@ -1,30 +1,24 @@
-import { useState, useEffect } from 'react';
-import { Channel } from '@/types';
+import { useEffect } from 'react';
+import { useAuthStore } from '@/stores/authStore';
+import { useFavoritesStore } from '@/stores/favoritesStore';
 
 export function useFavorites() {
-  const [favorites, setFavorites] = useState<string[]>([]);
-  
-  useEffect(() => {
-    // Load from local storage on mount
-    const saved = localStorage.getItem('favorites');
-    if (saved) {
-      setFavorites(JSON.parse(saved));
-    }
-  }, []);
+  const { token, user } = useAuthStore();
+  const { favorites, isLoaded, fetchFavorites, toggleFavorite: storeToggle, isProcessing } = useFavoritesStore();
 
-  const toggleFavorite = (channelUuid: string) => {
-    let newFavorites;
-    if (favorites.includes(channelUuid)) {
-      newFavorites = favorites.filter(id => id !== channelUuid);
-    } else {
-      newFavorites = [...favorites, channelUuid];
+  useEffect(() => {
+    if (token && user && !isLoaded) {
+      fetchFavorites();
     }
-    
-    setFavorites(newFavorites);
-    localStorage.setItem('favorites', JSON.stringify(newFavorites));
+  }, [token, user, isLoaded, fetchFavorites]);
+
+  // Wrapper to maintain similar API, but now requires name
+  // If name is missing, provide a fallback, though callers should update.
+  const toggleFavorite = (channelUuid: string, channelName: string = 'Channel') => {
+      storeToggle(channelUuid, channelName);
   };
 
   const isFavorite = (channelUuid: string) => favorites.includes(channelUuid);
 
-  return { favorites, toggleFavorite, isFavorite };
+  return { favorites, toggleFavorite, isFavorite, isProcessing };
 }

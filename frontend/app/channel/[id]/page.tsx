@@ -14,6 +14,8 @@ import { useAuthStore } from '@/stores/authStore';
 import toast from 'react-hot-toast';
 import Player from 'video.js/dist/types/player';
 import { useTVFocus } from '@/hooks/useTVFocus';
+import { useFavorites } from '@/hooks/useFavorites';
+import { Heart } from 'lucide-react';
 
 // TV-friendly Button Component
 function TVButton({ onClick, className, children, ...props }: any) {
@@ -74,6 +76,9 @@ export default function ChannelPage() {
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const { user } = useAuthStore();
+  
+  const { isFavorite, toggleFavorite, isProcessing } = useFavorites();
+  const liked = channel ? isFavorite(channel.uuid) : false;
 
   const fetchChannelDetails = useCallback(async (fullLoad = true) => {
     try {
@@ -402,6 +407,14 @@ export default function ChannelPage() {
             >
               <Share2 size={20} />
               <span>Share</span>
+            </TVButton>
+
+            <TVButton 
+              onClick={() => channel && !isProcessing && toggleFavorite(channel.uuid, channel.name)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-all shadow-lg font-medium ${liked ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/20' : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'} ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <Heart size={20} fill={liked ? 'currentColor' : 'none'} className={liked ? 'animate-pulse' : ''} />
+              <span>{liked ? 'Favorited' : 'Favorite'}</span>
             </TVButton>
           </div>
         </div>

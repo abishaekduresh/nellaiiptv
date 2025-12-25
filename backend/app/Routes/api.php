@@ -32,6 +32,11 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         // Channels Actions
         $group->post('/channels/{uuid}/rate', [\App\Controllers\ChannelController::class, 'rate']);
         $group->post('/channels/{uuid}/comments', [\App\Controllers\ChannelController::class, 'addComment']);
+
+        // Favorites
+        $group->get('/customers/favorites', [\App\Controllers\FavoriteController::class, 'index']);
+        $group->get('/customers/favorites/ids', [\App\Controllers\FavoriteController::class, 'getIds']);
+        $group->post('/customers/favorites/toggle', [\App\Controllers\FavoriteController::class, 'toggle']);
     })->add(new \App\Middleware\JwtMiddleware());
 
     // Search
