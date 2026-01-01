@@ -21,6 +21,21 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Load preference from localStorage on mount
     const savedMode = localStorage.getItem('viewMode') as ViewMode;
+    const expiry = localStorage.getItem('viewModeExpiry');
+
+    // Check expiry if in Classic Mode
+    if (savedMode === 'Classic') {
+        const now = Date.now();
+        if (expiry && now > parseInt(expiry)) {
+            // Expired: Revert to OTT
+            setModeState('OTT');
+            localStorage.setItem('viewMode', 'OTT');
+            localStorage.removeItem('viewModeExpiry');
+            setIsInitialized(true);
+            return;
+        }
+    }
+
     if (savedMode && (savedMode === 'OTT' || savedMode === 'Classic')) {
       setModeState(savedMode);
       
@@ -35,6 +50,15 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
   const setMode = (newMode: ViewMode) => {
     setModeState(newMode);
     localStorage.setItem('viewMode', newMode);
+
+    // Set or Clear Expiry
+    if (newMode === 'Classic') {
+        // Set expiry to 24 hours from now
+        const expiryTime = Date.now() + (24 * 60 * 60 * 1000);
+        localStorage.setItem('viewModeExpiry', expiryTime.toString());
+    } else {
+        localStorage.removeItem('viewModeExpiry');
+    }
 
     // Track mode change
     if (typeof window !== 'undefined' && (window as any).gtag) {

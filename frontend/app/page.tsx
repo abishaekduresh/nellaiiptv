@@ -169,7 +169,13 @@ import ClassicHome from '@/components/ClassicHome';
 
         {/* Recently Watched */}
         {history.length > 0 && (
-           <ChannelRow title="Continue Watching" channels={history} />
+           <ChannelRow 
+             title="Continue Watching" 
+             channels={history.map(h => {
+                 const live = rawChannels.find(c => c.uuid === h.uuid);
+                 return live || h;
+             })} 
+           />
         )}
 
         {/* Top Trending Channels */}

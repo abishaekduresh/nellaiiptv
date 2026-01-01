@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version Info** | Frontend **v1.10.0** | Backend **v1.8.0**
+**Version Info** | Frontend **v1.11.0** | Backend **v1.8.0**
 
 ## Overview
 
@@ -165,9 +165,12 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 Configure database connection and JWT secret in your environment or config files.
 
 ## Latest Updates
+### Frontend (v1.11.0)
+- ✅ **Classic Mode Expiry**: Automatically reverts to OTT Mode after 24 hours.
+
 ### Frontend (v1.10.0)
-- ✅ **Watch History**: Added "Continue Watching" row on Dashboard to track recently viewed channels.
-- ✅ **Picture-in-Picture (PiP)**: Added floating video support (for compatible browsers).
+- ✅ **Watch History**: "Continue Watching" row on Dashboard.
+- ✅ **Picture-in-Picture (PiP)**: Floating video support.
 - ✅ **AirPlay Support**: Added AirPlay casting support for Apple devices.
 - ✅ **Auto-Retry**: Implemented auto-refresh mechanism (10s countdown) when playback errors occur.
 

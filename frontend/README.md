@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.10.0
+# Frontend (Next.js) - v1.11.0
 
 ## Overview
 
@@ -61,6 +61,8 @@ frontend/
   - **Watch History**: "Continue Watching" list on Dashboard.
   - **PiP & AirPlay**: Advanced playback controls.
   - **Auto-Retry**: Smart error recovery.
+- **Mode Management (v1.11.0)**:
+  - **Auto-Expiry**: Classic Mode reverts to OTT after 24h.
 
 ## TV Navigation Controls
 

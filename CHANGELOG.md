@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## [Frontend 1.11.0] - 2026-01-02
+### Added
+- **Classic Mode Expiry**: Implemented automatic 24-hour expiration for Classic Mode. Use ensures users are periodically returned to the main OTT interface (Dashboard) to see new promoted content.
+
 ## [Frontend 1.10.0] - 2026-01-02
 ### Added
 - **Watch History**: Implemented "Continue Watching" feature.

@@ -93,7 +93,8 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         )}
         
         {/* Channel Number Badge */}
-        {channel.channel_number && (
+        {/* Channel Number Badge */}
+        {channel.channel_number > 0 && (
         <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/10 z-0">
           CH {channel.channel_number}
         </div>
