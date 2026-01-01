@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version Info** | Frontend **v1.9.2** | Backend **v1.8.0**
+**Version Info** | Frontend **v1.10.0** | Backend **v1.8.0**
 
 ## Overview
 
@@ -165,6 +165,12 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 Configure database connection and JWT secret in your environment or config files.
 
 ## Latest Updates
+### Frontend (v1.10.0)
+- ✅ **Watch History**: Added "Continue Watching" row on Dashboard to track recently viewed channels.
+- ✅ **Picture-in-Picture (PiP)**: Added floating video support (for compatible browsers).
+- ✅ **AirPlay Support**: Added AirPlay casting support for Apple devices.
+- ✅ **Auto-Retry**: Implemented auto-refresh mechanism (10s countdown) when playback errors occur.
+
 ### Frontend (v1.9.2)
 - ✅ **SEO**: Enabled search engine indexing (reverted 'noindex' policy).
 

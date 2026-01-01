@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.9.2
+# Frontend (Next.js) - v1.10.0
 
 ## Overview
 
@@ -57,6 +57,10 @@ frontend/
 - **SEO & Analytics (v1.9.1)**:
   - **Dual Tracking**: Simultaneous support for Google Tag Manager (GTM) and direct Google Analytics (GA4).
   - **SEO Ready (v1.9.2)**: Indexed by search engines enabled (`index: true`).
+- **Player Enhancements (v1.10.0)**:
+  - **Watch History**: "Continue Watching" list on Dashboard.
+  - **PiP & AirPlay**: Advanced playback controls.
+  - **Auto-Retry**: Smart error recovery.
 
 ## TV Navigation Controls
 

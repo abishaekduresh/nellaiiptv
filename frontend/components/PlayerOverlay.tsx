@@ -5,7 +5,8 @@ import {
     ChevronLeft, ChevronRight, Tv, Eye,
     Play, Pause, Volume2, VolumeX, SkipBack, SkipForward,
     List, X, Radio, Maximize, Minimize, Star, Settings, Check,
-    Layers, Globe, Grid, Search // Icons for grouping
+    Layers, Globe, Grid, Search,
+    PictureInPicture, Cast, MonitorPlay // New Icons
 } from 'lucide-react';
 
 interface Props {
@@ -44,7 +45,32 @@ interface Props {
   currentGroupType?: 'all' | 'language' | 'category';
   onGroupTypeChange?: (type: 'all' | 'language' | 'category') => void;
   onGroupSelect?: (group: string) => void;
+
+  // New Features
+  onTogglePiP?: () => void;
+  isPiP?: boolean;
+  onAirPlay?: () => void;
 }
+
+  // Helper for TV Focusable Buttons
+  function TVButton({ onClick, className, children, title, ...props }: any) {
+      const { focusProps, isFocused } = useTVFocus({
+          onEnter: onClick,
+          className: className,
+          focusClassName: 'ring-4 ring-white z-50 scale-110 bg-white/20'
+      });
+      return (
+          <button
+            onClick={onClick}
+            {...props}
+            {...focusProps}
+            className={`${className} ${isFocused ? 'ring-4 ring-white z-50 scale-110 bg-white/20' : ''}`}
+            title={title}
+          >
+              {children}
+          </button>
+      );
+  }
 
 export default function PlayerOverlay({
   visible,
@@ -74,7 +100,10 @@ export default function PlayerOverlay({
   groupKeys,
   currentGroupType = 'all',
   onGroupTypeChange,
-  onGroupSelect
+  onGroupSelect,
+  onTogglePiP,
+  isPiP,
+  onAirPlay
 }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -89,26 +118,6 @@ export default function PlayerOverlay({
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
-
-  // Helper for TV Focusable Buttons
-  function TVButton({ onClick, className, children, title, ...props }: any) {
-      const { focusProps, isFocused } = useTVFocus({
-          onEnter: onClick,
-          className: className,
-          focusClassName: 'ring-4 ring-white z-50 scale-110 bg-white/20'
-      });
-      return (
-          <button
-            onClick={onClick}
-            {...props}
-            {...focusProps}
-            className={`${className} ${isFocused ? 'ring-4 ring-white z-50 scale-110 bg-white/20' : ''}`}
-            title={title}
-          >
-              {children}
-          </button>
-      );
-  }
 
   const formatViewers = (count: number) => {
     if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
@@ -157,7 +166,9 @@ export default function PlayerOverlay({
       }
 
       // 2. Normal Logic
-      if (activeTab === 'trending') return topTrending;
+      if (activeTab === 'trending') {
+          return [...topTrending].sort((a, b) => (b.viewers_count || 0) - (a.viewers_count || 0));
+      }
       if (isRootView && groupKeys) {
           // Return list of groups as pseudo-channels or just strings
           return groupKeys; 
@@ -495,7 +506,7 @@ export default function PlayerOverlay({
         </div>
 
         {/* --- BOTTOM CONTROL BAR --- */}
-        <div className="absolute bottom-0 left-0 right-0 transition-transform duration-300 z-50 pointer-events-auto">
+        <div className={`absolute bottom-0 left-0 right-0 transition-transform duration-300 z-50 pointer-events-auto ${visible ? 'translate-y-0' : 'translate-y-full'}`}>
 
              {/* Gradient Shade */}
              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent h-32 -z-10 bottom-0 pointer-events-none" />
@@ -590,6 +601,27 @@ export default function PlayerOverlay({
                             className={`p-2 rounded-full transition-colors hidden sm:block ${isMuted ? 'bg-red-500/20 text-red-500' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
                         >
                             {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                          </TVButton>
+                      )}
+
+                      {/* Display PiP and AirPlay buttons here */}
+                      {onAirPlay && (
+                          <TVButton
+                            onClick={(e: any) => { e.stopPropagation(); onAirPlay(); }}
+                            className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                            title="AirPlay"
+                          >
+                            <Cast size={20} />
+                          </TVButton>
+                      )}
+                      
+                      {onTogglePiP && (
+                          <TVButton
+                            onClick={(e: any) => { e.stopPropagation(); onTogglePiP(); }}
+                            className={`p-2 rounded-full transition-colors ${isPiP ? 'bg-white text-black' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+                            title="Picture-in-Picture"
+                          >
+                             <PictureInPicture size={20} />
                           </TVButton>
                       )}
 

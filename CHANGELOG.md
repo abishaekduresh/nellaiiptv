@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 
 
+## [Frontend 1.10.0] - 2026-01-02
+### Added
+- **Watch History**: Implemented "Continue Watching" feature.
+  - Automatically tracks watched channels in LocalStorage.
+  - Displays "Continue Watching" row on the Dashboard.
+- **Picture-in-Picture**: Added native PiP support with a toggle button in the player overlay.
+- **AirPlay Support**: Integrated AirPlay/Casting support for compatible devices (Apple TV / Mac).
+- **Auto-Retry Logic**: Added 10-second auto-reload countdown on playback errors.
+
 ## [Frontend 1.9.2] - 2025-12-25
 ### Changed
 - **SEO Policy**: Enabled `index: true` and `follow: true` to allow search engines to crawl and index the site.

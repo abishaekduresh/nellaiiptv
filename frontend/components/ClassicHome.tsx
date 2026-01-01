@@ -387,20 +387,20 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                 <div className="mb-2 lg:mb-4">
                     <h3 className="text-[10px] lg:text-xs font-bold text-primary mb-1.5 lg:mb-2 uppercase tracking-wider pl-1 border-l-2 border-primary">Top Trending</h3>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2"> {/* Changed to 4 columns desktop, 2 mobile */}
-                        {topTrending.slice(0, 8).map((channel, i) => {
-                             // Enrich trending data with main channel data (for fresh viewer counts)
-                             const enrichedChannel = channels.find(c => c.uuid === channel.uuid) || channel;
-                             return (
+                        {topTrending
+                            .map(t => channels.find(c => c.uuid === t.uuid) || t)
+                            .sort((a, b) => (b.viewers_count || 0) - (a.viewers_count || 0))
+                            .slice(0, 8)
+                            .map((enrichedChannel, i) => (
                                  <ChannelListItem 
-                                    key={`trend-${channel.uuid}`} 
+                                    key={`trend-${enrichedChannel.uuid}`} 
                                     channel={enrichedChannel} 
                                     index={i}
-                                    isActive={selectedChannel.uuid === channel.uuid}
+                                    isActive={selectedChannel.uuid === enrichedChannel.uuid}
                                     onSelect={() => handleChannelClick(enrichedChannel)}
                                     compact={true}
                                   />
-                             );
-                        })}
+                             ))}
                     </div>
                 </div>
             )}

@@ -10,6 +10,7 @@ import AdBanner from '@/components/AdBanner';
 import { Loader2 } from 'lucide-react';
 import ChannelCardSkeleton from '@/components/ChannelCardSkeleton';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useWatchHistory } from '@/hooks/useWatchHistory';
 
 import { useViewMode } from '@/context/ViewModeContext';
 import ClassicHome from '@/components/ClassicHome';
@@ -17,6 +18,7 @@ import ClassicHome from '@/components/ClassicHome';
   export default function Home() {
   const { mode } = useViewMode();
   const { favorites } = useFavorites(); // Get favorites
+  const { history } = useWatchHistory();
   
   const [featuredChannels, setFeaturedChannels] = useState<Channel[]>([]);
   const [allChannels, setAllChannels] = useState<Channel[]>([]); // Shuffled for OTT
@@ -165,9 +167,20 @@ import ClassicHome from '@/components/ClassicHome';
            <ChannelRow title="My Favorites" channels={favoriteChannels} />
         )}
 
+        {/* Recently Watched */}
+        {history.length > 0 && (
+           <ChannelRow title="Continue Watching" channels={history} />
+        )}
+
         {/* Top Trending Channels */}
         {topTrending.length > 0 && (
-          <ChannelRow title="Top Trending Channels" channels={topTrending} />
+          <ChannelRow 
+            title="Top Trending Channels" 
+            channels={topTrending
+              .map(t => rawChannels.find(c => c.uuid === t.uuid) || t)
+              .sort((a, b) => (b.viewers_count || 0) - (a.viewers_count || 0))
+            } 
+          />
         )}
 
         {/* Featured Channels */}

@@ -6,10 +6,11 @@ import Hls from 'hls.js';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useRouter } from 'next/navigation';
 import ReportModal from './ReportModal';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import PlayerOverlay from './PlayerOverlay';
 import { Channel } from '@/types';
 import { useViewMode } from '@/context/ViewModeContext';
+import { useWatchHistory } from '@/hooks/useWatchHistory';
 
 interface Props {
   src: string;
@@ -85,6 +86,13 @@ function VideoPlayer({
 
   const [showReport, setShowReport] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+
+  const handleRetry = useCallback(() => {
+      setErrorMessage(null);
+      setIsLoading(true);
+      setRetryKey(prev => prev + 1);
+  }, []);
   
   // YouTube Command Helper
   const sendYoutubeCommand = useCallback((func: string, args: any[] = []) => {
@@ -96,6 +104,33 @@ function VideoPlayer({
               'args': args
           }), '*');
       }
+  }, []);
+
+  // History Hook
+  const { addToHistory } = useWatchHistory();
+  const historyTrackedRef = useRef(false);
+
+  // Picture in Picture State
+  const [isPiP, setIsPiP] = useState(false);
+  const [showAirPlay, setShowAirPlay] = useState(false);
+
+  useEffect(() => {
+    // Reset tracked state on channel change
+    historyTrackedRef.current = false;
+  }, [channelUuid]);
+  
+  // Create AirPlay availability listener
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).WebKitPlaybackTargetAvailabilityEvent) {
+        const video = videoRef.current;
+        if (video) {
+            video.addEventListener('webkitplaybacktargetavailabilitychanged', (event: any) => {
+                if (event.availability === 'available') {
+                    setShowAirPlay(true);
+                }
+            });
+        }
+    }
   }, []);
 
   // Controls Visibility State
@@ -170,6 +205,9 @@ function VideoPlayer({
 
   // Handle Mouse Move 
   const handleMouseMove = useCallback(() => {
+      // Ignore mouse move on touch devices to prevent conflict with click toggle
+      if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) return;
+
       if (!controlsVisible) showControls();
       else {
           // Reset timer
@@ -181,6 +219,20 @@ function VideoPlayer({
       }
   }, [controlsVisible, showControls, isYoutube]);
 
+
+  // Track history when playing starts
+  useEffect(() => {
+    if (isPlaying && channelUuid && channelName && !historyTrackedRef.current) {
+        addToHistory({
+            uuid: channelUuid,
+            name: channelName,
+            thumbnail_url: poster || '',
+            channel_number: currentChannel?.channel_number || 0,
+            id: 0, hls_url: src, village: '', state_id: 0, language_id: 0, district_id: 0, viewers_count: 0, expiry_at: '', status: 'active', created_at: ''
+        });
+        historyTrackedRef.current = true;
+    }
+  }, [isPlaying, channelUuid, channelName, poster, currentChannel, src, addToHistory]);
 
   // Controls Logic
   const handlePlayPause = useCallback(() => {
@@ -209,6 +261,30 @@ function VideoPlayer({
           showControls();
       }
   }, [showControls, isYoutube, isPlaying, sendYoutubeCommand]);
+
+
+
+  // PiP Handler
+  const togglePiP = useCallback(async () => {
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPiP(false);
+      } else if (videoRef.current) {
+        await videoRef.current.requestPictureInPicture();
+        setIsPiP(true);
+      }
+    } catch (err) {
+      console.error("PiP failed", err);
+    }
+  }, []);
+
+  // AirPlay Handler
+  const triggerAirPlay = useCallback(() => {
+     if (videoRef.current && (videoRef.current as any).webkitShowPlaybackTargetPicker) {
+         (videoRef.current as any).webkitShowPlaybackTargetPicker();
+     }
+  }, []);
   
   const handleToggleMute = useCallback(() => {
       if (isYoutube) {
@@ -431,7 +507,29 @@ function VideoPlayer({
         }
         hlsRef.current = null;
     };
-  }, [src, isYoutube]);
+  }, [src, isYoutube, retryKey]);
+
+  // Auto Retry Logic
+  const [retryCountdown, setRetryCountdown] = useState<number | null>(null);
+
+  useEffect(() => {
+      let interval: NodeJS.Timeout;
+      if (errorMessage) {
+          setRetryCountdown(10);
+          interval = setInterval(() => {
+              setRetryCountdown(prev => {
+                  if (prev === null || prev <= 1) {
+                      handleRetry();
+                      return 0;
+                  }
+                  return prev - 1;
+              });
+          }, 1000);
+      } else {
+          setRetryCountdown(null);
+      }
+      return () => clearInterval(interval);
+  }, [errorMessage, handleRetry]);
 
   // Loading Timeout Logic
   useEffect(() => {
@@ -443,6 +541,8 @@ function VideoPlayer({
         timeout = setTimeout(() => {
             setErrorMessage("Connection Timeout");
             setIsLoading(false);
+            if (videoRef.current) videoRef.current.pause();
+            if (hlsRef.current) hlsRef.current.stopLoad();
         }, 15000); // 15s Timeout
     }
     return () => clearTimeout(timeout);
@@ -531,6 +631,13 @@ function VideoPlayer({
       qualities={qualities}
       currentQuality={currentQuality}
       onQualityChange={handleQualityChange}
+      
+      // New Features
+      onTogglePiP={!isYoutube ? togglePiP : undefined}
+      isPiP={isPiP}
+      onAirPlay={showAirPlay ? triggerAirPlay : undefined}
+      
+
     />,
     mountTarget as Element
   ) : null;
@@ -549,7 +656,6 @@ function VideoPlayer({
       onMouseMove={handleMouseMove}
       onClick={toggleControls}
       onDoubleClick={handleDoubleClick}
-      onTouchStart={showControls} 
       className={`${focusProps.className} ${isFocused ? 'ring-4 ring-white z-20 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : ''} cursor-pointer bg-black`} 
     >
       {/* RENDER LOGIC SWITCH */}
@@ -615,12 +721,21 @@ function VideoPlayer({
             </p>
             <p className="text-slate-400 text-sm mb-6">{errorMessage}</p>
 
-            <button
-                onClick={(e) => { e.stopPropagation(); setShowReport(true); }}
-                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-lg hover:shadow-red-600/20"
-            >
-                Report Issue
-            </button>
+            <div className="flex items-center gap-3">
+                <button
+                    onClick={(e) => { e.stopPropagation(); handleRetry(); }}
+                    className="flex-1 bg-white hover:bg-slate-200 text-black px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg flex items-center justify-center gap-2"
+                >
+                    <RefreshCw size={18} className={retryCountdown ? 'animate-spin' : ''} />
+                    {retryCountdown ? `Retry in ${retryCountdown}s` : 'Retry'}
+                </button>
+                <button
+                    onClick={(e) => { e.stopPropagation(); setShowReport(true); }}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg hover:shadow-red-600/20"
+                >
+                    Report
+                </button>
+            </div>
           </div>
         </div>
       )}
