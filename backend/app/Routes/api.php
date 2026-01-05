@@ -52,7 +52,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->get('/channels/related/{uuid}', [\App\Controllers\ChannelController::class, 'getRelated']);
     $group->post('/channels/{uuid}/heartbeat', [\App\Controllers\ChannelController::class, 'heartbeat']);
     $group->post('/channels/{uuid}/view', [\App\Controllers\ChannelController::class, 'incrementView']);
-    $group->get('/channels/{uuid}/stream-status', [\App\Controllers\StreamController::class, 'checkStatus']);
+
     $group->post('/channels/{uuid}/report', [\App\Controllers\ChannelController::class, 'report']);
 
     // Ads

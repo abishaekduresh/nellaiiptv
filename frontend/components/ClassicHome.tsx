@@ -20,8 +20,8 @@ interface ClassicHomeProps {
 export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeProps) {
   const { toggleMode } = useViewMode();
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(channels.length > 0 ? channels[0] : null);
+  const [selectedSource, setSelectedSource] = useState<string>('main');
   const [viewersCount, setViewersCount] = useState(0);
-  const [isOnline, setIsOnline] = useState(true);
   
   // Filtering State
   const [groupBy, setGroupBy] = useState<'all' | 'language' | 'category'>('all');
@@ -58,14 +58,9 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
   useEffect(() => {
     if (selectedChannel) {
       setViewersCount(selectedChannel.viewers_count || 0);
-      setIsOnline(true); // Default to true, update if needed via API check
       hasIncrementedRef.current = false;
+      document.title = `${selectedChannel.name} - Nellai IPTV`;
       if (viewTimerRef.current) clearTimeout(viewTimerRef.current);
-      
-      // Check online status
-      api.get(`/channels/${selectedChannel.uuid}/stream-status`)
-        .then(res => setIsOnline(res.data.status ? res.data.data.is_online : false))
-        .catch(() => setIsOnline(false));
     }
   }, [selectedChannel]);
 
@@ -102,8 +97,9 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
   const topRef = useRef<HTMLDivElement>(null);
 
   /* Handle Channel Selection with Mobile Scroll */
-  const handleChannelClick = (channel: Channel) => {
+  const handleChannelClick = (channel: Channel, source: string = 'main') => {
       setSelectedChannel(channel);
+      setSelectedSource(source);
       // Scroll to player on mobile (lg breakpoint is 1024px)
       if (window.innerWidth < 1024 && topRef.current) {
           topRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -287,7 +283,7 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                          <div className="bg-slate-950/80 rounded border border-slate-800 px-2 py-1 flex items-center gap-3 shrink-0">
                                 <div className="flex flex-col items-center">
                                     <span className="flex items-center gap-1 text-white font-bold text-[10px] lg:text-xs">
-                                        <Eye size={10} className={isOnline ? "text-emerald-500" : "text-slate-600"} />
+                                        <Eye size={10} className="text-emerald-500" />
                                         {formatViewers(viewersCount)}
                                     </span>
                                     <span className="text-[8px] text-slate-500 font-medium uppercase tracking-wider scale-90">Views</span>
@@ -396,8 +392,8 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                                     key={`trend-${enrichedChannel.uuid}`} 
                                     channel={enrichedChannel} 
                                     index={i}
-                                    isActive={selectedChannel.uuid === enrichedChannel.uuid}
-                                    onSelect={() => handleChannelClick(enrichedChannel)}
+                                    isActive={selectedChannel.uuid === enrichedChannel.uuid && selectedSource === 'trending'}
+                                    onSelect={() => handleChannelClick(enrichedChannel, 'trending')}
                                     compact={true}
                                   />
                              ))}
@@ -412,12 +408,12 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                  </h3>
                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                   {displayChannels.map((channel, index) => (
-                    <ChannelListItem 
+                      <ChannelListItem 
                       key={channel.uuid} 
                       channel={channel} 
                       index={index}
-                      isActive={selectedChannel.uuid === channel.uuid}
-                      onSelect={() => handleChannelClick(channel)}
+                      isActive={selectedChannel.uuid === channel.uuid && selectedSource === 'main'}
+                      onSelect={() => handleChannelClick(channel, 'main')}
                     />
                   ))}
                 </div>
@@ -446,25 +442,8 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
   };
   
   const [isLoadingImage, setIsLoadingImage] = useState(true);
-  const [isOnline, setIsOnline] = useState(channel.status === 'active');
 
   const rating = Number(channel.ratings_avg_rating) || Number(channel.average_rating) || 0;
-
-  // Check online status on mount
-  useEffect(() => {
-    const checkOnlineStatus = async () => {
-      try {
-        const response = await api.get(`/channels/${channel.uuid}/stream-status`);
-        if (response.data.status && response.data.data) {
-          setIsOnline(response.data.data.is_online);
-        }
-      } catch (err) {
-        setIsOnline(false);
-      }
-    };
-
-    checkOnlineStatus();
-  }, [channel.uuid]);
 
   return (
     <div
@@ -495,6 +474,7 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
             <img
             src={channel.thumbnail_url}
             alt={channel.name}
+            loading="lazy"
             onLoad={() => setIsLoadingImage(false)}
             onError={() => setIsLoadingImage(false)}
             className={`w-full h-full object-contain p-2 opacity-90 group-hover:opacity-100 transition-opacity ${isLoadingImage ? 'opacity-0' : 'opacity-90'}`}
@@ -520,10 +500,7 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
             <Heart size={16} fill={liked ? "currentColor" : "none"} />
         </button>
       
-       {/* Status Badge */}
-      <div className={`absolute top-2 left-2 text-white text-[10px] font-bold px-1.5 py-0.5 rounded animate-pulse ${isOnline ? 'bg-green-600' : 'bg-red-600'}`}>
-           {isOnline ? 'ONLINE' : 'OFFLINE'}
-      </div>
+
 
       {/* Active Overlay */}
       <div className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity backdrop-blur-[2px] pointer-events-none ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>

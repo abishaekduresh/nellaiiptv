@@ -464,22 +464,7 @@ Base URL: `/api`
 
 ---
 
-### Check Stream Status
 
-**Endpoint**: `GET /channels/{uuid}/stream-status`
-
-**Response** (200):
-```json
-{
-  "status": true,
-  "data": {
-    "is_online": true,
-    "checked_at": "2025-12-21T10:00:00Z"
-  }
-}
-```
-
----
 
 ## Contact
 

@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 
 
+## [Frontend 1.12.0] - 2026-01-06
+### Added
+- **Dynamic DOM Title**: Browser tab title now updates dynamically to show the name of the playing channel (in both Classic and OTT modes).
+- **Performance**: Added `loading="lazy"` attribute to channel thumbnails for improved page load performance.
+
+### Changed
+- **Classic Mode Selection**: Fixed highlighting logic to only select the specific card clicked (trending vs main list) rather than all instances of that channel.
+
+### Removed
+- **Stream Status**: Removed "Online/Offline" status indicators and badges from all channel cards and the player interface.
+- **Legacy Code**: Removed unused `streamStatusStore` and related hooks.
+
+## [Backend 1.9.0] - 2026-01-06
+### Changed
+- **Dependencies**: Upgraded `illuminate/*` packages (Database, Events, Pagination) to `^10.0` to resolve PHP 8.3+ deprecation warnings.
+
+### Removed
+- **API Endpoint**: Removed `GET /channels/{uuid}/stream-status` endpoint as the feature has been deprecated.
+
 ## [Frontend 1.11.0] - 2026-01-02
 ### Added
 - **Classic Mode Expiry**: Implemented automatic 24-hour expiration for Classic Mode. Use ensures users are periodically returned to the main OTT interface (Dashboard) to see new promoted content.

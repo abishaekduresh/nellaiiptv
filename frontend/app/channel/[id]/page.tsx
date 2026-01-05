@@ -61,12 +61,11 @@ export default function ChannelPage() {
   useEffect(() => {
     if (params.id) setUuid(params.id as string);
   }, [params.id]);
-  
-  // Refs
 
+  // Refs
+  // Refs
   const playerRef = useRef<Player | null>(null);
   const viewTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const onlineCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasIncrementedRef = useRef(false);
 
   // State
@@ -75,13 +74,19 @@ export default function ChannelPage() {
   const [allChannelsList, setAllChannelsList] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isOnline, setIsOnline] = useState(true);
   const [rating, setRating] = useState(0);
   const [userRating, setUserRating] = useState(0);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const { user } = useAuthStore();
+  
+  // Title Update
+  useEffect(() => {
+    if (channel) {
+      document.title = `${channel.name} - Nellai IPTV`;
+    }
+  }, [channel]);
   
   const { isFavorite, toggleFavorite, isProcessing } = useFavorites();
   const liked = channel ? isFavorite(channel.uuid) : false;
@@ -181,32 +186,8 @@ export default function ChannelPage() {
         decrementView();
       }
       if (viewTimerRef.current) clearTimeout(viewTimerRef.current);
-      if (onlineCheckIntervalRef.current) clearInterval(onlineCheckIntervalRef.current);
     };
   }, [uuid, fetchChannelDetails]);
-
-  // Online Status Check
-  useEffect(() => {
-    if (!uuid) return;
-
-    const checkOnlineStatus = async () => {
-      try {
-        const response = await api.get(`/channels/${uuid}/stream-status`);
-        if (response.data.status && response.data.data) {
-          setIsOnline(response.data.data.is_online);
-        }
-      } catch (err) {
-        setIsOnline(false);
-      }
-    };
-
-    checkOnlineStatus();
-    onlineCheckIntervalRef.current = setInterval(checkOnlineStatus, 120000); // 2 minutes
-
-    return () => {
-      if (onlineCheckIntervalRef.current) clearInterval(onlineCheckIntervalRef.current);
-    };
-  }, [uuid]);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -347,17 +328,6 @@ export default function ChannelPage() {
                 {channel.name}
               </h1>
               <div className="flex items-center gap-3">
-                {isOnline ? (
-                  <span className="bg-green-600/20 border border-green-600/50 text-green-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    ONLINE
-                  </span>
-                ) : (
-                  <span className="bg-red-600/20 border border-red-600/50 text-red-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                    OFFLINE
-                  </span>
-                )}
                 <span className="bg-slate-800 text-slate-300 text-xs font-bold px-3 py-1 rounded-full border border-slate-700">
                   CH {channel.channel_number}
                 </span>

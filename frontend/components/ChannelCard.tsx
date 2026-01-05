@@ -9,7 +9,7 @@ import { Channel } from '@/types';
 import api from '@/lib/api';
 import { formatViewers } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useStreamStatusStore } from '@/stores/streamStatusStore';
+
 
 interface ChannelCardProps {
   channel: Channel;
@@ -26,26 +26,14 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
     focusClassName: "ring-4 ring-white scale-105 z-20"
   });
 
-  const { statuses, checkStatus } = useStreamStatusStore();
-  const isOnline = statuses[channel.uuid] ?? false; 
   const [isLoadingImage, setIsLoadingImage] = useState(true);
 
-  // ... rest of effect ...
-  
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (isProcessing) return; // Prevent multiple clicks
     toggleFavorite(channel.uuid, channel.name);
   };
-
-  useEffect(() => {
-    if (!channel.uuid) return;
-    checkStatus(channel.uuid);
-    
-    const interval = setInterval(() => checkStatus(channel.uuid), 120000);
-    return () => clearInterval(interval);
-  }, [channel.uuid, checkStatus]);
 
   const handleClick = (e: React.MouseEvent) => {
       // Don't block navigation, but fire-and-forget the view increment
@@ -82,6 +70,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
           <img 
             src={channel.thumbnail_url} 
             alt={channel.name}
+            loading="lazy"
             onLoad={() => setIsLoadingImage(false)}
             onError={() => setIsLoadingImage(false)}
             className={`w-full h-full object-contain p-2 opacity-90 transition-opacity ${isLoadingImage ? 'opacity-0' : 'opacity-90'}`}
@@ -107,10 +96,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
           </div>
         </div>
         
-        {/* Status Badge */}
-        <div className={`absolute top-2 left-2 text-white text-[10px] font-bold px-1.5 py-0.5 rounded animate-pulse ${isOnline ? 'bg-green-600' : 'bg-red-600'}`}>
-          {isOnline ? 'ONLINE' : 'OFFLINE'}
-        </div>
+
       </div>
 
       {/* Info Content */}

@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version Info** | Frontend **v1.11.0** | Backend **v1.8.0**
+**Version Info** | Frontend **v1.12.0** | Backend **v1.9.0**
 
 ## Overview
 
@@ -19,7 +19,6 @@ Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT
 
 ### 📺 Video Streaming
 - HLS video streaming with Video.js player
-- Real-time stream status monitoring
 - Quality selector and playback controls
 - **Premium UI**: Custom "Dual Ring" animated loader and persistent branding watermark
 - TV remote control support (Play/Pause, Volume, Seek)
@@ -124,7 +123,6 @@ Backend API will be available at `http://localhost:80`
 - `GET /api/channels` - List all channels
 - `GET /api/channels/featured` - Get featured channels
 - `GET /api/channels/{uuid}` - Get channel details
-- `GET /api/channels/{uuid}/stream-status` - Check stream status
 - `POST /api/channels/{uuid}/report` - Report channel issue
 - `POST /api/contact` - Submit contact form
 
@@ -165,6 +163,15 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 Configure database connection and JWT secret in your environment or config files.
 
 ## Latest Updates
+### Frontend (v1.12.0)
+- ✅ **Dynamic Titles**: Browser tab shows playing channel name.
+- ✅ **Performance**: Lazy loading for thumbnails.
+- ❌ **Clean UI**: Removed online/offline status badges.
+
+### Backend (v1.9.0)
+- ✅ **Compatibility**: PHP 8.3 support (upgraded dependencies).
+- ❌ **Cleanup**: Removed unused status check endpoints.
+
 ### Frontend (v1.11.0)
 - ✅ **Classic Mode Expiry**: Automatically reverts to OTT Mode after 24 hours.
 

@@ -1,6 +1,6 @@
 # Nellai IPTV - Backend API
 
-**Version 1.8.0** | RESTful API built with Slim PHP Framework
+**Version 1.9.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -211,7 +211,11 @@ CORS is configured to allow requests from the frontend application. Modify `Cors
 ```
 
 
-## Latest Updates (v1.8.0)
+## Latest Updates (v1.9.0)
+- ✅ **PHP 8.3 Support**: Upgraded `illuminate` components to v10+ for modern PHP support.
+- ✅ **Cleanup**: Deprecated and removed stream status endpoints.
+
+## Recent Updates (v1.8.0)
 - ✅ **Stability Check**: Validated endpoints against new Frontend v1.8.0 interactive features (Watermark, Animated Loaders).
 - ✅ **Performance**: Maintained sub-100ms response times for high-volume channel fetching.
 
