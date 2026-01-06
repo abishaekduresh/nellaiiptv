@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.15.0] - 2026-01-07
+### Added
+- **Registration Security**: Implemented Math Challenge Captcha ("5 + 3 = ?") to prevent automated spam on the registration page.
+- **Enhanced Registration UI**: Complete visual redesign of the Sign-Up page with a modern 2-column layout and improved input states.
+- **Strict Validation**: Added real-time client-side regex validation for phone numbers (exact 10 digits) and email addresses.
+
+### Fixed
+- **Admin Login**: Fixed "Duplicate identifier" build error in `admin/page.tsx`.
+
+## [Backend 1.11.0] - 2026-01-07
+### Added
+- **JSON Body Parsing**: Enabled `BodyParsingMiddleware` in `public/index.php`. This fixes issues where JSON request bodies (like in Admin Login) were not being parsed correctly, leading to validation failures.
+- **Enhanced Validation**: Updated `AuthController::register` to enforce strict patterns:
+    - **Phone**: Must be exactly 10 digits (`lengthMin: 10`, `lengthMax: 10`).
+    - **Email**: Validated for correct email format and presence.
+
 ## [Frontend 1.14.0] - 2026-01-07
 ### Added
 - **Backend Disconnect Fallback**: Automatic fail-safe that switches from "Classic Mode" to "OTT Mode" if the backend becomes unreachable.

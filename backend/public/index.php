@@ -62,6 +62,9 @@ $app->add(new \App\Middleware\ApiKeyMiddleware());
 // So we add RoutingMiddleware LAST.
 $app->addRoutingMiddleware();
 
+// Body Parsing Middleware
+$app->addBodyParsingMiddleware();
+
 /**
  * 6. CUSTOM ERROR HANDLER (Diagnostic Mode)
  * If a route is not found, it returns the server variables so we can see the path mismatch.

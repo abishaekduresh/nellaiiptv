@@ -1,6 +1,6 @@
 # Nellai IPTV - API Documentation
 
-**Version 1.10.0**
+**Version 1.11.0**
 
 Base URL: `/api`
 
@@ -42,6 +42,8 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
   "password": "password123"
 }
 ```
+
+> **Note**: `phone` must be exactly 10 digits. `email` must be a valid email format.
 
 **Response** (201):
 ```json
@@ -350,4 +352,4 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 
 ---
 
-**Last Updated**: January 2026 | **Version**: 1.10.0
+**Last Updated**: January 2026 | **Version**: 1.11.0

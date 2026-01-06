@@ -1,4 +1,4 @@
-**Version 1.10.0** | RESTful API built with Slim PHP Framework
+**Version 1.11.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -145,7 +145,11 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
-## Latest Updates (v1.10.0)
+## Latest Updates (v1.11.0)
+- 🐛 **Critical Fix**: Enabled `BodyParsingMiddleware` to resolve JSON body parsing issues (Admin Login fix).
+- 🔒 **Validation Hardening**: Enforced 10-digit phone numbers and valid emails for new registrations.
+
+## Recent Updates (v1.10.0)
 - 🔒 **API Security Suite**: Implemented `ApiKeyMiddleware`, `RateLimitMiddleware`, and `SecurityHeadersMiddleware`.
 - 🔧 **CORS Overhaul**: Fixed Preflight OPTION handling for robust cross-origin support.
 - 🐛 **Deletion Fixes**: Corrected Channel Hard Delete and Customer Soft Delete logic.

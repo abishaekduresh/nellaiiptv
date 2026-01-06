@@ -23,8 +23,11 @@ class AuthController
         $data = $request->getParsedBody() ?? [];
         
         $errors = Validator::validate($data, [
-            'required' => [['name'], ['phone'], ['password']],
-            'lengthMin' => [['password', 6]]
+            'required' => [['name'], ['phone'], ['password'], ['email']],
+            'email' => [['email']],
+            'lengthMin' => [['password', 6], ['phone', 10]],
+            'lengthMax' => [['phone', 10]],
+            // Numeric check can also be added if Valitron supports it, but length + UI filter is usually enough
         ]);
 
         if ($errors) {

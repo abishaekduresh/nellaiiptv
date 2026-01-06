@@ -3,21 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import axios from 'axios';
+import adminApi from '@/lib/adminApi';
 import { useAuthStore } from '@/stores/authStore';
-
-const adminApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost/public/api',
-  headers: { 'Content-Type': 'application/json' },
-});
-
-adminApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem('admin_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
 export default function AdminLoginPage() {
   const router = useRouter();

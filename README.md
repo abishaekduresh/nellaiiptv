@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version Info** | Frontend **v1.14.0** | Backend **v1.10.1**
+**Version Info** | Frontend **v1.15.0** | Backend **v1.11.0**
 
 ## Overview
 
@@ -168,6 +168,10 @@ JWT_SECRET=your_jwt_secret
 ```
 
 ## Latest Updates
+
+### Backend (v1.11.0) | Frontend (v1.15.0)
+- 🔒 **Registration Security**: Complete overhaul of registration flow with Math Captcha, strict regex validation, and improved UI.
+- 🐛 **Critical Fix**: Resolved JSON body parsing issues in backend and admin login compilation errors in frontend.
 
 ### Backend (v1.10.1) | Frontend (v1.14.0)
 - 🛡️ **Stability & Resilience**: Implemented automatic Backend Disconnect Fallback (Classic -> OTT) and resolved infinite Login Loops.

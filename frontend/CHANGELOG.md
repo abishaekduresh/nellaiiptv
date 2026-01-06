@@ -2,6 +2,16 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.15.0] - 2026-01-07
+
+### Added
+- **Registration Security**: Implemented Math Challenge Captcha ("5 + 3 = ?") to prevent automated spam on the registration page.
+- **Enhanced Registration UI**: Complete visual redesign of the Sign-Up page with a modern 2-column layout and improved input states.
+- **Strict Validation**: Added real-time client-side regex validation for phone numbers (exact 10 digits) and email addresses.
+
+### Fixed
+- **Admin Login**: Fixed "Duplicate identifier" build error in `admin/page.tsx` that caused compilation failures.
+
 ## [1.14.0] - 2026-01-07
 
 ### Added

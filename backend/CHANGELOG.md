@@ -2,6 +2,14 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.11.0] - 2026-01-07
+
+### Added
+- **JSON Body Parsing**: Enabled `BodyParsingMiddleware` in `public/index.php`. This fixes issues where JSON request bodies (like in Admin Login) were not being parsed correctly, leading to validation failures.
+- **Enhanced Validation**: Updated `AuthController::register` to enforce strict patterns:
+    - **Phone**: Must be exactly 10 digits (`lengthMin: 10`, `lengthMax: 10`).
+    - **Email**: Validated for correct email format and presence.
+
 ## [1.7.0] - 2025-12-24
 
 ### Added

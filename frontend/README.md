@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.14.0
+# Frontend (Next.js) - v1.15.0
 
 ## Overview
 
@@ -80,6 +80,9 @@ frontend/
   - **Smart Fallback**: Automatically switches to OTT mode if the backend disconnects in Classic Mode.
   - **Login Loop Fix**: Resolved infinite redirects for smoother authentication.
   - **Vercel Optimized**: Improved path handling for production deployments.
+- **Registration Security (v1.15.0)**:
+  - **Math Captcha**: Challenge-response system to block bot registrations.
+  - **Strict Validation**: Enforced 10-digit phone and regex-based email checks.
 
 ## TV Navigation Controls
 
