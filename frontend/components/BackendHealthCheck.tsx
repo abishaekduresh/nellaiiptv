@@ -4,8 +4,11 @@ import { useEffect, useRef } from 'react';
 import api from '@/lib/api';
 import { toast } from 'react-hot-toast';
 
+import { useViewMode } from '@/context/ViewModeContext';
+
 export default function BackendHealthCheck() {
   const hasChecked = useRef(false);
+  const { mode, setMode } = useViewMode();
 
   useEffect(() => {
     if (hasChecked.current) return;
@@ -43,13 +46,27 @@ export default function BackendHealthCheck() {
             errorMsg = `Request setup error: ${error.message}`;
         }
         
+        // Auto-switch to OTT mode if in Classic mode and backend fails (excluding 401 which handles itself)
+        if (mode === 'Classic') {
+            const isAuthError = error.response && error.response.status === 401;
+            if (!isAuthError) {
+                console.warn('Backend failed. Switching to OTT Mode.');
+                setMode('OTT');
+                toast.error(`Backend disconnected. Switched to OTT Mode.\n\nError: ${errorMsg}`, {
+                    duration: 6000,
+                    style: { minWidth: '350px' }
+                });
+                return;
+            }
+        }
+        
         // Only show toast if it's not a 401 (since 401 redirects)
         toast.error(errorMsg);
       }
     };
 
     checkHealth();
-  }, []);
+  }, [mode, setMode]);
 
   return null;
 }

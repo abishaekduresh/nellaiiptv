@@ -2,6 +2,19 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.14.0] - 2026-01-07
+
+### Added
+- **Backend Disconnect Fallback**: Automatic fail-safe that switches from "Classic Mode" to "OTT Mode" if the backend becomes unreachable, ensuring the app remains usable.
+- **Improved Diagnostics**: `BackendHealthCheck` now provides detailed error messages for connection failures (404, Network Error, etc.).
+
+### Fixed
+- **Login Loop**: Resolved an infinite redirect loop in `ClassicModeGuard` and `api.ts` that occurred when a 401 error happened on the login page.
+- **Vercel Deployment**: 
+    - Updated `ClassicModeGuard` to handle trailing slashes and subpaths correctly.
+    - Adjusted `backend/public/index.php` (backend fix) to correctly calculate base paths in production environments.
+
+
 ## [1.13.0] - 2026-01-06
 
 ### Added

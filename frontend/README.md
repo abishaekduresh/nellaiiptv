@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.13.0
+# Frontend (Next.js) - v1.14.0
 
 ## Overview
 
@@ -73,10 +73,13 @@ frontend/
   - **Auto-Retry**: Smart error recovery.
 - **Mode Management (v1.11.0)**:
   - **Auto-Expiry**: Classic Mode reverts to OTT after 24h.
-- **UX & Performance (v1.12.0)**:
   - **Dynamic Titles**: Tab title updates to channel name.
   - **Lazy Loading**: Native image lazy loading.
   - **Status Cleanup**: Removed legacy status checks.
+- **Stability & Resilience (v1.14.0)**:
+  - **Smart Fallback**: Automatically switches to OTT mode if the backend disconnects in Classic Mode.
+  - **Login Loop Fix**: Resolved infinite redirects for smoother authentication.
+  - **Vercel Optimized**: Improved path handling for production deployments.
 
 ## TV Navigation Controls
 

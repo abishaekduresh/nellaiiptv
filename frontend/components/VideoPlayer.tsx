@@ -727,7 +727,7 @@ function VideoPlayer({
                     className="flex-1 bg-white hover:bg-slate-200 text-black px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg flex items-center justify-center gap-2"
                 >
                     <RefreshCw size={18} className={retryCountdown ? 'animate-spin' : ''} />
-                    {retryCountdown ? `Retry in ${retryCountdown}s` : 'Retry'}
+                    {retryCountdown ? `${retryCountdown}` : 'Retry'}
                 </button>
                 <button
                     onClick={(e) => { e.stopPropagation(); setShowReport(true); }}

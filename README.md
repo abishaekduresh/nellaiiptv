@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version Info** | Frontend **v1.13.0** | Backend **v1.10.0**
+**Version Info** | Frontend **v1.14.0** | Backend **v1.10.1**
 
 ## Overview
 
@@ -168,6 +168,10 @@ JWT_SECRET=your_jwt_secret
 ```
 
 ## Latest Updates
+
+### Backend (v1.10.1) | Frontend (v1.14.0)
+- 🛡️ **Stability & Resilience**: Implemented automatic Backend Disconnect Fallback (Classic -> OTT) and resolved infinite Login Loops.
+- 🔧 **Connection Fixes**: Corrected Backend Base Path calculation and Frontend Health Check diagnostics for reliable production deployments (Vercel/WAMP).
 
 ### Backend (v1.10.0) | Frontend (v1.13.0)
 - 🔒 **Security Suite**: Implemented `ApiKeyMiddleware`, `RateLimitMiddleware`, and `SecurityHeadersMiddleware`.

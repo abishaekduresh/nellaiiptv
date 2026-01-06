@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 
 
+
+## [Frontend 1.14.0] - 2026-01-07
+### Added
+- **Backend Disconnect Fallback**: Automatic fail-safe that switches from "Classic Mode" to "OTT Mode" if the backend becomes unreachable.
+- **Improved Diagnostics**: Enhanced error reporting in `BackendHealthCheck` for network and config issues.
+
+### Fixed
+- **Login Loop**: Resolved infinite redirect loop in `ClassicModeGuard` and `api.ts`.
+- **Vercel Deployment**: Updated routing guards to handle trailing slashes and subpaths in production.
+
+## [Backend 1.10.1] - 2026-01-07
+### Fixed
+- **Base Path Calculation**: Updated `public/index.php` to correctly handle `/public` in the URL path, resolving 404 errors in certain deployment environments (e.g., local WAMP, Vercel).
+
 ## [Frontend 1.13.0] - 2026-01-06
 ### Added
 - **API Key Integration**: Implemented `X-API-KEY` header injection in all Axios requests (`api.ts`, `adminApi.ts`) using `NEXT_PUBLIC_API_SECRET`.
