@@ -6,9 +6,10 @@ import ChannelCard from './ChannelCard';
 interface ChannelGridProps {
   channels: Channel[];
   isLoading?: boolean;
+  showOverallViewers?: boolean;
 }
 
-const ChannelGrid = ({ channels, isLoading = false }: ChannelGridProps) => {
+const ChannelGrid = ({ channels, isLoading = false, showOverallViewers = false }: ChannelGridProps) => {
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -30,7 +31,7 @@ const ChannelGrid = ({ channels, isLoading = false }: ChannelGridProps) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {channels.map((channel) => (
-        <ChannelCard key={channel.uuid} channel={channel} />
+        <ChannelCard key={channel.uuid} channel={channel} showOverallViewers={showOverallViewers} />
       ))}
     </div>
   );

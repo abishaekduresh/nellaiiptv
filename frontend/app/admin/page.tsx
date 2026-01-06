@@ -26,6 +26,13 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { user, isAdmin, token } = useAuthStore();
+
+  useEffect(() => {
+    if (token && isAdmin) {
+      router.push('/admin/dashboard');
+    }
+  }, [token, isAdmin, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,10 +97,6 @@ export default function AdminLoginPage() {
             {loading ? 'Logging in...' : 'Login as Admin'}
           </button>
         </form>
-
-        <p className="text-text-secondary text-center mt-6 text-sm">
-          Default: username: <code className="text-primary">admin</code>, password: <code className="text-primary">admin123</code>
-        </p>
 
         <p className="text-text-secondary text-center mt-4">
           <Link href="/" className="text-primary hover:text-primary-light">

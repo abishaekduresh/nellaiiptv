@@ -9,15 +9,19 @@ export default function ClassicModeGuard({ children }: { children: React.ReactNo
   const router = useRouter();
   const pathname = usePathname();
 
+  // Allowed paths that should not trigger a redirect in Classic Mode
+  const allowedPaths = ['/login', '/register', '/forgot-password'];
+  const isAllowedPath = allowedPaths.includes(pathname);
+
   useEffect(() => {
-    // If in Classic mode and not on home page, redirect to home
-    if (mode === 'Classic' && pathname !== '/') {
+    // If in Classic mode, not on home page, and not on an allowed path, redirect to home
+    if (mode === 'Classic' && pathname !== '/' && !isAllowedPath) {
       router.push('/');
     }
-  }, [mode, pathname, router]);
+  }, [mode, pathname, router, isAllowedPath]);
 
-  // If in Classic mode and not on home page, don't render children
-  if (mode === 'Classic' && pathname !== '/') {
+  // If in Classic mode, not on home page, and not on an allowed path, don't render children
+  if (mode === 'Classic' && pathname !== '/' && !isAllowedPath) {
     return null;
   }
 

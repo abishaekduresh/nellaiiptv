@@ -157,7 +157,7 @@ function ChannelsContent() {
         {!loading && topChannels.length > 0 && (
             <div className="mb-12">
                  <h2 className="text-2xl font-bold text-white mb-6 border-l-4 border-primary pl-3">Top Trending Channels</h2>
-                 <ChannelGrid channels={topChannels} />
+                 <ChannelGrid channels={topChannels} showOverallViewers={true} />
             </div>
         )}
 

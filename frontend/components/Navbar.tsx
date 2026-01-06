@@ -118,7 +118,7 @@ export default function Navbar() {
                 <div className="flex items-center space-x-4">
                   {isAdmin && (
                     <Link
-                      href="/admin"
+                      href="/admin/dashboard"
                       className="flex items-center space-x-1 text-secondary hover:text-yellow-300 transition-colors px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20"
                     >
                       <Settings size={16} />
@@ -240,7 +240,7 @@ export default function Navbar() {
                 </Link>
                 {isAdmin && (
                   <Link
-                    href="/admin"
+                    href="/admin/dashboard"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block text-secondary hover:text-yellow-300 hover:bg-slate-800 px-4 py-3 rounded-lg transition-all"
                   >

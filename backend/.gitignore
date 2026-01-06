@@ -13,6 +13,7 @@ Thumbs.db
 # Logs
 *.log
 # Cache
+/storage/
 /storage/*.key
 /storage/framework/
 /storage/logs/

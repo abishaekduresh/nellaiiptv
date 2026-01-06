@@ -13,9 +13,10 @@ import { useFavorites } from '@/hooks/useFavorites';
 
 interface ChannelCardProps {
   channel: Channel;
+  showOverallViewers?: boolean;
 }
 
-export default function ChannelCard({ channel }: ChannelCardProps) {
+export default function ChannelCard({ channel, showOverallViewers = false }: ChannelCardProps) {
   const router = useRouter(); 
   const { isFavorite, toggleFavorite, isProcessing } = useFavorites();
   const liked = isFavorite(channel.uuid);
@@ -82,7 +83,6 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
         )}
         
         {/* Channel Number Badge */}
-        {/* Channel Number Badge */}
         {channel.channel_number > 0 && (
         <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/10 z-0">
           CH {channel.channel_number}
@@ -117,7 +117,7 @@ export default function ChannelCard({ channel }: ChannelCardProps) {
          </div>
          <span className="flex items-center text-xs text-slate-400">
             <Eye size={12} className="mr-1" />
-            {channel.daily_views !== undefined 
+            {channel.daily_views !== undefined && !showOverallViewers
                 ? <>{formatViewers(channel.daily_views || 0)}<span className="hidden sm:inline"> </span></>
                 : formatViewers(channel.viewers_count || 0)}
          </span>

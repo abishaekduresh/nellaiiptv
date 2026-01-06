@@ -16,7 +16,7 @@ class SettingController
         return ResponseFormatter::success($response, $settings);
     }
 
-    public function update(Request $request, Response $response, array $args): Response
+    public function update(Request $request, Response $response, string $key): Response
     {
         $data = $request->getParsedBody() ?? [];
 
@@ -25,8 +25,8 @@ class SettingController
                 throw new Exception('Value is required');
             }
 
-            Setting::set($args['key'], $data['value']);
-            $setting = Setting::where('setting_key', $args['key'])->first();
+            Setting::set($key, $data['value']);
+            $setting = Setting::where('setting_key', $key)->first();
             
             return ResponseFormatter::success($response, $setting, 'Setting updated');
         } catch (Exception $e) {

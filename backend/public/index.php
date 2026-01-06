@@ -1,10 +1,11 @@
 <?php
 
-// 1. CORS Headers
+// 1. CORS Headers (Early Exit for Preflight)
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-header("Access-Control-Allow-Origin: $origin"); // Reflect the origin
+// Validate origin if needed, or allow all for dev
+header("Access-Control-Allow-Origin: $origin"); 
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-KEY');
 header('Access-Control-Allow-Credentials: true');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -24,14 +25,14 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 /**
- * 3. 🚀 SELF-CORRECTING BASE PATH
+ * 3. SELF-CORRECTING BASE PATH
  * This logic handles root-level rewrites common in cPanel/shared hosting.
  */
 $scriptName = $_SERVER['SCRIPT_NAME']; // e.g. /public/index.php
 $requestUri = $_SERVER['REQUEST_URI']; // e.g. /api/health
 
 // Calculate base path by stripping index.php and optionally /public
-$basePath = str_replace(['/public/index.php', '/index.php'], '', $scriptName);
+$basePath = str_replace('/index.php', '', $scriptName);
 $basePath = rtrim($basePath, '/');
 
 // On server root, basePath MUST be an empty string
@@ -50,8 +51,16 @@ require $rootDir . '/app/Routes/admin.php';
 /**
  * 5. Middleware Stack
  */
+// Security Middleware
+$app->add(new \App\Middleware\CorsMiddleware()); // Must run first (added last)
+$app->add(new \App\Middleware\SecurityHeadersMiddleware());
+$app->add(new \App\Middleware\RateLimitMiddleware(100, 60)); // 100 reqs/min global
+$app->add(new \App\Middleware\ApiKeyMiddleware());
+
+// Routing Middleware (Must run BEFORE Security/Cors to provide RouteContext)
+// In Slim LIFO, "Last Added" = "First Executed".
+// So we add RoutingMiddleware LAST.
 $app->addRoutingMiddleware();
-$app->addBodyParsingMiddleware();
 
 /**
  * 6. CUSTOM ERROR HANDLER (Diagnostic Mode)

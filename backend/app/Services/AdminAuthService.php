@@ -68,4 +68,20 @@ class AdminAuthService
             ]
         ];
     }
+
+    public function changePassword(string $userUuid, string $oldPassword, string $newPassword): void
+    {
+        $user = User::where('uuid', $userUuid)->first();
+
+        if (!$user) {
+            throw new Exception('User not found');
+        }
+
+        if (!password_verify($oldPassword, $user->password)) {
+            throw new Exception('Incorrect old password');
+        }
+
+        $user->password = password_hash($newPassword, PASSWORD_BCRYPT);
+        $user->save();
+    }
 }

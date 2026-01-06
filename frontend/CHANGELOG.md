@@ -2,7 +2,18 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.13.0] - 2026-01-06
+
+### Added
+- **API Key Integration**: Implemented `X-API-KEY` header injection in all Axios requests (`api.ts`, `adminApi.ts`) using `NEXT_PUBLIC_API_SECRET`.
+- **Security Config**: Updated `.env.local` to require `NEXT_PUBLIC_API_SECRET` and match backend WAMP structure (`/backend/api`).
+
+### Fixed
+- **Admin Login**: Resolved 401 Unauthorized errors by ensuring `adminApi.ts` correctly sends the API Key.
+- **Backend Connection**: Fixed "Could not connect to backend" errors caused by incorrect API URL and missing API Key.
+
 ## [1.8.0] - 2025-12-25
+
 
 ### Added
 - **Premium Video Loader**: Replaced default spinner with a high-end "Dual Ring" animated loader featuring glowing gradients and theme-aligned colors (Cyan & Yellow).

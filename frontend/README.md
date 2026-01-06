@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.12.0
+# Frontend (Next.js) - v1.13.0
 
 ## Overview
 
@@ -11,11 +11,19 @@ The frontend of **Nellai IPTV** is built with **Next.js**, **React**, and **Vide
 
 ## Setup
 
-```bash
-cd frontend
-npm install   # install dependencies
-npm run dev   # start development server (http://localhost:3000)
-```
+1. **Environment Config**:
+   Create `.env.local` and add your backend API secret:
+   ```bash
+   NEXT_PUBLIC_API_URL=http://localhost/api
+   NEXT_PUBLIC_API_SECRET=your_backend_api_secret_here
+   ```
+
+2. **Install & Run**:
+   ```bash
+   cd frontend
+   npm install   # install dependencies
+   npm run dev   # start development server
+   ```
 
 ## Build for Production
 
@@ -42,9 +50,11 @@ frontend/
 - **TV-Friendly Interface**: Optimized for large screens and "10-foot" viewing distances.
 - **Classic Mode**: A streamlined, TV-like experience with a focused player, channel list, and integrated ads.
 - **Spatial Navigation**: Full support for arrow-key navigation (D-pad) for easy browsing on TV.
-- **Responsive Design**: Works seamlessly on both desktop monitors and televisions.
 - **Smart Search**: Search by channel name or specific channel number (e.g., "CH 101" or just "1").
 - **Live Visuals**: Auto-scrolling banners and interactive channel cards.
+- **Enhanced Security (v1.13.0)**:
+  - **API Key Integration**: All requests are secured with `X-API-KEY`.
+  - **Protected Admin**: Secure cookie-based handling for admin sessions.
 - **Accessible Disclaimer**: TV-navigable disclaimer modal with focus support.
 - **Unlimited Browsing (v1.6.0)**: No more 100-channel limit; browse and search our entire channel catalog without restriction.
 - **Premium UI (v1.8.0)**: 

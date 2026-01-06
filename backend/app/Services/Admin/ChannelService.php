@@ -13,7 +13,17 @@ class ChannelService
 {
     public function getAll(array $filters = []): array
     {
-        $query = Channel::with(['state', 'district', 'language']);
+        $query = Channel::with(['state', 'district', 'language', 'category']);
+
+        if (isset($filters['search']) && !empty($filters['search'])) {
+            $query->where('name', 'LIKE', '%' . $filters['search'] . '%');
+        } elseif (isset($filters['q']) && !empty($filters['q'])) {
+             $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
+        }
+
+        if (isset($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
 
         if (isset($filters['state_id'])) {
             $query->where('state_id', $filters['state_id']);
@@ -27,18 +37,25 @@ class ChannelService
             $query->where('status', $filters['status']);
         }
 
+        $sortBy = $filters['sort_by'] ?? 'id';
+        $sortOrder = $filters['sort_order'] ?? 'desc';
+        
+        $allowedSorts = ['id', 'name', 'created_at', 'status', 'channel_number'];
+        if (!in_array($sortBy, $allowedSorts)) $sortBy = 'id';
+        if (!in_array(strtolower($sortOrder), ['asc', 'desc'])) $sortOrder = 'desc';
+
         $perPage = $filters['per_page'] ?? 20;
-        return $query->paginate($perPage)->toArray();
+        return $query->orderBy($sortBy, $sortOrder)->paginate($perPage)->toArray();
     }
 
     public function create(array $data): Channel
     {
         $channel = new Channel();
-        $channel->uuid = Uuid::uuid7()->toString();
+        $channel->uuid = Uuid::uuid4()->toString();
         $channel->fill($data);
         $channel->save();
 
-        return $channel->load(['state', 'district', 'language']);
+        return $channel->load(['state', 'district', 'language', 'category']);
     }
 
     public function update(string $uuid, array $data): Channel
@@ -47,7 +64,7 @@ class ChannelService
         $channel->fill($data);
         $channel->save();
 
-        return $channel->load(['state', 'district', 'language']);
+        return $channel->load(['state', 'district', 'language', 'category']);
     }
 
     public function delete(string $uuid): bool
@@ -56,9 +73,16 @@ class ChannelService
         return $channel->delete();
     }
 
+    public function getOne(string $uuid): Channel
+    {
+        return Channel::where('uuid', $uuid)
+            ->with(['state', 'district', 'language', 'category'])
+            ->firstOrFail();
+    }
+
     public function search(array $params): array
     {
-        $query = Channel::with(['state', 'district', 'language']);
+        $query = Channel::with(['state', 'district', 'language', 'category']);
 
         if (isset($params['q']) && !empty($params['q'])) {
             $query->where('name', 'LIKE', '%' . $params['q'] . '%');

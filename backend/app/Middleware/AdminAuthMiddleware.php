@@ -36,8 +36,9 @@ class AdminAuthMiddleware implements MiddlewareInterface
             }
 
             $request = $request->withAttribute('user', $decoded);
-        } catch (\Exception $e) {
-            return ResponseFormatter::error(new SlimResponse(), 'Unauthorized: Invalid token', 401);
+        } catch (\Throwable $e) {
+            error_log('Middleware Auth Error: ' . $e->getMessage());
+            return ResponseFormatter::error(new SlimResponse(), 'Unauthorized: Invalid token (' . $e->getMessage() . ')', 401);
         }
 
         return $handler->handle($request);

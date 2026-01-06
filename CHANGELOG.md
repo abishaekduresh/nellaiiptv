@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 
 
+## [Frontend 1.13.0] - 2026-01-06
+### Added
+- **API Key Integration**: Implemented `X-API-KEY` header injection in all Axios requests (`api.ts`, `adminApi.ts`) using `NEXT_PUBLIC_API_SECRET`.
+- **Security Config**: Added `.env.local` requirement for `NEXT_PUBLIC_API_SECRET`.
+
+## [Backend 1.10.0] - 2026-01-06
+### Added
+- **API Security Suite**:
+  - `ApiKeyMiddleware`: Enforces `X-API-KEY` validation on all public endpoints.
+  - `RateLimitMiddleware`: Limits requests to 100 per minute per IP using file-based cache.
+  - `SecurityHeadersMiddleware`: Injects HSTS, X-Frame-Options, and X-XSS-Protection headers.
+- **CORS Handling**: Enhanced `index.php` with an "Early Exit" strategy for `OPTIONS` requests to guarantee preflight success.
+
+### Fixed
+- **Critical Middleware Order**: Fixed 500 Internal Server Errors by ensuring `addRoutingMiddleware()` runs *before* `CorsMiddleware` (executed last in LIFO stack).
+- **Channel Deletion**: Updated `ChannelService` to perform hard deletes instead of soft deletes for channels.
+- **Customer Deletion**: Updated `CustomerController` to correctly handle soft deletes (`status = 'deleted'`) and filter them out in lists.
+- **Admin Password**: Fixed admin password update logic (though user context was primarily focused on API Security).
+
 ## [Frontend 1.12.0] - 2026-01-06
 ### Added
 - **Dynamic DOM Title**: Browser tab title now updates dynamically to show the name of the playing channel (in both Classic and OTT modes).

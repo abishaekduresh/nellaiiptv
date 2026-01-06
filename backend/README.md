@@ -1,16 +1,15 @@
-# Nellai IPTV - Backend API
-
-**Version 1.9.0** | RESTful API built with Slim PHP Framework
+**Version 1.10.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
-The backend of **Nellai IPTV** is a RESTful API built with **Slim PHP 4** framework, using **Eloquent ORM** for database operations and **JWT** for authentication. It provides endpoints for channel management, user authentication, ratings, comments, reports, and more.
+The backend of **Nellai IPTV** is a RESTful API built with **Slim PHP 4** framework, using **Eloquent ORM** for database operations and **JWT** for authentication. It features robust security layers including **API Key Authentication**, **Rate Limiting**, and **Security Headers**.
 
 ## Tech Stack
 
 - **Framework**: Slim PHP 4
 - **ORM**: Eloquent (Laravel Database)
-- **Authentication**: Firebase JWT
+- **Authentication**: Firebase JWT (User Auth) + API Key (Public Access)
+- **Security**: Rate Limiting, Security Headers (HSTS, XSS Protection)
 - **Validation**: Valitron
 - **Database**: MySQL 8.0+ (MyISAM engine)
 - **Dependency Injection**: PHP-DI
@@ -47,7 +46,18 @@ mysql -u root -p nellai_iptv < database/migrations/create_contact_messages_table
 
 ### 3. Environment Configuration
 
-Configure your database connection and JWT secret in the appropriate config files or environment variables.
+Copy `.env.example` to `.env` and configure your database and security keys:
+
+```ini
+DB_HOST=localhost
+DB_NAME=nellai_iptv
+DB_USER=root
+DB_PASS=
+
+# Security
+JWT_SECRET=your_jwt_secret_here
+API_SECRET=your_strong_api_secret_here
+```
 
 ### 4. Start Development Server
 
@@ -66,25 +76,21 @@ backend/
 │   │   ├── Admin/           # Admin controllers
 │   │   ├── AuthController.php
 │   │   ├── ChannelController.php
-│   │   ├── ContactController.php
 │   │   └── ...
 │   ├── Models/              # Eloquent models
 │   │   ├── Channel.php
-│   │   ├── ChannelReport.php
-│   │   ├── ContactMessage.php
-│   │   ├── Customer.php
 │   │   └── ...
 │   ├── Services/            # Business logic
 │   │   ├── AuthService.php
-│   │   ├── ChannelService.php
 │   │   └── ...
 │   ├── Middleware/          # Request middleware
+│   │   ├── ApiKeyMiddleware.php       # Enforces X-API-KEY
+│   │   ├── RateLimitMiddleware.php    # Request throttling
+│   │   ├── SecurityHeadersMiddleware.php # Security headers
 │   │   ├── JwtMiddleware.php
 │   │   └── CorsMiddleware.php
 │   ├── Helpers/             # Utility classes
-│   │   ├── ResponseFormatter.php
-│   │   ├── Validator.php
-│   │   └── JwtHelper.php
+│   │   └── ...
 │   └── Routes/              # Route definitions
 │       └── api.php
 ├── database/
@@ -103,148 +109,57 @@ See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for complete endpoint reference
 
 **Base URL**: `/api`
 
+**Required Headers**:
+- `X-API-KEY`: Required for ALL public endpoints.
+- `Authorization`: Bearer token required for protected endpoints.
+
 #### Authentication
 - `POST /customers/register` - Register new user
 - `POST /customers/login` - User login
-- `POST /customers/forgot-password` - Request password reset
-- `POST /customers/reset-password` - Reset password
 
 #### Channels
 - `GET /channels` - List all channels
 - `GET /channels/featured` - Get featured channels
-- `GET /channels/{uuid}` - Get channel details
-- `POST /channels/{uuid}/rate` - Rate a channel (protected)
-- `POST /channels/{uuid}/comments` - Add comment (protected)
-- `POST /channels/{uuid}/report` - Report channel issue
-
-#### Contact
-- `POST /contact` - Submit contact form
 
 #### System
-- `GET /health` - Health check endpoint (Returns system status and timestamp)
+- `GET /health` - Health check endpoint
 
 ### Deployment Note
-For **root folder deployments** (e.g., when uploading the contents of `backend/` directly to your server root), the application automatically detects the base path. Ensure your root `.htaccess` redirects to the `public/` directory.
+For **root folder deployments**, the application automatically detects the base path. Ensure `API_SECRET` is set in your environment.
 
 ## Database Schema
 
 ### Main Tables
-
-- `channels` - Channel information
-- `channel_views` - IP-based view tracking logs
-- `channel_reports` - User-submitted channel reports
-- `channel_ratings` - Channel ratings by users
-- `channel_comments` - User comments on channels
-- `contact_messages` - Contact form submissions
-- `customers` - User accounts
-- `ads` - Advertisement data
-- `states`, `districts`, `languages`, `categories` - Metadata
+- `channels`, `customers`, `ads`, `channel_views`, `contact_messages`
 
 ## Authentication
 
-The API uses JWT (JSON Web Tokens) for authentication. Protected endpoints require a valid JWT token in the Authorization header:
-
-```
-Authorization: Bearer <your-jwt-token>
-```
+The API uses a dual-layer security model:
+1. **API Key**: Required for all public requests (e.g., fetching channels) to prevent unauthorized scraping.
+2. **JWT**: Required for user-specific actions (e.g., rating, commenting).
 
 ### Getting a Token
+1. Register/Login to get a JWT.
+2. Use `Authorization: Bearer <token>` in headers.
 
-1. Register: `POST /api/customers/register`
-2. Login: `POST /api/customers/login`
-3. Use the returned token in subsequent requests
+## Rate Limiting
+Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
-## Response Format
+## Latest Updates (v1.10.0)
+- 🔒 **API Security Suite**: Implemented `ApiKeyMiddleware`, `RateLimitMiddleware`, and `SecurityHeadersMiddleware`.
+- 🔧 **CORS Overhaul**: Fixed Preflight OPTION handling for robust cross-origin support.
+- 🐛 **Deletion Fixes**: Corrected Channel Hard Delete and Customer Soft Delete logic.
+- 🛠 **System Stability**: Resolved 500 errors caused by middleware ordering conflicts.
 
-All API responses follow a consistent format:
-
-### Success Response
-```json
-{
-  "status": true,
-  "message": "Success message",
-  "data": { ... }
-}
-```
-
-### Error Response
-```json
-{
-  "status": false,
-  "message": "Error message",
-  "errors": { ... }
-}
-```
-
-## Validation
-
-Input validation is handled using Valitron. Common validation rules:
-
-- `required` - Field must be present
-- `email` - Valid email format
-- `lengthMin` - Minimum length
-- `integer` - Must be an integer
-
-## Error Handling
-
-The API returns appropriate HTTP status codes:
-
-- `200` - Success
-- `201` - Created
-- `400` - Bad Request / Validation Error
-- `401` - Unauthorized
-- `404` - Not Found
-- `500` - Internal Server Error
-
-## CORS
-
-CORS is configured to allow requests from the frontend application. Modify `CorsMiddleware` to adjust allowed origins.
-
-## Testing
-
-```bash
-# Run PHPUnit tests
-./vendor/bin/phpunit
-
-# Run specific test
-./vendor/bin/phpunit tests/Unit/AuthTest.php
-```
-
-
-## Latest Updates (v1.9.0)
-- ✅ **PHP 8.3 Support**: Upgraded `illuminate` components to v10+ for modern PHP support.
-- ✅ **Cleanup**: Deprecated and removed stream status endpoints.
-
-## Recent Updates (v1.8.0)
-- ✅ **Stability Check**: Validated endpoints against new Frontend v1.8.0 interactive features (Watermark, Animated Loaders).
-- ✅ **Performance**: Maintained sub-100ms response times for high-volume channel fetching.
-
-## Recent Updates (v1.7.0)
-- ✅ Added 'category' object to Channel API response for better grouping.
-- ✅ Implemented `sort=top_trending` logic (3-day view count).
-- ✅ Added `channel_views` table migration for accurate IP-based view counting.
-- ✅ Optimized sorting and filtering queries.
-
-## Previous Updates (v1.6.0)
-- ✅ Global channel limit removal (no more 100-channel cap)
-- ✅ Integrated support for `limit=-1` to fetch all channels across all pages
-- ✅ Category pages (Language/State) now load all channels instantly
-- ✅ Synchronized Classic Mode and OTT Mode data fetching logic
-
-## Previous Updates (v1.5.0)
-- ✅ Added channel reporting system with support for custom descriptions
-- ✅ Implemented contact form backend with persistent storage and validation
-- ✅ Added automatic base path detection for flexible deployment (root or subfolder)
-- ✅ Enhanced health check with diagnostic debugging mode (`?debug=1`)
-- ✅ Optimized Slim middleware stack for improved performance and error handling
-- ✅ Implemented `ResponseFormatter` for unified API response structure
+## Recent Updates (v1.9.0)
+- ✅ **PHP 8.3 Support**: Upgraded `illuminate` components.
+- ✅ **Cleanup**: Removed legacy stream endpoints.
 
 ## Contributing
 
 1. Follow PSR-12 coding standards
-2. Write unit tests for new features
-3. Update API documentation
-4. Run tests before submitting PR
+2. Update API documentation
+3. Run tests before submitting PR
 
 ## License
 

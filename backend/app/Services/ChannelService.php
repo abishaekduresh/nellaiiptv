@@ -17,6 +17,7 @@ class ChannelService
     public function getAll(array $filters = []): array
     {
         $query = Channel::query()
+            ->select('channels.*')
             ->where('status', 'active')
             ->with(['language', 'state', 'district', 'category'])
             ->withAvg('ratings', 'rating')
@@ -62,7 +63,7 @@ class ChannelService
                     $join->on('channels.id', '=', 'channel_views.channel_id')
                          ->where('channel_views.view_date', '=', $today);
                 })
-                ->select('channels.*', DB::raw('SUM(channel_views.count) as daily_views'))
+                ->addSelect(DB::raw('SUM(channel_views.count) as daily_views'))
                 ->groupBy('channels.id')
                 ->orderBy('daily_views', 'desc');
             } elseif ($filters['sort'] === 'top_trending') {
@@ -72,7 +73,7 @@ class ChannelService
                     $join->on('channels.id', '=', 'channel_views.channel_id')
                          ->where('channel_views.view_date', '>=', $statsDate);
                 })
-                ->select('channels.*', DB::raw('SUM(channel_views.count) as daily_views'))
+                ->addSelect(DB::raw('SUM(channel_views.count) as daily_views'))
                 ->groupBy('channels.id')
                 ->orderBy('daily_views', 'desc');
             } elseif ($filters['sort'] === 'top_all_time') {

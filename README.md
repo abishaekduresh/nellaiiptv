@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version Info** | Frontend **v1.12.0** | Backend **v1.9.0**
+**Version Info** | Frontend **v1.13.0** | Backend **v1.10.0**
 
 ## Overview
 
@@ -41,11 +41,11 @@ Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT
 - TV navigation with spatial controls
 - Keyboard and remote control support
 
-### 🔐 Authentication
-- JWT-based authentication
-- User registration and login
-- Profile management
-- Admin panel support
+### 🔐 Authentication & Security
+- **API Key Security**: Frontend-Backend communication secured via `X-API-KEY`.
+- **JWT Authentication**: Secure user sessions for ratings and comments.
+- **Rate Limiting**: Public endpoints protected against unlimited scraping (100 req/min).
+- **Security Headers**: HSTS, XSS protection, and anti-sniffing headers enabled.
 
 ## Project Structure
 
@@ -65,7 +65,7 @@ nellai-iptv/
 │   │   ├── Controllers/    # API controllers
 │   │   ├── Models/         # Eloquent models
 │   │   ├── Services/       # Business logic
-│   │   ├── Middleware/     # Request middleware
+│   │   ├── Middleware/     # Request middleware (ApiKey, RateLimit, SecurityHeaders)
 │   │   ├── Routes/         # API routes
 │   │   └── Helpers/        # Utility functions
 │   ├── database/
@@ -90,7 +90,7 @@ nellai-iptv/
 cd frontend
 npm install
 cp .env.local.example .env.local
-# Configure NEXT_PUBLIC_API_URL in .env.local
+# Configure NEXT_PUBLIC_API_URL and NEXT_PUBLIC_API_SECRET
 npm run dev
 ```
 
@@ -101,8 +101,8 @@ Frontend will be available at `http://localhost:3000`
 ```bash
 cd backend
 composer install
-# Configure database connection in .env or config
-# Run SQL migrations from database/migrations/
+cp .env.example .env
+# Configure DB and API_SECRET in .env
 php -S localhost:80 -t public
 ```
 
@@ -119,14 +119,14 @@ Backend API will be available at `http://localhost:80`
 
 ## API Endpoints
 
-### Public Endpoints
+### Public Endpoints (Require X-API-KEY)
 - `GET /api/channels` - List all channels
 - `GET /api/channels/featured` - Get featured channels
 - `GET /api/channels/{uuid}` - Get channel details
 - `POST /api/channels/{uuid}/report` - Report channel issue
 - `POST /api/contact` - Submit contact form
 
-### Protected Endpoints (Require JWT)
+### Protected Endpoints (Require X-API-KEY + JWT)
 - `POST /api/channels/{uuid}/rate` - Rate a channel
 - `POST /api/channels/{uuid}/comment` - Comment on a channel
 - `POST /api/auth/register` - User registration
@@ -140,7 +140,7 @@ Backend API will be available at `http://localhost:80`
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **State Management**: Zustand
-- **HTTP Client**: Axios
+- **HTTP Client**: Axios (configured with automated `X-API-KEY` injection)
 - **Video Player**: Video.js with HLS support
 - **UI Components**: Custom components with Lucide icons
 - **Notifications**: react-hot-toast
@@ -151,18 +151,30 @@ Backend API will be available at `http://localhost:80`
 - **Authentication**: Firebase JWT
 - **Validation**: Valitron
 - **Database**: MySQL with MyISAM engine
+- **Security Middleware**: Custom Stack (Cors, ApiKey, RateLimit, SecurityHeaders)
 
 ## Environment Variables
 
 ### Frontend (.env.local)
 ```
 NEXT_PUBLIC_API_URL=http://localhost:8080/api
+NEXT_PUBLIC_API_SECRET=your_backend_secret
 ```
 
-### Backend
-Configure database connection and JWT secret in your environment or config files.
+### Backend (.env)
+```
+API_SECRET=your_backend_secret
+JWT_SECRET=your_jwt_secret
+```
 
 ## Latest Updates
+
+### Backend (v1.10.0) | Frontend (v1.13.0)
+- 🔒 **Security Suite**: Implemented `ApiKeyMiddleware`, `RateLimitMiddleware`, and `SecurityHeadersMiddleware`.
+- 🔧 **CORS Overhaul**: Fixed Preflight OPTION handling for robust cross-origin support.
+- 🐛 **Deletion Fixes**: Corrected Channel Hard Delete and Customer Soft Delete logic.
+- 🛠 **System Stability**: Resolved 500 errors caused by middleware ordering conflicts.
+
 ### Frontend (v1.12.0)
 - ✅ **Dynamic Titles**: Browser tab shows playing channel name.
 - ✅ **Performance**: Lazy loading for thumbnails.
@@ -180,22 +192,6 @@ Configure database connection and JWT secret in your environment or config files
 - ✅ **Picture-in-Picture (PiP)**: Floating video support.
 - ✅ **AirPlay Support**: Added AirPlay casting support for Apple devices.
 - ✅ **Auto-Retry**: Implemented auto-refresh mechanism (10s countdown) when playback errors occur.
-
-### Frontend (v1.9.2)
-- ✅ **SEO**: Enabled search engine indexing (reverted 'noindex' policy).
-
-### Frontend (v1.9.1)
-- ✅ **Privacy & SEO**: Enforced strict `noindex` rules to prevent search engine indexing.
-- ✅ **Analytics**: Integrated simultaneous Google Tag Manager (GTM) and Google Analytics (GA4) support.
-
-### Frontend (v1.9.0)
-- ✅ **Sidebar Search**: Integrated search bar in the video player overlay.
-- ✅ **Fullscreen Toggle**: One-click fullscreen button in OTT header.
-- ✅ **Premium UI**: "Dual Ring" animated loader and persistent watermark (from v1.8.0).
-
-### Backend (v1.8.0)
-- ✅ **Stable Core**: Robust API powering new frontend features.
-- ✅ **Performance**: Maintained high-performance channel serving.
 
 ## Recent Updates (v1.7.0)
 - ✅ **Advanced Classic Mode**: Complete mobile redesign and TV navigation improvements.

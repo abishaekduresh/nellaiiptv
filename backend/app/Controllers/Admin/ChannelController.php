@@ -30,7 +30,7 @@ class ChannelController
         $data = $request->getParsedBody() ?? [];
 
         $errors = Validator::validate($data, [
-            'required' => [['name'], ['stream_url'], ['state_id'], ['language_id']]
+            'required' => [['name'], ['hls_url'], ['state_id'], ['language_id']]
         ]);
 
         if ($errors) {
@@ -45,22 +45,32 @@ class ChannelController
         }
     }
 
-    public function update(Request $request, Response $response, array $args): Response
+    public function show(Request $request, Response $response, string $uuid): Response
+    {
+        try {
+            $channel = $this->channelService->getOne($uuid);
+            return ResponseFormatter::success($response, $channel);
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 404);
+        }
+    }
+
+    public function update(Request $request, Response $response, string $uuid): Response
     {
         $data = $request->getParsedBody() ?? [];
 
         try {
-            $channel = $this->channelService->update($args['uuid'], $data);
+            $channel = $this->channelService->update($uuid, $data);
             return ResponseFormatter::success($response, $channel, 'Channel updated');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 400);
         }
     }
 
-    public function delete(Request $request, Response $response, array $args): Response
+    public function delete(Request $request, Response $response, string $uuid): Response
     {
         try {
-            $this->channelService->delete($args['uuid']);
+            $this->channelService->delete($uuid);
             return ResponseFormatter::success($response, null, 'Channel deleted');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 400);

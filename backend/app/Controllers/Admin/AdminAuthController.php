@@ -49,4 +49,36 @@ class AdminAuthController
             return ResponseFormatter::error($response, $e->getMessage(), 401);
         }
     }
+
+    public function changePassword(Request $request, Response $response): Response
+    {
+        $user = $request->getAttribute('user'); // From middleware
+        $data = $request->getParsedBody() ?? [];
+
+        $errors = Validator::validate($data, [
+            'required' => [['old_password'], ['new_password'], ['confirm_password']],
+            'lengthMin' => [['new_password', 6]]
+        ]);
+
+        if ($errors) {
+            // Validator match error might need custom handling or ensuring Validator supports 'match'
+            // If Validator doesn't support 'match', checking manually:
+            if ($data['new_password'] !== $data['confirm_password']) {
+                return ResponseFormatter::error($response, 'Passwords do not match', 400);
+            }
+            return ResponseFormatter::error($response, 'Validation failed', 400, $errors);
+        }
+        
+        // Manual match check if validator support is uncertain from context
+        if ($data['new_password'] !== $data['confirm_password']) {
+             return ResponseFormatter::error($response, 'Passwords do not match', 400);
+        }
+
+        try {
+            $this->authService->changePassword($user->sub, $data['old_password'], $data['new_password']);
+            return ResponseFormatter::success($response, null, 'Password changed successfully');
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 400);
+        }
+    }
 }

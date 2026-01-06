@@ -1,8 +1,19 @@
 # Nellai IPTV - API Documentation
 
-**Version 1.7.0**
+**Version 1.10.0**
 
 Base URL: `/api`
+
+## Security & Headers
+
+**CRITICAL**: All public API requests MUST include the **API Key**.
+Protected endpoints require BOTH the API Key and a Bearer Token.
+
+| Header | Value | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `X-API-KEY` | `your_secret_key` | **Yes (All)** | Secret key to prevent unauthorized scraping. |
+| `Authorization` | `Bearer <token>` | **Protected Only** | JWT token for user actions (Rate/Comment). |
+| `Content-Type` | `application/json` | Yes | Request body format. |
 
 ## Table of Contents
 
@@ -207,8 +218,8 @@ Base URL: `/api`
 **Endpoint**: `GET /channels`
 
 **Query Parameters**:
-- `limit` (optional): Number of results (default: 50). Use `-1` to fetch all channels without pagination.
-- `sort` (optional): Sorting criteria. Options: `top_daily`, `top_trending` (3 days), `top_all_time`, `newest`.
+- `limit` (optional): Number of results (default: 50). Use `-1` to fetch all channels.
+- `sort` (optional): `top_daily`, `top_trending`, `top_all_time`, `newest`.
 
 **Response** (200):
 ```json
@@ -223,16 +234,11 @@ Base URL: `/api`
         "hls_url": "https://...",
         "thumbnail_url": "https://...",
         "viewers_count": 150,
-        "is_featured": true,
-        "language": { "name": "Tamil" },
-        "category": { "name": "Entertainment" },
-        "state": { "name": "Tamil Nadu" },
-        "district": { "name": "Tirunelveli" }
+        "is_featured": true
       }
     ],
     "total": 100,
-    "limit": 50,
-    "offset": 0
+    "limit": 50
   }
 }
 ```
@@ -242,20 +248,6 @@ Base URL: `/api`
 ### Get Featured Channels
 
 **Endpoint**: `GET /channels/featured`
-
-**Query Parameters**:
-- `limit` (optional): Number of results (default: 10)
-
-**Response**: Same format as List Channels
-
----
-
-### Get New Channels
-
-**Endpoint**: `GET /channels/new`
-
-**Query Parameters**:
-- `limit` (optional): Number of results (default: 10)
 
 **Response**: Same format as List Channels
 
@@ -275,13 +267,7 @@ Base URL: `/api`
     "channel_number": 1,
     "hls_url": "https://...",
     "thumbnail_url": "https://...",
-    "viewers_count": 150,
-    "village": "Village Name",
-    "language": { "name": "Tamil" },
-    "state": { "name": "Tamil Nadu" },
-    "district": { "name": "Tirunelveli" },
-    "ratings_avg_rating": 4.5,
-    "ratings_count": 25
+    "viewers_count": 150
   }
 }
 ```
@@ -299,172 +285,21 @@ Base URL: `/api`
 
 ---
 
-### Get Related Channels
-
-**Endpoint**: `GET /channels/related/{uuid}`
-
-**Query Parameters**:
-- `limit` (optional): Number of results (default: 6)
-
-**Response**: Same format as List Channels
-
----
-
 ## Channel Interactions
 
 ### Rate Channel
-
-**Endpoint**: `POST /channels/{uuid}/rate`
-
-**Headers**: `Authorization: Bearer <token>`
-
-**Request Body**:
-```json
-{
-  "rating": 5
-}
-```
-
-**Response** (201):
-```json
-{
-  "status": true,
-  "message": "Rating submitted successfully",
-  "data": {
-    "rating": 5,
-    "average_rating": 4.5
-  }
-}
-```
-
----
-
-### Get Channel Ratings
-
-**Endpoint**: `GET /channels/{uuid}/ratings`
-
-**Response** (200):
-```json
-{
-  "status": true,
-  "data": {
-    "average": 4.5,
-    "count": 25,
-    "ratings": [
-      {
-        "rating": 5,
-        "customer": { "name": "John Doe" },
-        "created_at": "2025-12-21T10:00:00Z"
-      }
-    ]
-  }
-}
-```
-
----
+**Endpoint**: `POST /channels/{uuid}/rate` (Protected)
+**Body**: `{ "rating": 5 }`
 
 ### Add Comment
-
-**Endpoint**: `POST /channels/{uuid}/comments`
-
-**Headers**: `Authorization: Bearer <token>`
-
-**Request Body**:
-```json
-{
-  "comment": "Great channel!"
-}
-```
-
-**Response** (201):
-```json
-{
-  "status": true,
-  "message": "Comment added successfully"
-}
-```
-
----
-
-### Get Channel Comments
-
-**Endpoint**: `GET /channels/{uuid}/comments`
-
-**Response** (200):
-```json
-{
-  "status": true,
-  "data": [
-    {
-      "uuid": "comment-uuid",
-      "comment": "Great channel!",
-      "customer": { "name": "John Doe" },
-      "created_at": "2025-12-21T10:00:00Z"
-    }
-  ]
-}
-```
-
----
+**Endpoint**: `POST /channels/{uuid}/comments` (Protected)
+**Body**: `{ "comment": "Great channel!" }`
 
 ### Report Channel Issue
-
 **Endpoint**: `POST /channels/{uuid}/report`
-
-**Request Body**:
-```json
-{
-  "issue_type": "Other",
-  "description": "Custom issue description here"
-}
-```
-
-**Response** (201):
-```json
-{
-  "status": true,
-  "message": "Report submitted successfully. We will get back to you soon!"
-}
-```
+**Body**: `{ "issue_type": "Other", "description": "Issue..." }`
 
 ---
-
-### Heartbeat (Viewer Tracking)
-
-**Endpoint**: `POST /channels/{uuid}/heartbeat`
-
-**Request Body**:
-```json
-{
-  "device_uuid": "unique-device-id"
-}
-```
-
-**Response** (200):
-```json
-{
-  "status": true,
-  "message": "Heartbeat recorded"
-}
-```
-
----
-
-### Increment View Count
-
-**Endpoint**: `POST /channels/{uuid}/view`
-
-**Response** (200):
-```json
-{
-  "status": true,
-  "message": "View count incremented"
-}
-```
-
----
-
-
 
 ## Contact
 
@@ -472,23 +307,7 @@ Base URL: `/api`
 
 **Endpoint**: `POST /contact`
 
-**Request Body**:
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "subject": "Question about service",
-  "message": "I have a question..."
-}
-```
-
-**Response** (201):
-```json
-{
-  "status": true,
-  "message": "Message sent successfully. We will get back to you soon!"
-}
-```
+**Body**: `{ "name": "...", "email": "...", "message": "..." }`
 
 ---
 
@@ -498,86 +317,6 @@ Base URL: `/api`
 
 **Endpoint**: `GET /ads`
 
-**Query Parameters**:
-- `type` (optional): Ad type (banner, inline, video)
-
-**Response** (200):
-```json
-{
-  "status": true,
-  "data": [
-    {
-      "uuid": "ad-uuid",
-      "title": "Ad Title",
-      "type": "banner",
-      "media_url": "https://...",
-      "url": "https://..."
-    }
-  ]
-}
-```
-
----
-
-### Track Ad Impression
-
-**Endpoint**: `POST /ads/{uuid}/impression`
-
-**Response** (200):
-```json
-{
-  "status": true,
-  "message": "Impression recorded"
-}
-```
-
----
-
-## Metadata
-
-### Get States
-
-**Endpoint**: `GET /states`
-
-**Response** (200):
-```json
-{
-  "status": true,
-  "data": [
-    {
-      "id": 1,
-      "uuid": "state-uuid",
-      "name": "Tamil Nadu",
-      "code": "TN"
-    }
-  ]
-}
-```
-
----
-
-### Get Districts
-
-**Endpoint**: `GET /districts`
-
-**Response**: Same format as Get States
-
----
-
-### Get Languages
-
-**Endpoint**: `GET /languages`
-
-**Response**: Same format as Get States
-
----
-
-### Get Categories
-
-**Endpoint**: `GET /categories`
-
-**Response**: Same format as Get States
-
 ---
 
 ## System
@@ -586,37 +325,6 @@ Base URL: `/api`
 
 **Endpoint**: `GET /health`
 
-**Debug Mode**: `GET /health?debug=1` (Returns detailed server environment and routing info)
-
-**Response** (200):
-```json
-{
-  "status": true,
-  "message": "System is healthy",
-  "data": {
-    "status": "healthy",
-    "timestamp": "2025-12-21T10:00:00+00:00",
-    "service": "Nellai IPTV Backend"
-  }
-}
-```
-
----
-
-### Get Disclaimer
-
-**Endpoint**: `GET /settings/disclaimer`
-
-**Response** (200):
-```json
-{
-  "status": true,
-  "data": {
-    "content": "Disclaimer text..."
-  }
-}
-```
-
 ---
 
 ## Error Codes
@@ -624,20 +332,22 @@ Base URL: `/api`
 | Code | Description |
 |------|-------------|
 | 200 | Success |
-| 201 | Created |
-| 400 | Bad Request / Validation Error |
-| 401 | Unauthorized |
+| 400 | Bad Request |
+| 401 | Unauthorized (Missing/Invalid Token or Key) |
 | 404 | Not Found |
+| 429 | Too Many Requests (Rate Limit Exceeded) |
 | 500 | Internal Server Error |
 
 ## Rate Limiting
 
-Currently, no rate limiting is implemented. This may be added in future versions.
+- **Limit**: 100 requests per minute per IP address.
+- **Header**: Standard `X-RateLimit-*` headers are included in responses.
+- **Violation**: Returns `429 Too Many Requests`.
 
 ## Changelog
 
-See [CHANGELOG.md](../CHANGELOG.md) for version history and updates.
+See [CHANGELOG.md](../CHANGELOG.md) for version history.
 
 ---
 
-**Last Updated**: December 24, 2025 | **Version**: 1.7.0
+**Last Updated**: January 2026 | **Version**: 1.10.0

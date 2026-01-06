@@ -1,0 +1,192 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import adminApi from '@/lib/adminApi';
+import toast from 'react-hot-toast';
+import { Save, Lock } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
+
+interface Setting {
+  id: number;
+  setting_key: string;
+  setting_value: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export default function SettingsPage() {
+  const { user } = useAuthStore();
+  const [settings, setSettings] = useState<Setting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  // Password Change State
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    
+    setChangingPassword(true);
+    try {
+      await adminApi.post('/admin/change-password', {
+        old_password: oldPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword
+      });
+      toast.success('Password changed successfully');
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await adminApi.get('/admin/settings');
+        // Structure depends on what Setting::all()->toArray() returns.
+        // Assuming it returns [ {setting_key: '...'}, ... ] directly inside res.data.data
+        setSettings(res.data.data);
+      } catch (error) {
+        console.error('Failed to fetch settings', error);
+        toast.error('Failed to load settings');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleUpdate = async (key: string, value: string) => {
+    // Optimistic update
+    setSettings(settings.map(s => s.setting_key === key ? { ...s, setting_value: value } : s));
+  };
+
+  const handleSave = async (key: string, value: string) => {
+    setSaving(true);
+    try {
+      await adminApi.put(`/admin/settings/${key}`, { value });
+      toast.success(`Setting '${key.replace(/_/g, ' ')}' updated`);
+    } catch (error) {
+      toast.error(`Failed to update '${key.replace(/_/g, ' ')}'`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-white">Loading...</div>;
+  }
+
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-white mb-8">System Settings</h1>
+      
+      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl">
+        <div className="space-y-6">
+          {settings.length === 0 ? (
+            <p className="text-text-secondary">No settings found.</p>
+          ) : (
+            settings.map((setting) => (
+              <div key={setting.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                <label className="text-text-secondary font-medium capitalize">
+                  {setting.setting_key.replace(/_/g, ' ')}
+                </label>
+                <div className="md:col-span-3 flex gap-4">
+                  <textarea
+                    value={setting.setting_value}
+                    onChange={(e) => handleUpdate(setting.setting_key, e.target.value)}
+                    className="flex-1 bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                  />
+                  <button
+                    onClick={() => handleSave(setting.setting_key, setting.setting_value)}
+                    disabled={saving}
+                    className="bg-primary hover:bg-primary-dark text-white p-2 rounded-lg transition-colors"
+                    title="Save"
+                  >
+                    <Save size={20} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Password Change Section */}
+        <>
+          <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
+            <Lock className="text-primary" />
+            Security Settings
+          </h2>
+          <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl">
+            <form onSubmit={handlePasswordChange} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                <label className="text-text-secondary font-medium">Current Password</label>
+                <div className="md:col-span-3">
+                  <input
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                    placeholder="Enter current password"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                <label className="text-text-secondary font-medium">New Password</label>
+                <div className="md:col-span-3">
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                    placeholder="Enter new password (min 6 chars)"
+                    minLength={6}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                <label className="text-text-secondary font-medium">Confirm Password</label>
+                <div className="md:col-span-3">
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                    placeholder="Confirm new password"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-gray-800">
+                <button
+                  type="submit"
+                  disabled={changingPassword}
+                  className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {changingPassword ? 'Updating...' : 'Update Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
+    </div>
+  );
+}
