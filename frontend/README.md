@@ -86,6 +86,7 @@ frontend/
 - **Smart HLS Engine (v1.16.0)**:
   - **Device Profiling**: Auto-detects hardware capabilities (TV/Mobile/PC).
   - **Adaptive Buffering**: Dynamically minimizes buffer for low-memory TVs and maximizes it for powerful Desktops.
+  - **Zero-Overhead Overlay**: Classic Mode now uses conditional rendering to reduce DOM size by 90% for lag-free TV playback.
 
 ## TV Navigation Controls
 

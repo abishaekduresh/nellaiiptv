@@ -321,7 +321,8 @@ export default function PlayerOverlay({
 
 
   // UI Visibility Logic
-  const showSidebar = (isFullscreen && visible) || sidebarOpen;
+  // Optimize: Only render heavy sidebar content if explicitly open
+  const showSidebar = sidebarOpen;
 
   return (
     <div className="absolute inset-0 z-50 font-sans text-white transition-all duration-300 pointer-events-none">
@@ -434,14 +435,15 @@ export default function PlayerOverlay({
             {/* Content List */}
              <div ref={listRef} className="flex-1 overflow-y-auto scrollbar-hide p-2 pointer-events-auto pb-32">
                  {/* EMPTY STATE */}
-                 {listItems.length === 0 && (
+                 {showSidebar && listItems.length === 0 && (
                      <div className="flex flex-col items-center justify-center py-10 text-slate-500">
                          <Radio size={32} className="opacity-50 mb-2" />
                          <span className="text-sm">No items found</span>
                      </div>
                  )}
 
-                 {listItems.map((item, idx) => {
+                 {/* Render List ONLY if sidebar is open to save DOM nodes */}
+                 {showSidebar && listItems.map((item, idx) => {
                      // Check if item is a group key (string) or channel
                      const isGroupItem = typeof item === 'string';
                      const channel = !isGroupItem ? (item as Channel) : null;
