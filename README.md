@@ -171,7 +171,7 @@ JWT_SECRET=your_jwt_secret
 ## Latest Updates
 
 ### Backend (v1.11.0) | Frontend (v1.16.0)
-- 🚀 **Smart HLS Engine**: Ultra-optimized video player that adapts buffer and resolution settings based on device hardware (TV vs Mobile vs Desktop).
+- 🚀 **Smart HLS Engine**: Ultra-optimized video player with **Aggressive Buffering** for TVs (to combat latency) and hardware-based resolution capping.
 - 🔒 **Registration Security**: Complete overhaul of registration flow with Math Captcha, strict regex validation, and improved UI.
 - 🐛 **Critical Fix**: Resolved JSON body parsing issues in backend and admin login compilation errors in frontend.
 

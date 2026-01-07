@@ -248,7 +248,7 @@ function VideoPlayer({
       if (!vid) return;
       
       if (vid.paused) {
-          vid.play().catch(e => console.error("Play failed", e));
+          vid.play().catch(() => {});
       } else {
           vid.pause();
       }
@@ -432,7 +432,7 @@ function VideoPlayer({
         // Use 'any' to bypass TS checks for non-standard properties if needed
         const nav = navigator as any; 
         const cores = nav.hardwareConcurrency || 2;
-        const memory = nav.deviceMemory || 2;
+        const memory = nav.deviceMemory || 1; // Default to 1GB for safety on old devices
         const width = window.screen.width;
         const height = window.screen.height;
 
@@ -441,13 +441,19 @@ function VideoPlayer({
             ua.includes("tizen") ||
             ua.includes("webos") ||
             ua.includes("android tv") ||
-            ua.includes("tv");
+            ua.includes("tv") ||
+            ua.includes("crkey") || // Chromecast
+            ua.includes("roku") ||
+            ua.includes("netcast"); // Older LG
 
         const isMobile = /android|iphone|ipad|ipod/.test(ua);
 
         let tier = "low";
         if (cores >= 6 && memory >= 4) tier = "high";
         else if (cores >= 4 && memory >= 3) tier = "mid";
+        
+        // Force low tier for known older engines or low memory
+        if (isTV && (memory <= 1.5 || cores <= 2)) tier = "low";
 
         return {
             isTV,
@@ -458,33 +464,46 @@ function VideoPlayer({
         };
     };
 
+    const getMaxResolution = (profile: any) => {
+        if (profile.isTV) {
+            // If low tier TV, cap at 720p. High tier can do 1080p.
+            return profile.tier === 'low' ? 720 : 1080;
+        }
+        if (profile.isMobile) return 1080;     // phones OK
+        return 2160;                           // PC / laptop
+    };
+
     const buildHlsConfig = (profile: any) => {
+        const isLowTierTV = profile.isTV && profile.tier === 'low';
+
         const base: any = {
             lowLatencyMode: false,
-            enableWorker: !profile.isTV,
+            enableWorker: true, // Always enable worker as per user's working config
             capLevelToPlayerSize: true,
-            startFragPrefetch: true,
+            startFragPrefetch: true, // Prefetching helps with aggressive buffering
             progressive: true,
             testBandwidth: true,
-            abrEwmaFastLive: 3,
+            abrEwmaFastLive: 3, 
             abrEwmaSlowLive: 9,
         };
 
         /* 🔥 Startup safety (MOST IMPORTANT) */
         base.startLevel = -1; // auto
-        base.abrBandWidthFactor = profile.isTV ? 0.65 : 0.9;
-        base.abrBandWidthUpFactor = profile.isTV ? 0.5 : 0.85;
+        base.abrBandWidthFactor = isLowTierTV ? 0.5 : (profile.isTV ? 0.65 : 0.9);
+        base.abrBandWidthUpFactor = isLowTierTV ? 0.4 : (profile.isTV ? 0.5 : 0.85);
 
-        /* 📺 TV OPTIMIZATION */
+        /* 📺 TV OPTIMIZATION - UPDATED CACHING POLICY */
         if (profile.isTV) {
+            // User confirmed aggressive buffering works better on older TVs
             return {
                 ...base,
-                maxBufferLength: 15,
-                maxMaxBufferLength: 30,
-                backBufferLength: 5,
-                maxBufferSize: 15 * 1000 * 1000,
+                enableWorker: true, // Re-enable worker as per working example
+                maxBufferLength: 30, // Increased from 15/10 to 30 based on user feedback
+                maxMaxBufferLength: 60,
+                backBufferLength: 10,
+                maxBufferSize: 30 * 1000 * 1000, 
                 maxStarvationDelay: 8,
-                maxLoadingDelay: 4
+                maxLoadingDelay: 4,
             };
         }
 
@@ -512,9 +531,9 @@ function VideoPlayer({
     // Check if HLS.js is supported
     if (Hls.isSupported()) {
         const profile = getDeviceProfile();
-        console.log("Device Profile:", profile);
+        // console.log("Device Profile:", profile);
         const hlsConfig = buildHlsConfig(profile);
-        console.log("HLS Config:", hlsConfig);
+        // console.log("HLS Config:", hlsConfig);
 
         hls = new Hls({
              debug: false,
@@ -527,6 +546,11 @@ function VideoPlayer({
         
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
             const levels = hls?.levels || [];
+            const maxRes = getMaxResolution(profile);
+            
+            // Auto Level Capping for Resolution Safety
+            let playLevel = -1;
+            
             const mappedLevels = levels.map((level, index) => {
                 let label = '';
                 if (level.height) {
@@ -537,13 +561,32 @@ function VideoPlayer({
                 } else {
                     label = `Stream ${index + 1}`;
                 }
-                return { index, label };
+                return { index, label, height: level.height };
             });
             
-            // Add Auto option at the beginning
-            setQualities([{ index: -1, label: 'Auto' }, ...mappedLevels.reverse()]); // Reverse to show highest first? usually standard.
+            // Filter out unsupported resolutions for Auto mode if needed, 
+            // or just rely on autoLevelCapping. 
+            // Here we set autoLevelCapping to the highest allowed index.
+            if (hls) {
+                let maxAllowedIndex = -1;
+                // Find highest level that fits maxRes
+                levels.forEach((lvl, idx) => {
+                     if (lvl.height <= maxRes) {
+                         maxAllowedIndex = idx;
+                     }
+                });
+                
+                // If we found a valid cap, apply it to auto-algorithm
+                if (maxAllowedIndex !== -1) {
+                    hls.autoLevelCapping = maxAllowedIndex;
+                    // console.log(`Capped Resolution to ${maxRes}p (Level ${maxAllowedIndex})`);
+                }
+            }
             
-            video.play().catch(e => console.log("HLS Auto-play failed", e));
+            // Add Auto option at the beginning
+            setQualities([{ index: -1, label: 'Auto' }, ...mappedLevels.reverse()]); 
+            
+            video.play().catch(() => {});
             setIsPlaying(true);
         });
 
@@ -554,13 +597,13 @@ function VideoPlayer({
         hls.on(Hls.Events.ERROR, function (event, data) {
             if (data.fatal) {
                setIsLoading(false); // Stop loading on fatal error
-               switch (data.type) {
+                switch (data.type) {
                   case Hls.ErrorTypes.NETWORK_ERROR:
-                    console.log("fatal network error encountered, try to recover");
+                    // console.log("fatal network error encountered, try to recover");
                     hls?.startLoad();
                     break;
                   case Hls.ErrorTypes.MEDIA_ERROR:
-                    console.log("fatal media error encountered, try to recover");
+                    // console.log("fatal media error encountered, try to recover");
                     hls?.recoverMediaError();
                     break;
                   default:
@@ -576,7 +619,7 @@ function VideoPlayer({
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = src;
         video.addEventListener('loadedmetadata', () => {
-            video.play().catch(e => console.log("Native HLS Play failed", e));
+            video.play().catch(() => {});
             setIsPlaying(true);
         });
         video.addEventListener('canplay', () => setIsLoading(false));
