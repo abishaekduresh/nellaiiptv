@@ -97,14 +97,14 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
   const topRef = useRef<HTMLDivElement>(null);
 
   /* Handle Channel Selection with Mobile Scroll */
-  const handleChannelClick = (channel: Channel, source: string = 'main') => {
+  const handleChannelClick = useCallback((channel: Channel, source: string = 'main') => {
       setSelectedChannel(channel);
       setSelectedSource(source);
       // Scroll to player on mobile (lg breakpoint is 1024px)
       if (window.innerWidth < 1024 && topRef.current) {
           topRef.current.scrollIntoView({ behavior: 'smooth' });
       }
-  };
+  }, []);
 
   /* Focus for Exit Button */
   const { focusProps: exitFocus, isFocused: isExitFocused } = useTVFocus({

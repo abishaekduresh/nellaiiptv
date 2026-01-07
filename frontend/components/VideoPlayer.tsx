@@ -478,9 +478,9 @@ function VideoPlayer({
 
         const base: any = {
             lowLatencyMode: false,
-            enableWorker: true, // Always enable worker as per user's working config
-            capLevelToPlayerSize: true,
-            startFragPrefetch: true, // Prefetching helps with aggressive buffering
+            enableWorker: true, 
+            capLevelToPlayerSize: false, // User snippet had this disabled, likely key for TV performance
+            startFragPrefetch: true, 
             progressive: true,
             testBandwidth: true,
             abrEwmaFastLive: 3, 
@@ -492,13 +492,12 @@ function VideoPlayer({
         base.abrBandWidthFactor = isLowTierTV ? 0.5 : (profile.isTV ? 0.65 : 0.9);
         base.abrBandWidthUpFactor = isLowTierTV ? 0.4 : (profile.isTV ? 0.5 : 0.85);
 
-        /* 📺 TV OPTIMIZATION - UPDATED CACHING POLICY */
+        /* 📺 TV OPTIMIZATION */
         if (profile.isTV) {
-            // User confirmed aggressive buffering works better on older TVs
             return {
                 ...base,
-                enableWorker: true, // Re-enable worker as per working example
-                maxBufferLength: 30, // Increased from 15/10 to 30 based on user feedback
+                // Aggressive buffering for slow TV hardware
+                maxBufferLength: 30, 
                 maxMaxBufferLength: 60,
                 backBufferLength: 10,
                 maxBufferSize: 30 * 1000 * 1000, 
@@ -674,7 +673,7 @@ function VideoPlayer({
             setIsLoading(false);
             if (videoRef.current) videoRef.current.pause();
             if (hlsRef.current) hlsRef.current.stopLoad();
-        }, 15000); // 15s Timeout
+        }, 20000); // 20s Timeout
     }
     return () => clearTimeout(timeout);
   }, [isLoading, errorMessage, isYoutube]);

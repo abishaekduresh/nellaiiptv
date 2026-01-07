@@ -7,7 +7,8 @@ All notable changes to this project will be documented in this file.
 ## [Frontend 1.16.0] - 2026-01-07
 ### Added
 - **Smart HLS Optimization**: Integrated an advanced device profiling engine into the video player.
-- **Adaptive Configuration**: The player detects TV devices and applies **Aggressive Buffering** (30s preload) to compensate for slow processing, while enforcing resolution caps.
+- **Classic Mode Tuning**: Resolved buffering issues on older TVs by disabling `capLevelToPlayerSize` (reducing CPU overhead) and optimizing component re-renders.
+- **Aggressive Buffering**: TV devices now use a 30s buffer strategy to prevent stuttering.
 - **Resolution Capping**: Automatically limits maximum resolution based on device capabilities (720p for TV safety, 4K for PC).
 
 ## [Frontend 1.15.0] - 2026-01-07
