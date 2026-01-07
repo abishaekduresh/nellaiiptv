@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Current Version**: Frontend v1.17.4 | Backend v1.13.0
+**Current Version**: Frontend v1.17.5 | Backend v1.13.0
 
 ## Overview
 
@@ -16,6 +16,10 @@ Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT
 ### 🎯 Dual Mode Interface
 - **OTT Mode**: Modern web interface with Netflix-style UI, hero banners, and categorized content
 - **Classic Mode**: TV-optimized interface with channel grid and remote control navigation
+
+### 🛡️ Platform Control
+- **Strict Filtering**: Content is filtered based on the client device (Web, TV, Mobile).
+- **Security**: Request headers (`X-Client-Platform`) enforce platform-specific access rights.
 
 ### 📺 Video Streaming
 - HLS video streaming with **Smart Device Profiling** (TV/Mobile/PC optimized)
@@ -170,7 +174,9 @@ JWT_SECRET=your_jwt_secret
 
 ## Latest Updates
 
-### Backend (v1.12.3) | Frontend (v1.17.2)
+### Backend (v1.13.0) | Frontend (v1.17.4)
+- 🐛 **Critical Fix**: Resolved namespace conflict in `Admin\ChannelController` causing Fatal Errors.
+- 🐛 **CORS Refactor**: Corrected middleware order in `index.php` to ensure CORS headers are sent on all responses.
 - **Security Refactor**: (Frontend v1.17.4)
   - Extracted Admin API logic to dedicated secure client with automatic session management.
   - Improved handling of 401 Unauthorized states with auto-redirects.
@@ -184,7 +190,6 @@ JWT_SECRET=your_jwt_secret
   - **Secure HLS**: Premium channel URLs are now automatically redacted in the API for unauthorized users.
   - **Refactored Logic**: Transitioned from `is_paid` to `is_premium` for better semantic clarity.
   - **Visual Polishing**: Added gold "Premium" badges and restricted access overlays in the UI.
-- 🐛 **Critical Fix**: Resolved syntax error in `public/index.php` that caused server crashes.
 - 🐛 **Stability**: Fixed logo URL generation in `SettingController` to ensure fully qualified URLs.
 
 ### Backend (v1.11.0) | Frontend (v1.16.0)
@@ -200,7 +205,6 @@ JWT_SECRET=your_jwt_secret
 - 🔒 **Security Suite**: Implemented `ApiKeyMiddleware`, `RateLimitMiddleware`, and `SecurityHeadersMiddleware`.
 - 🔧 **CORS Overhaul**: Fixed Preflight OPTION handling for robust cross-origin support.
 - 🐛 **Deletion Fixes**: Corrected Channel Hard Delete and Customer Soft Delete logic.
-- 🛠 **System Stability**: Resolved 500 errors caused by middleware ordering conflicts.
 
 ### Frontend (v1.12.0)
 - ✅ **Dynamic Titles**: Browser tab shows playing channel name.

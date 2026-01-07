@@ -1,4 +1,4 @@
-# Nellai IPTV - Frontend (v1.17.4)
+# Nellai IPTV - Frontend (v1.17.5)
 
 ## Overview
 
@@ -112,6 +112,9 @@ frontend/
   - **Premium Badges**: Gold "PREMIUM" badges on channel cards and lists.
   - **Secure Overlay**: Restricted content overlay with channel name customization.
   - **Refactor**: full codebase migration to `is_premium` logic.
+- **Platform Awareness (v1.17.3)**:
+  - **Device Headers**: Automatically identifies client platform (`web`, `tv`, `ios`, `android`).
+  - **Restricted Access**: Displays helpful error overlays when content is not available on the current device.
 
 ## TV Navigation Controls
 

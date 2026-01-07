@@ -144,7 +144,7 @@ class ChannelService
         return $channels;
     }
 
-    public function getOne(string $uuid): Channel
+    public function getOne(string $uuid, string $platform = 'web'): Channel
     {
         $channel = Channel::where('uuid', $uuid)
             ->where('status', 'active')
@@ -159,6 +159,14 @@ class ChannelService
                 throw new Exception("Channel found but status is '" . $anyChannel->status . "' (Expected: active)");
             }
             throw new Exception("Channel with UUID '$uuid' does not exist in the database.");
+        }
+
+        // Check Platform Restriction
+        // We use FIND_IN_SET logic similar to SQL filtering, but in PHP for the single object
+        $allowed = explode(',', $channel->allowed_platforms);
+        if (!in_array($platform, $allowed)) {
+            // Soft Restriction: Don't throw 403, but break the URL with a message
+            $channel->hls_url = "RESTRICTED: This channel is not available on " . ucfirst($platform);
         }
 
         // Append average rating safely

@@ -23,7 +23,7 @@ class PlatformMiddleware implements MiddlewareInterface
         $platform = $request->getHeaderLine('X-Client-Platform');
 
         if (empty($platform)) {
-             return ResponseFormatter::error(new SlimResponse(), 'Missing Required Header: X-Client-Platform', 400);
+             return ResponseFormatter::error(new SlimResponse(), 'Missing Required Header: Platform', 400);
         }
 
         if (!in_array(strtolower($platform), self::ALLOWED_PLATFORMS)) {

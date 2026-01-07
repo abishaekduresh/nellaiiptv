@@ -240,7 +240,8 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
         "thumbnail_url": "https://...",
         "viewers_count": 150,
         "is_featured": true,
-        "is_premium": true
+        "is_premium": true,
+        "allowed_platforms": "web,tv,ios,android"
       }
     ],
     "total": 100,
@@ -407,4 +408,4 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 
 ---
 
-**Last Updated**: January 7, 2026 | **Version**: 1.12.1
+**Last Updated**: January 7, 2026 | **Version**: 1.13.0

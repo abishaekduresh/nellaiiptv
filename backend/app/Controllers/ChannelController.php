@@ -44,8 +44,12 @@ class ChannelController
     public function show(Request $request, Response $response, string $uuid): Response
     {
         try {
-            error_log("ChannelController::show called with UUID: " . $uuid);
-            $channel = $this->channelService->getOne($uuid);
+            // Platform checked by middleware, but we need it for specific restriction logic
+            $platform = $request->getHeaderLine('X-Client-Platform');
+            // If empty (shouldn't happen due to middleware), default to 'web' safely
+            $platform = !empty($platform) ? strtolower($platform) : 'web';
+
+            $channel = $this->channelService->getOne($uuid, $platform);
             return ResponseFormatter::success($response, $channel, 'Channel details retrieved successfully');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 404);

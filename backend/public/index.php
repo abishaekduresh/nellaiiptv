@@ -52,11 +52,11 @@ require $rootDir . '/app/Routes/admin.php';
  * 5. Middleware Stack
  */
 // Security Middleware
-$app->add(new \App\Middleware\CorsMiddleware()); // Must run first (added last)
 $app->add(new \App\Middleware\SecurityHeadersMiddleware());
 $app->add(new \App\Middleware\RateLimitMiddleware(500, 60)); // 1000 reqs/min global
 $app->add(new \App\Middleware\ApiKeyMiddleware());
 $app->add(new \App\Middleware\PlatformMiddleware());
+$app->add(new \App\Middleware\CorsMiddleware()); // Must run first (added last to wrap everything)
 
 // Routing Middleware (Must run BEFORE Security/Cors to provide RouteContext)
 // In Slim LIFO, "Last Added" = "First Executed".

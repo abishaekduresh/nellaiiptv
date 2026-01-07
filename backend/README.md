@@ -1,4 +1,4 @@
-**Version 1.12.3** | RESTful API built with Slim PHP Framework
+**Version 1.13.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -115,6 +115,7 @@ See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for complete endpoint reference
 **Required Headers**:
 - `X-API-KEY`: Required for ALL public endpoints.
 - `Authorization`: Bearer token required for protected endpoints.
+- `X-Client-Platform`: Required for content filtering (`web`, `tv`, `ios`, `android`).
 
 #### Authentication
 - `POST /customers/register` - Register new user
@@ -148,7 +149,9 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
-## Latest Updates (v1.12.3)
+## Latest Updates (v1.13.0)
+- 🛡️ **Platform Enforcement**: Mandatory `X-Client-Platform` header for all requests (Web/Android/iOS/TV).
+- 🐛 **Critical Fixes**: Resolved Namespace conflicts in Admin Controller and CORS Middleware ordering.
 - 🔒 **Premium Content Protection**: Implemented secure HLS URL redaction. Channels marked as `is_premium` now return `PAID_RESTRICTED` in public API responses.
 - ♻️ **Refactor**: Standardized `is_premium` naming convention across the entire codebase (formerly `is_paid`).
 

@@ -78,6 +78,8 @@ function VideoPlayer({
   // Detect Media Type
   const isYoutube = src && (src.includes('youtube.com') || src.includes('youtu.be'));
   const isPaidRestricted = src === 'PAID_RESTRICTED';
+  const isPlatformRestricted = src && src.startsWith('RESTRICTED:');
+  const platformRestrictionMessage = isPlatformRestricted ? src.replace('RESTRICTED:', '').trim() : '';
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -223,7 +225,7 @@ function VideoPlayer({
 
   // Track history when playing starts
   useEffect(() => {
-    if (isPlaying && channelUuid && channelName && !historyTrackedRef.current && !isPaidRestricted) {
+    if (isPlaying && channelUuid && channelName && !historyTrackedRef.current && !isPaidRestricted && !isPlatformRestricted) {
         addToHistory({
             uuid: channelUuid,
             name: channelName,
@@ -413,7 +415,7 @@ function VideoPlayer({
   // -- Hls.js Logic --
   useEffect(() => {
     // Skip HLS logic if youtube OR restricted
-    if (isYoutube || isPaidRestricted) {
+    if (isYoutube || isPaidRestricted || isPlatformRestricted) {
         setIsLoading(false);
         return;
     }
@@ -667,7 +669,7 @@ function VideoPlayer({
   // Loading Timeout Logic
   useEffect(() => {
     // Skip timeout if youtube OR restricted
-    if (isYoutube || isPaidRestricted) return;
+    if (isYoutube || isPaidRestricted || isPlatformRestricted) return;
 
     let timeout: NodeJS.Timeout;
     if (isLoading && !errorMessage) {
@@ -726,7 +728,7 @@ function VideoPlayer({
   // Portal Target
   const mountTarget = overlayRef.current || containerRef.current;
 
-  const overlayPortal = (useCustomOverlay && channels && mountTarget && !isPaidRestricted) ? createPortal(
+  const overlayPortal = (useCustomOverlay && channels && mountTarget && !isPaidRestricted && !isPlatformRestricted) ? createPortal(
     <PlayerOverlay
       visible={controlsVisible}
       channels={channels}
@@ -792,7 +794,24 @@ function VideoPlayer({
       className={`${focusProps.className} ${isFocused ? 'ring-4 ring-white z-20 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : ''} cursor-pointer bg-black`} 
     >
       {/* RENDER LOGIC SWITCH */}
-      {isPaidRestricted ? (
+      {isPlatformRestricted ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-slate-900/90 text-center z-10">
+              <div className="bg-red-500/20 p-6 rounded-full mb-4 animate-pulse">
+                  <Lock size={48} className="text-red-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Unavailable on Device</h2>
+              <p className="text-slate-400 max-w-md mx-auto mb-6">
+                  {platformRestrictionMessage || 'This channel does not support the current platform.'}
+              </p>
+              <button 
+                {...focusProps} // Re-use focus props for back button
+                onClick={() => router.push('/')}
+                className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              >
+                  Back to Home
+              </button>
+          </div>
+      ) : isPaidRestricted ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-slate-900/90 text-center z-10">
               <div className="bg-yellow-500/20 p-6 rounded-full mb-4 animate-pulse">
                   <Lock size={48} className="text-yellow-500" />

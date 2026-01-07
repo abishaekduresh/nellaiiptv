@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.17.5] - 2026-01-07
+### Fixed
+- **Linting Error**: Fixed duplicate `className` prop in `VideoPlayer.tsx` which caused styling conflicts on the back button.
+
 ## [Frontend 1.17.4] - 2026-01-07
 ### Added
 - **Admin API Client**: Created dedicated `adminApi` client (`lib/adminApi.ts`) for secure admin-panel interactions.

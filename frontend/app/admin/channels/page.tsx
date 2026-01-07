@@ -71,9 +71,10 @@ export default function ChannelsPage() {
       });
       setChannels(res.data.data.data);
       setTotalPages(res.data.data.last_page);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch channels', error);
-      toast.error('Failed to load channels');
+      const msg = error.response?.data?.message || 'Failed to load channels';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
