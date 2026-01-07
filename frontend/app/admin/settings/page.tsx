@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import toast from 'react-hot-toast';
-import { Save, Lock } from 'lucide-react';
+import { Save, Lock, Image } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 interface Setting {
@@ -49,6 +49,33 @@ export default function SettingsPage() {
     } finally {
       setChangingPassword(false);
     }
+  };
+
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('logo', file);
+
+      setUploadingLogo(true);
+      try {
+          const res = await adminApi.post('/admin/settings/logo', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          
+          if (res.data.status) {
+              toast.success('Logo updated successfully');
+               // Update local state if needed, or refresh settings
+              // We might want to force a window reload or update a global context to reflect the new logo immediately
+              window.location.reload(); 
+          }
+      } catch (error: any) {
+          toast.error(error.response?.data?.message || 'Failed to upload logo');
+      } finally {
+          setUploadingLogo(false);
+      }
   };
 
   useEffect(() => {
@@ -122,6 +149,44 @@ export default function SettingsPage() {
             ))
           )}
         </div>
+      </div>
+
+      {/* Branding Settings */}
+      <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
+        <Image className="text-primary" />
+        Branding Settings
+      </h2>
+      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+              <label className="text-text-secondary font-medium">Application Logo</label>
+              <div className="md:col-span-3">
+                  <div className="flex items-center gap-4">
+                      {settings.find(s => s.setting_key === 'logo_url') && (
+                          <div className="w-16 h-16 bg-slate-900 rounded-lg border border-gray-700 overflow-hidden">
+                              <img 
+                                  src={settings.find(s => s.setting_key === 'logo_url')?.setting_value} 
+                                  alt="Current Logo" 
+                                  className="w-full h-full object-contain"
+                              />
+                          </div>
+                      )}
+                      
+                      <label className={`bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg cursor-pointer transition-colors ${uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          {uploadingLogo ? 'Uploading...' : 'Upload New Logo'}
+                          <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={handleLogoUpload} 
+                              disabled={uploadingLogo}
+                          />
+                      </label>
+                      <p className="text-xs text-slate-500">
+                          Recommended: 512x512 PNG/WEBP
+                      </p>
+                  </div>
+              </div>
+          </div>
       </div>
 
       {/* Password Change Section */}

@@ -74,6 +74,35 @@ export default function Navbar() {
     setSearchResults([]);
   };
 
+  const [logoUrl, setLogoUrl] = useState('/logo.jpg'); // Default fallback
+
+  useEffect(() => {
+      const fetchSettings = async () => {
+          try {
+              // We need a public settings endpoint or just try to load from a known path?
+              // Ideally, we should have a public /api/settings endpoint or similar.
+              // For now, let's assume we can hit the admin endpoint if logged in, or a public one.
+              // Wait, the navbar is public. We need a public API for settings.
+              // Let's create a simple client-side check or use a known path if available.
+              
+              // Since we don't have a public settings API yet, let's fallback to checking if the file exists 
+              // or better: The user wants it "everywhere". 
+              // If we implemented the upload to save as `logo.png` in a fixed path, we could just use that?
+              // But we used a timestamped filename.
+              
+              // Plan: Quick fetch to a new public endpoint /api/settings/public
+              const response = await api.get('/settings/public');
+              if (response.data.status && response.data.data.logo_url) {
+                  setLogoUrl(response.data.data.logo_url);
+              }
+          } catch (err) {
+              // fallback to default
+          }
+      };
+      
+      fetchSettings();
+  }, []);
+
   /* Existing Logic */
   if (mode === 'Classic') return null;
 
@@ -85,7 +114,7 @@ export default function Navbar() {
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2 group">
               <div className="w-8 h-8 rounded-lg overflow-hidden shadow-lg group-hover:shadow-primary/50 transition-all duration-300">
-                <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
+                <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
               </div>
               <span className="text-xl font-bold text-white tracking-tight">Nellai <span className="text-primary">IPTV</span></span>
             </Link>

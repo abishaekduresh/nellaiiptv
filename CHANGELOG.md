@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.17.0] - 2026-01-07
+### Added
+- **Dynamic Branding**: Implemented Logo Upload feature in Admin Settings; branding reflects on Navbar and Classic Mode.
+- **Trending Channels Graph**: Interactive chart in Admin Dashboard with Category/Language filters.
+
+## [Backend 1.12.0] - 2026-01-07
+### Added
+- **Trending API**: `GET /dashboard/trending` for aggregated channel view statistics.
+- **Metadata API**: Endpoints for Categories, Languages, and Geo-data.
+- **Logo Management**: APIs for uploading and retrieving custom logos.
+
 ## [Frontend 1.16.0] - 2026-01-07
 ### Added
 - **Smart HLS Optimization**: Integrated an advanced device profiling engine into the video player.

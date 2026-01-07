@@ -1,4 +1,4 @@
-**Version 1.11.0** | RESTful API built with Slim PHP Framework
+**Version 1.12.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -145,7 +145,12 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
-## Latest Updates (v1.11.0)
+## Latest Updates (v1.12.0)
+- 📊 **Trending Analytics**: New `DashboardController@getTrendingStats` endpoint aggregates view data with dynamic filtering (Category, Language, Limit).
+- 🏷️ **Metadata API**: Public endpoints for fetching system metadata (Categories, Languages, Geo-data).
+- 🎨 **Dynamic Branding**: API support for uploading and retrieving custom logos via `SettingController`.
+
+## Recent Updates (v1.11.0)
 - 🐛 **Critical Fix**: Enabled `BodyParsingMiddleware` to resolve JSON body parsing issues (Admin Login fix).
 - 🔒 **Validation Hardening**: Enforced 10-digit phone numbers and valid emails for new registrations.
 

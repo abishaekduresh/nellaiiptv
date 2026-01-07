@@ -8,6 +8,7 @@ import TVNavigationProvider from "@/components/TVNavigationProvider";
 import { ViewModeProvider } from "@/context/ViewModeContext";
 import ClassicModeGuard from "@/components/ClassicModeGuard";
 import NetworkStatusMonitor from "@/components/NetworkStatusMonitor";
+import FaviconUpdater from "@/components/FaviconUpdater";
 
 export const metadata: Metadata = {
   title: "Nellai IPTV - Premium Entertainment",
@@ -46,6 +47,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-slate-950 text-white">
         <GoogleAnalytics />
         <GoogleTagManager />
+        <FaviconUpdater />
         <TVNavigationProvider>
           <ViewModeProvider>
             <BackendHealthCheck />

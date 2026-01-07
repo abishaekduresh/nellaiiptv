@@ -29,9 +29,11 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         // Settings Management
         $group->get('/settings', [\App\Controllers\Admin\SettingController::class, 'index']);
         $group->put('/settings/{key}', [\App\Controllers\Admin\SettingController::class, 'update']);
+        $group->post('/settings/logo', [\App\Controllers\Admin\SettingController::class, 'uploadLogo']);
         
         // Dashboard Stats
         $group->get('/dashboard/stats', [\App\Controllers\Admin\DashboardController::class, 'getStats']);
+        $group->get('/dashboard/trending', [\App\Controllers\Admin\DashboardController::class, 'getTrendingStats']);
         
     })->add(new \App\Middleware\AdminAuthMiddleware());
 });

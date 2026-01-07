@@ -2,6 +2,14 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.12.0] - 2026-01-07
+
+### Added
+- **Dynamic Trending API**: Added `GET /api/dashboard/trending` endpoint to fetch trending channel statistics with support for filtering by Limit, Category, and Language.
+- **Dynamic Branding API**: Added `POST /api/settings/logo` and `GET /api/settings/public` endpoints for logo management.
+- **Metadata Endpoints**: Exposed `/api/states`, `/api/districts`, `/api/languages`, and `/api/categories` via `GeoController`.
+- **Dashboard Stats**: Extended `DashboardController` to perform efficient aggregation for view counts.
+
 ## [1.11.0] - 2026-01-07
 
 ### Added

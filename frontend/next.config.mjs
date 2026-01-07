@@ -8,6 +8,18 @@ const nextConfig = {
       },
     ],
   },
+  async rewrites() {
+      return [
+        {
+          source: '/uploads/:path*',
+          destination: 'http://localhost/nellaiiptv/nellaiiptv/backend/public/uploads/:path*',
+        },
+        {
+          source: '/api/:path*',
+          destination: 'http://localhost/nellaiiptv/nellaiiptv/backend/public/api/:path*',
+        }
+      ];
+  },
 };
 
 export default nextConfig;

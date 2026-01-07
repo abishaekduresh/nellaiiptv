@@ -1,6 +1,6 @@
 # Nellai IPTV - API Documentation
 
-**Version 1.11.0**
+**Version 1.12.0**
 
 Base URL: `/api`
 
@@ -24,6 +24,8 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 - [Advertisements](#advertisements)
 - [Metadata](#metadata)
 - [System](#system)
+- [Dashboard & Analytics](#dashboard--analytics)
+- [System Settings](#system-settings)
 
 ---
 
@@ -321,6 +323,57 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 
 ---
 
+## Metadata
+
+### Get Categories
+**Endpoint**: `GET /categories`
+
+### Get Languages
+**Endpoint**: `GET /languages`
+
+### Get States
+**Endpoint**: `GET /states`
+
+### Get Districts
+**Endpoint**: `GET /districts`
+
+---
+
+## Dashboard & Analytics
+
+### Get Trending Stats
+**Endpoint**: `GET /dashboard/trending` (Protected: Admin)
+
+**Query Parameters**:
+- `limit`: Number of results (default: 5, 10, 20)
+- `category_uuid`: Filter by category UUID
+- `language_uuid`: Filter by language UUID
+
+**Response**:
+```json
+{
+  "status": true,
+  "data": {
+    "labels": ["Channel A", "Channel B"],
+    "data": [150, 120]
+  }
+}
+```
+
+---
+
+## System Settings
+
+### Upload Logo
+**Endpoint**: `POST /settings/logo` (Protected: Admin)
+**Body**: Form-data with file `logo`
+
+### Get Public Settings
+**Endpoint**: `GET /settings/public`
+**Response**: `{ "status": true, "data": { "logo_url": "..." } }`
+
+---
+
 ## System
 
 ### Health Check
@@ -352,4 +405,4 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 
 ---
 
-**Last Updated**: January 2026 | **Version**: 1.11.0
+**Last Updated**: January 7, 2026 | **Version**: 1.12.0

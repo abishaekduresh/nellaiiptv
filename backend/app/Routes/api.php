@@ -70,5 +70,6 @@ $app->group('/api', function (RouteCollectorProxy $group) {
 
     // Settings (Public)
     $group->get('/settings/disclaimer', [\App\Controllers\Admin\SettingController::class, 'getDisclaimer']);
+    $group->get('/settings/public', [\App\Controllers\Api\PublicSettingController::class, 'getPublicSettings']);
 
 });

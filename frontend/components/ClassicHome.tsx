@@ -22,6 +22,21 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(channels.length > 0 ? channels[0] : null);
   const [selectedSource, setSelectedSource] = useState<string>('main');
   const [viewersCount, setViewersCount] = useState(0);
+  const [logoUrl, setLogoUrl] = useState('/icon.jpg'); // Default fallback
+
+  useEffect(() => {
+      const fetchSettings = async () => {
+          try {
+              const response = await api.get('/settings/public');
+              if (response.data.status && response.data.data.logo_url) {
+                  setLogoUrl(response.data.data.logo_url);
+              }
+          } catch (err) {
+              // fallback
+          }
+      };
+      fetchSettings();
+  }, []);
   
   // Filtering State
   const [groupBy, setGroupBy] = useState<'all' | 'language' | 'category'>('all');
@@ -333,7 +348,7 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
              <div className="flex justify-between items-center">
                  <div className="flex items-center gap-2 lg:gap-3">
                     {/* Branding Logo - Increased Size */}
-                    <img src="/icon.jpg" alt="Logo" className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg object-contain bg-black" />
+                    <img src={logoUrl} alt="Logo" className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg object-contain bg-black" />
                     <div>
                         <h2 className="font-bold text-white text-sm lg:text-base leading-tight">Nellai IPTV</h2>
                         <span className="text-[10px] text-primary font-medium tracking-wide">CLASSIC MODE</span>

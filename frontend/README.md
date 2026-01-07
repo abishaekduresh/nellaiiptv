@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.16.0
+# Frontend (Next.js) - v1.17.0
 
 ## Overview
 
@@ -87,6 +87,12 @@ frontend/
   - **Device Profiling**: Auto-detects hardware capabilities (TV/Mobile/PC).
   - **Adaptive Buffering**: Dynamically minimizes buffer for low-memory TVs and maximizes it for powerful Desktops.
   - **Zero-Overhead Overlay**: Classic Mode now uses conditional rendering to reduce DOM size by 90% for lag-free TV playback.
+- **Dynamic Branding (v1.17.0)**:
+  - **Custom Logo**: Upload logos via Admin Panel; reflects instantly on Navbar and Classic Mode.
+  - **Auto-Favicon**: Website favicon mimics the custom uploaded logo.
+- **Analytics & Trends (v1.17.0)**:
+  - **Interactive Chart**: Visual "Trending Channels" graph in Admin Dashboard.
+  - **Data Discovery**: Filter trends by Limit (Top 5/10/20), Category, and Language.
 
 ## TV Navigation Controls
 

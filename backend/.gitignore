@@ -19,3 +19,7 @@ Thumbs.db
 /storage/logs/
 # Build artifacts
 /public/build/
+
+# Uploads
+/public/uploads/*
+!/public/uploads/.gitkeep

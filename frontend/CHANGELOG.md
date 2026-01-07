@@ -2,6 +2,17 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.17.0] - 2026-01-07
+
+### Added
+- **Dynamic Branding**: Implemented Logo Upload feature in Admin Settings.
+- **Dynamic Favicon**: Application favicon now updates automatically based on the uploaded logo.
+- **Trending Channels Graph**: Added a dynamic chart in Admin Dashboard showing trending channels with filters (Category, Language, Limit).
+- **Classic Mode Branding**: Updated Classic Mode to display the custom uploaded logo.
+
+### Fixed
+- **Logo Proxy**: Configured Next.js rewrites to correctly serve uploaded images from the backend.
+
 ## [1.16.0] - 2026-01-07
 
 ### Added
