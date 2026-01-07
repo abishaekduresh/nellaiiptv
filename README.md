@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Current Version**: Frontend v1.17.3 | Backend v1.13.0
+**Current Version**: Frontend v1.17.4 | Backend v1.13.0
 
 ## Overview
 
@@ -171,6 +171,10 @@ JWT_SECRET=your_jwt_secret
 ## Latest Updates
 
 ### Backend (v1.12.3) | Frontend (v1.17.2)
+- **Security Refactor**: (Frontend v1.17.4)
+  - Extracted Admin API logic to dedicated secure client with automatic session management.
+  - Improved handling of 401 Unauthorized states with auto-redirects.
+
 - **Platform Control**: (Backend v1.13.0, Frontend v1.17.3)
   - Implemented strict platform-based content filtering (Web/Android/iOS/TV).
   - Enforced `X-Client-Platform` header for all API interactions.

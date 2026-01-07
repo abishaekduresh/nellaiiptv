@@ -20,7 +20,6 @@ api.interceptors.request.use(
     }
     // Add API Key
     const apiKey = process.env.NEXT_PUBLIC_API_SECRET;
-    console.log('[API Debug] Key:', apiKey ? apiKey.substring(0, 5) + '...' : 'MISSING');
     if (apiKey) {
       config.headers['X-API-KEY'] = apiKey;
     }

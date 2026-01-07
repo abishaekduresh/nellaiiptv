@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.17.2
+# Nellai IPTV - Frontend (v1.17.4)
 
 ## Overview
 

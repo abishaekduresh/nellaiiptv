@@ -2,7 +2,10 @@ import axios from 'axios';
 
 const adminApi = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost/public/api',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Client-Platform': 'web',
+  },
 });
 
 adminApi.interceptors.request.use((config) => {

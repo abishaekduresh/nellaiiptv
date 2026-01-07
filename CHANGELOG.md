@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.17.4] - 2026-01-07
+### Added
+- **Admin API Client**: Created dedicated `adminApi` client (`lib/adminApi.ts`) for secure admin-panel interactions.
+- **Improved Security**: Admin client automatically handles `X-Client-Platform` (web) and `X-API-KEY` headers.
+- **Session Handling**: Implemented automatic redirect to login screen on 401 Unauthorized responses.
+
+### Changed
+- **Cleanup**: Removed extraneous debug logging of API keys from the public API client.
+
+## [Frontend 1.17.3] - 2026-01-07
+### Added
+- **TV Platform Support**: Fully integrated 'tv' as a distinct platform in channel restrictions.
+- **OTT Filtering**: Enhanced "Continue Watching", "Top Trending", and "Featured" sections to respect platform restrictions.
+- **Client Identification**: Updated API client to send 'web' as the default `X-Client-Platform` header.
+
+## [Backend 1.13.0] - 2026-01-07
+### Added
+- **Platform Enforcement**: New `PlatformMiddleware` now strictly enforces the presence of `X-Client-Platform` header on all API requests.
+- **TV Support**: Added 'tv' to the `allowed_platforms` ENUM/SET in the database.
+- **CORS Update**: Whitelisted `X-Client-Platform` header in CORS configuration.
+- **Enhanced Filtering**: Updated `ChannelService` methods (`getFeatured`, `getRelated`, `getNew`) to filter content based on the request platform.
+
+### Changed
+- **Breaking Change**: API requests without a valid `X-Client-Platform` header (web, android, ios, tv) will now fail with `400 Bad Request`.
+
 ## [Frontend 1.17.2] - 2026-01-07
 ### Added
 - **Premium UI**: Implemented "Premium" badge on Channel Cards and Classic Mode list items.
