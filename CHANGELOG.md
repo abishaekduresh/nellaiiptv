@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.17.1] - 2026-01-07
+### Fixed
+- **Production Logo Display**: Implemented "Smart Sanitization" to universally handle logo URLs. Even if the backend returns a localhost URL (common in default production configs), the frontend now automatically detects and converts it to a relative path, forcing the request through the correctly configured Next.js proxy.
+- **Admin Settings**: Applied the same sanitization logic to the Admin Panel setting page to ensure the logo preview always works.
+
+## [Backend 1.12.2] - 2026-01-07
+### Fixed
+- **Admin Credentials**: Documented default seed credentials in database migrations.
+- **Logo URL Handling**: Further refined `PublicSettingController` to prioritize `APP_URL` environment variable for absolute URL generation.
+
 ## [Frontend 1.17.0] - 2026-01-07
 ### Added
 - **Dynamic Branding**: Implemented Logo Upload feature in Admin Settings; branding reflects on Navbar and Classic Mode.

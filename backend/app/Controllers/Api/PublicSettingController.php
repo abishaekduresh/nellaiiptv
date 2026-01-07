@@ -17,13 +17,20 @@ class PublicSettingController
 
         try {
             if (strpos($logoPath, '/uploads/') === 0) {
-                $uri = $request->getUri();
-                $basePath = $uri->getBasePath();
-                $scheme = $uri->getScheme();
-                $authority = $uri->getAuthority();
-                $base = ($basePath === '/' || $basePath === '') ? '' : $basePath;
-                
-                $logoUrl = $scheme . '://' . $authority . $base . $logoPath;
+                // Check for explicit APP_URL in environment first
+                if (!empty($_ENV['APP_URL'])) {
+                    $baseUrl = rtrim($_ENV['APP_URL'], '/');
+                    $logoUrl = $baseUrl . $logoPath;
+                } else {
+                    // Fallback to auto-detection
+                    $uri = $request->getUri();
+                    $basePath = $uri->getBasePath();
+                    $scheme = $uri->getScheme();
+                    $authority = $uri->getAuthority();
+                    $base = ($basePath === '/' || $basePath === '') ? '' : $basePath;
+                    
+                    $logoUrl = $scheme . '://' . $authority . $base . $logoPath;
+                }
             }
         } catch (\Throwable $e) {
             // Fallback to relative path if absolute URL generation fails

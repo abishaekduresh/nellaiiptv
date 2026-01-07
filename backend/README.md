@@ -1,4 +1,4 @@
-**Version 1.12.1** | RESTful API built with Slim PHP Framework
+**Version 1.12.2** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -57,6 +57,9 @@ DB_PASS=
 # Security
 JWT_SECRET=your_jwt_secret_here
 API_SECRET=your_strong_api_secret_here
+
+# General
+APP_URL=https://api.yoursite.com  # Required for correct logo URL generation behind proxies
 ```
 
 ### 4. Start Development Server
@@ -148,6 +151,7 @@ Public endpoints are rate-limited to **100 requests per minute** per IP address 
 ## Latest Updates (v1.12.1)
 - 🐛 **Critical Fix**: Resolved syntax error in `public/index.php`.
 - 🐛 **Fix**: Logo URLs are now always fully qualified.
+- 🔧 **Config**: Added `APP_URL` support for reliable absolute URL generation in production.
 
 ## Latest Updates (v1.12.0)
 - 📊 **Trending Analytics**: New `DashboardController@getTrendingStats` endpoint aggregates view data with dynamic filtering (Category, Language, Limit).

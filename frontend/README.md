@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.17.0
+# Frontend (Next.js) - v1.17.1
 
 ## Overview
 
@@ -25,12 +25,27 @@ The frontend of **Nellai IPTV** is built with **Next.js**, **React**, and **Vide
    npm run dev   # start development server
    ```
 
+2b. **For Production**:
+   **CRITICAL**: If you change `.env` or logo settings, you MUST rebuild:
+   ```bash
+   npm run build
+   npm start
+   ```
+
 ## Build for Production
 
 ```bash
 npm run build   # generate optimized production build
 npm start       # serve the built app
 ```
+
+## Troubleshooting
+
+### Logo Not Displaying?
+If your logo appears broken or points to `localhost`:
+1. **Rebuild the Frontend**: The "Smart Sanitizer" introduced in v1.17.1 works best when compiled. Run `npm run build && npm start`.
+2. **Check Proxy**: Ensure `NEXT_PUBLIC_API_URL` in `.env.local` points to your actual backend (e.g., `https://api.yoursite.com/api`).
+3. **Verify Sanity**: The frontend now automatically strips `http://localhost` from logo URLs, so it should "just work" even if your backend config is imperfect.
 
 ## Project Structure
 

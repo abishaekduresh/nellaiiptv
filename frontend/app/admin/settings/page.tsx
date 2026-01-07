@@ -84,7 +84,24 @@ export default function SettingsPage() {
         const res = await adminApi.get('/admin/settings');
         // Structure depends on what Setting::all()->toArray() returns.
         // Assuming it returns [ {setting_key: '...'}, ... ] directly inside res.data.data
-        setSettings(res.data.data);
+        let settingsData = res.data.data;
+        
+        // Smart Fix: Sanitize logo_url if present
+        settingsData = settingsData.map((s: Setting) => {
+            if (s.setting_key === 'logo_url' && s.setting_value) {
+                let url = s.setting_value;
+                if (url.includes('/uploads/')) {
+                     if (url.includes('localhost') || url.includes('127.0.0.1')) {
+                         const match = url.match(/\/uploads\/.*$/);
+                         if (match) url = match[0];
+                     }
+                }
+                return { ...s, setting_value: url };
+            }
+            return s;
+        });
+
+        setSettings(settingsData);
       } catch (error) {
         console.error('Failed to fetch settings', error);
         toast.error('Failed to load settings');

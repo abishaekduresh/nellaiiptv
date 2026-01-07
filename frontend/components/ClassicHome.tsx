@@ -29,7 +29,15 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
           try {
               const response = await api.get('/settings/public');
               if (response.data.status && response.data.data.logo_url) {
-                  setLogoUrl(response.data.data.logo_url);
+                  let url = response.data.data.logo_url;
+                  // Smart Fix: Always sanitize localhost/127.0.0.1 URLs for uploads
+                  if (url.includes('/uploads/')) {
+                      if (url.includes('localhost') || url.includes('127.0.0.1')) {
+                          const match = url.match(/\/uploads\/.*$/);
+                          if (match) url = match[0];
+                      }
+                  }
+                  setLogoUrl(url);
               }
           } catch (err) {
               // fallback

@@ -497,10 +497,10 @@ function VideoPlayer({
             return {
                 ...base,
                 // Aggressive buffering for slow TV hardware
-                maxBufferLength: 30, 
-                maxMaxBufferLength: 60,
-                backBufferLength: 10,
-                maxBufferSize: 30 * 1000 * 1000, 
+                maxBufferLength: 15, 
+                maxMaxBufferLength: 30,
+                backBufferLength: 5,
+                maxBufferSize: 15 * 1000 * 1000, 
                 maxStarvationDelay: 8,
                 maxLoadingDelay: 4,
             };

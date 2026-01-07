@@ -33,7 +33,16 @@ export default function FaviconUpdater() {
       try {
         const response = await api.get('/settings/public');
         if (response.data.status && response.data.data.logo_url) {
-          const logoUrl = response.data.data.logo_url;
+          let logoUrl = response.data.data.logo_url;
+          
+          // Smart Fix: Sanitizer
+          if (logoUrl.includes('/uploads/')) {
+               if (logoUrl.includes('localhost') || logoUrl.includes('127.0.0.1')) {
+                  const match = logoUrl.match(/\/uploads\/.*$/);
+                  if (match) logoUrl = match[0];
+               }
+          }
+
           faviconUrlRef.current = logoUrl;
           updateFavicon(logoUrl);
         }

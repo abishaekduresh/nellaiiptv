@@ -9,14 +9,18 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/nellaiiptv/nellaiiptv/backend/public/api';
+      // Derive backend root from API URL (strip /api suffix)
+      const backendUrl = apiUrl.replace(/\/api$/, '');
+
       return [
         {
           source: '/uploads/:path*',
-          destination: 'http://localhost/nellaiiptv/nellaiiptv/backend/public/uploads/:path*',
+          destination: `${backendUrl}/uploads/:path*`,
         },
         {
           source: '/api/:path*',
-          destination: 'http://localhost/nellaiiptv/nellaiiptv/backend/public/api/:path*',
+          destination: `${apiUrl}/:path*`, // Forward /api calls to backend /api
         }
       ];
   },
