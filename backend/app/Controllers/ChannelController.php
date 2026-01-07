@@ -21,6 +21,11 @@ class ChannelController
     public function index(Request $request, Response $response): Response
     {
         $filters = $request->getQueryParams();
+        
+        // Platform checked by middleware
+        $platform = $request->getHeaderLine('X-Client-Platform');
+        $filters['platform'] = strtolower($platform);
+
         $channels = $this->channelService->getAll($filters);
         return ResponseFormatter::success($response, $channels, 'Channels retrieved successfully');
     }
@@ -28,7 +33,9 @@ class ChannelController
     public function getFeatured(Request $request, Response $response): Response
     {
         $limit = $request->getQueryParams()['limit'] ?? 20;
-        $channels = $this->channelService->getFeatured((int)$limit);
+        // Platform enforced by middleware
+        $platform = $request->getHeaderLine('X-Client-Platform');
+        $channels = $this->channelService->getFeatured((int)$limit, strtolower($platform));
         return ResponseFormatter::success($response, $channels, 'Featured channels retrieved successfully');
     }
 
@@ -127,7 +134,9 @@ class ChannelController
     public function getRelated(Request $request, Response $response, string $uuid): Response
     {
         try {
-            $channels = $this->channelService->getRelated($uuid);
+            // Platform enforced by middleware
+            $platform = $request->getHeaderLine('X-Client-Platform');
+            $channels = $this->channelService->getRelated($uuid, strtolower($platform));
             return ResponseFormatter::success($response, $channels, 'Related channels retrieved successfully');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 404);
@@ -136,7 +145,9 @@ class ChannelController
 
     public function getNew(Request $request, Response $response): Response
     {
-        $channels = $this->channelService->getNew();
+        // Platform enforced by middleware
+        $platform = $request->getHeaderLine('X-Client-Platform');
+        $channels = $this->channelService->getNew(strtolower($platform));
         return ResponseFormatter::success($response, $channels, 'New channels retrieved successfully');
     }
 

@@ -5,7 +5,7 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 // Validate origin if needed, or allow all for dev
 header("Access-Control-Allow-Origin: $origin"); 
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-KEY');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-KEY, X-Client-Platform');
 header('Access-Control-Allow-Credentials: true');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -56,6 +56,7 @@ $app->add(new \App\Middleware\CorsMiddleware()); // Must run first (added last)
 $app->add(new \App\Middleware\SecurityHeadersMiddleware());
 $app->add(new \App\Middleware\RateLimitMiddleware(500, 60)); // 1000 reqs/min global
 $app->add(new \App\Middleware\ApiKeyMiddleware());
+$app->add(new \App\Middleware\PlatformMiddleware());
 
 // Routing Middleware (Must run BEFORE Security/Cors to provide RouteContext)
 // In Slim LIFO, "Last Added" = "First Executed".

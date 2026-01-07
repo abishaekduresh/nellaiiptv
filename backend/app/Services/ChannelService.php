@@ -69,6 +69,13 @@ class ChannelService
             });
         }
 
+        // Platform Filtering
+        if (isset($filters['platform'])) {
+            $platform = $filters['platform'];
+            // Since allowed_platforms is a SET, we can use FIND_IN_SET
+            $query->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform]);
+        }
+
         // Sorting logic
         if (isset($filters['sort'])) {
             if ($filters['sort'] === 'top_daily') {
@@ -119,10 +126,11 @@ class ChannelService
         return $results;
     }
 
-    public function getFeatured(int $limit = 20): array
+    public function getFeatured(int $limit = 20, string $platform = 'web'): array
     {
         $channels = Channel::where('status', 'active')
             ->where('is_featured', 1)
+            ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
             ->with(['state', 'district', 'language'])
             ->withSum('views as viewers_count', 'count')
             ->limit($limit)
@@ -216,13 +224,14 @@ class ChannelService
             ->toArray();
     }
 
-    public function getRelated(string $uuid): array
+    public function getRelated(string $uuid, string $platform = 'web'): array
     {
         $channel = $this->getOne($uuid);
         
         $channels = Channel::where('language_id', $channel->language_id)
             ->where('uuid', '!=', $uuid)
             ->where('status', 'active')
+            ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
             ->withSum('views as viewers_count', 'count')
             ->limit(10)
             ->get()
@@ -235,9 +244,10 @@ class ChannelService
         return $channels;
     }
 
-    public function getNew(): array
+    public function getNew(string $platform = 'web'): array
     {
         $channels = Channel::where('status', 'active')
+            ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
             ->orderBy('created_at', 'desc')
             ->withSum('views as viewers_count', 'count')
             ->limit(10)

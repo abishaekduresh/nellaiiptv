@@ -188,4 +188,4 @@ Proprietary software. All rights reserved.
 
 ---
 
-**Nellai IPTV Backend** - Powering Premium Entertainment
+# Nellai IPTV - Backend API (v1.13.0)

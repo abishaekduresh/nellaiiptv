@@ -29,6 +29,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
     category_id: '',
     is_featured: false,
     is_premium: false,
+    allowed_platforms: 'web,android,ios,tv',  // Default all
     status: 'active',
     user_agent: '',
     referer: '',
@@ -254,6 +255,36 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
                 />
                 <span className="text-white">Active</span>
             </label>
+        </div>
+
+        {/* Platform Restrictions */}
+        <div className="md:col-span-2 bg-slate-900/50 p-4 rounded-lg border border-gray-800">
+             <label className="block text-text-secondary mb-3 font-semibold">Allowed Platforms</label>
+             <div className="flex gap-6">
+                 {['web', 'android', 'ios', 'tv'].map(platform => (
+                     <label key={platform} className="flex items-center gap-2 cursor-pointer">
+                         <input
+                             type="checkbox"
+                             checked={formData.allowed_platforms.includes(platform)}
+                             onChange={(e) => {
+                                 let current = formData.allowed_platforms ? formData.allowed_platforms.split(',').filter(Boolean) : [];
+                                 if (e.target.checked) {
+                                     current.push(platform);
+                                 } else {
+                                     current = current.filter((p: string) => p !== platform);
+                                 }
+                                 setFormData({ ...formData, allowed_platforms: current.join(',') });
+                             }}
+                             className="w-5 h-5 rounded border-gray-800 bg-background text-primary focus:ring-primary"
+                         />
+                         <span className="text-white capitalize">
+                             {platform === 'web' ? 'Website' : 
+                              platform === 'ios' ? 'iOS App' : 
+                              platform === 'tv' ? 'TV App' : 'Android App'}
+                         </span>
+                     </label>
+                 ))}
+             </div>
         </div>
       </div>
 

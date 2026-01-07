@@ -10,7 +10,7 @@ class Channel extends Model
     protected $fillable = [
         'uuid', 'name', 'channel_number', 'hls_url', 'village', 
         'category_id', 'state_id', 'language_id', 'district_id', 'thumbnail_url', 
-        'is_featured', 'expiry_at', 'status', 'created_at', 'is_premium'
+        'is_featured', 'expiry_at', 'status', 'created_at', 'is_premium', 'allowed_platforms'
     ];
     public $timestamps = true;
     const UPDATED_AT = null;

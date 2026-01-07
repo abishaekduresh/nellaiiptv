@@ -41,7 +41,7 @@ export default function BackendHealthCheck() {
             }
         } else if (error.request) {
             // Request made but no response
-            errorMsg = 'Backend unreachable (Network Error). Check if WAMP is running.';
+            errorMsg = 'Backend unreachable (Network Error).';
         } else {
             errorMsg = `Request setup error: ${error.message}`;
         }

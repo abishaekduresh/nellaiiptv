@@ -105,7 +105,7 @@ frontend/
 - **Dynamic Branding (v1.17.0)**:
   - **Custom Logo**: Upload logos via Admin Panel; reflects instantly on Navbar and Classic Mode.
   - **Auto-Favicon**: Website favicon mimics the custom uploaded logo.
-- **Analytics & Trends (v1.17.0)**:
+- **Analytics & Trends**:
   - **Interactive Chart**: Visual "Trending Channels" graph in Admin Dashboard.
   - **Data Discovery**: Filter trends by Limit (Top 5/10/20), Category, and Language.
 - **Premium Experience (v1.17.2)**:

@@ -1,6 +1,6 @@
 # Nellai IPTV - API Documentation
 
-**Version 1.12.3**
+**Version 1.13.0**
 
 Base URL: `/api`
 
@@ -13,6 +13,7 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 | :--- | :--- | :--- | :--- |
 | `X-API-KEY` | `your_secret_key` | **Yes (All)** | Secret key to prevent unauthorized scraping. |
 | `Authorization` | `Bearer <token>` | **Protected Only** | JWT token for user actions (Rate/Comment). |
+| `X-Client-Platform` | `web`, `android`, `ios`, `tv` | **Yes (All)** | Platform identifier for content filtering. |
 | `Content-Type` | `application/json` | Yes | Request body format. |
 
 ## Table of Contents

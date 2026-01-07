@@ -171,10 +171,9 @@ import ClassicHome from '@/components/ClassicHome';
         {history.length > 0 && (
            <ChannelRow 
              title="Continue Watching" 
-             channels={history.map(h => {
-                 const live = rawChannels.find(c => c.uuid === h.uuid);
-                 return live || h;
-             })} 
+             channels={history
+                 .map(h => rawChannels.find(c => c.uuid === h.uuid))
+                 .filter((c): c is Channel => !!c)} 
            />
         )}
 
