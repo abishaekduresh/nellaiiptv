@@ -54,7 +54,7 @@ require $rootDir . '/app/Routes/admin.php';
 // Security Middleware
 $app->add(new \App\Middleware\CorsMiddleware()); // Must run first (added last)
 $app->add(new \App\Middleware\SecurityHeadersMiddleware());
-$app->add(new \App\Middleware\RateLimitMiddleware(100, 60)); // 100 reqs/min global
+$app->add(new \App\Middleware\RateLimitMiddleware(500, 60)); // 1000 reqs/min global
 $app->add(new \App\Middleware\ApiKeyMiddleware());
 
 // Routing Middleware (Must run BEFORE Security/Cors to provide RouteContext)
@@ -75,14 +75,18 @@ $errorMiddleware->setErrorHandler(HttpNotFoundException::class, function (Reques
     $data = [
         'status' => false,
         'message' => 'Endpoint not found',
-        'diagnostics' => [
+    ];
+
+    if (($_ENV['APP_DEBUG'] ?? 'false') == 'true') {
+        $data['diagnostics'] = [
             'request_path' => $request->getUri()->getPath(),
             'detected_base_path' => $basePath ?: '(root)',
             'script_name' => $_SERVER['SCRIPT_NAME'],
             'request_uri' => $_SERVER['REQUEST_URI'],
             'hint' => 'Check if the URL should be ' . $basePath . '/api/health'
-        ]
-    ];
+        ];
+    }
+
     $response->getBody()->write(json_encode($data));
     return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
 });

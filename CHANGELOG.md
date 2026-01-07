@@ -9,6 +9,11 @@ All notable changes to this project will be documented in this file.
 - **Dynamic Branding**: Implemented Logo Upload feature in Admin Settings; branding reflects on Navbar and Classic Mode.
 - **Trending Channels Graph**: Interactive chart in Admin Dashboard with Category/Language filters.
 
+## [Backend 1.12.1] - 2026-01-07
+### Fixed
+- **Critical Crash**: Resolved a syntax error in `public/index.php` (broken string concatenation/array definition) that caused 500 errors.
+- **Logo Stability**: Updated `SettingController` to ensure logo URLs are always fully qualified, preventing display issues in Admin and Frontend.
+
 ## [Backend 1.12.0] - 2026-01-07
 ### Added
 - **Trending API**: `GET /dashboard/trending` for aggregated channel view statistics.

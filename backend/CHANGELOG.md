@@ -2,6 +2,12 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.12.1] - 2026-01-07
+
+### Fixed
+- **Critical Crash**: Resolved a syntax error in `public/index.php` (broken string concatenation/array definition) that caused 500 errors.
+- **Logo Stability**: Updated `SettingController` to ensure logo URLs are always fully qualified, preventing display issues in Admin and Frontend.
+
 ## [1.12.0] - 2026-01-07
 
 ### Added

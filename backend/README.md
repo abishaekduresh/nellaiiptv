@@ -1,4 +1,4 @@
-**Version 1.12.0** | RESTful API built with Slim PHP Framework
+**Version 1.12.1** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -144,6 +144,10 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.12.1)
+- 🐛 **Critical Fix**: Resolved syntax error in `public/index.php`.
+- 🐛 **Fix**: Logo URLs are now always fully qualified.
 
 ## Latest Updates (v1.12.0)
 - 📊 **Trending Analytics**: New `DashboardController@getTrendingStats` endpoint aggregates view data with dynamic filtering (Category, Language, Limit).

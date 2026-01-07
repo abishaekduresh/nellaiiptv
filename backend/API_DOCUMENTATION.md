@@ -1,6 +1,6 @@
 # Nellai IPTV - API Documentation
 
-**Version 1.12.0**
+**Version 1.12.1**
 
 Base URL: `/api`
 
@@ -405,4 +405,4 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 
 ---
 
-**Last Updated**: January 7, 2026 | **Version**: 1.12.0
+**Last Updated**: January 7, 2026 | **Version**: 1.12.1

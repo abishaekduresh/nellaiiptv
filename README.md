@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version Info** | Frontend **v1.17.0** | Backend **v1.12.0**
+**Version Info** | Frontend **v1.17.0** | Backend **v1.12.1**
 
 ## Overview
 
@@ -169,6 +169,10 @@ JWT_SECRET=your_jwt_secret
 ```
 
 ## Latest Updates
+
+### Backend (v1.12.1)
+- 🐛 **Critical Fix**: Resolved syntax error in `public/index.php` that caused server crashes.
+- 🐛 **Stability**: Fixed logo URL generation in `SettingController` to ensure fully qualified URLs.
 
 ### Backend (v1.11.0) | Frontend (v1.16.0)
 - 🚀 **Smart HLS Engine**: Ultra-optimized video player with **Aggressive Buffering** for TVs, hardware-based resolution capping, and **Zero-Overhead Classic Mode** (optimized DOM rendering).
