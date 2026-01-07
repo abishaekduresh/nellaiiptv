@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.16.0] - 2026-01-07
+### Added
+- **Smart HLS Optimization**: Integrated an advanced device profiling engine into the video player.
+- **Adaptive Configuration**: The player now automatically detects the device type (TV, Mobile, Desktop) and applies tailored HLS configurations (Buffer size, Start level, etc.).
+- **Resolution Capping**: Automatically limits maximum resolution based on device capabilities (720p for TV safety, 4K for PC).
+
 ## [Frontend 1.15.0] - 2026-01-07
 ### Added
 - **Registration Security**: Implemented Math Challenge Captcha ("5 + 3 = ?") to prevent automated spam on the registration page.

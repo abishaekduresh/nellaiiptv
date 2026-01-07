@@ -424,13 +424,101 @@ function VideoPlayer({
 
     if (!video) return;
 
+// Device Profile & HLS Optimization
+    const getDeviceProfile = () => {
+        if (typeof navigator === 'undefined') return { isTV: false, isMobile: false, tier: 'low', width: 1920, height: 1080 };
+        
+        const ua = navigator.userAgent.toLowerCase();
+        // Use 'any' to bypass TS checks for non-standard properties if needed
+        const nav = navigator as any; 
+        const cores = nav.hardwareConcurrency || 2;
+        const memory = nav.deviceMemory || 2;
+        const width = window.screen.width;
+        const height = window.screen.height;
+
+        const isTV =
+            ua.includes("smarttv") ||
+            ua.includes("tizen") ||
+            ua.includes("webos") ||
+            ua.includes("android tv") ||
+            ua.includes("tv");
+
+        const isMobile = /android|iphone|ipad|ipod/.test(ua);
+
+        let tier = "low";
+        if (cores >= 6 && memory >= 4) tier = "high";
+        else if (cores >= 4 && memory >= 3) tier = "mid";
+
+        return {
+            isTV,
+            isMobile,
+            tier,
+            width,
+            height
+        };
+    };
+
+    const buildHlsConfig = (profile: any) => {
+        const base: any = {
+            lowLatencyMode: false,
+            enableWorker: !profile.isTV,
+            capLevelToPlayerSize: true,
+            startFragPrefetch: true,
+            progressive: true,
+            testBandwidth: true,
+            abrEwmaFastLive: 3,
+            abrEwmaSlowLive: 9,
+        };
+
+        /* 🔥 Startup safety (MOST IMPORTANT) */
+        base.startLevel = -1; // auto
+        base.abrBandWidthFactor = profile.isTV ? 0.65 : 0.9;
+        base.abrBandWidthUpFactor = profile.isTV ? 0.5 : 0.85;
+
+        /* 📺 TV OPTIMIZATION */
+        if (profile.isTV) {
+            return {
+                ...base,
+                maxBufferLength: 15,
+                maxMaxBufferLength: 30,
+                backBufferLength: 5,
+                maxBufferSize: 15 * 1000 * 1000,
+                maxStarvationDelay: 8,
+                maxLoadingDelay: 4
+            };
+        }
+
+        /* 📱 MOBILE */
+        if (profile.isMobile) {
+            return {
+                ...base,
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+                backBufferLength: 15,
+                maxBufferSize: 30 * 1000 * 1000
+            };
+        }
+
+        /* 💻 PC / LAPTOP */
+        return {
+            ...base,
+            maxBufferLength: 60,
+            maxMaxBufferLength: 120,
+            backBufferLength: 30,
+            maxBufferSize: 60 * 1000 * 1000
+        };
+    };
+
     // Check if HLS.js is supported
     if (Hls.isSupported()) {
+        const profile = getDeviceProfile();
+        console.log("Device Profile:", profile);
+        const hlsConfig = buildHlsConfig(profile);
+        console.log("HLS Config:", hlsConfig);
+
         hls = new Hls({
              debug: false,
-             enableWorker: true,
-             lowLatencyMode: true,
-             backBufferLength: 90
+             ...hlsConfig
         });
         hlsRef.current = hls;
 

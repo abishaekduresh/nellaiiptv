@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version Info** | Frontend **v1.15.0** | Backend **v1.11.0**
+**Version Info** | Frontend **v1.16.0** | Backend **v1.11.0**
 
 ## Overview
 
@@ -18,7 +18,8 @@ Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT
 - **Classic Mode**: TV-optimized interface with channel grid and remote control navigation
 
 ### 📺 Video Streaming
-- HLS video streaming with Video.js player
+- HLS video streaming with **Smart Device Profiling** (TV/Mobile/PC optimized)
+- Dynamic Resolution Capping & Buffer Management
 - Quality selector and playback controls
 - **Premium UI**: Custom "Dual Ring" animated loader and persistent branding watermark
 - TV remote control support (Play/Pause, Volume, Seek)
@@ -169,7 +170,8 @@ JWT_SECRET=your_jwt_secret
 
 ## Latest Updates
 
-### Backend (v1.11.0) | Frontend (v1.15.0)
+### Backend (v1.11.0) | Frontend (v1.16.0)
+- 🚀 **Smart HLS Engine**: Ultra-optimized video player that adapts buffer and resolution settings based on device hardware (TV vs Mobile vs Desktop).
 - 🔒 **Registration Security**: Complete overhaul of registration flow with Math Captcha, strict regex validation, and improved UI.
 - 🐛 **Critical Fix**: Resolved JSON body parsing issues in backend and admin login compilation errors in frontend.
 

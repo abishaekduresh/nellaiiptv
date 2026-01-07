@@ -2,6 +2,16 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.16.0] - 2026-01-07
+
+### Added
+- **Smart HLS Optimization**: Integrated an advanced device profiling engine into the video player.
+- **Adaptive Configuration**: The player now automatically detects the device type (TV, Mobile, Desktop) and applies tailored HLS configurations:
+    - **TV Mode**: Conservative buffering and resolution caps (720p safest) to prevent crashes on low-memory devices.
+    - **Mobile Mode**: Balanced settings (up to 1080p, moderate buffer) optimized for battery and stability.
+    - **Desktop Mode**: High-performance settings (up to 4K, large buffer) for maximum quality.
+- **Resolution Capping**: Automatically limits maximum resolution based on device capabilities to ensure smooth playback.
+
 ## [1.15.0] - 2026-01-07
 
 ### Added

@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.15.0
+# Frontend (Next.js) - v1.16.0
 
 ## Overview
 
@@ -83,6 +83,9 @@ frontend/
 - **Registration Security (v1.15.0)**:
   - **Math Captcha**: Challenge-response system to block bot registrations.
   - **Strict Validation**: Enforced 10-digit phone and regex-based email checks.
+- **Smart HLS Engine (v1.16.0)**:
+  - **Device Profiling**: Auto-detects hardware capabilities (TV/Mobile/PC).
+  - **Adaptive Buffering**: Dynamically minimizes buffer for low-memory TVs and maximizes it for powerful Desktops.
 
 ## TV Navigation Controls
 
