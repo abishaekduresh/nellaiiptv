@@ -30,7 +30,8 @@ class ChannelController
         $data = $request->getParsedBody() ?? [];
 
         $errors = Validator::validate($data, [
-            'required' => [['name'], ['hls_url'], ['state_id'], ['language_id']]
+            'required' => [['name'], ['hls_url'], ['state_id'], ['language_id']],
+            'optional' => [['is_premium']]
         ]);
 
         if ($errors) {

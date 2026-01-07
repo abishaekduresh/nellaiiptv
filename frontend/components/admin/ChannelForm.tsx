@@ -28,6 +28,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
     language_id: '',
     category_id: '',
     is_featured: false,
+    is_premium: false,
     status: 'active',
     user_agent: '',
     referer: '',
@@ -232,6 +233,16 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
                     className="w-5 h-5 rounded border-gray-800 bg-background text-primary focus:ring-primary"
                 />
                 <span className="text-white">Featured Channel</span>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                    type="checkbox"
+                    checked={formData.is_premium}
+                    onChange={(e) => setFormData({ ...formData, is_premium: e.target.checked })}
+                    className="w-5 h-5 rounded border-gray-800 bg-background text-primary focus:ring-primary"
+                />
+                <span className="text-white">Premium Channel</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">

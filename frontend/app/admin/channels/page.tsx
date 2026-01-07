@@ -18,6 +18,7 @@ interface AdminChannel {
   category?: { name: string };
   hls_url: string;
   id: string;
+  is_premium?: boolean;
 }
 
 export default function ChannelsPage() {
@@ -235,8 +236,19 @@ export default function ChannelsPage() {
                             : 'bg-red-500/20 text-red-400'
                         }`}
                       >
-                        {channel.status}
+                        {channel.status
+                          ? channel.status.charAt(0).toUpperCase() + channel.status.slice(1)
+                          : ""}
                       </span>
+                      {channel.is_premium ? (
+                          <span className="ml-2 px-2 py-1 rounded text-xs font-medium bg-yellow-500/20 text-yellow-400">
+                              Premium
+                          </span>
+                      ) : (
+                          <span className="ml-2 px-2 py-1 rounded text-xs font-medium bg-blue-500/20 text-blue-400">
+                              Free
+                          </span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">

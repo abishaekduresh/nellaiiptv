@@ -14,6 +14,20 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class ChannelService
 {
+    private function redactPaidChannel($channel)
+    {
+        if (is_array($channel)) {
+            if (!empty($channel['is_premium'])) {
+                $channel['hls_url'] = 'PAID_RESTRICTED';
+            }
+        } elseif (is_object($channel)) {
+            if (!empty($channel->is_premium)) {
+                $channel->hls_url = 'PAID_RESTRICTED';
+            }
+        }
+        return $channel;
+    }
+
     public function getAll(array $filters = []): array
     {
         $query = Channel::query()
@@ -83,23 +97,43 @@ class ChannelService
             }
         }
 
+        $results = [];
         if (isset($filters['limit']) && (int)$filters['limit'] === -1) {
-            return $query->get()->toArray();
+            $results = $query->get()->toArray();
+        } else {
+            $limit = isset($filters['limit']) ? (int)$filters['limit'] : 20;
+            $results = $query->paginate($limit)->toArray();
         }
 
-        $limit = isset($filters['limit']) ? (int)$filters['limit'] : 20;
-        return $query->paginate($limit)->toArray();
+        // Handle pagination structure or direct array
+        if (isset($results['data'])) {
+            foreach ($results['data'] as &$item) {
+                $item = $this->redactPaidChannel($item);
+            }
+        } else {
+            foreach ($results as &$item) {
+                $item = $this->redactPaidChannel($item);
+            }
+        }
+
+        return $results;
     }
 
     public function getFeatured(int $limit = 20): array
     {
-        return Channel::where('status', 'active')
+        $channels = Channel::where('status', 'active')
             ->where('is_featured', 1)
             ->with(['state', 'district', 'language'])
             ->withSum('views as viewers_count', 'count')
             ->limit($limit)
             ->get()
             ->toArray();
+
+        foreach ($channels as &$channel) {
+            $channel = $this->redactPaidChannel($channel);
+        }
+
+        return $channels;
     }
 
     public function getOne(string $uuid): Channel
@@ -129,7 +163,7 @@ class ChannelService
             error_log("Error fetching ratings for channel $uuid: " . $e->getMessage());
         }
 
-        return $channel;
+        return $this->redactPaidChannel($channel);
     }
 
     public function rate(string $uuid, int $rating, int $customerId): void
@@ -186,23 +220,35 @@ class ChannelService
     {
         $channel = $this->getOne($uuid);
         
-        return Channel::where('language_id', $channel->language_id)
+        $channels = Channel::where('language_id', $channel->language_id)
             ->where('uuid', '!=', $uuid)
             ->where('status', 'active')
             ->withSum('views as viewers_count', 'count')
             ->limit(10)
             ->get()
             ->toArray();
+
+        foreach ($channels as &$item) {
+            $item = $this->redactPaidChannel($item);
+        }
+
+        return $channels;
     }
 
     public function getNew(): array
     {
-        return Channel::where('status', 'active')
+        $channels = Channel::where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->withSum('views as viewers_count', 'count')
             ->limit(10)
             ->get()
             ->toArray();
+
+        foreach ($channels as &$item) {
+            $item = $this->redactPaidChannel($item);
+        }
+
+        return $channels;
     }
 
     public function incrementView(string $uuid, string $ip = '0.0.0.0'): void

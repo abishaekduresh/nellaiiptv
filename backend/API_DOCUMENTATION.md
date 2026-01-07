@@ -1,6 +1,6 @@
 # Nellai IPTV - API Documentation
 
-**Version 1.12.2**
+**Version 1.12.3**
 
 Base URL: `/api`
 
@@ -238,7 +238,8 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
         "hls_url": "https://...",
         "thumbnail_url": "https://...",
         "viewers_count": 150,
-        "is_featured": true
+        "is_featured": true,
+        "is_premium": true
       }
     ],
     "total": 100,

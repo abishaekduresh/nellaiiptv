@@ -45,6 +45,8 @@ export interface Channel {
   ratings_avg_rating?: number;
   total_ratings?: number;
   daily_views?: number;
+  is_premium?: boolean | number;
+  is_featured?: boolean | number;
 }
 
 export interface State {

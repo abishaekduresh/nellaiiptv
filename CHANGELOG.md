@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 
 
+
+## [Frontend 1.17.2] - 2026-01-07
+### Added
+- **Premium UI**: Implemented "Premium" badge on Channel Cards and Classic Mode list items.
+- **Restricted Overlay**: Added a "Premium Content" overlay for restricted channels, displaying the channel name and a lock icon.
+- **Classic Mode Polish**: Added support for Premium badges in the Classic Mode list view.
+
+### Changed
+- **Refactor**: Renamed `is_paid` to `is_premium` across the entire codebase for better semantic clarity.
+- **Bug Fix**: Fixed an issue where non-premium channels might display a "0" or empty indicator.
+
+## [Backend 1.12.3] - 2026-01-07
+### Added
+- **Content Protection**: Implemented HLS URL redaction for premium channels. Public API now returns `PAID_RESTRICTED` for the `hls_url` of premium channels.
+
+### Changed
+- **Database Refactor**: Renamed `is_paid` column to `is_premium` in `channels` table.
+- **API Update**: Updated `Channel` model and `ChannelService` to use `is_premium` field.
+
 ## [Frontend 1.17.1] - 2026-01-07
 ### Fixed
 - **Production Logo Display**: Implemented "Smart Sanitization" to universally handle logo URLs. Even if the backend returns a localhost URL (common in default production configs), the frontend now automatically detects and converts it to a relative path, forcing the request through the correctly configured Next.js proxy.

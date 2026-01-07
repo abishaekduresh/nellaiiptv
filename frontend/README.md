@@ -1,4 +1,4 @@
-# Frontend (Next.js) - v1.17.1
+# Frontend (Next.js) - v1.17.2
 
 ## Overview
 
@@ -108,6 +108,10 @@ frontend/
 - **Analytics & Trends (v1.17.0)**:
   - **Interactive Chart**: Visual "Trending Channels" graph in Admin Dashboard.
   - **Data Discovery**: Filter trends by Limit (Top 5/10/20), Category, and Language.
+- **Premium Experience (v1.17.2)**:
+  - **Premium Badges**: Gold "PREMIUM" badges on channel cards and lists.
+  - **Secure Overlay**: Restricted content overlay with channel name customization.
+  - **Refactor**: full codebase migration to `is_premium` logic.
 
 ## TV Navigation Controls
 

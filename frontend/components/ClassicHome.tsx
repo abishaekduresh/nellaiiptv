@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Channel } from '@/types';
 import VideoPlayer from './VideoPlayer';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { Play, Eye, MapPin, Star, LogOut, ChevronDown, Heart } from 'lucide-react';
+import { Play, Eye, MapPin, Star, LogOut, ChevronDown, Heart, Crown } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
 import AdBanner from './AdBanner';
 import api from '@/lib/api';
@@ -508,6 +508,14 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
             {channel.name.charAt(0)}
           </div>
       )}
+
+        {/* Premium Badge */}
+        {!!channel.is_premium && (
+          <div className="absolute top-2 left-2 flex items-center gap-1 bg-yellow-500 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow-lg z-10">
+            <Crown size={10} fill="currentColor" strokeWidth={2.5} />
+            <span>PREMIUM</span>
+          </div>
+        )}
 
       {/* Channel Number Badge */}
       {/* Channel Number Badge */}

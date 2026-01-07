@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version Info** | Frontend **v1.17.1** | Backend **v1.12.2**
+**Version Info** | Frontend **v1.17.2** | Backend **v1.12.3**
 
 ## Overview
 
@@ -169,6 +169,12 @@ JWT_SECRET=your_jwt_secret
 ```
 
 ## Latest Updates
+
+### Backend (v1.12.3) | Frontend (v1.17.2)
+- 🔒 **Premium Ecosystem**: Full-stack implementation of Premium Channels.
+- 🎨 **Visuals**: "Premium" badges in OTT and Classic modes, plus a restricted content overlay.
+- 🛡️ **Security**: Backend-level HLS URL redaction for unpaid users.
+- ♻️ **Codebase**: Global refactor from `is_paid` to `is_premium`.
 
 ### Backend (v1.12.1)
 - 🐛 **Critical Fix**: Resolved syntax error in `public/index.php` that caused server crashes.

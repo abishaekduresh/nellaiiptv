@@ -1,4 +1,4 @@
-**Version 1.12.2** | RESTful API built with Slim PHP Framework
+**Version 1.12.3** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -147,6 +147,10 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.12.3)
+- 🔒 **Premium Content Protection**: Implemented secure HLS URL redaction. Channels marked as `is_premium` now return `PAID_RESTRICTED` in public API responses.
+- ♻️ **Refactor**: Standardized `is_premium` naming convention across the entire codebase (formerly `is_paid`).
 
 ## Latest Updates (v1.12.1)
 - 🐛 **Critical Fix**: Resolved syntax error in `public/index.php`.

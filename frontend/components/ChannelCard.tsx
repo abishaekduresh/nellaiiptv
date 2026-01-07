@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { Play, Eye, Star, Heart } from 'lucide-react';
+import { Play, Eye, Star, Heart, Crown } from 'lucide-react';
 import { Channel } from '@/types';
 import api from '@/lib/api';
 import { formatViewers } from '@/lib/utils';
@@ -65,6 +65,14 @@ export default function ChannelCard({ channel, showOverallViewers = false }: Cha
       <div className="aspect-video relative bg-slate-900 pointer-events-none">
         {isLoadingImage && channel.thumbnail_url && (
           <div className="absolute inset-0 bg-slate-800 animate-pulse z-0" />
+        )}
+        
+        {/* Premium Badge */}
+        {!!channel.is_premium && (
+          <div className="absolute top-2 left-2 flex items-center gap-1 bg-yellow-500 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow-lg z-10">
+            <Crown size={10} fill="currentColor" strokeWidth={2.5} />
+            <span>PREMIUM</span>
+          </div>
         )}
         
         {channel.thumbnail_url ? (

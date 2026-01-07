@@ -6,7 +6,7 @@ import Hls from 'hls.js';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useRouter } from 'next/navigation';
 import ReportModal from './ReportModal';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Lock } from 'lucide-react';
 import PlayerOverlay from './PlayerOverlay';
 import { Channel } from '@/types';
 import { useViewMode } from '@/context/ViewModeContext';
@@ -77,6 +77,7 @@ function VideoPlayer({
   
   // Detect Media Type
   const isYoutube = src && (src.includes('youtube.com') || src.includes('youtu.be'));
+  const isPaidRestricted = src === 'PAID_RESTRICTED';
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -222,7 +223,7 @@ function VideoPlayer({
 
   // Track history when playing starts
   useEffect(() => {
-    if (isPlaying && channelUuid && channelName && !historyTrackedRef.current) {
+    if (isPlaying && channelUuid && channelName && !historyTrackedRef.current && !isPaidRestricted) {
         addToHistory({
             uuid: channelUuid,
             name: channelName,
@@ -236,6 +237,8 @@ function VideoPlayer({
 
   // Controls Logic
   const handlePlayPause = useCallback(() => {
+      if (isPaidRestricted) return;
+
       if (isYoutube) {
           const action = isPlaying ? 'pauseVideo' : 'playVideo';
           sendYoutubeCommand(action);
@@ -409,8 +412,8 @@ function VideoPlayer({
 
   // -- Hls.js Logic --
   useEffect(() => {
-    // Skip HLS logic if youtube
-    if (isYoutube) {
+    // Skip HLS logic if youtube OR restricted
+    if (isYoutube || isPaidRestricted) {
         setIsLoading(false);
         return;
     }
@@ -637,7 +640,7 @@ function VideoPlayer({
         }
         hlsRef.current = null;
     };
-  }, [src, isYoutube, retryKey]);
+  }, [src, isYoutube, retryKey, isPaidRestricted]);
 
   // Auto Retry Logic
   const [retryCountdown, setRetryCountdown] = useState<number | null>(null);
@@ -663,8 +666,8 @@ function VideoPlayer({
 
   // Loading Timeout Logic
   useEffect(() => {
-    // Skip timeout if youtube
-    if (isYoutube) return;
+    // Skip timeout if youtube OR restricted
+    if (isYoutube || isPaidRestricted) return;
 
     let timeout: NodeJS.Timeout;
     if (isLoading && !errorMessage) {
@@ -723,7 +726,7 @@ function VideoPlayer({
   // Portal Target
   const mountTarget = overlayRef.current || containerRef.current;
 
-  const overlayPortal = (useCustomOverlay && channels && mountTarget) ? createPortal(
+  const overlayPortal = (useCustomOverlay && channels && mountTarget && !isPaidRestricted) ? createPortal(
     <PlayerOverlay
       visible={controlsVisible}
       channels={channels}
@@ -789,7 +792,17 @@ function VideoPlayer({
       className={`${focusProps.className} ${isFocused ? 'ring-4 ring-white z-20 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : ''} cursor-pointer bg-black`} 
     >
       {/* RENDER LOGIC SWITCH */}
-      {isYoutube ? (
+      {isPaidRestricted ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-slate-900/90 text-center z-10">
+              <div className="bg-yellow-500/20 p-6 rounded-full mb-4 animate-pulse">
+                  <Lock size={48} className="text-yellow-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">{channelName} - Premium Content</h2>
+              <p className="text-slate-300 max-w-md">
+                  This channel is available exclusively for premium subscribers. Please subscribe to access this content.
+              </p>
+          </div>
+      ) : isYoutube ? (
           <div className="relative w-full h-full">
               <iframe 
                 src={getYoutubeEmbedUrl(src)} 
@@ -830,7 +843,7 @@ function VideoPlayer({
       <div ref={overlayRef} className="absolute inset-0 w-full h-full pointer-events-none z-30" />
 
       {/* Loading Spinner */}
-      {isLoading && !errorMessage && (
+      {isLoading && !errorMessage && !isPaidRestricted && (
           <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
               <div className="flex flex-col items-center">
                   <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
@@ -840,7 +853,7 @@ function VideoPlayer({
       )}
 
       {/* Playback Error Overlay */}
-      {errorMessage && (
+      {errorMessage && !isPaidRestricted && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black">
           <div className="text-center px-6 max-w-md">
             <div className="inline-flex p-3 rounded-full bg-red-500/20 text-red-500 mb-4">
@@ -871,7 +884,7 @@ function VideoPlayer({
       )}
 
       {/* Manual Report Button */}
-      {!errorMessage && (controlsVisible || !isPlaying || isLoading) && (
+      {!errorMessage && (controlsVisible || !isPlaying || isLoading) && !isPaidRestricted && (
         <TVReportButton 
             onClick={(e) => {
                 e.stopPropagation();
