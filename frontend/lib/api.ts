@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '@/stores/authStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/public/api';
 
@@ -14,7 +15,10 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    // Access store directly to avoid race conditions with localStorage persistence
+    const state = useAuthStore.getState();
+    const token = state.token || state.tempToken;
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -35,9 +39,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Only redirect if we are NOT already on the login page
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+         useAuthStore.getState().logout(true);
+         window.location.href = '/login?error=session_expired';
       }
     }
     return Promise.reject(error);

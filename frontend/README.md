@@ -1,4 +1,4 @@
-# Nellai IPTV - Frontend (v1.17.5)
+# Nellai IPTV - Frontend (v1.18.0)
 
 ## Overview
 
@@ -67,6 +67,10 @@ frontend/
 - **Spatial Navigation**: Full support for arrow-key navigation (D-pad) for easy browsing on TV.
 - **Smart Search**: Search by channel name or specific channel number (e.g., "CH 101" or just "1").
 - **Live Visuals**: Auto-scrolling banners and interactive channel cards.
+- **Security & Sessions (v1.18.0)**:
+  - **Session Monitor**: Real-time polling detects if your session is revoked and logs you out instantly.
+  - **Device Manager**: View and Remove your connected devices/sessions directly from the Profile or Devices page.
+  - **Conditional Auto-Login**: Smart logic to auto-login only when you are explicitly managing device limits.
 - **Enhanced Security (v1.13.0)**:
   - **API Key Integration**: All requests are secured with `X-API-KEY`.
   - **Protected Admin**: Secure cookie-based handling for admin sessions.

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { Loader2 } from 'lucide-react';
@@ -11,7 +11,20 @@ import { useTVFocus } from '@/hooks/useTVFocus';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
+
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error === 'session_expired') {
+        toast.error('Session expired or revoked. Please login again.', { 
+            duration: 5000,
+            id: 'session-expired'
+        });
+        // Clean up URL
+        router.replace('/login');
+    }
+  }, [searchParams, router]);
 
   const { focusProps, isFocused } = useTVFocus({
       className: "w-full bg-primary hover:bg-cyan-600 text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed",
@@ -42,6 +55,15 @@ export default function LoginPage() {
         toast.error(response.data.message || 'Login failed');
       }
     } catch (err: any) {
+      const errorData = err.response?.data?.errors;
+      if (errorData?.error === 'device_limit_reached') {
+          // Handle device limit
+          const tempToken = errorData.temp_token;
+          useAuthStore.getState().setTempToken(tempToken);
+          toast.error('Device limit reached. Please manage your devices.');
+          router.push('/devices');
+          return;
+      }
       toast.error(err.response?.data?.message || 'Invalid phone or password');
     } finally {
       setLoading(false);

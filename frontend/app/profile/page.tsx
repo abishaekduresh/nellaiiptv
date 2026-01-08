@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { User, LogOut, CreditCard, Clock } from 'lucide-react';
+import { User, LogOut, CreditCard, Monitor } from 'lucide-react';
+import DeviceManager from '@/components/DeviceManager';
 
 export default function ProfilePage() {
   const { user, logout, token } = useAuthStore();
@@ -85,16 +86,14 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Watch History (Placeholder) */}
-              {/* <div className="bg-slate-800/30 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                  <Clock size={20} className="mr-2 text-primary" />
-                  Recent Activity
-                </h3>
-                <p className="text-slate-500 text-sm">
-                  No recent watch history available.
-                </p>
-              </div> */}
+               {/* Device Manager */}
+              <div className="bg-slate-800/30 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                      <Monitor size={20} className="mr-2 text-primary" />
+                      Manage Devices
+                  </h3>
+                  <DeviceManager />
+              </div>
             </div>
           </div>
         </div>

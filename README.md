@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Current Version**: Frontend v1.17.5 | Backend v1.13.0
+**Current Version**: Frontend v1.18.0 | Backend v1.14.0
 
 ## Overview
 
@@ -173,6 +173,14 @@ JWT_SECRET=your_jwt_secret
 ```
 
 ## Latest Updates
+
+### Backend (v1.14.0) | Frontend (v1.18.0)
+- 🔐 **Session Security**:
+  - **Auto-Logout**: Instant logout on all devices when a session is revoked or deleted.
+  - **Device Manager**: Users can view and revoke specific login sessions from their profile.
+  - **Activity Log**: Comprehensive audit trail of Logins, Logouts, and Device Revocations.
+- 🔄 **Conditional Auto-Login**: Smart re-authentication logic when managing device limits.
+- 🗄️ **Database Refactor**: [BREAKING] Schema now uses integer IDs for foreign key relationships.
 
 ### Backend (v1.13.0) | Frontend (v1.17.4)
 - 🐛 **Critical Fix**: Resolved namespace conflict in `Admin\ChannelController` causing Fatal Errors.

@@ -28,6 +28,11 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         $group->get('/customers/profile', [\App\Controllers\CustomerController::class, 'getProfile']);
         $group->put('/customers/profile', [\App\Controllers\CustomerController::class, 'updateProfile']);
         $group->delete('/customers', [\App\Controllers\CustomerController::class, 'delete']);
+        $group->post('/customers/logout', [\App\Controllers\AuthController::class, 'logout']);
+
+        // Device Sessions
+        $group->get('/customers/sessions', [\App\Controllers\AuthController::class, 'getSessions']);
+        $group->delete('/customers/sessions/{id}', [\App\Controllers\AuthController::class, 'revokeSession']);
 
         // Channels Actions
         $group->post('/channels/{uuid}/rate', [\App\Controllers\ChannelController::class, 'rate']);

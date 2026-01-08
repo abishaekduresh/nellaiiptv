@@ -9,6 +9,7 @@ import { ViewModeProvider } from "@/context/ViewModeContext";
 import ClassicModeGuard from "@/components/ClassicModeGuard";
 import NetworkStatusMonitor from "@/components/NetworkStatusMonitor";
 import FaviconUpdater from "@/components/FaviconUpdater";
+import SessionMonitor from "@/components/SessionMonitor";
 
 export const metadata: Metadata = {
   title: "Nellai IPTV - Premium Entertainment",
@@ -52,6 +53,7 @@ export default function RootLayout({
           <ViewModeProvider>
             <BackendHealthCheck />
             <NetworkStatusMonitor />
+            <SessionMonitor />
             <Toaster position="top-right" />
             <Navbar />
             <main className="flex-grow pt-6">

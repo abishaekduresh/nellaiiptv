@@ -153,6 +153,53 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 
 ---
 
+### Manage Sessions
+
+#### Get Active Sessions
+**Endpoint**: `GET /customers/sessions`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "Active sessions retrieved",
+  "data": [
+    {
+      "id": 12,
+      "customer_id": 150,
+      "device_name": "Chrome on Windows",
+      "platform": "web",
+      "ip_address": "192.168.1.5",
+      "last_active": "2026-01-08 10:30:00",
+      "created_at": "2026-01-08 09:00:00"
+    }
+  ]
+}
+```
+
+#### Revoke Session
+**Endpoint**: `DELETE /customers/sessions/{id}`
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Query Parameters**:
+- `auto_login` (boolean, optional): If `true`, attempts to issue a new token for the current device if the device limit allows. Default `false`.
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "Session revoked successfully",
+  "data": {
+     "tokens": { ... } // Only present if auto_login=true and successful
+  }
+}
+```
+
+---
+
 ## Customer Profile
 
 ### Get Profile

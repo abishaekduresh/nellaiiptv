@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.18.0] - 2026-01-08
+### Added
+- **Session Monitor**: Implemented client-side polling (`SessionMonitor.tsx`) to detect session revocation and trigger instant logout.
+- **Device Management**: Added `DeviceManager` component to profile and devices pages, allowing users to view and revoke active sessions.
+- **Conditional Auto-Login**: Added logic to support auto-login after device revocation only when explicitly requested (e.g., from the Device Limit page).
+
+### Fixed
+- **Toast Notifications**: Resolved issue with duplicate toast notifications appearing during session expiration.
+- **Session Handling**: Fixed issue where revoking a device from the profile page would mistakenly auto-login the user immediately.
+
+## [Backend 1.14.0] - 2026-01-08
+### Added
+- **Activity Logging**: Implemented comprehensive customer activity logging (`LOGIN`, `LOGOUT`, `REVOKE_DEVICE`) with IP and User-Agent tracking.
+- **Session Revocation API**: Enhanced `DELETE /customers/sessions/{id}` to accept optional `auto_login` query parameter.
+- **Database Schema**: Added `customer_activity_logs` table.
+
+### Changed
+- **Database Refactor**: [BREAKING] Switched `customer_sessions` and `customer_activity_logs` tables to use `customer_id` (Integer) as foreign key instead of `customer_uuid`, improving data integrity and performance.
+- **Auth Service**: Updated internal logic to resolve Customer ID from UUID for all session operations.
+
 ## [Frontend 1.17.5] - 2026-01-07
 ### Fixed
 - **Linting Error**: Fixed duplicate `className` prop in `VideoPlayer.tsx` which caused styling conflicts on the back button.

@@ -26,7 +26,7 @@ try {
     echo "Connected to database successfully.\n";
 
     // Read SQL file
-    $sqlFile = __DIR__ . '/database/migrations/refactor_uuid_to_id.sql';
+    $sqlFile = __DIR__ . '/database/migrations/create_customer_activity_logs_table.sql';
     if (!file_exists($sqlFile)) {
         die("SQL file not found at $sqlFile\n");
     }
@@ -35,7 +35,7 @@ try {
 
     // Execute SQL
     $pdo->exec($sql);
-    echo "Refactor migration executed successfully: foreign keys updated to use customer_id.\n";
+    echo "Migration executed successfully: customer_activity_logs table created.\n";
 
 } catch (\PDOException $e) {
     die("Database error: " . $e->getMessage() . "\n");

@@ -1,4 +1,4 @@
-**Version 1.13.0** | RESTful API built with Slim PHP Framework
+**Version 1.14.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -149,6 +149,12 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
+## Latest Updates (v1.14.0)
+- 📝 **Activity Logging**: Full audit trail for customer Login, Logout, and Device Revocation events.
+- 🔄 **Session Management**: Enhanced `DELETE` endpoint with `auto_login` capability.
+- 🗄️ **Database Refactor**: Improved schema integrity by using integer IDs for foreign key relationships (`customer_sessions`, `customer_activity_logs`).
+- 🐛 **Bug Fixes**: Corrected IP address and User-Agent capturing in logs.
+
 ## Latest Updates (v1.13.0)
 - 🛡️ **Platform Enforcement**: Mandatory `X-Client-Platform` header for all requests (Web/Android/iOS/TV).
 - 🐛 **Critical Fixes**: Resolved Namespace conflicts in Admin Controller and CORS Middleware ordering.
@@ -191,4 +197,4 @@ Proprietary software. All rights reserved.
 
 ---
 
-# Nellai IPTV - Backend API (v1.13.0)
+# Nellai IPTV - Backend API (v1.14.0)

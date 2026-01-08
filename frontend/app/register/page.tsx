@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useAuthStore } from '@/stores/authStore';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useTVFocus } from '@/hooks/useTVFocus';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const setAuth = useAuthStore((state) => state.setAuth);
   const [captcha, setCaptcha] = useState({ num1: 0, num2: 0, answer: 0 });
   const [userCaptcha, setUserCaptcha] = useState('');
 
@@ -97,8 +99,17 @@ export default function RegisterPage() {
       });
 
       if (response.data.status) {
-        toast.success('Registration successful');
-        router.push('/login?registered=true');
+        // Auto-login functionality
+        if (response.data.data && response.data.data.token) {
+           const { token, user } = response.data.data;
+           setAuth(token, user, false);
+           toast.success('Account created! Welcome to Nellai IPTV.');
+           router.push('/');
+        } else {
+            // Fallback if no token returned (though service is defined to return it)
+            toast.success('Registration successful! Please sign in.');
+            router.push('/login');
+        }
       } else {
         toast.error(response.data.message || 'Registration failed');
         generateCaptcha(); // Regenerate on failure
