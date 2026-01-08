@@ -20,6 +20,9 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->post('/customers/forgot-password', [\App\Controllers\AuthController::class, 'forgotPassword']);
     $group->post('/customers/reset-password', [\App\Controllers\AuthController::class, 'resetPassword']);
     
+    // Webhooks
+    $group->post('/webhooks/resend', [\App\Controllers\WebhookController::class, 'handleResend']);
+    
     // Protected Routes
     $group->group('', function (RouteCollectorProxy $group) {
         $group->post('/customers/refresh-token', [\App\Controllers\AuthController::class, 'refreshToken']);

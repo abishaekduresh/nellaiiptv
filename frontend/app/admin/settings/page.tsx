@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import toast from 'react-hot-toast';
-import { Save, Lock, Image } from 'lucide-react';
+import { Save, Lock, Image, Hammer } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 interface Setting {
@@ -205,6 +205,73 @@ export default function SettingsPage() {
                   </div>
               </div>
           </div>
+      </div>
+
+      {/* Maintenance Mode */}
+      <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
+        <Hammer className="text-primary" />
+        Maintenance Mode
+      </h2>
+      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl mb-12">
+        <div className="space-y-6">
+            <div className="flex items-center justify-between p-4 bg-slate-900 rounded-lg border border-gray-700">
+                <div>
+                    <h3 className="font-semibold text-white">Enable Maintenance Mode</h3>
+                    <p className="text-sm text-slate-400">Restrict public access to the application. Admins can still login.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={settings.find(s => s.setting_key === 'maintenance_mode')?.setting_value === '1'}
+                        onChange={(e) => handleSave('maintenance_mode', e.target.checked ? '1' : '0')
+                            .then(() => handleUpdate('maintenance_mode', e.target.checked ? '1' : '0'))} 
+                    />
+                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                <label className="text-text-secondary font-medium">Screen Title</label>
+                <div className="md:col-span-3 flex gap-4">
+                     <input
+                        type="text"
+                        value={settings.find(s => s.setting_key === 'maintenance_title')?.setting_value || ''}
+                        onChange={(e) => handleUpdate('maintenance_title', e.target.value)}
+                        placeholder="e.g., Under Maintenance"
+                        className="flex-1 bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                    />
+                     <button
+                        onClick={() => handleSave('maintenance_title', settings.find(s => s.setting_key === 'maintenance_title')?.setting_value || '')}
+                        disabled={saving}
+                        className="bg-primary hover:bg-primary-dark text-white p-2 rounded-lg transition-colors"
+                        title="Save"
+                    >
+                        <Save size={20} />
+                    </button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                <label className="text-text-secondary font-medium">Screen Message</label>
+                <div className="md:col-span-3 flex gap-4">
+                    <textarea
+                        value={settings.find(s => s.setting_key === 'maintenance_message')?.setting_value || ''}
+                        onChange={(e) => handleUpdate('maintenance_message', e.target.value)}
+                        placeholder="e.g., We are currently upgrading our system..."
+                        className="flex-1 bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                    />
+                      <button
+                        onClick={() => handleSave('maintenance_message', settings.find(s => s.setting_key === 'maintenance_message')?.setting_value || '')}
+                        disabled={saving}
+                        className="bg-primary hover:bg-primary-dark text-white p-2 rounded-lg transition-colors"
+                        title="Save"
+                    >
+                        <Save size={20} />
+                    </button>
+                </div>
+            </div>
+        </div>
       </div>
 
       {/* Password Change Section */}

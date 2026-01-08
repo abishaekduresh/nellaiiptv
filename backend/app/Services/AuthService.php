@@ -10,13 +10,48 @@ use Exception;
 
 class AuthService
 {
-    private $jwtSecret; // Added
-    private $activityLogger; // Added
+    private $jwtSecret;
+    private $activityLogger;
+    private $emailService; // Added
 
-    public function __construct(ActivityLogger $activityLogger) // Added constructor
+    public function __construct(ActivityLogger $activityLogger, \App\Services\Email\EmailServiceInterface $emailService)
     {
         $this->activityLogger = $activityLogger;
-        $this->jwtSecret = $_ENV['API_SECRET']; // Use API_SECRET as JWT secret
+        $this->emailService = $emailService;
+        $this->jwtSecret = $_ENV['API_SECRET'];
+    }
+
+    // ... (keep existing methods until forgotPassword) ...
+
+    public function forgotPassword(string $email): bool
+    {
+        $customer = Customer::where('email', $email)->first();
+
+        // Prevent enumeration
+        if (!$customer) {
+            return true;
+        }
+
+        $token = bin2hex(random_bytes(32));
+        $customer->reset_token = $token;
+        $customer->reset_token_expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        $customer->save();
+
+        $resetLink = $_ENV['APP_URL'] . "/reset-password?token={$token}";
+        
+        $html = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h2>Reset Your Password</h2>
+                <p>Hello {$customer->name},</p>
+                <p>You requested a password reset for your Nellai IPTV account.</p>
+                <p>Click the button below to reset your password. This link is valid for 1 hour.</p>
+                <a href='{$resetLink}' style='background-color: #06b6d4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;'>Reset Password</a>
+                <p>If you didn't request this, you can safely ignore this email.</p>
+                <p>Thanks,<br>Nellai IPTV Team</p>
+            </div>
+        ";
+
+        return $this->emailService->send($email, 'Reset Your Password', $html);
     }
 
     public function register(array $data): array
@@ -184,28 +219,6 @@ class AuthService
 
             $this->activityLogger->log($customer->id, 'LOGOUT', 'User logged out', $deviceInfo);
         }
-    }
-
-    public function forgotPassword(string $email): bool
-    {
-        $customer = Customer::where('email', $email)->first();
-
-        if (!$customer) {
-            // Return true to prevent email enumeration
-            return true;
-        }
-
-        $token = bin2hex(random_bytes(32));
-        $customer->reset_token = $token;
-        $customer->reset_token_expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
-        $customer->save();
-
-        // In a real app, send email here
-        // Mail::to($email)->send(new ResetPasswordEmail($token));
-        // For now, we'll just log it or assume it's sent
-        error_log("Reset token for {$email}: {$token}");
-
-        return true;
     }
 
     public function resetPassword(string $token, string $password): bool

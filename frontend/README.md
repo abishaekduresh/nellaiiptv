@@ -120,6 +120,10 @@ frontend/
 - **Platform Awareness (v1.17.3)**:
   - **Device Headers**: Automatically identifies client platform (`web`, `tv`, `ios`, `android`).
   - **Restricted Access**: Displays helpful error overlays when content is not available on the current device.
+- **Maintenance Mode (v1.18.0)**:
+  - **Global Overlay**: "Under Construction" screen blocks public access when enabled.
+  - **Dynamic Config**: Admins can customize the title and message or toggle status in real-time.
+  - **Smart Access**: Automatically allows Admin Login and Dashboard access while blocking public users.
 
 ## TV Navigation Controls
 

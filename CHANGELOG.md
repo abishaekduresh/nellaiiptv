@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **Session Monitor**: Implemented client-side polling (`SessionMonitor.tsx`) to detect session revocation and trigger instant logout.
 - **Device Management**: Added `DeviceManager` component to profile and devices pages, allowing users to view and revoke active sessions.
+- **Maintenance Mode**: Implemented global "Under Maintenance" screen with Admin-configurable title and message, blocking public access while allowing admin login.
 - **Conditional Auto-Login**: Added logic to support auto-login after device revocation only when explicitly requested (e.g., from the Device Limit page).
 
 ### Fixed
@@ -21,6 +22,9 @@ All notable changes to this project will be documented in this file.
 - **Activity Logging**: Implemented comprehensive customer activity logging (`LOGIN`, `LOGOUT`, `REVOKE_DEVICE`) with IP and User-Agent tracking.
 - **Session Revocation API**: Enhanced `DELETE /customers/sessions/{id}` to accept optional `auto_login` query parameter.
 - **Database Schema**: Added `customer_activity_logs` table.
+- **Forgot Password**: Implemented secure password reset flow using Resend API (`POST /customers/forgot-password`).
+- **Email Webhooks**: Added `POST /webhooks/resend` to track email delivery status (Sent, Delivered, Bounced) in real-time.
+- **Maintenance API**: Exposed maintenance mode settings in `PublicSettingController`.
 
 ### Changed
 - **Database Refactor**: [BREAKING] Switched `customer_sessions` and `customer_activity_logs` tables to use `customer_id` (Integer) as foreign key instead of `customer_uuid`, improving data integrity and performance.

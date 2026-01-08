@@ -182,6 +182,10 @@ JWT_SECRET=your_jwt_secret
 - 🔄 **Conditional Auto-Login**: Smart re-authentication logic when managing device limits.
 - 🗄️ **Database Refactor**: [BREAKING] Schema now uses integer IDs for foreign key relationships.
 - 🛠️ **Build Optimization**: Fixed Vercel deployment issues by implementing proper Suspense boundaries.
+- 🚧 **Maintenance Mode**: Global "Under Construction" system with configurable message and Admin-only access.
+- 📧 **Enhanced Email System**:
+  - **Forgot Password**: Secure reset flow using Resend API.
+  - **Email Logging**: Complete audit trail with webhook status tracking (Sent/Delivered/Bounced).
 
 ### Backend (v1.13.0) | Frontend (v1.17.4)
 - 🐛 **Critical Fix**: Resolved namespace conflict in `Admin\ChannelController` causing Fatal Errors.

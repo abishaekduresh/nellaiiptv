@@ -13,6 +13,10 @@ class PublicSettingController
     {
         // Expose only safe settings
         $logoPath = Setting::get('logo_url', '/logo.jpg');
+        $maintenanceMode = Setting::get('maintenance_mode', '0');
+        $maintenanceTitle = Setting::get('maintenance_title', 'Under Maintenance');
+        $maintenanceMessage = Setting::get('maintenance_message', 'We are currently upgrading our system. Please check back later.');
+
         $logoUrl = $logoPath;
 
         try {
@@ -40,7 +44,10 @@ class PublicSettingController
         if (!$logoUrl) $logoUrl = '/logo.jpg';
 
         return ResponseFormatter::success($response, [
-            'logo_url' => $logoUrl
+            'logo_url' => $logoUrl,
+            'maintenance_mode' => $maintenanceMode === '1',
+            'maintenance_title' => $maintenanceTitle,
+            'maintenance_message' => $maintenanceMessage,
         ]);
     }
 }

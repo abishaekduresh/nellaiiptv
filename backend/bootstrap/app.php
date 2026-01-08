@@ -57,6 +57,11 @@ $container->set(LoggerInterface::class, function () {
     return $logger;
 });
 
+// Configure Email Service
+$container->set(\App\Services\Email\EmailServiceInterface::class, function () {
+    return new \App\Services\Email\ResendEmailService();
+});
+
 // Create App
 $app = SlimAppFactory::create($container);
 
