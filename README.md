@@ -181,6 +181,7 @@ JWT_SECRET=your_jwt_secret
   - **Activity Log**: Comprehensive audit trail of Logins, Logouts, and Device Revocations.
 - 🔄 **Conditional Auto-Login**: Smart re-authentication logic when managing device limits.
 - 🗄️ **Database Refactor**: [BREAKING] Schema now uses integer IDs for foreign key relationships.
+- 🛠️ **Build Optimization**: Fixed Vercel deployment issues by implementing proper Suspense boundaries.
 
 ### Backend (v1.13.0) | Frontend (v1.17.4)
 - 🐛 **Critical Fix**: Resolved namespace conflict in `Admin\ChannelController` causing Fatal Errors.

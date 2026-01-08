@@ -71,6 +71,7 @@ frontend/
   - **Session Monitor**: Real-time polling detects if your session is revoked and logs you out instantly.
   - **Device Manager**: View and Remove your connected devices/sessions directly from the Profile or Devices page.
   - **Conditional Auto-Login**: Smart logic to auto-login only when you are explicitly managing device limits.
+  - **Build Stability**: Resolved Vercel build errors by implementing proper Suspense boundaries for client-side navigation.
 - **Enhanced Security (v1.13.0)**:
   - **API Key Integration**: All requests are secured with `X-API-KEY`.
   - **Protected Admin**: Secure cookie-based handling for admin sessions.

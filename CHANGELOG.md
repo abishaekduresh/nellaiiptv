@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **Toast Notifications**: Resolved issue with duplicate toast notifications appearing during session expiration.
 - **Session Handling**: Fixed issue where revoking a device from the profile page would mistakenly auto-login the user immediately.
+- **Vercel Build**: Fixed `missing suspense` error by wrapping `useSearchParams` in a Suspense boundary on the login page.
 
 ## [Backend 1.14.0] - 2026-01-08
 ### Added
