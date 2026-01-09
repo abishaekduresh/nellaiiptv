@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import adminApi from '@/lib/adminApi';
 import toast from 'react-hot-toast';
+import { Monitor, Smartphone, Tv, Star, Crown, Activity } from 'lucide-react';
 
 interface ChannelFormProps {
   initialData?: any;
@@ -225,65 +226,114 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
             />
         </div>
 
-        <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                    type="checkbox"
-                    checked={formData.is_featured}
-                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                    className="w-5 h-5 rounded border-gray-800 bg-background text-primary focus:ring-primary"
-                />
-                <span className="text-white">Featured Channel</span>
-            </label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div 
+                onClick={() => setFormData({ ...formData, is_featured: !formData.is_featured })}
+                className={`cursor-pointer rounded-xl border-2 p-6 flex flex-col items-center gap-3 transition-all duration-200 group text-center ${
+                    formData.is_featured 
+                    ? 'border-yellow-500 bg-yellow-500/10 shadow-[0_0_20px_rgba(234,179,8,0.1)]' 
+                    : 'border-slate-800 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-900'
+                }`}
+            >
+                <div className={`p-3 rounded-full mb-1 ${formData.is_featured ? 'bg-yellow-500 text-black' : 'bg-slate-800 text-slate-400'}`}>
+                    <Star size={24} fill={formData.is_featured ? "currentColor" : "none"} />
+                </div>
+                <div>
+                    <h4 className={`font-bold text-sm ${formData.is_featured ? 'text-white' : 'text-slate-400'}`}>Featured Channel</h4>
+                    <p className="text-xs text-slate-500 mt-1">Highlight on home page</p>
+                </div>
+                <div className={`mt-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.is_featured ? 'border-yellow-500' : 'border-slate-600'}`}>
+                    {formData.is_featured && <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />}
+                </div>
+            </div>
 
-            <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                    type="checkbox"
-                    checked={formData.is_premium}
-                    onChange={(e) => setFormData({ ...formData, is_premium: e.target.checked })}
-                    className="w-5 h-5 rounded border-gray-800 bg-background text-primary focus:ring-primary"
-                />
-                <span className="text-white">Premium Channel</span>
-            </label>
+            <div 
+                onClick={() => setFormData({ ...formData, is_premium: !formData.is_premium })}
+                className={`cursor-pointer rounded-xl border-2 p-6 flex flex-col items-center gap-3 transition-all duration-200 group text-center ${
+                    formData.is_premium 
+                    ? 'border-purple-500 bg-purple-500/10 shadow-[0_0_20px_rgba(168,85,247,0.1)]' 
+                    : 'border-slate-800 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-900'
+                }`}
+            >
+                <div className={`p-3 rounded-full mb-1 ${formData.is_premium ? 'bg-purple-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
+                    <Crown size={24} fill={formData.is_premium ? "currentColor" : "none"} />
+                </div>
+                <div>
+                    <h4 className={`font-bold text-sm ${formData.is_premium ? 'text-white' : 'text-slate-400'}`}>Premium Channel</h4>
+                    <p className="text-xs text-slate-500 mt-1">Requires subscription</p>
+                </div>
+                <div className={`mt-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.is_premium ? 'border-purple-500' : 'border-slate-600'}`}>
+                    {formData.is_premium && <div className="w-2.5 h-2.5 rounded-full bg-purple-500" />}
+                </div>
+            </div>
 
-            <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                    type="checkbox"
-                    checked={formData.status === 'active'}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 'active' : 'inactive' })}
-                    className="w-5 h-5 rounded border-gray-800 bg-background text-primary focus:ring-primary"
-                />
-                <span className="text-white">Active</span>
-            </label>
+            <div 
+                onClick={() => setFormData({ ...formData, status: formData.status === 'active' ? 'inactive' : 'active' })}
+                className={`cursor-pointer rounded-xl border-2 p-6 flex flex-col items-center gap-3 transition-all duration-200 group text-center ${
+                    formData.status === 'active' 
+                    ? 'border-emerald-500 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.1)]' 
+                    : 'border-slate-800 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-900'
+                }`}
+            >
+                <div className={`p-3 rounded-full mb-1 ${formData.status === 'active' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
+                    <Activity size={24} />
+                </div>
+                <div>
+                    <h4 className={`font-bold text-sm ${formData.status === 'active' ? 'text-white' : 'text-slate-400'}`}>Active Status</h4>
+                    <p className="text-xs text-slate-500 mt-1">{formData.status === 'active' ? 'Channel is live' : 'Channel is offline'}</p>
+                </div>
+                <div className={`mt-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.status === 'active' ? 'border-emerald-500' : 'border-slate-600'}`}>
+                    {formData.status === 'active' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                </div>
+            </div>
         </div>
 
         {/* Platform Restrictions */}
-        <div className="md:col-span-2 bg-slate-900/50 p-4 rounded-lg border border-gray-800">
-             <label className="block text-text-secondary mb-3 font-semibold">Allowed Platforms</label>
-             <div className="flex gap-6">
-                 {['web', 'android', 'ios', 'tv'].map(platform => (
-                     <label key={platform} className="flex items-center gap-2 cursor-pointer">
-                         <input
-                             type="checkbox"
-                             checked={formData.allowed_platforms.includes(platform)}
-                             onChange={(e) => {
+        <div className="md:col-span-2">
+             <label className="block text-text-secondary mb-4 font-semibold">Allowed Platforms</label>
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 {[
+                     { id: 'web', label: 'Web (OTT)', icon: Monitor },
+                     { id: 'tv', label: 'TV (Classic)', icon: Tv },
+                     { id: 'android', label: 'Android', icon: Smartphone },
+                     { id: 'ios', label: 'iOS', icon: Smartphone },
+                 ].map((platform) => {
+                     const isSelected = formData.allowed_platforms.includes(platform.id);
+                     return (
+                         <div
+                             key={platform.id}
+                             onClick={() => {
                                  let current = formData.allowed_platforms ? formData.allowed_platforms.split(',').filter(Boolean) : [];
-                                 if (e.target.checked) {
-                                     current.push(platform);
+                                 if (!isSelected) {
+                                     current.push(platform.id);
                                  } else {
-                                     current = current.filter((p: string) => p !== platform);
+                                     current = current.filter((p: string) => p !== platform.id);
                                  }
                                  setFormData({ ...formData, allowed_platforms: current.join(',') });
                              }}
-                             className="w-5 h-5 rounded border-gray-800 bg-background text-primary focus:ring-primary"
-                         />
-                         <span className="text-white capitalize">
-                             {platform === 'web' ? 'Website' : 
-                              platform === 'ios' ? 'iOS App' : 
-                              platform === 'tv' ? 'TV App' : 'Android App'}
-                         </span>
-                     </label>
-                 ))}
+                             className={`cursor-pointer rounded-xl border-2 p-6 flex flex-col items-center gap-4 transition-all duration-200 group ${
+                                 isSelected 
+                                 ? 'border-primary bg-primary/5 shadow-[0_0_20px_rgba(6,182,212,0.1)]' 
+                                 : 'border-slate-800 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-900'
+                             }`}
+                         >
+                             <platform.icon 
+                                 size={32} 
+                                 className={`transition-colors duration-200 ${isSelected ? 'text-primary' : 'text-slate-500 group-hover:text-slate-400'}`} 
+                             />
+                             <span className={`font-bold text-sm tracking-wide ${isSelected ? 'text-white' : 'text-slate-400'}`}>
+                                 {platform.label}
+                             </span>
+                             
+                             {/* Radio/Checkbox Indicator */}
+                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
+                                 isSelected ? 'border-primary' : 'border-slate-600 group-hover:border-slate-500'
+                             }`}>
+                                 {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-sm" />}
+                             </div>
+                         </div>
+                     );
+                 })}
              </div>
         </div>
       </div>

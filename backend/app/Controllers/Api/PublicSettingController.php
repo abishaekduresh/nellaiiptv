@@ -19,6 +19,10 @@ class PublicSettingController
 
         $logoUrl = $logoPath;
 
+        // Trending Platforms
+        $trendingPlatformsStr = Setting::get('top_trending_platforms', 'web,android,ios,tv');
+        $trendingPlatforms = array_map('trim', explode(',', $trendingPlatformsStr));
+
         try {
             if (strpos($logoPath, '/uploads/') === 0) {
                 // Check for explicit APP_URL in environment first
@@ -48,6 +52,7 @@ class PublicSettingController
             'maintenance_mode' => $maintenanceMode === '1',
             'maintenance_title' => $maintenanceTitle,
             'maintenance_message' => $maintenanceMessage,
+            'top_trending_platforms' => $trendingPlatforms,
         ]);
     }
 }

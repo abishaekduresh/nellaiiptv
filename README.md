@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Current Version**: Frontend v1.19.2 | Backend v1.15.1
+**Current Version**: Frontend v1.20.0 | Backend v1.16.0
 
 ## Overview
 
@@ -173,6 +173,11 @@ JWT_SECRET=your_jwt_secret
 ```
 
 ## Latest Updates
+
+### Backend (v1.16.0) | Frontend (v1.20.0)
+- ⚙️ **Platform Control**: Admins can now granularly toggle "Top Trending" visibility for Web, TV, Android, and iOS platforms.
+- 🎨 **Modern Admin UI**: Completely redesigned Channel Form with interactive card-based inputs for better usability.
+- ⚡ **Optimized UX**: Fixed UI lag in Maintenance Mode toggles with optimistic state updates.
 
 ### Backend (v1.14.0) | Frontend (v1.18.0)
 - 🔐 **Session Security**:

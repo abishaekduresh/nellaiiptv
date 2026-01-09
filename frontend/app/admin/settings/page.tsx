@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import toast from 'react-hot-toast';
-import { Save, Lock, Image, Hammer } from 'lucide-react';
+import { Save, Lock, Image, Hammer, Monitor, Smartphone, Tv, LayoutGrid } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 interface Setting {
@@ -224,8 +224,11 @@ export default function SettingsPage() {
                         type="checkbox" 
                         className="sr-only peer"
                         checked={settings.find(s => s.setting_key === 'maintenance_mode')?.setting_value === '1'}
-                        onChange={(e) => handleSave('maintenance_mode', e.target.checked ? '1' : '0')
-                            .then(() => handleUpdate('maintenance_mode', e.target.checked ? '1' : '0'))} 
+                        onChange={(e) => {
+                            const newValue = e.target.checked ? '1' : '0';
+                            handleUpdate('maintenance_mode', newValue); // Optimistic immediate update
+                            handleSave('maintenance_mode', newValue); // Background save
+                        }} 
                     />
                     <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
@@ -269,6 +272,59 @@ export default function SettingsPage() {
                     >
                         <Save size={20} />
                     </button>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      {/* Display Settings */}
+      <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
+        <LayoutGrid className="text-primary" />
+        Display Settings
+      </h2>
+      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl mb-12">
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                <label className="text-text-secondary font-medium pt-2">Top Trending Visibility</label>
+                <div className="md:col-span-3">
+                    <p className="text-sm text-slate-400 mb-4">Select platforms where the "Top Trending" section should be visible.</p>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {[
+                            { id: 'web', label: 'Web (OTT)', icon: Monitor },
+                            { id: 'tv', label: 'TV (Classic)', icon: Tv },
+                            { id: 'android', label: 'Android', icon: Smartphone },
+                            { id: 'ios', label: 'iOS', icon: Smartphone },
+                        ].map((platform) => {
+                            const platformsStr = settings.find(s => s.setting_key === 'top_trending_platforms')?.setting_value || 'web,android,ios,tv';
+                            const platforms = platformsStr.split(',').map(s => s.trim());
+                            const isChecked = platforms.includes(platform.id);
+
+                            return (
+                                <label key={platform.id} className={`flex flex-col items-center justify-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${isChecked ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}`}>
+                                    <input 
+                                        type="checkbox" 
+                                        className="hidden" 
+                                        checked={isChecked}
+                                        onChange={(e) => {
+                                            const newPlatforms = e.target.checked 
+                                                ? [...platforms, platform.id]
+                                                : platforms.filter(p => p !== platform.id);
+                                            
+                                            // Ensure unique and save as string
+                                            const uniquePlatforms = Array.from(new Set(newPlatforms)).join(',');
+                                            handleSave('top_trending_platforms', uniquePlatforms);
+                                            handleUpdate('top_trending_platforms', uniquePlatforms);
+                                        }}
+                                    />
+                                    <platform.icon size={24} className={isChecked ? 'text-primary' : 'text-slate-500'} />
+                                    <span className="font-bold text-sm">{platform.label}</span>
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isChecked ? 'bg-primary border-primary' : 'border-slate-600'}`}>
+                                        {isChecked && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                    </div>
+                                </label>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         </div>

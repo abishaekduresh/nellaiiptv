@@ -78,6 +78,7 @@ export default function ChannelPage() {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [showTrending, setShowTrending] = useState(true);
   const { user } = useAuthStore();
   
   // Title Update
@@ -97,11 +98,20 @@ export default function ChannelPage() {
         setError('');
       }
 
-      const [channelRes, relatedRes, commentsRes] = await Promise.all([
+      const [channelRes, relatedRes, commentsRes, settingsRes] = await Promise.all([
         api.get(`/channels/${uuid}`),
         fullLoad ? api.get(`/channels?limit=-1`) : Promise.resolve({ data: { status: false } }),
-        fullLoad ? api.get(`/channels/${uuid}/comments`) : Promise.resolve({ data: { status: false } })
+        fullLoad ? api.get(`/channels/${uuid}/comments`) : Promise.resolve({ data: { status: false } }),
+        api.get('/settings/public')
       ]);
+
+      // Check Top Trending Permission
+      if (settingsRes.data.status) {
+         const platformsStr = settingsRes.data.data.top_trending_platforms || 'web,android,ios,tv';
+         const platforms = Array.isArray(platformsStr) ? platformsStr : (typeof platformsStr === 'string' ? platformsStr.split(',') : []);
+         // ChannelPage is part of Web App
+         setShowTrending(platforms.includes('web'));
+      }
 
       if (channelRes.data.status) {
         const channelData = channelRes.data.data;
@@ -310,7 +320,7 @@ export default function ChannelPage() {
               currentGroup="All Channels"
               onChannelSelect={handleChannelSelect}
               viewersCount={channel.viewers_count || 0}
-              topTrending={relatedChannels.slice(0, 10)}
+              topTrending={showTrending ? relatedChannels.slice(0, 10) : []}
               useCustomOverlay={true}
             />
           </div>

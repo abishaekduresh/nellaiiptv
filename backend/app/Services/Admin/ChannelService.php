@@ -15,7 +15,8 @@ class ChannelService
 {
     public function getAll(array $filters = []): array
     {
-        $query = Channel::with(['state', 'district', 'language', 'category']);
+        $query = Channel::with(['state', 'district', 'language', 'category'])
+            ->withSum('views as calculated_views_count', 'count');
 
         if (isset($filters['search']) && !empty($filters['search'])) {
             $query->where('name', 'LIKE', '%' . $filters['search'] . '%');

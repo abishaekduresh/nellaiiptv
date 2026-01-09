@@ -20,6 +20,7 @@ interface AdminChannel {
   hls_url: string;
   id: string;
   is_premium?: boolean;
+  calculated_views_count?: number;
 }
 
 export default function ChannelsPage() {
@@ -189,6 +190,7 @@ export default function ChannelsPage() {
               <tr>
                 <th className="px-6 py-4">#</th>
                 <th className="px-6 py-4">Name</th>
+                <th className="px-6 py-4">TOT Views</th>
                 <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4">Language</th>
                 <th className="px-6 py-4">State</th>
@@ -223,6 +225,9 @@ export default function ChannelsPage() {
                             </a>
                         </div>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-text-secondary">
+                        {channel.calculated_views_count && <span className="bg-gray-800 px-2 py-0.5 rounded text-xs">{channel.calculated_views_count}</span>}
                     </td>
                     <td className="px-6 py-4 text-text-secondary">
                         {channel.category?.name && <span className="bg-gray-800 px-2 py-0.5 rounded text-xs">{channel.category.name}</span>}

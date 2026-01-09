@@ -152,6 +152,9 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
+## Latest Updates (v1.16.0)
+- ⚙️ **Public Settings**: Expose `top_trending_platforms` configuration to control trending section visibility on different clients.
+
 ## Latest Updates (v1.15.0)
 - 📊 **Analytics API**: New `GET /admin/channels/{uuid}/analytics` provides rich data on channel views (daily trends) and user ratings.
 - 🛠️ **Service Architecture**: Separated Admin-only logic into `Services\Admin\ChannelService` for better code organization and security.

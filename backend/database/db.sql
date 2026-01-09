@@ -244,19 +244,6 @@ CREATE TABLE IF NOT EXISTS `languages` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.live_viewers
-CREATE TABLE IF NOT EXISTS `live_viewers` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `channel_id` int NOT NULL,
-  `device_uuid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `last_heartbeat` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_viewer` (`channel_id`,`device_uuid`),
-  KEY `idx_heartbeat` (`last_heartbeat`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Data exporting was unselected.
-
 -- Dumping structure for table nellai_iptv.settings
 CREATE TABLE IF NOT EXISTS `settings` (
   `id` int NOT NULL AUTO_INCREMENT,

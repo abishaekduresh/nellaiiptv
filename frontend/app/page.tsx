@@ -56,18 +56,32 @@ import ClassicHome from '@/components/ClassicHome';
     try {
       setLoading(true);
       
-      const [featuredRes, allRes, topRes] = await Promise.all([
+      const [featuredRes, allRes, settingsRes] = await Promise.all([
         api.get('/channels/featured?limit=10'),
         api.get('/channels?limit=-1'),
-        api.get('/channels?sort=top_trending&limit=10')
+        api.get('/settings/public')
       ]);
+
+      // Check Top Trending Permission (Default to true if setting missing)
+      const platformsStr = settingsRes.data.status ? (settingsRes.data.data.top_trending_platforms || 'web,android,ios,tv') : 'web,android,ios,tv';
+      // If it comes as array (from previous plan step) vs string. The Controller implementation returns ARRAY now.
+      // Wait, Controller returns array. Frontend API.ts generic response format?
+      // "top_trending_platforms" => $trendingPlatforms (array) in PHP.
+      // So checking logic:
+      const platforms = Array.isArray(platformsStr) ? platformsStr : (typeof platformsStr === 'string' ? platformsStr.split(',') : []);
+      const showTrending = platforms.includes('web');
+
+      if (showTrending) {
+          const topRes = await api.get('/channels?sort=top_trending&limit=10');
+          if (topRes.data.status) {
+             setTopTrending(topRes.data.data.data || topRes.data.data || []);
+          }
+      } else {
+          setTopTrending([]);
+      }
 
       if (featuredRes.data.status) {
         setFeaturedChannels(featuredRes.data.data || []);
-      }
-      
-      if (topRes.data.status) {
-         setTopTrending(topRes.data.data.data || topRes.data.data || []);
       }
 
       if (allRes.data.status) {

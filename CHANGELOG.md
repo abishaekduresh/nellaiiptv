@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.20.0] - 2026-01-10
+### Added
+- **Top Trending Control**: Added granular control for "Top Trending" section visibility across platforms (Web, TV, Android, iOS) via Admin Settings.
+- **Admin UI Polish**: Completely redesigned "Allowed Platforms" and "Channel Status" (Featured, Premium, Active) inputs in Channel Form using a modern card-based grid layout.
+
+### Fixed
+- **Maintenance Mode**: Fixed UI lag when toggling Maintenance Mode in Admin Panel by implementing optimistic state updates.
+
+## [Backend 1.16.0] - 2026-01-10
+### Added
+- **Public Settings**: Expose `top_trending_platforms` setting in `PublicSettingController` to allow frontend clients to conditionally render trending sections.
+
 ## [Frontend 1.19.2] - 2026-01-10
 ### Fixed
 - **Admin Login**: Fixed `adminApi` client to correctly use `NEXT_PUBLIC_API_URL` environment variable, resolving "Invalid API Key" errors on production deployments.

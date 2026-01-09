@@ -23,20 +23,31 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
   const [viewersCount, setViewersCount] = useState(0);
   const [logoUrl, setLogoUrl] = useState('/icon.jpg'); // Default fallback
 
+  // Filtering State
+  const [showTopTrending, setShowTopTrending] = useState(true);
+
   useEffect(() => {
       const fetchSettings = async () => {
           try {
               const response = await api.get('/settings/public');
-              if (response.data.status && response.data.data.logo_url) {
-                  let url = response.data.data.logo_url;
-                  // Smart Fix: Always sanitize localhost/127.0.0.1 URLs for uploads
-                  if (url.includes('/uploads/')) {
-                      if (url.includes('localhost') || url.includes('127.0.0.1')) {
-                          const match = url.match(/\/uploads\/.*$/);
-                          if (match) url = match[0];
+              if (response.data.status) {
+                  // Logo Logic
+                  if (response.data.data.logo_url) {
+                      let url = response.data.data.logo_url;
+                      if (url.includes('/uploads/')) {
+                          if (url.includes('localhost') || url.includes('127.0.0.1')) {
+                              const match = url.match(/\/uploads\/.*$/);
+                              if (match) url = match[0];
+                          }
                       }
+                      setLogoUrl(url);
                   }
-                  setLogoUrl(url);
+                  
+                  // Top Trending Logic (Classic = tv)
+                  const platforms = response.data.data.top_trending_platforms || ['web', 'android', 'ios', 'tv'];
+                  // Ensure it is array (Controller returns array)
+                  const platformsArray = Array.isArray(platforms) ? platforms : (typeof platforms === 'string' ? platforms.split(',') : []);
+                  setShowTopTrending(platformsArray.includes('tv'));
               }
           } catch (err) {
               // fallback
@@ -401,7 +412,7 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
           <div className="overflow-visible lg:overflow-y-auto p-2 lg:p-3 flex-1 scrollbar-hide space-y-4 lg:space-y-6">
             
             {/* Top Trending Section */}
-            {topTrending.length > 0 && groupBy === 'all' && (
+            {showTopTrending && topTrending.length > 0 && groupBy === 'all' && (
                 <div className="mb-2 lg:mb-4">
                     <h3 className="text-[10px] lg:text-xs font-bold text-primary mb-1.5 lg:mb-2 uppercase tracking-wider pl-1 border-l-2 border-primary">Top Trending</h3>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2"> {/* Changed to 4 columns desktop, 2 mobile */}
