@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.20.1] - 2026-01-10
+### Fixed
+- **Content Filtering**: Fixed an issue where the "Top Trending" section would still appear on the `/channels` page even when disabled in Admin Settings.
+
 ## [Frontend 1.20.0] - 2026-01-10
 ### Added
 - **Top Trending Control**: Added granular control for "Top Trending" section visibility across platforms (Web, TV, Android, iOS) via Admin Settings.

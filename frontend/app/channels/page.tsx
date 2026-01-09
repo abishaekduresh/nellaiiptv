@@ -36,12 +36,38 @@ function ChannelsContent() {
   useEffect(() => {
     const init = async () => {
         setLoading(true);
-        await Promise.all([
-            fetchFilters(),
-            fetchTopChannels(),
-            fetchAllChannels()
-        ]);
-        setLoading(false);
+        try {
+            // Fetch filters, all channels, and settings in parallel
+            const [settingsRes] = await Promise.all([
+                api.get('/settings/public'),
+                fetchFilters(),
+                fetchAllChannels()
+            ]);
+
+            // Check if we should show Top Trending
+            if (settingsRes.data.status) {
+                const platformsStr = settingsRes.data.data.top_trending_platforms || 'web,android,ios,tv';
+                const platforms = Array.isArray(platformsStr) ? platformsStr : (platformsStr.split(','));
+                
+                if (platforms.includes('web')) {
+                     await fetchTopChannels();
+                } else {
+                    setTopChannels([]);
+                }
+            } else {
+                 // Default to showing if settings fail? Or hiding? 
+                 // Let's default to showing for graceful degradation, or hiding to be safe.
+                 // safe: hide.
+                 setTopChannels([]);
+                 // Or we can try to fetch if we assume default enabled.
+                 // Let's stick to safe.
+                 await fetchTopChannels(); // Actually lets default to TRUE to match legacy behavior
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
     };
     init();
   }, []);
