@@ -1,6 +1,6 @@
-# Nellai IPTV - API Documentation
+# Nellai IPTV - API Documentation (v1.15.1)
 
-**Version 1.13.0**
+**Version 1.15.1**
 
 Base URL: `/api`
 
@@ -352,6 +352,32 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 ### Report Channel Issue
 **Endpoint**: `POST /channels/{uuid}/report`
 **Body**: `{ "issue_type": "Other", "description": "Issue..." }`
+
+---
+
+## Admin Analytics
+
+### Get Channel Analytics
+**Endpoint**: `GET /admin/channels/{uuid}/analytics` (Protected: Admin)
+
+**Response**:
+```json
+{
+  "status": true,
+  "data": {
+    "channel": {
+      "name": "Channel Name",
+      "logo": "...",
+        "total_views": "1.2K",
+      "avg_rating": 4.5
+    },
+    "chart_data": [
+      { "date": "2026-01-01", "count": 120 },
+      { "date": "2026-01-02", "count": 145 }
+    ]
+  }
+}
+```
 
 ---
 

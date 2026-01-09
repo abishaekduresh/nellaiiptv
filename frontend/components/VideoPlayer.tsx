@@ -497,17 +497,50 @@ function VideoPlayer({
         base.abrBandWidthFactor = isLowTierTV ? 0.5 : (profile.isTV ? 0.65 : 0.9);
         base.abrBandWidthUpFactor = isLowTierTV ? 0.4 : (profile.isTV ? 0.5 : 0.85);
 
-        /* 📺 TV OPTIMIZATION */
+        // /* 📺 TV OPTIMIZATION */
+        // if (profile.isTV) {
+        //     return {
+        //         ...base,
+        //         // Aggressive buffering for slow TV hardware
+        //         maxBufferLength: 15, 
+        //         maxMaxBufferLength: 30,
+        //         backBufferLength: 5,
+        //         maxBufferSize: 15 * 1000 * 1000, 
+        //         maxStarvationDelay: 8,
+        //         maxLoadingDelay: 4,
+        //     };
+        // }
+
+        /* 📺 OLD ANDROID TV OPTIMIZATION */
         if (profile.isTV) {
             return {
                 ...base,
-                // Aggressive buffering for slow TV hardware
-                maxBufferLength: 15, 
-                maxMaxBufferLength: 30,
+
+                // FORCE safe starting quality for TVs
+                startLevel: 1, // 480p / 720p (depends on ladder order)
+
+                // Buffering (balanced for low RAM TVs)
+                maxBufferLength: 12,
+                maxMaxBufferLength: 25,
                 backBufferLength: 5,
-                maxBufferSize: 15 * 1000 * 1000, 
-                maxStarvationDelay: 8,
+                maxBufferSize: 12 * 1000 * 1000, // 12 MB
+
+                // Avoid quality panic drops
+                maxStarvationDelay: 6,
                 maxLoadingDelay: 4,
+
+                // Quality stability
+                capLevelToPlayerSize: true,
+                abrBandWidthFactor: 0.8,
+                abrBandWidthUpFactor: 0.6,
+
+                // Start with safe bitrate
+                abrEwmaDefaultEstimate: 1500000,
+
+                // Old TV compatibility
+                enableWorker: false,
+                lowLatencyMode: false,
+                progressive: true,
             };
         }
 

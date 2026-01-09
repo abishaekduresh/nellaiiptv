@@ -7,7 +7,6 @@ import { useTVFocus } from '@/hooks/useTVFocus';
 import { Play, Eye, Star, Heart, Crown } from 'lucide-react';
 import { Channel } from '@/types';
 import api from '@/lib/api';
-import { formatViewers } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
 
 
@@ -123,13 +122,13 @@ export default function ChannelCard({ channel, showOverallViewers = false }: Cha
             <Star size={12} fill="currentColor" />
             <span>{(Number(channel.ratings_avg_rating) || Number(channel.average_rating) || 0).toFixed(1)}</span>
          </div>
-         <span className="flex items-center text-xs text-slate-400">
-            <Eye size={12} className="mr-1" />
-            {channel.daily_views !== undefined && !showOverallViewers
-                ? <>{formatViewers(channel.daily_views || 0)}<span className="hidden sm:inline"> </span></>
-                : formatViewers(channel.viewers_count || 0)}
-         </span>
-      </div>
+          <span className="flex items-center text-xs text-slate-400">
+             <Eye size={12} className="mr-1" />
+             {channel.daily_views !== undefined && !showOverallViewers
+                 ? <>{channel.daily_views_formatted || '0'}<span className="hidden sm:inline"> </span></>
+                 : (channel.viewers_count_formatted || '0')}
+          </span>
+       </div>
 
       {/* Favorite Button (Interactive, Z-Index 20 to sit above Link) */}
       <button 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const adminApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost/public/api',
+  baseURL: 'http://localhost/nellaiiptv/backend/public/api',
   headers: {
     'Content-Type': 'application/json',
     'X-Client-Platform': 'web',

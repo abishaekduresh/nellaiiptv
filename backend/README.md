@@ -1,4 +1,6 @@
-**Version 1.14.0** | RESTful API built with Slim PHP Framework
+# Nellai IPTV - Backend API (v1.15.1)
+
+**Version 1.15.1** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -85,6 +87,7 @@ backend/
 │   │   └── ...
 │   ├── Services/            # Business logic
 │   │   ├── AuthService.php
+│   │   ├── Admin/ChannelService.php # Admin specific logic
 │   │   └── ...
 │   ├── Middleware/          # Request middleware
 │   │   ├── ApiKeyMiddleware.php       # Enforces X-API-KEY
@@ -148,6 +151,11 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.15.0)
+- 📊 **Analytics API**: New `GET /admin/channels/{uuid}/analytics` provides rich data on channel views (daily trends) and user ratings.
+- 🛠️ **Service Architecture**: Separated Admin-only logic into `Services\Admin\ChannelService` for better code organization and security.
+- 🐛 **Bug Fixes**: Resolved 500 errors in public channel listings by optimizing `withAvg` queries.
 
 ## Latest Updates (v1.14.0)
 - 📝 **Activity Logging**: Full audit trail for customer Login, Logout, and Device Revocation events.

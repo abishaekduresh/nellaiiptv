@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Search, ExternalLink, Filter } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, ExternalLink, Filter, BarChart2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import { Category, Language, State } from '@/types';
+import ChannelAnalyticsModal from '@/components/admin/ChannelAnalyticsModal';
 
 interface AdminChannel {
   uuid: string;
@@ -38,6 +39,9 @@ export default function ChannelsPage() {
   const [filterLanguage, setFilterLanguage] = useState('');
   const [filterState, setFilterState] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+
+  // Analytics Modal State
+  const [analyticsUuid, setAnalyticsUuid] = useState<string | null>(null);
 
   const fetchFilters = async () => {
     try {
@@ -253,6 +257,13 @@ export default function ChannelsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setAnalyticsUuid(channel.uuid)}
+                          className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2 rounded transition-colors"
+                          title="View Analytics"
+                        >
+                          <BarChart2 size={16} />
+                        </button>
                         <Link
                           href={`/admin/channels/${channel.uuid}`}
                           className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 p-2 rounded transition-colors"
@@ -292,6 +303,13 @@ export default function ChannelsPage() {
                 Next
             </button>
         </div>
+
+        {/* Analytics Modal */}
+        <ChannelAnalyticsModal 
+            uuid={analyticsUuid || ''} 
+            isOpen={!!analyticsUuid} 
+            onClose={() => setAnalyticsUuid(null)} 
+        />
       </div>
     </div>
   );

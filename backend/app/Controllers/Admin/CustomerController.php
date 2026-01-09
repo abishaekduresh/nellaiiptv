@@ -39,6 +39,62 @@ class CustomerController
         return ResponseFormatter::success($response, $customers);
     }
 
+    public function create(Request $request, Response $response): Response
+    {
+        error_log("CustomerController::create called");
+        $data = $request->getParsedBody() ?? [];
+
+        try {
+            // Basic Validation
+            if (empty($data['name']) || empty($data['phone'])) {
+                return ResponseFormatter::error($response, 'Name and Phone are required', 400);
+            }
+
+            // check if phone already exists
+            if (Customer::where('phone', $data['phone'])->exists()) {
+                return ResponseFormatter::error($response, 'Phone number already exists', 400);
+            }
+            // check if email already exists (if provided)
+            if (!empty($data['email']) && Customer::where('email', $data['email'])->exists()) {
+                return ResponseFormatter::error($response, 'Email already exists', 400);
+            }
+
+            $customer = new Customer();
+            $customer->uuid = \Ramsey\Uuid\Uuid::uuid4()->toString();
+            $customer->name = $data['name'];
+            $customer->phone = $data['phone'];
+            $customer->email = $data['email'] ?? null;
+            $customer->status = $data['status'] ?? 'active';
+            $customer->created_at = date('Y-m-d H:i:s');
+            
+            if (!empty($data['password'])) {
+                $customer->password = password_hash($data['password'], PASSWORD_BCRYPT);
+            }
+
+            $customer->save();
+
+            return ResponseFormatter::success($response, $customer, 'Customer created successfully', 201);
+
+        } catch (\Throwable $e) {
+            error_log("CustomerController::create Error: " . $e->getMessage());
+            return ResponseFormatter::error($response, $e->getMessage(), 400);
+        }
+    }
+
+    public function show(Request $request, Response $response, string $uuid): Response
+    {
+        try {
+            $customer = Customer::where('uuid', $uuid)->first();
+            if (!$customer) {
+                return ResponseFormatter::error($response, 'Customer not found', 404);
+            }
+            // Make hidden password visible if needed, but usually we don't return passwords.
+            return ResponseFormatter::success($response, $customer);
+        } catch (\Throwable $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 400);
+        }
+    }
+
     public function update(Request $request, Response $response, string $uuid): Response
     {
         error_log("CustomerController::update called for UUID: " . $uuid);
@@ -51,12 +107,21 @@ class CustomerController
                 return ResponseFormatter::error($response, 'Customer not found', 404);
             }
             
+            // Update fields if present
+            if (isset($data['name'])) $customer->name = $data['name'];
+            if (isset($data['email'])) $customer->email = $data['email'];
+            if (isset($data['phone'])) $customer->phone = $data['phone'];
+            
             if (isset($data['status'])) {
                 $status = $data['status'];
                 if (!in_array($status, ['active', 'inactive', 'blocked'])) {
                     throw new Exception('Invalid status value');
                 }
                 $customer->status = $status;
+            }
+
+            if (!empty($data['password'])) {
+                 $customer->password = password_hash($data['password'], PASSWORD_BCRYPT);
             }
             
             $customer->save();
@@ -77,6 +142,16 @@ class CustomerController
                 return ResponseFormatter::error($response, 'Customer not found', 404);
             }
 
+            // Hard delete or Soft delete? Code suggested status update before, keeping it consistent or verify if true delete is needed.
+            // Previous code did: $customer->status = 'deleted';
+            // If we want actual delete: $customer->delete();
+            // Sticking to soft delete via status based on previous code context, but ideally user might want hard delete.
+            // Let's do hard delete if requested "crud", but previous code had logic.
+            // Wait, previous code: $customer->status = 'deleted'; 
+            // I will keep it as soft delete for safety unless user complained.
+            // Actually, for "CRUD" normally Delete means Delete. But let's check if the list filters "deleted".
+            // Yes, index query has ->where('status', '!=', 'deleted');
+             
             $customer->status = 'deleted';
             $customer->save();
             return ResponseFormatter::success($response, null, 'Customer deleted');

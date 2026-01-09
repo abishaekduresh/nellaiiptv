@@ -5,8 +5,31 @@ All notable changes to this project will be documented in this file.
 
 
 
-## [Frontend 1.18.0] - 2026-01-08
+## [Frontend 1.19.1] - 2026-01-09
+### Fixed
+- **Registration**: Resolved UI error handling for registration failures.
+
+## [Backend 1.15.1] - 2026-01-09
+### Fixed
+- **Critical Auth Bug**: Resolved `Cannot redeclare class Resend` fatal error in `ResendEmailService` that prevented new user registration.
+
+## [Frontend 1.19.0] - 2026-01-09
 ### Added
+- **Channel Analytics**: New "Analytics" modal in Admin Panel showing daily view trends and average ratings per channel.
+- **Admin Tooling**: Integrated `Chart.js` for visual data representation in the admin interface.
+
+### Fixed
+- **Type Safety**: Resolved typescript mismatch in `CustomerForm` for admin customer management.
+- **Visuals**: Fixed channel list display issues in OTT and Classic modes.
+
+## [Backend 1.15.0] - 2026-01-09
+### Added
+- **Analytics API**: New `GET /admin/channels/{uuid}/analytics` endpoint providing daily view aggregation and rating stats.
+- **Admin Service**: Dedicated `ChannelService` logic for admin-specific data retrieval.
+
+### Fixed
+- **API Stability**: Resolved 500 Internal Server Errors in `getAnalytics` due to `avg()` on null relationships.
+- **Public API**: Fixed 500 Error in public `GET /channels` caused by duplicate `withAvg` calls in the service layer.
 - **Session Monitor**: Implemented client-side polling (`SessionMonitor.tsx`) to detect session revocation and trigger instant logout.
 - **Device Management**: Added `DeviceManager` component to profile and devices pages, allowing users to view and revoke active sessions.
 - **Maintenance Mode**: Implemented global "Under Maintenance" screen with Admin-configurable title and message, blocking public access while allowing admin login.

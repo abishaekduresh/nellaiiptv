@@ -80,4 +80,13 @@ class ChannelController
             return ResponseFormatter::error($response, $e->getMessage(), 500);
         }
     }
+    public function getAnalytics(Request $request, Response $response, string $uuid): Response
+    {
+        try {
+            $data = $this->channelService->getAnalytics($uuid);
+            return ResponseFormatter::success($response, $data, 'Channel analytics retrieved successfully');
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
+        }
+    }
 }

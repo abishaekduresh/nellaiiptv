@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import { Customer } from '@/types';
+import Modal from '@/components/ui/Modal';
+import CustomerForm from '@/components/admin/CustomerForm';
 
 
 export default function CustomersPage() {
@@ -18,6 +20,9 @@ export default function CustomersPage() {
   // Sorting State
   const [sortBy, setSortBy] = useState('id');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -59,8 +64,6 @@ export default function CustomersPage() {
       toast.success(`Customer ${newStatus === 'active' ? 'activated' : 'blocked'} successfully`);
     } catch (error: any) {
       console.error('Failed to update customer status - Full Error:', error);
-      console.error('Response Status:', error.response?.status);
-      console.error('Response Data:', error.response?.data);
       toast.error(error.response?.data?.message || 'Failed to update customer status');
     }
   };
@@ -75,6 +78,21 @@ export default function CustomersPage() {
     } catch (error) {
       toast.error('Failed to delete customer');
     }
+  };
+
+  const handleEdit = (uuid: string) => {
+      setSelectedCustomer(uuid);
+      setIsModalOpen(true);
+  };
+
+  const handleCreate = () => {
+      setSelectedCustomer(null);
+      setIsModalOpen(true);
+  };
+
+  const handleFormSuccess = () => {
+      setIsModalOpen(false);
+      fetchCustomers();
   };
 
   const handleSort = (column: string) => {
@@ -95,6 +113,13 @@ export default function CustomersPage() {
     <div>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <h1 className="text-3xl font-bold text-white">Customers</h1>
+        <button 
+            onClick={handleCreate}
+            className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+        >
+            <Plus size={20} />
+            Add Customer
+        </button>
       </div>
 
       {/* Search and Filter */}
@@ -226,6 +251,14 @@ export default function CustomersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => handleEdit(customer.uuid)}
+                            className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 p-2 rounded transition-colors"
+                            title="Edit Customer"
+                        >
+                            <Edit size={16} />
+                        </button>
+
                         {customer.status === 'blocked' ? (
                             <button
                                 onClick={() => handleStatusUpdate(customer.uuid, 'active')}
@@ -279,6 +312,18 @@ export default function CustomersPage() {
             </button>
         </div>
       </div>
+
+    <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={selectedCustomer ? 'Edit Customer' : 'Add New Customer'}
+    >
+        <CustomerForm
+            customerUuid={selectedCustomer}
+            onSuccess={handleFormSuccess}
+            onCancel={() => setIsModalOpen(false)}
+        />
+    </Modal>
     </div>
   );
 }

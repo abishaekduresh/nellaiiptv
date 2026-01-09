@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Channel } from '@/types';
-import { formatViewers } from '@/lib/utils';
 import VideoPlayer from '@/components/VideoPlayer';
 import ChannelRow from '@/components/ChannelRow';
 import AdBanner from '@/components/AdBanner';
@@ -349,7 +348,7 @@ export default function ChannelPage() {
               )}
               <span className="flex items-center gap-2 text-white font-medium">
                 <Eye size={18} className="text-primary" />
-                {formatViewers(channel.viewers_count)} Viewers
+                {channel.viewers_count_formatted || '0'} Viewers
               </span>
               {/* Explicit Average Rating Display */}
               <span className="flex items-center gap-2 text-yellow-400 font-bold">

@@ -1,4 +1,4 @@
-# Nellai IPTV - Frontend (v1.18.0)
+# Nellai IPTV - Frontend (v1.19.1)
 
 ## Overview
 
@@ -67,6 +67,10 @@ frontend/
 - **Spatial Navigation**: Full support for arrow-key navigation (D-pad) for easy browsing on TV.
 - **Smart Search**: Search by channel name or specific channel number (e.g., "CH 101" or just "1").
 - **Live Visuals**: Auto-scrolling banners and interactive channel cards.
+- **Admin Analytics (v1.19.0)**:
+  - **Visual Insights**: Interactive charts showing daily view trends per channel.
+  - **Rating Stats**: Displays average channel rating calculated accurately from user feedback.
+  - **Integrated Tooling**: Seamless access via the Admin Channels table.
 - **Security & Sessions (v1.18.0)**:
   - **Session Monitor**: Real-time polling detects if your session is revoked and logs you out instantly.
   - **Device Manager**: View and Remove your connected devices/sessions directly from the Profile or Devices page.

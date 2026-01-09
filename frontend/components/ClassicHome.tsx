@@ -10,7 +10,6 @@ import AdBanner from './AdBanner';
 import api from '@/lib/api';
 import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
-import { formatViewers } from '@/lib/utils';
 
 interface ClassicHomeProps {
   channels: Channel[];
@@ -307,7 +306,7 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                                 <div className="flex flex-col items-center">
                                     <span className="flex items-center gap-1 text-white font-bold text-[10px] lg:text-xs">
                                         <Eye size={10} className="text-emerald-500" />
-                                        {formatViewers(viewersCount)}
+                                        {selectedChannel.viewers_count_formatted || '0'}
                                     </span>
                                     <span className="text-[8px] text-slate-500 font-medium uppercase tracking-wider scale-90">Views</span>
                                 </div>
@@ -562,7 +561,7 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
             </div>
              <div className="flex items-center text-[9px] sm:text-[10px] text-slate-400 font-medium">
                 <Eye size={10} className="mr-1 text-slate-500" />
-                <span>{channel.viewers_count ? formatViewers(channel.viewers_count) : '0'}</span>
+                <span>{channel.viewers_count_formatted || '0'}</span>
              </div>
       </div>
     </div>

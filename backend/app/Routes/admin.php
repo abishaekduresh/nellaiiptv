@@ -20,9 +20,12 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'show']);
         $group->put('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'update']);
         $group->delete('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'delete']);
+        $group->get('/channels/{uuid}/analytics', [\App\Controllers\Admin\ChannelController::class, 'getAnalytics']);
         
         // Customer Management
         $group->get('/customers', [\App\Controllers\Admin\CustomerController::class, 'index']);
+        $group->post('/customers', [\App\Controllers\Admin\CustomerController::class, 'create']);
+        $group->get('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'show']);
         $group->put('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'update']);
         $group->delete('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'delete']);
         

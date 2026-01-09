@@ -119,11 +119,7 @@ export default function PlayerOverlay({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const formatViewers = (count: number) => {
-    if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
-    if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
-    return count.toString();
-  };
+
 
   // Auto-close sidebar when minimizing
   useEffect(() => {
@@ -558,8 +554,8 @@ export default function PlayerOverlay({
                                      <span className="bg-white/10 px-1.5 rounded text-slate-300 shrink-0">CH {currentChannel.channel_number}</span>
                                      <span className="flex items-center gap-1">
                                           <Eye size={10} />
-                                          {formatViewers(viewersCount)}
-                                     </span>
+                                          {currentChannel.viewers_count_formatted || '0'}
+                                      </span>
                                  </div>
                              </div>
                         </div>

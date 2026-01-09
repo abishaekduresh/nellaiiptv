@@ -2,7 +2,7 @@
 
 namespace App\Services\Email;
 
-use Resend\Resend;
+use Resend; // Use global class if available, or just remove if fully qualified below
 use Exception;
 
 class ResendEmailService implements EmailServiceInterface
@@ -16,7 +16,7 @@ class ResendEmailService implements EmailServiceInterface
         if (!$apiKey) {
             throw new Exception("RESEND_EMAIL_API_KEY is not set in environment");
         }
-        $this->resend = Resend::client($apiKey);
+        $this->resend = \Resend::client($apiKey);
         $this->fromEmail = $_ENV['MAIL_FROM_ADDRESS'] ?? 'onboarding@resend.dev';
     }
 
