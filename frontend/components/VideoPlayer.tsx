@@ -511,36 +511,39 @@ function VideoPlayer({
         //     };
         // }
 
-        /* 📺 OLD ANDROID TV OPTIMIZATION */
+        /* 📺 VERY OLD ANDROID TV OPTIMIZATION */
         if (profile.isTV) {
             return {
                 ...base,
 
-                // Relaxed buffering (Low RAM Optimization)
-                maxBufferLength: 10,     
-                maxMaxBufferLength: 20, 
-                backBufferLength: 2, 
-                maxBufferSize: 15 * 1000 * 1000, // Cap at 15MB 
-                
-                // CRITICAL: Cap resolution to screen size (Prevents 4K on 1080p TV)
+                // Start lower to avoid decoder overload
+                startLevel: 0, // 360p or lowest stable
+
+                // Smaller buffers = less GC pauses
+                maxBufferLength: 8,
+                maxMaxBufferLength: 18,
+                backBufferLength: 3,
+                maxBufferSize: 8 * 1000 * 1000, // 8 MB (IMPORTANT)
+
+                // Let video drop frames instead of freezing
+                maxStarvationDelay: 3,
+                maxLoadingDelay: 2,
+
+                // ABR: VERY conservative
+                abrBandWidthFactor: 0.65,
+                abrBandWidthUpFactor: 0.5,
+                abrEwmaDefaultEstimate: 900000, // 900 kbps
+
+                // Do NOT upscale video
                 capLevelToPlayerSize: true,
 
-                // Start at LOWEST quality to ensure immediate smooth playback
-                startLevel: 0, 
-
-                // Worker helps offload parsing from main thread (fixes UI jank/skipping)
-                enableWorker: true,
+                // Old TV compatibility
+                enableWorker: false,
                 lowLatencyMode: false,
                 progressive: true,
 
-                // Conservative bandwidth to prevent over-fetching
-                abrBandWidthFactor: 0.5,
-                abrBandWidthUpFactor: 0.5,
-                abrEwmaDefaultEstimate: 500000, 
-
-                // Failover quickly if stalling
-                maxStarvationDelay: 3, 
-                maxLoadingDelay: 3,
+                // Prevent rapid quality switching
+                abrMaxWithRealBitrate: true,
             };
         }
 
@@ -602,6 +605,15 @@ function VideoPlayer({
 
         hls.loadSource(src);
         hls.attachMedia(video);
+        
+        // 🔥 CRITICAL ADDITION (Most Important Fix)
+        // Force video element to drop frames instead of freezing
+        video.setAttribute("playsinline", "true");
+        video.setAttribute("webkit-playsinline", "true");
+        // video.muted = false; // We handle this via state, better not force it here to avoid race conditions with user preference
+
+        // Disable fancy rendering
+        video.style.imageRendering = "auto";
         
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
             const levels = hls?.levels || [];

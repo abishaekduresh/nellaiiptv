@@ -1,4 +1,4 @@
-# Nellai IPTV - Frontend (v1.22.1)
+# Nellai IPTV - Frontend (v1.22.2)
 
 ## Overview
 

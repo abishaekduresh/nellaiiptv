@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 
 
 
-## [Frontend 1.22.1] - 2026-01-10
+## [Frontend 1.22.2] - 2026-01-10
+### Added
+- **Decoder Optimization**:
+  - **Frame Dropping**: Implemented `playsinline` and `webkit-playsinline` attributes on the video element. This instructs the TV's webview to drop frames rather than freezing the entire stream when the decoder falls behind, ensuring audio continuity.
+  - **Render Performance**: Explicitly set `imageRendering: "auto"` to prevent expensive scaling algorithms on low-power devices.
+
+
 ### Added
 - **Native HLS Support**:
   - **TV Optimization**: The Video Player now prioritizes **Native HLS** playback (via `application/vnd.apple.mpegurl`) on TV devices (WebOS, Tizen, Android TV) before falling back to HLS.js. This leverages the TV's dedicated hardware decoder for vastly superior performance on low-spec devices, eliminating stuttering and frame drops.
