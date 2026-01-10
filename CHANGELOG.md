@@ -17,7 +17,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **Type Safety**: Fixed `src` type mismatch in `ClassicHome` and `ChannelPage` video players by handling `undefined` HLS URLs.
-- **Build Errors**: Resolved TypeScript build failures in production builds related to the video player props.
+- **Build Errors**: Resolved TypeScript build failures in production:
+  - Fixed `src` type mismatch in `ClassicHome` and `ChannelPage`.
+  - Fixed `channel_number` undefined access in `PlayerOverlay` search filter.
 
 ## [Backend 1.17.0] - 2026-01-10
 ### Added

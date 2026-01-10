@@ -157,7 +157,7 @@ export default function PlayerOverlay({
 
           return sourceChannels.filter(c => 
               c.name.toLowerCase().includes(query) || 
-              c.channel_number.toString().includes(query)
+              (c.channel_number ? c.channel_number.toString().includes(query) : false)
           );
       }
 
