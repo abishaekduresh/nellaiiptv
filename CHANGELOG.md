@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 
 
 
-## [Frontend 1.22.0] - 2026-01-10
+## [Frontend 1.22.1] - 2026-01-10
+### Added
+- **Native HLS Support**:
+  - **TV Optimization**: The Video Player now prioritizes **Native HLS** playback (via `application/vnd.apple.mpegurl`) on TV devices (WebOS, Tizen, Android TV) before falling back to HLS.js. This leverages the TV's dedicated hardware decoder for vastly superior performance on low-spec devices, eliminating stuttering and frame drops.
+
+
 ### Added
 - **Subscription Module**:
   - **Admin Plan Management**: Complete UI for creating, editing, and deleting subscription plans (`/admin/plans`).

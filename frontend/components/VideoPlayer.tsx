@@ -565,7 +565,29 @@ function VideoPlayer({
         };
     };
 
-    // Check if HLS.js is supported
+    // Check for Native HLS support first on TVs (often better optimized)
+    const isTV = /smarttv|tizen|webos|android tv|tv|crkey|roku|netcast/i.test(navigator.userAgent);
+    if (isTV && video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = src;
+        video.addEventListener('loadedmetadata', () => {
+            video.play().catch(() => {});
+            setIsPlaying(true);
+        });
+        video.addEventListener('canplay', () => setIsLoading(false));
+        video.addEventListener('error', () => {
+             // Fallback to Hls.js if native fails? 
+             // Ideally we just report error, but let's try HLS.js as last resort if we were rigorous, 
+             // but here we just error out to avoid complex fallback logic for now unless requested.
+             setIsLoading(false);
+             setErrorMessage("Native Stream failed");
+        });
+        return () => {
+             video.src = '';
+             video.load();
+        };
+    }
+    
+    // Fallback to HLS.js
     if (Hls.isSupported()) {
         const profile = getDeviceProfile();
         // console.log("Device Profile:", profile);
@@ -601,26 +623,18 @@ function VideoPlayer({
                 return { index, label, height: level.height };
             });
             
-            // Filter out unsupported resolutions for Auto mode if needed, 
-            // or just rely on autoLevelCapping. 
-            // Here we set autoLevelCapping to the highest allowed index.
             if (hls) {
                 let maxAllowedIndex = -1;
-                // Find highest level that fits maxRes
                 levels.forEach((lvl, idx) => {
                      if (lvl.height <= maxRes) {
                          maxAllowedIndex = idx;
                      }
                 });
-                
-                // If we found a valid cap, apply it to auto-algorithm
                 if (maxAllowedIndex !== -1) {
                     hls.autoLevelCapping = maxAllowedIndex;
-                    // console.log(`Capped Resolution to ${maxRes}p (Level ${maxAllowedIndex})`);
                 }
             }
             
-            // Add Auto option at the beginning
             setQualities([{ index: -1, label: 'Auto' }, ...mappedLevels.reverse()]); 
             
             video.play().catch(() => {});
@@ -633,18 +647,15 @@ function VideoPlayer({
 
         hls.on(Hls.Events.ERROR, function (event, data) {
             if (data.fatal) {
-               setIsLoading(false); // Stop loading on fatal error
+               setIsLoading(false);
                 switch (data.type) {
                   case Hls.ErrorTypes.NETWORK_ERROR:
-                    // console.log("fatal network error encountered, try to recover");
                     hls?.startLoad();
                     break;
                   case Hls.ErrorTypes.MEDIA_ERROR:
-                    // console.log("fatal media error encountered, try to recover");
                     hls?.recoverMediaError();
                     break;
                   default:
-                    // cannot recover
                     hls?.destroy();
                     setErrorMessage("Stream failed (HLS Error)");
                     break;
@@ -652,7 +663,7 @@ function VideoPlayer({
             }
         });
     } 
-    // Native HLS (Safari, iOS, some Android)
+    // Native HLS for non-TVs (Safari on Mac/iOS)
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = src;
         video.addEventListener('loadedmetadata', () => {
@@ -660,10 +671,6 @@ function VideoPlayer({
             setIsPlaying(true);
         });
         video.addEventListener('canplay', () => setIsLoading(false));
-        video.addEventListener('error', () => {
-             setIsLoading(false);
-             setErrorMessage("Stream failed (Native Error)");
-        });
     } else {
         setIsLoading(false);
         setErrorMessage("HLS not supported on this browser.");
