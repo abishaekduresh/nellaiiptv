@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.22.0] - 2026-01-10
+### Added
+- **Subscription Module**:
+  - **Admin Plan Management**: Complete UI for creating, editing, and deleting subscription plans (`/admin/plans`).
+  - **Customer Integration**: View and manage customer subscription status and plan details directly from the customer profile.
+  - **Visuals**: Plan details are now displayed in the customer table and overview modal.
+- **TV Performance Tuning**:
+  - **Optimized HLS**: Overhauled `VideoPlayer` settings for low-spec Android TVs (`maxBuffer` reduced to 15MB, `startLevel` set to 0, `capLevelToPlayerSize` enabled).
+  - **Decoder Safety**: Aggressive capping of resolution to match screen size, preventing 4K stalls on 1080p hardware.
+
+### Fixed
+- **Type Safety**: Fixed `src` type mismatch in `ClassicHome` and `ChannelPage` video players by handling `undefined` HLS URLs.
+- **Build Errors**: Resolved TypeScript build failures in production builds related to the video player props.
+
+## [Backend 1.17.0] - 2026-01-10
+### Added
+- **Subscription Engine**:
+  - **Models & Migrations**: Added `SubscriptionPlan` model and migration scripts for database structure.
+  - **Admin API**: Full CRUD endpoints for managing subscription plans (`SubscriptionPlanController`).
+  - **Logic**: Implemented expiration logic (`subscription_expires_at`) and plan association (`subscription_plan_id`) in `Customer` model.
+  - **Middleware**: Added `OptionalAuthMiddleware` to identifying subscribers on public routes without forcing login.
+
 ## [Frontend 1.21.0] - 2026-01-10
 ### Added
 - **Premium Integration**:

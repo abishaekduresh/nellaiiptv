@@ -516,31 +516,31 @@ function VideoPlayer({
             return {
                 ...base,
 
-                // FORCE safe starting quality for TVs
-                startLevel: 1, // 480p / 720p (depends on ladder order)
-
-                // Buffering (balanced for low RAM TVs)
-                maxBufferLength: 12,
-                maxMaxBufferLength: 25,
-                backBufferLength: 5,
-                maxBufferSize: 12 * 1000 * 1000, // 12 MB
-
-                // Avoid quality panic drops
-                maxStarvationDelay: 6,
-                maxLoadingDelay: 4,
-
-                // Quality stability
+                // Relaxed buffering (Low RAM Optimization)
+                maxBufferLength: 10,     
+                maxMaxBufferLength: 20, 
+                backBufferLength: 2, 
+                maxBufferSize: 15 * 1000 * 1000, // Cap at 15MB 
+                
+                // CRITICAL: Cap resolution to screen size (Prevents 4K on 1080p TV)
                 capLevelToPlayerSize: true,
-                abrBandWidthFactor: 0.8,
-                abrBandWidthUpFactor: 0.6,
 
-                // Start with safe bitrate
-                abrEwmaDefaultEstimate: 1500000,
+                // Start at LOWEST quality to ensure immediate smooth playback
+                startLevel: 0, 
 
-                // Old TV compatibility
-                enableWorker: false,
+                // Worker helps offload parsing from main thread (fixes UI jank/skipping)
+                enableWorker: true,
                 lowLatencyMode: false,
                 progressive: true,
+
+                // Conservative bandwidth to prevent over-fetching
+                abrBandWidthFactor: 0.5,
+                abrBandWidthUpFactor: 0.5,
+                abrEwmaDefaultEstimate: 500000, 
+
+                // Failover quickly if stalling
+                maxStarvationDelay: 3, 
+                maxLoadingDelay: 3,
             };
         }
 

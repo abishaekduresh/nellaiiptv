@@ -310,7 +310,7 @@ export default function ChannelPage() {
         <div className="max-w-[1600px] mx-auto">
           <div className="aspect-video w-full">
             <VideoPlayer 
-              src={channel.hls_url} 
+              src={channel.hls_url || ''} 
               poster={channel.thumbnail_url}
               onVideoPlay={handleVideoPlay}
               onVideoPause={handleVideoPause}
