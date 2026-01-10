@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import adminApi from '@/lib/adminApi';
 import toast from 'react-hot-toast';
+import { SubscriptionPlan } from '@/types';
 
 const customerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -13,6 +14,8 @@ const customerSchema = z.object({
   phone: z.coerce.number().min(10, 'Phone number must be at least 10 digits'),
   password: z.string().min(6, 'Password must be at least 6 characters').optional().or(z.literal('')),
   status: z.enum(['active', 'blocked', 'inactive']).default('active'),
+  plan_uuid: z.string().optional().nullable(),
+  subscription_expires_at: z.string().optional().nullable(),
 });
 
 type CustomerFormData = z.infer<typeof customerSchema>;
@@ -26,6 +29,20 @@ interface CustomerFormProps {
 export default function CustomerForm({ customerUuid, onSuccess, onCancel }: CustomerFormProps) {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    try {
+      const res = await adminApi.get('/admin/plans');
+      setPlans(res.data.data);
+    } catch (error) {
+      console.error('Failed to fetch plans');
+    }
+  };
 
   const {
     register,
@@ -55,6 +72,8 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
       setValue('email', customer.email || '');
       setValue('phone', customer.phone);
       setValue('status', customer.status);
+      setValue('plan_uuid', customer.plan?.uuid || '');
+      setValue('subscription_expires_at', customer.subscription_expires_at ? customer.subscription_expires_at.substring(0, 16) : '');
       // Password is not fetched
     } catch (error) {
       toast.error('Failed to fetch customer details');
@@ -154,6 +173,34 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
           <option value="blocked">Blocked</option>
         </select>
         {errors.status && <p className="text-red-400 text-xs mt-1">{errors.status.message}</p>}
+      </div>
+      
+      {/* Subscription Plan */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-text-secondary mb-1">Subscription Plan</label>
+          <select
+            {...register('plan_uuid')}
+            className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+          >
+            <option value="">No Plan</option>
+            {plans.map(plan => (
+              <option key={plan.uuid} value={plan.uuid}>
+                {plan.name} ({plan.duration} days - ${plan.price})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+           <label className="block text-sm font-medium text-text-secondary mb-1">Expiry Date</label>
+           <input
+             {...register('subscription_expires_at')}
+             type="datetime-local"
+             className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+           />
+           <p className="text-xs text-gray-500 mt-1">Leave blank to auto-calculate if plan selected</p>
+        </div>
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
+import { Crown } from 'lucide-react';
 
 interface UserProps {
   user: {
@@ -11,6 +12,8 @@ interface UserProps {
     name?: string;
     email?: string;
     phone?: string;
+    status?: string;
+    plan?: any;
   };
 }
 
@@ -46,8 +49,13 @@ const UserMenu = ({ user }: UserProps) => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 text-slate-300 hover:text-white focus:outline-none"
       >
-        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+        <div className="relative w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
           {displayName.charAt(0).toUpperCase()}
+          {((user as any).plan && (user as any).status === 'active') && (
+            <div className="absolute -top-1 -right-1 bg-yellow-500 text-slate-900 rounded-full p-0.5 shadow-sm border border-slate-900" title="Premium">
+                <Crown size={10} fill="currentColor" />
+            </div>
+          )}
         </div>
         <span className="hidden md:block">{displayName}</span>
         <svg

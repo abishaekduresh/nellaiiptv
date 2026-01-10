@@ -26,7 +26,20 @@ class ChannelController
         $platform = $request->getHeaderLine('X-Client-Platform');
         $filters['platform'] = strtolower($platform);
 
-        $channels = $this->channelService->getAll($filters);
+        // Perform Subscription Check for Premium Redaction in List
+        $user = $request->getAttribute('user');
+        $allowPremium = false;
+        
+        if ($user) {
+             $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
+             if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
+                 if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
+                     $allowPremium = true;
+                 }
+             }
+        }
+
+        $channels = $this->channelService->getAll($filters, $allowPremium);
         return ResponseFormatter::success($response, $channels, 'Channels retrieved successfully');
     }
 
@@ -49,7 +62,36 @@ class ChannelController
             // If empty (shouldn't happen due to middleware), default to 'web' safely
             $platform = !empty($platform) ? strtolower($platform) : 'web';
 
-            $channel = $this->channelService->getOne($uuid, $platform);
+            // Perform Subscription Check
+            $user = $request->getAttribute('user');
+            $allowPremium = false;
+            
+            if ($user) {
+                // Fetch full customer to check plan status
+                // Optimization: Could store plan info in JWT to avoid DB call
+                // But specifically for 'active' status checking real-time is safer
+                $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
+                if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
+                     // Check expiry
+                     if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
+                         $allowPremium = true;
+                     }
+                }
+            }
+
+            $channel = $this->channelService->getOne($uuid, $platform, $allowPremium);
+            
+            // If channel is premium and user not allowed, we can return 403 or just the Restricted URL.
+            // Returning the object with 'PAID_RESTRICTED' allows frontend to show "Upgrade to Premium" UI.
+            // But if we want strict 403:
+            if (!empty($channel->is_premium) && !$allowPremium) {
+                 // Option A: Return 403
+                 // return ResponseFormatter::error($response, 'Premium subscription required', 403);
+                 
+                 // Option B: Return object with restricted URL (Current behavior of Service)
+                 // Let's stick to returning object so UI can show "Locked" state
+            }
+
             return ResponseFormatter::success($response, $channel, 'Channel details retrieved successfully');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 404);

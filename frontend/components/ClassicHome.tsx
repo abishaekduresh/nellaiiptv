@@ -129,15 +129,43 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
   /* Ref for Scroll to Top logic */
   const topRef = useRef<HTMLDivElement>(null);
 
-  /* Handle Channel Selection with Mobile Scroll */
-  const handleChannelClick = useCallback((channel: Channel, source: string = 'main') => {
+  /* Handle Channel Selection with Mobile Scroll and Fresh Data Fetch */
+  const handleChannelClick = useCallback(async (channel: Channel, source: string = 'main') => {
+      // Optimistic update
       setSelectedChannel(channel);
       setSelectedSource(source);
+      
+      // Fetch fresh details to ensure valid stream URL (and correct restriction status)
+      try {
+          const res = await api.get(`/channels/${channel.uuid}`);
+          if (res.data.status && res.data.data) {
+               const fresh = res.data.data;
+               // Update if still selected
+               setSelectedChannel(prev => (prev?.uuid === fresh.uuid ? fresh : prev));
+          }
+      } catch (e) {
+          console.error("Error fetching channel details:", e);
+      }
+
       // Scroll to player on mobile (lg breakpoint is 1024px)
       if (window.innerWidth < 1024 && topRef.current) {
           topRef.current.scrollIntoView({ behavior: 'smooth' });
       }
   }, []);
+
+  // Ensure initial channel has fresh data too
+  useEffect(() => {
+     if (channels.length > 0 && !selectedChannel) {
+         // Should have been set by useState default, but just in case
+         // Or if we want to refresh the default one:
+         const first = channels[0];
+         api.get(`/channels/${first.uuid}`).then(res => {
+             if (res.data.status && res.data.data) {
+                 setSelectedChannel(prev => (prev?.uuid === first.uuid ? res.data.data : prev));
+             }
+         });
+     }
+  }, [channels]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Focus for Exit Button */
   const { focusProps: exitFocus, isFocused: isExitFocused } = useTVFocus({
@@ -268,7 +296,7 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                     {/* Constrain video to aspect ratio but ensure it fits in the box */}
                     <div className="aspect-video w-full h-full max-h-full max-w-full flex items-center justify-center">
                          <VideoPlayer 
-                            src={selectedChannel.hls_url} 
+                            src={selectedChannel.hls_url || ''} 
                             poster={selectedChannel.thumbnail_url} 
                             onVideoPlay={handleVideoPlay}
                             onVideoPause={handleVideoPause}

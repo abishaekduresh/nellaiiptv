@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.21.0] - 2026-01-10
+### Added
+- **Premium Integration**:
+  - **Classic Mode Support**: Complete support for Premium functionality in Classic TV mode.
+  - **Smart Fetching**: Channel selection in Classic Mode now triggers a real-time fresh data fetch to ensure accurate Premium access validation.
+  - **Visuals**: Added "Premium" Crown badge to channel list items in Classic Mode.
+
+### Fixed
+- **Playback Security**: Resolved issue where stale channel data could bypass (or falsely trigger) Premium restrictions in long-running sessions.
+
+## [Backend 1.16.1] - 2026-01-10
+### Fixed
+- **Auth Middleware**: Implemented `OptionalAuthMiddleware` for public channel endpoints (`GET /api/channels/{uuid}`). This ensures that logged-in users are correctly identified as subscribers even on public routes, allowing seamless access to Premium content without breaking guest access.
+
 ## [Frontend 1.20.1] - 2026-01-10
 ### Fixed
 - **Content Filtering**: Fixed an issue where the "Top Trending" section would still appear on the `/channels` page even when disabled in Admin Settings.

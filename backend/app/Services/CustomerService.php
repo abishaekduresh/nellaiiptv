@@ -9,7 +9,7 @@ class CustomerService
 {
     public function getProfile(string $uuid): Customer
     {
-        $customer = Customer::where('uuid', $uuid)->first();
+        $customer = Customer::with('plan')->where('uuid', $uuid)->first();
         if (!$customer) {
             throw new Exception('Customer not found');
         }

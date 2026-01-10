@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Models\Customer;
+use App\Models\SubscriptionPlan;
 use App\Helpers\ResponseFormatter;
 use Exception;
 
@@ -15,7 +16,7 @@ class CustomerController
         $params = $request->getQueryParams();
         $perPage = $params['per_page'] ?? 20;
         
-        $query = Customer::query()->where('status', '!=', 'deleted');
+        $query = Customer::with('plan')->where('status', '!=', 'deleted');
         
         if (isset($params['status']) && $params['status'] !== 'all') {
             $query->where('status', $params['status']);
@@ -37,6 +38,34 @@ class CustomerController
 
         $customers = $query->orderBy($sortBy, $sortOrder)->paginate($perPage)->toArray();
         return ResponseFormatter::success($response, $customers);
+    }
+
+    public function getStats(Request $request, Response $response): Response
+    {
+        try {
+            $total = Customer::where('status', '!=', 'deleted')->count();
+            $active = Customer::where('status', 'active')->count();
+            $inactive = Customer::where('status', 'inactive')->count();
+            $blocked = Customer::where('status', 'blocked')->count();
+            
+            // Premium: Customers with a plan and expiry in future
+            $premium = Customer::whereNotNull('subscription_plan_id')
+                ->where('subscription_expires_at', '>', date('Y-m-d H:i:s'))
+                ->where('status', 'active') // Only count active customers as premium? Or all? Usually active.
+                ->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive,
+                'blocked' => $blocked,
+                'premium' => $premium
+            ];
+
+            return ResponseFormatter::success($response, $stats);
+        } catch (\Throwable $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
+        }
     }
 
     public function create(Request $request, Response $response): Response
@@ -84,7 +113,7 @@ class CustomerController
     public function show(Request $request, Response $response, string $uuid): Response
     {
         try {
-            $customer = Customer::where('uuid', $uuid)->first();
+            $customer = Customer::where('uuid', $uuid)->with('plan')->first();
             if (!$customer) {
                 return ResponseFormatter::error($response, 'Customer not found', 404);
             }
@@ -118,6 +147,35 @@ class CustomerController
                     throw new Exception('Invalid status value');
                 }
                 $customer->status = $status;
+            }
+
+            if (isset($data['plan_uuid'])) {
+                 if ($data['plan_uuid'] === null || $data['plan_uuid'] === '') {
+                     $customer->subscription_plan_id = null;
+                     $customer->subscription_expires_at = null;
+                 } else {
+                     $plan = SubscriptionPlan::where('uuid', $data['plan_uuid'])->first();
+                     if ($plan) {
+                         $customer->subscription_plan_id = $plan->id;
+                         
+                         // Auto-calculate expiry if not provided by user
+                         if (empty($data['subscription_expires_at'])) {
+                             try {
+                                 $date = new \DateTime();
+                                 $date->modify("+{$plan->duration} days");
+                                 $customer->subscription_expires_at = $date->format('Y-m-d H:i:s');
+                             } catch (\Exception $e) {
+                                 // Fallback
+                                 $customer->subscription_expires_at = date('Y-m-d H:i:s', strtotime("+30 days"));
+                             }
+                         }
+                     }
+                 }
+            }
+            // Allow manual override of expiry
+            // Allow manual override of expiry if provided
+            if (!empty($data['subscription_expires_at'])) {
+                $customer->subscription_expires_at = $data['subscription_expires_at'];
             }
 
             if (!empty($data['password'])) {

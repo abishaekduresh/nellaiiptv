@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Current Version**: Frontend v1.20.1 | Backend v1.16.0
+**Current Version**: Frontend v1.21.0 | Backend v1.16.1
 
 ## Overview
 

@@ -5,6 +5,22 @@ export interface Customer {
   phone: string;
   status: string;
   created_at: string;
+  subscription_plan_id?: number;
+  subscription_expires_at?: string;
+  plan?: SubscriptionPlan;
+}
+
+export interface SubscriptionPlan {
+  id: number;
+  uuid: string;
+  name: string;
+  price: number;
+  duration: number;
+  device_limit: number;
+  platform_access: string[];
+  description: string;
+  status: string;
+  created_at: string;
 }
 
 export interface User {
@@ -22,34 +38,38 @@ export interface AuthResponse {
 }
 
 export interface Channel {
-  id: number;
+  id?: number;
   uuid: string;
   name: string;
-  channel_number: number;
-  hls_url: string;
-  village: string;
-  state_id: number;
-  language_id: number;
-  category_id?: number;
-  district_id: number;
-  thumbnail_url: string;
-  viewers_count: number;
-  expiry_at: string;
-  status: string;
-  created_at: string;
-  state?: State;
-  district?: District;
-  language?: Language;
+  is_premium?: boolean;
+  channel_number?: number;
+  logo_url?: string;
+  thumbnail_url?: string;
+  stream_url?: string;
   category?: Category;
-  average_rating?: number;
-  ratings_avg_rating?: number;
-  total_ratings?: number;
-  daily_views?: number;
+  language?: Language;
+  ratings_avg_rating?: string | number;
+  average_rating?: string | number; // Alias
   viewers_count_formatted?: string;
   daily_views_formatted?: string;
-  is_premium?: boolean | number;
+  daily_views?: number;
+  user_rating?: number;
+  hls_url?: string;
+  village?: string;
+  state_id?: number;
+  language_id?: number;
+  category_id?: number;
+  district_id?: number;
+  viewers_count?: number;
+  expiry_at?: string;
+  status?: string;
+  created_at?: string;
+  state?: State;
+  district?: District;
+  total_ratings?: number;
   is_featured?: boolean | number;
 }
+
 
 export interface State {
   id: number;

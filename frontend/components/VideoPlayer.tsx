@@ -6,7 +6,7 @@ import Hls from 'hls.js';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useRouter } from 'next/navigation';
 import ReportModal from './ReportModal';
-import { AlertTriangle, RefreshCw, Lock } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Lock, Crown } from 'lucide-react';
 import PlayerOverlay from './PlayerOverlay';
 import { Channel } from '@/types';
 import { useViewMode } from '@/context/ViewModeContext';
@@ -231,7 +231,7 @@ function VideoPlayer({
             name: channelName,
             thumbnail_url: poster || '',
             channel_number: currentChannel?.channel_number || 0,
-            id: 0, hls_url: src, village: '', state_id: 0, language_id: 0, district_id: 0, viewers_count: 0, expiry_at: '', status: 'active', created_at: ''
+            id: 0, stream_url: src, village: '', state_id: 0, language_id: 0, district_id: 0, viewers_count: 0, expiry_at: '', status: 'active', created_at: ''
         });
         historyTrackedRef.current = true;
     }
@@ -947,6 +947,36 @@ function VideoPlayer({
       )}
 
       {/* Inject Portal */}
+      {/* Premium Restriction Overlay */}
+      {isPaidRestricted && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
+          <div className="text-center px-6 max-w-md">
+            <div className="inline-flex p-4 rounded-full bg-yellow-500/20 text-yellow-500 mb-6 ring-1 ring-yellow-500/50 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+                 <Crown size={48} fill="currentColor" />
+            </div>
+            <h2 className="text-white text-2xl font-bold mb-3">
+              Premium Content
+            </h2>
+            <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+              This channel is available exclusively for Premium subscribers. Please upgrade your plan to watch.
+            </p>
+
+            <button
+                onClick={() => router.push('/profile')}
+                className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-black font-bold text-lg px-8 py-4 rounded-xl transition-all shadow-lg hover:shadow-yellow-500/20 transform hover:-translate-y-0.5"
+            >
+                Upgrade Now
+            </button>
+            <button 
+                onClick={() => router.back()}
+                className="mt-4 text-slate-500 hover:text-white font-medium text-sm transition-colors"
+            >
+                Go Back
+            </button>
+          </div>
+        </div>
+      )}
+
       {overlayPortal}
       
       {/* Watermark */}

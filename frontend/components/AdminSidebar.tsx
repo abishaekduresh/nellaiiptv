@@ -26,6 +26,11 @@ const menuItems = [
     icon: Settings,
     href: '/admin/settings',
   },
+  {
+    title: 'Plans',
+    icon: Settings, // Or CreditCard if available, using Settings for now as I don't import CreditCard
+    href: '/admin/plans',
+  },
 ];
 
 interface AdminSidebarProps {

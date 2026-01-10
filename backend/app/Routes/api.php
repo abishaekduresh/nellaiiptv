@@ -50,14 +50,16 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     // Search
     $group->get('/channels/search', [\App\Controllers\SearchController::class, 'searchChannels']);
 
-    // Public Channel Routes
-    $group->get('/channels', [\App\Controllers\ChannelController::class, 'index']);
-    $group->get('/channels/featured', [\App\Controllers\ChannelController::class, 'getFeatured']);
-    $group->get('/channels/new', [\App\Controllers\ChannelController::class, 'getNew']);
-    $group->get('/channels/{uuid}', [\App\Controllers\ChannelController::class, 'show']);
-    $group->get('/channels/{uuid}/ratings', [\App\Controllers\ChannelController::class, 'getRatings']);
-    $group->get('/channels/{uuid}/comments', [\App\Controllers\ChannelController::class, 'getComments']);
-    $group->get('/channels/related/{uuid}', [\App\Controllers\ChannelController::class, 'getRelated']);
+    // Public Channel Routes (Optional Auth)
+    $group->group('', function (RouteCollectorProxy $group) {
+        $group->get('/channels', [\App\Controllers\ChannelController::class, 'index']);
+        $group->get('/channels/featured', [\App\Controllers\ChannelController::class, 'getFeatured']);
+        $group->get('/channels/new', [\App\Controllers\ChannelController::class, 'getNew']);
+        $group->get('/channels/{uuid}', [\App\Controllers\ChannelController::class, 'show']);
+        $group->get('/channels/{uuid}/ratings', [\App\Controllers\ChannelController::class, 'getRatings']);
+        $group->get('/channels/{uuid}/comments', [\App\Controllers\ChannelController::class, 'getComments']);
+        $group->get('/channels/related/{uuid}', [\App\Controllers\ChannelController::class, 'getRelated']);
+    })->add(new \App\Middleware\OptionalAuthMiddleware());
     $group->post('/channels/{uuid}/heartbeat', [\App\Controllers\ChannelController::class, 'heartbeat']);
     $group->post('/channels/{uuid}/view', [\App\Controllers\ChannelController::class, 'incrementView']);
 

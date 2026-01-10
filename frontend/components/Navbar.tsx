@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { Settings, Search, X, Loader2, Menu, Maximize, Minimize } from 'lucide-react';
+import { Settings, Search, X, Loader2, Menu, Maximize, Minimize, Crown } from 'lucide-react';
 import UserMenu from './UserMenu';
 import api from '@/lib/api';
 import { Channel } from '@/types';
@@ -250,8 +250,13 @@ export default function Navbar() {
             {user ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-3 p-4 bg-slate-800/50 rounded-lg">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
+                  <div className="relative w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
                     {((user as any).name || (user as any).username)?.[0]?.toUpperCase() || 'U'}
+                    {((user as any).plan && (user as any).status === 'active') && (
+                      <div className="absolute -top-1 -right-1 bg-yellow-500 text-slate-900 rounded-full p-1 shadow-md border-2 border-slate-900">
+                        <Crown size={14} fill="currentColor" />
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-medium truncate">{(user as any).name || (user as any).username}</p>

@@ -24,6 +24,7 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         
         // Customer Management
         $group->get('/customers', [\App\Controllers\Admin\CustomerController::class, 'index']);
+        $group->get('/customers/stats', [\App\Controllers\Admin\CustomerController::class, 'getStats']); // Added route
         $group->post('/customers', [\App\Controllers\Admin\CustomerController::class, 'create']);
         $group->get('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'show']);
         $group->put('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'update']);
@@ -34,6 +35,13 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->put('/settings/{key}', [\App\Controllers\Admin\SettingController::class, 'update']);
         $group->post('/settings/logo', [\App\Controllers\Admin\SettingController::class, 'uploadLogo']);
         
+        // Subscription Plans
+        $group->get('/plans', [\App\Controllers\Admin\SubscriptionPlanController::class, 'index']);
+        $group->post('/plans', [\App\Controllers\Admin\SubscriptionPlanController::class, 'create']);
+        $group->get('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'show']);
+        $group->put('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'update']);
+        $group->delete('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'delete']);
+
         // Dashboard Stats
         $group->get('/dashboard/stats', [\App\Controllers\Admin\DashboardController::class, 'getStats']);
         $group->get('/dashboard/trending', [\App\Controllers\Admin\DashboardController::class, 'getTrendingStats']);

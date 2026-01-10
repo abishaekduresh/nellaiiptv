@@ -79,7 +79,7 @@ class AuthService
 
     public function login(string $phone, string $password, array $deviceInfo = []): array
     {
-        $customer = Customer::where('phone', $phone)->first();
+        $customer = Customer::with('plan')->where('phone', $phone)->first();
 
         if (!$customer || !password_verify($password, $customer->password)) {
             throw new Exception('Invalid credentials');
@@ -89,9 +89,47 @@ class AuthService
             throw new Exception('Account is not active');
         }
 
+        // Subscription Checks
+        $plan = $customer->plan;
+        
+        // 1. Expiry Check
+        // Ensure strictly that it is a valid date object before calling methods
+        if (!empty($customer->subscription_expires_at)) {
+             try {
+                // If cast to Carbon/DateTime
+                if ($customer->subscription_expires_at instanceof \DateTimeInterface) {
+                    if ($customer->subscription_expires_at < new \DateTime()) {
+                        throw new Exception('Subscription expired', 403);
+                    }
+                } 
+                // Fallback if not cast (string)
+                elseif (is_string($customer->subscription_expires_at)) {
+                    $expiry = new \DateTime($customer->subscription_expires_at);
+                    if ($expiry < new \DateTime()) {
+                        throw new Exception('Subscription expired', 403);
+                    }
+                }
+             } catch (\Exception $e) {
+                 // If date parsing fails, ignore/allow or block?
+                 // If invalid date string, safest is to Log and Block or Log and Allow.
+                 // Given it's subscription, let's Block if clearly expired, otherwise maybe data error.
+                 // For now, let's just swallow exception if it's purely a format error to prevent 500.
+                 error_log("Date Error in AuthService: " . $e->getMessage());
+             }
+        }
+        
+        // 2. Platform Access Check
+        $currentPlatform = $deviceInfo['platform'] ?? 'web';
+        if ($plan && !empty($plan->platform_access)) {
+            $allowedPlatforms = $plan->platform_access;
+            if (!in_array($currentPlatform, $allowedPlatforms)) {
+                throw new Exception("Access denied on {$currentPlatform} platform. Upgrade plan.", 403);
+            }
+        }
+
         // Check active sessions using ID
         $activeSessions = \App\Models\CustomerSession::where('customer_id', $customer->id)->count();
-        $deviceLimit = 1; // Default limit
+        $deviceLimit = $plan ? $plan->device_limit : 1; // Default to 1 if no plan
 
         if ($activeSessions >= $deviceLimit) {
              // Generate restricted token
@@ -162,6 +200,42 @@ class AuthService
                 'uuid' => $customer->uuid,
                 'name' => $customer->name,
                 'phone' => $customer->phone,
+                'email' => $customer->email,
+                'status' => $customer->status,
+                'subscription_plan_id' => $customer->subscription_plan_id,
+                'subscription_expires_at' => $customer->subscription_expires_at,
+                'plan' => $customer->plan,
+            ]
+        ];
+    }
+
+    private function generateRestrictedToken(Customer $customer): array
+    {
+        $issuedAt = time();
+        $expirationTime = $issuedAt + 300; // 5 minutes validity for restricted action
+
+        $payload = [
+            'iss' => $_ENV['APP_URL'],
+            'sub' => $customer->uuid,
+            'iat' => $issuedAt,
+            'exp' => $expirationTime,
+            'scopes' => ['restricted'] // Flag to indicate restricted access
+        ];
+
+        $token = JWT::encode($payload, $_ENV['JWT_SECRET'], 'HS256');
+
+        return [
+            'token' => $token,
+            'expires_in' => 300,
+            'device_limit_reached' => true,
+            'user' => [
+                'uuid' => $customer->uuid,
+                'name' => $customer->name,
+                'phone' => $customer->phone,
+                'email' => $customer->email,
+                'status' => $customer->status,
+                'subscription_plan_id' => $customer->subscription_plan_id,
+                'plan' => $customer->plan,
             ]
         ];
     }
@@ -195,7 +269,9 @@ class AuthService
 
             if ($attemptAutoLogin) {
                 $activeSessions = \App\Models\CustomerSession::where('customer_id', $customer->id)->count();
-                $deviceLimit = 1;
+                // Fetch customer's plan limit
+                $customer->load('plan');
+                $deviceLimit = $customer->plan ? $customer->plan->device_limit : 1;
 
                 if ($activeSessions < $deviceLimit) {
                     $tokens = $this->generateTokens($customer, $deviceInfo);

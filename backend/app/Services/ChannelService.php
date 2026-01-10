@@ -28,12 +28,12 @@ class ChannelService
         return round($count / 1000000, 1) . 'M';
     }
 
-    private function processChannelOutput($channel)
+    private function processChannelOutput($channel, bool $allowPremium = false)
     {
         // Handle object vs array
         if (is_array($channel)) {
-            // Redact Paid URL
-            if (!empty($channel['is_premium'])) {
+            // Redact Paid URL if not allowed
+            if (!empty($channel['is_premium']) && !$allowPremium) {
                 $channel['hls_url'] = 'PAID_RESTRICTED';
             }
             
@@ -51,8 +51,8 @@ class ChannelService
             }
 
         } elseif (is_object($channel)) {
-            // Redact Paid URL
-            if (!empty($channel->is_premium)) {
+            // Redact Paid URL if not allowed
+            if (!empty($channel->is_premium) && !$allowPremium) {
                 $channel->hls_url = 'PAID_RESTRICTED';
             }
 
@@ -188,7 +188,7 @@ class ChannelService
         return $channels;
     }
 
-    public function getOne(string $uuid, string $platform = 'web'): Channel
+    public function getOne(string $uuid, string $platform = 'web', bool $allowPremium = false): Channel
     {
         $channel = Channel::where('uuid', $uuid)
             ->where('status', 'active')
@@ -223,7 +223,7 @@ class ChannelService
             error_log("Error fetching ratings for channel $uuid: " . $e->getMessage());
         }
 
-        return $this->processChannelOutput($channel);
+        return $this->processChannelOutput($channel, $allowPremium);
     }
 
     public function rate(string $uuid, int $rating, int $customerId): void

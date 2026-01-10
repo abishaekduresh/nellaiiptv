@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit } from 'lucide-react';
+import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Users, UserCheck, UserX, Crown, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import { Customer } from '@/types';
 import Modal from '@/components/ui/Modal';
 import CustomerForm from '@/components/admin/CustomerForm';
+import CustomerOverviewModal from '@/components/admin/CustomerOverviewModal';
 
 
 export default function CustomersPage() {
@@ -23,6 +24,17 @@ export default function CustomersPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
+  const [viewCustomerUuid, setViewCustomerUuid] = useState<string | null>(null);
+  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, blocked: 0, premium: 0 });
+
+  const fetchStats = async () => {
+    try {
+        const res = await adminApi.get('/admin/customers/stats');
+        setStats(res.data.data);
+    } catch (e) {
+        console.error("Failed to fetch stats", e);
+    }
+  };
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -46,6 +58,10 @@ export default function CustomersPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     setPage(1);
@@ -95,6 +111,10 @@ export default function CustomersPage() {
       fetchCustomers();
   };
 
+  const handleView = (uuid: string) => {
+    setViewCustomerUuid(uuid);
+  };
+
   const handleSort = (column: string) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -111,7 +131,7 @@ export default function CustomersPage() {
 
   return (
     <div>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold text-white">Customers</h1>
         <button 
             onClick={handleCreate}
@@ -120,6 +140,46 @@ export default function CustomersPage() {
             <Plus size={20} />
             Add Customer
         </button>
+      </div>
+
+     {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-background-card p-5 rounded-lg border border-gray-800 flex items-center justify-between">
+            <div>
+                <p className="text-text-secondary text-sm mb-1">Total Customers</p>
+                <p className="text-2xl font-bold text-white">{stats.total}</p>
+            </div>
+            <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400">
+                <Users size={24} />
+            </div>
+        </div>
+        <div className="bg-background-card p-5 rounded-lg border border-gray-800 flex items-center justify-between">
+            <div>
+                <p className="text-text-secondary text-sm mb-1">Active Customers</p>
+                <p className="text-2xl font-bold text-white">{stats.active}</p>
+            </div>
+            <div className="p-3 bg-green-500/10 rounded-lg text-green-400">
+                <UserCheck size={24} />
+            </div>
+        </div>
+         <div className="bg-background-card p-5 rounded-lg border border-gray-800 flex items-center justify-between">
+            <div>
+                <p className="text-text-secondary text-sm mb-1">Inactive / Blocked</p>
+                <p className="text-2xl font-bold text-white">{stats.inactive + stats.blocked}</p>
+            </div>
+             <div className="p-3 bg-red-500/10 rounded-lg text-red-400">
+                <UserX size={24} />
+            </div>
+        </div>
+        <div className="bg-background-card p-5 rounded-lg border border-gray-800 flex items-center justify-between">
+            <div>
+                <p className="text-text-secondary text-sm mb-1">Premium Users</p>
+                <p className="text-2xl font-bold text-white">{stats.premium}</p>
+            </div>
+             <div className="p-3 bg-yellow-500/10 rounded-lg text-yellow-400">
+                <Crown size={24} />
+            </div>
+        </div>
       </div>
 
       {/* Search and Filter */}
@@ -252,6 +312,14 @@ export default function CustomersPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button
+                            onClick={() => handleView(customer.uuid)}
+                            className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 p-2 rounded transition-colors"
+                            title="View Overview"
+                        >
+                            <Eye size={16} />
+                        </button>
+
+                        <button
                             onClick={() => handleEdit(customer.uuid)}
                             className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 p-2 rounded transition-colors"
                             title="Edit Customer"
@@ -312,6 +380,12 @@ export default function CustomersPage() {
             </button>
         </div>
       </div>
+
+    <CustomerOverviewModal
+        uuid={viewCustomerUuid || ''}
+        isOpen={!!viewCustomerUuid}
+        onClose={() => setViewCustomerUuid(null)}
+    />
 
     <Modal
         isOpen={isModalOpen}
