@@ -11,6 +11,7 @@ import { Channel } from '@/types';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useViewMode } from '@/context/ViewModeContext';
 import { Monitor, LayoutGrid } from 'lucide-react';
+import { isSmartTV } from '@/lib/device';
 
 export default function Navbar() {
   const { user, isAdmin } = useAuthStore();
@@ -384,6 +385,9 @@ function NavButton({ href, label }: { href: string; label: string }) {
 
 // Helper for View Mode Toggle Button with TV Focus
 function ViewModeToggle() {
+    // 📺 Hide toggle on TVs (Force OTT Mode)
+    if (isSmartTV()) return null;
+
     const { mode, toggleMode } = useViewMode();
     const { focusProps, isFocused } = useTVFocus({
         onEnter: toggleMode,

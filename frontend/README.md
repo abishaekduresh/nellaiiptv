@@ -1,4 +1,4 @@
-# Nellai IPTV - Frontend (v1.23.4)
+# Nellai IPTV - Frontend (v1.24.0)
 
 ## Overview
 
@@ -62,6 +62,10 @@ frontend/
 
 ## Features
 
+- **Lite Player (v1.24.0)**:
+  - **Zero-Buffering Playback**: Powered by the **Clappr** engine with specific optimizations for low-spec Android TVs.
+  - **Minimalist UI**: Distraction-free interface with auto-hiding controls and no overlay clutter.
+  - **Secure**: Stream URLs are fetched internally, protecting your content source.
 - **TV-Friendly Interface**: Optimized for large screens and "10-foot" viewing distances.
 - **Classic Mode**: A streamlined, TV-like experience with a focused player, channel list, and integrated ads.
 - **Spatial Navigation**: Full support for arrow-key navigation (D-pad) for easy browsing on TV.

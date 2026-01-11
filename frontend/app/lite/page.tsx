@@ -2,22 +2,31 @@
 
 import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Hls from 'hls.js';
-
+import Script from 'next/script';
 import api from '@/lib/api';
+
+// Type definition for Clappr attached to window
+declare global {
+  interface Window {
+    Clappr: any;
+  }
+}
 
 function Player() {
   const searchParams = useSearchParams();
   const channelUuid = searchParams.get('channel');
-  const srcParam = searchParams.get('src'); // Fallback for direct links if needed
+  const srcParam = searchParams.get('src'); // Fallback
   
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
+  const playerInstanceRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [isClapprLoaded, setIsClapprLoaded] = useState(false);
 
-  // Fetch Stream URL if UUID is provided
+  // 1. Fetch Secure Stream URL & Logo
   useEffect(() => {
-      async function fetchStream() {
+      async function fetchData() {
+          // Fetch Stream
           if (srcParam) {
               setStreamUrl(srcParam);
               return;
@@ -35,98 +44,193 @@ function Player() {
               setError("Failed to load channel");
           }
       }
-      fetchStream();
+      fetchData();
   }, [channelUuid, srcParam]);
 
-  // HLS Player Initialization
+  // 2. Player Logic (User Provided Config)
   useEffect(() => {
-    if (!streamUrl) return;
+    if (!streamUrl || !isClapprLoaded || !playerContainerRef.current) return;
 
-    const video = videoRef.current;
-    if (!video) return;
+    /* =========================
+       DEVICE PROFILE
+    ========================= */
+    const getDeviceProfile = () => {
+        if (typeof navigator === 'undefined') return { isTV: false, isMobile: false, cores: 2, memory: 1 };
+        
+        const ua = navigator.userAgent.toLowerCase();
+        const nav = navigator as any; // Type assertion for non-standard props
+        const cores = nav.hardwareConcurrency || 2;
+        const memory = nav.deviceMemory || 1;
 
-    // Detect if TV (though we assume usage on TV mostly)
-    // Low-End TV Safe Config
-    const config = {
-      // Worker enabled to offload main thread
-      enableWorker: true,
-      
-      // Conservative start
-      startLevel: 0, 
+        const isTV =
+            ua.includes("android tv") ||
+            ua.includes("smarttv") ||
+            ua.includes("tizen") ||
+            ua.includes("webos") ||
+            ua.includes("tv");
 
-      // Memory Savers
-      maxBufferLength: 15, // 15s
-      maxMaxBufferLength: 30, // 30s
-      maxBufferSize: 15 * 1000 * 1000, // 15MB
-      
-      // ABR Stability for weak CPUs
-      abrBandWidthFactor: 0.5,
-      abrBandWidthUpFactor: 0.3,
-      
-      // No fancy stuff
-      capLevelToPlayerSize: false,
-      startFragPrefetch: false,
-      progressive: true,
-      lowLatencyMode: false,
+        const isMobile = /android|iphone|ipad|ipod/.test(ua);
+
+        return { isTV, isMobile, cores, memory };
     };
 
-    let hls: Hls;
+    /* =========================
+       HLS CONFIG (QUALITY FIXED)
+    ========================= */
+    const buildHlsConfig = (profile: any) => {
+        const base = {
+            lowLatencyMode: false,
+            // ❌ Workers cause issues on old TVs (User requested false)
+            enableWorker: false,
+            // ❌ Prevent TV from forcing low res
+            capLevelToPlayerSize: false,
+            // ❌ Avoid aggressive prefetch
+            startFragPrefetch: false,
+            progressive: true,
+            testBandwidth: true,
+            // ABR stability
+            abrEwmaFastLive: 5,
+            abrEwmaSlowLive: 12,
+            // 🚀 START AT SAFE QUALITY (KEY FIX - User requested 1)
+            startLevel: 1, // 480p / 720p depending on ladder
+            // 🎯 Allow quality upgrade
+            abrBandWidthFactor: 0.85,
+            abrBandWidthUpFactor: 0.7,
+            // Prevent constant downscale
+            abrMaxWithRealBitrate: true
+        };
 
-    if (Hls.isSupported()) {
-         hls = new Hls({
-             debug: false,
-             ...config
-         });
-         
-         hls.loadSource(streamUrl);
-         hls.attachMedia(video);
-         
-         hls.on(Hls.Events.ERROR, (event, data) => {
-             if (data.fatal) {
-                 switch (data.type) {
-                     case Hls.ErrorTypes.NETWORK_ERROR:
-                         hls.startLoad();
-                         break;
-                     case Hls.ErrorTypes.MEDIA_ERROR:
-                         hls.recoverMediaError();
-                         break;
-                     default:
-                         setError("Playback Error: " + data.details);
-                         hls.destroy();
-                         break;
-                 }
-             }
-         });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = streamUrl;
-    } else {
-        setError("HLS not supported");
+        /* 📺 ANDROID TV (OLD MODELS SAFE) */
+        if (profile.isTV) {
+            return {
+                ...base,
+                maxBufferLength: 20,
+                maxMaxBufferLength: 40,
+                backBufferLength: 8,
+                // Low RAM protection
+                maxBufferSize: 20 * 1000 * 1000,
+                maxStarvationDelay: 6,
+                maxLoadingDelay: 4
+            };
+        }
+
+        /* 📱 MOBILE */
+        if (profile.isMobile) {
+            return {
+                ...base,
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+                backBufferLength: 15,
+                maxBufferSize: 30 * 1000 * 1000
+            };
+        }
+
+        /* 💻 PC */
+        return {
+            ...base,
+            maxBufferLength: 60,
+            maxMaxBufferLength: 120,
+            backBufferLength: 30,
+            maxBufferSize: 60 * 1000 * 1000
+        };
+    };
+
+    // Clean up previous instance
+    if (playerInstanceRef.current) {
+        playerInstanceRef.current.destroy();
+        playerInstanceRef.current = null;
     }
 
-    return () => {
-        if (hls) hls.destroy();
-    };
-  }, [streamUrl]);
+    const profile = getDeviceProfile();
+    const hlsConfig = buildHlsConfig(profile);
+
+    console.log("Device:", profile);
+    console.log("HLS Config:", hlsConfig);
+
+    // 3. Init with tiny delay to ensure DOM is ready and prevent Racing
+    const initTimer = setTimeout(() => {
+        if (!document.getElementById('lite-player')) {
+             console.error("FATAL: #lite-player element not found in DOM");
+             setError("Player element missing");
+             return;
+        }
+
+        try {
+            const player = new window.Clappr.Player({
+                source: streamUrl,
+                parentId: "#lite-player", 
+                width: "100%",
+                height: "100vh",
+                autoPlay: true,
+                mute: false, 
+                preload: "auto",
+                playback: {
+                    hlsjsConfig: hlsConfig
+                },
+                // Custom CSS handles most, but this is Clappr default override
+                mediacontrol: { seekbar: "#fff", buttons: "#fff" } 
+            });
+            playerInstanceRef.current = player;
+        } catch (e: any) {
+            console.error("Clappr Init Error Details:", e);
+            setError(`Player Initialization Failed: ${e.message || e}`);
+        }
+    }, 100);
+
+    return () => clearTimeout(initTimer);
+  }, [streamUrl, isClapprLoaded]);
 
   if (!channelUuid && !srcParam) return <div className="flex items-center justify-center h-screen text-2xl text-white">No Channel Selected</div>;
   if (!streamUrl && !error) return <div className="flex items-center justify-center h-screen text-2xl text-white">Loading Stream...</div>;
 
   return (
-    <div className="w-full h-screen bg-black flex items-center justify-center overflow-hidden">
+    <div className="w-full h-screen bg-black overflow-hidden relative">
+        {/* Load Clappr from CDN */}
+        <Script 
+            src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js" 
+            strategy="afterInteractive"
+            onLoad={() => setIsClapprLoaded(true)}
+            onError={() => setError("Failed to load player core")}
+        />
+
         {error && (
             <div className="absolute top-4 left-4 bg-red-600 text-white p-2 rounded z-20">
                 {error}
             </div>
         )}
-        {/* Native Controls for TV Remote Compatibility */}
-        <video 
-            ref={videoRef}
-            controls 
-            className="w-full h-full object-contain"
-            autoPlay
-            playsInline
-            style={{ imageRendering: 'optimizeSpeed' } as unknown as React.CSSProperties} // Hint for performance
-        />
+        
+        {/* Helper message for debugging if needed */}
+        {!isClapprLoaded && !error && (
+             <div className="absolute inset-0 flex items-center justify-center text-white">
+                 Loading Player Engine...
+             </div>
+        )}
+
+        {/* Player Container */}
+        <div id="lite-player" ref={playerContainerRef} className="w-full h-full"></div>
+
+        <style jsx global>{`
+           /* 🛡️ Hide unwanted controllers (Seekbar, Volume) */
+           .media-control-left-panel, 
+           .media-control-right-panel, 
+           .bar-container, 
+           .bar-background, 
+           .bar-fill-1, 
+           .bar-fill-2,
+           .media-control-background {
+               display: none !important;
+           }
+
+           /* 🦄 Remove background hover effect */
+           .media-control-layer {
+               background: none !important;
+           }
+
+           /* 🎯 Keep only Play/Pause Center */
+           .media-control-center {
+               display: flex !important;
+           }
+        `}</style>
     </div>
   );
 }

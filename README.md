@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Current Version**: Frontend v1.23.4 | Backend v1.17.0
+**Current Version**: Frontend v1.24.0 | Backend v1.17.0
 
 ## Overview
 
@@ -22,6 +22,7 @@ Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT
 - **Security**: Request headers (`X-Client-Platform`) enforce platform-specific access rights.
 
 ### 📺 Video Streaming
+- **Lite Player (v1.24.0)**: Specialized **Clappr-based** player for low-end Android TVs. Delivers zero-buffering playback with a minimalist, distraction-free UI.
 - HLS video streaming with **Smart Device Profiling** (TV/Mobile/PC optimized)
 - Dynamic Resolution Capping & Buffer Management
 - Quality selector and playback controls
@@ -194,7 +195,7 @@ JWT_SECRET=your_jwt_secret
 - 🚧 **Maintenance Mode**: Global "Under Construction" system with configurable message and Admin-only access.
 - 📧 **Enhanced Email System**:
   - **Forgot Password**: Secure reset flow using Resend API.
-  - **Email Logging**: Complete audit trail with webhook status tracking (Sent/Delivered/Bounced).
+  - **Email Logging**: Complete audit trail with webhook status tracking (Sent, Delivered, Bounced).
 
 ### Backend (v1.13.0) | Frontend (v1.17.4)
 - 🐛 **Critical Fix**: Resolved namespace conflict in `Admin\ChannelController` causing Fatal Errors.

@@ -8,6 +8,7 @@ import { Play, Eye, Star, Heart, Crown } from 'lucide-react';
 import { Channel } from '@/types';
 import api from '@/lib/api';
 import { useFavorites } from '@/hooks/useFavorites';
+import { isSmartTV } from '@/lib/device';
 
 
 interface ChannelCardProps {
@@ -40,6 +41,12 @@ export default function ChannelCard({ channel, showOverallViewers = false }: Cha
       setTimeout(() => {
           api.post(`/channels/${channel.uuid}/view`).catch(err => console.error(err));
       }, 3000);
+
+      // 🚀 TV Override: Launch Lite Player
+      if (isSmartTV()) {
+          e.preventDefault(); // Stop Link navigation
+          router.push(`/lite?channel=${channel.uuid}`);
+      }
   };
 
   return (
