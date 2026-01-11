@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.23.1] - 2026-01-11
+### Fixed
+- **HLS Priority Engine**:
+  - **Critical Fix**: Modified player initialization to **Force HLS.js** (MSE) on Android TVs and Smart TVs instead of defaulting to Native Playback.
+  - **Why**: Native players on many TVs ignore custom buffer strategies. Forcing HLS.js ensures our optimized "Safe Start" and "20MB Buffer" profiles are strictly enforced, solving the Vercel buffering issues.
+
 ## [Frontend 1.23.0] - 2026-01-11
 ### Added
 - **Advanced HLS Optimization (v2.0)**:

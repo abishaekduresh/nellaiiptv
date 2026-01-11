@@ -509,27 +509,7 @@ function VideoPlayer({
         };
     };
 
-    // Check for Native HLS support first on TVs (often better optimized)
-    const isTV = /smarttv|tizen|webos|android tv|tv|crkey|roku|netcast/i.test(navigator.userAgent);
-    if (isTV && video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = src;
-        video.addEventListener('loadedmetadata', () => {
-            video.play().catch(() => {});
-            setIsPlaying(true);
-        });
-        video.addEventListener('canplay', () => setIsLoading(false));
-         video.addEventListener('error', () => {
-             // Fallback to Hls.js if native fails? 
-             setIsLoading(false);
-             setErrorMessage("Native Stream failed");
-        });
-        return () => {
-             video.src = '';
-             video.load();
-        };
-    }
-    
-    // Fallback to HLS.js
+    // Priority: HLS.js (Optimized) > Native (Fallback for iOS/Safari)
     if (Hls.isSupported()) {
         const profile = getDeviceProfile();
         const hlsConfig = buildHlsConfig(profile);
@@ -543,13 +523,9 @@ function VideoPlayer({
         hls.loadSource(src);
         hls.attachMedia(video);
         
-        // 🔥 CRITICAL ADDITION (Most Important Fix)
-        // Force video element to drop frames instead of freezing
+        // 🔥 CRITICAL ADDITION
         video.setAttribute("playsinline", "true");
         video.setAttribute("webkit-playsinline", "true");
-        // video.muted = false; // We handle this via state, better not force it here to avoid race conditions with user preference
-
-        // Disable fancy rendering
         video.style.imageRendering = "auto";
         
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -567,8 +543,6 @@ function VideoPlayer({
                 }
                 return { index, label, height: level.height };
             });
-            
-            // Removed manual capping based on 'tier' as we rely on the new optimized config
             
             setQualities([{ index: -1, label: 'Auto' }, ...mappedLevels.reverse()]); 
             
@@ -598,7 +572,7 @@ function VideoPlayer({
             }
         });
     } 
-    // Native HLS for non-TVs (Safari on Mac/iOS)
+    // Fallback: Native HLS (iOS / Safari / Very Old TVs without MSE)
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = src;
         video.addEventListener('loadedmetadata', () => {
@@ -606,10 +580,15 @@ function VideoPlayer({
             setIsPlaying(true);
         });
         video.addEventListener('canplay', () => setIsLoading(false));
+        video.addEventListener('error', () => {
+             setIsLoading(false);
+             setErrorMessage("Native Stream failed");
+        });
     } else {
         setIsLoading(false);
         setErrorMessage("HLS not supported on this browser.");
-    }
+    } 
+
 
     return () => {
         if (hls) {
