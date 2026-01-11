@@ -467,7 +467,7 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                  <h3 className="text-[10px] lg:text-xs font-bold text-slate-400 mb-1.5 lg:mb-2 uppercase tracking-wider pl-1">
                     {groupBy === 'all' ? 'All Channels' : (effectiveActiveGroup || 'Select Group')} <span className="text-slate-600">({displayChannels.length})</span>
                  </h3>
-                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                 <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                   {displayChannels.map((channel, index) => (
                       <ChannelListItem 
                       key={channel.uuid} 

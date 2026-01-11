@@ -52,46 +52,75 @@ import ClassicHome from '@/components/ClassicHome';
     }
   };
 
+  /* 
+     STAGED DATA FETCHING STRATEGY
+     Goal: Render initial UI (Hero/Skeleton removal) as fast as possible (<2s).
+     
+     Sequence:
+     1. Stage 1 (Critical): Fetch 'Featured' & 'Settings'. 
+        - Enough to show Hero Banner and determining configuration.
+        - Unblocks UI for OTT Mode immediately (setLoading(false)).
+     
+     2. Stage 2 (Heavy): Fetch 'All Channels' (and 'Trending' if enabled).
+        - Runs in background for OTT.
+        - Populates the rows as data arrives.
+        - For Classic Mode, we wait for this stage to finish before unblocking UI (to prevent blank screen).
+  */
+
   const fetchChannels = async () => {
     try {
       setLoading(true);
       
-      const [featuredRes, allRes, settingsRes] = await Promise.all([
+      // --- STAGE 1: CRITICAL DATA ---
+      const [featuredRes, settingsRes] = await Promise.all([
         api.get('/channels/featured?limit=10'),
-        api.get('/channels?limit=-1'),
         api.get('/settings/public')
       ]);
 
-      // Check Top Trending Permission (Default to true if setting missing)
-      const platformsStr = settingsRes.data.status ? (settingsRes.data.data.top_trending_platforms || 'web,android,ios,tv') : 'web,android,ios,tv';
-      // If it comes as array (from previous plan step) vs string. The Controller implementation returns ARRAY now.
-      // Wait, Controller returns array. Frontend API.ts generic response format?
-      // "top_trending_platforms" => $trendingPlatforms (array) in PHP.
-      // So checking logic:
-      const platforms = Array.isArray(platformsStr) ? platformsStr : (typeof platformsStr === 'string' ? platformsStr.split(',') : []);
-      const showTrending = platforms.includes('web');
-
-      if (showTrending) {
-          const topRes = await api.get('/channels?sort=top_trending&limit=10');
-          if (topRes.data.status) {
-             setTopTrending(topRes.data.data.data || topRes.data.data || []);
-          }
-      } else {
-          setTopTrending([]);
+      // Check Top Trending Permission
+      let showTrending = true;
+      if (settingsRes.data.status) {
+         const platformsStr = settingsRes.data.data.top_trending_platforms || 'web,android,ios,tv';
+         const platforms = Array.isArray(platformsStr) ? platformsStr : (typeof platformsStr === 'string' ? platformsStr.split(',') : []);
+         showTrending = platforms.includes('web');
       }
 
       if (featuredRes.data.status) {
         setFeaturedChannels(featuredRes.data.data || []);
       }
 
+      // 🚀 FAST RENDER FOR OTT: Unblock UI now if we have critical data
+      if (mode === 'OTT') {
+          setLoading(false);
+      }
+
+      // --- STAGE 2: HEAVY DATA (Background) ---
+      const promises = [
+        api.get('/channels?limit=-1'), // Main payload
+      ];
+
+      // Conditionally fetch trending
+      if (showTrending) {
+          promises.push(api.get('/channels?sort=top_trending&limit=10'));
+      } else {
+          setTopTrending([]);
+      }
+
+      const results = await Promise.all(promises);
+      const allRes = results[0];
+      const topRes = showTrending ? results[1] : null;
+
+      // Handle Trending Results
+      if (topRes && topRes.data.status) {
+          setTopTrending(topRes.data.data.data || topRes.data.data || []);
+      }
+
+      // Handle All Channels Results
       if (allRes.data.status) {
         let channels = allRes.data.data.data || allRes.data.data || [];
         // Sort by channel number
         channels.sort((a: Channel, b: Channel) => (a.channel_number || 9999) - (b.channel_number || 9999));
         setRawChannels(channels);
-
-        // For OTT: Filter out featured from main list to avoid duplication if desired, 
-        // but typically rows reuse content. We will keep them.
         setAllChannels(channels);
         
         // Group channels by language
@@ -122,6 +151,7 @@ import ClassicHome from '@/components/ClassicHome';
     } catch (error) {
       console.error('Error fetching channels:', error);
     } finally {
+      // Ensure loading is cleared eventually (covers Classic Mode and error cases)
       setLoading(false);
     }
   };
@@ -135,6 +165,11 @@ import ClassicHome from '@/components/ClassicHome';
       setFavoriteChannels([]);
     }
   }, [favorites, rawChannels]);
+
+  useEffect(() => {
+    fetchChannels();
+    checkDisclaimer();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
