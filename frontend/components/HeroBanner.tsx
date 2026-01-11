@@ -6,7 +6,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Play, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Channel } from '@/types';
-import { isSmartTV } from '@/lib/device';
 
 interface Props {
   channels: Channel[];
@@ -95,13 +94,7 @@ export default function HeroBanner({ channels }: Props) {
             </p>
             <div className="flex items-center justify-start gap-3 pt-4">
               <button
-                onClick={() => {
-                    if (isSmartTV()) {
-                        router.push(`/lite?channel=${featuredChannel.uuid}`);
-                    } else {
-                        router.push(`/channel/${featuredChannel.uuid}`);
-                    }
-                }}
+                onClick={() => router.push(`/channel/${featuredChannel.uuid}`)}
                 {...focusProps}
               >
                 <Play size={24} fill="currentColor" />

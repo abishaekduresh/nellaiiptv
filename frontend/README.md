@@ -14,9 +14,6 @@ A Next.js 14 application providing a modern, responsive interface for the Nellai
 - **Dual Mode Interface**:
   - **OTT Mode**: Modern, Netflix-style layout with Featured Banners, Trending Rows, and "Continue Watching".
   - **Classic Mode**: Traditional TV-guide style list for quick channel surfing.
-    - **Responsive Grid**: 3-column layout on mobile/tablet for high-density browsing.
-- **Performance**:
-  - **Staged Loading**: Critical content (Hero/Settings) loads instantly (<2s), while heavy channel lists load in background. 
 - **Smart Device Optimization**:
   - **HLS Profiling**: Dynamic buffer settings (20MB for TV, 60MB for PC) based on device capabilities.
   - **Resolution Capping**: Prevents 4K streams from crashing 1080p hardware.

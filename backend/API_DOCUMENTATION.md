@@ -1,6 +1,6 @@
 # Nellai IPTV - API Documentation (v1.16.1)
 
-**Version 1.16.1**
+**Version 1.17.0**
 
 Base URL: `/api`
 
@@ -26,6 +26,7 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 - [Metadata](#metadata)
 - [System](#system)
 - [Dashboard & Analytics](#dashboard--analytics)
+- [Subscription Management](#subscription-management)
 - [System Settings](#system-settings)
 
 ---
@@ -435,6 +436,53 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
   }
 }
 ```
+
+---
+
+---
+
+## Subscription Management
+
+### List Subscription Plans
+**Endpoint**: `GET /admin/subscription-plans` (Protected: Admin)
+
+**Response**:
+```json
+{
+  "status": true,
+  "data": [
+    {
+      "uuid": "plan-uuid",
+      "name": "Premium Plan",
+      "price": 99.99,
+      "duration": 30,
+      "device_limit": 3,
+      "platform_access": ["web", "tv"],
+      "status": "active"
+    }
+  ]
+}
+```
+
+### Create Subscription Plan
+**Endpoint**: `POST /admin/subscription-plans` (Protected: Admin)
+**Body**:
+```json
+{
+  "name": "Gold Plan",
+  "price": 199,
+  "duration": 30,
+  "device_limit": 5,
+  "platform_access": ["web", "tv", "mobile"],
+  "status": "active"
+}
+```
+
+### Update Subscription Plan
+**Endpoint**: `PUT /admin/subscription-plans/{uuid}` (Protected: Admin)
+
+### Delete Subscription Plan
+**Endpoint**: `DELETE /admin/subscription-plans/{uuid}` (Protected: Admin)
 
 ---
 

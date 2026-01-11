@@ -1,10 +1,8 @@
 # Nellai IPTV
 
-**Version**: `1.25.2` (Frontend) / `1.17.0` (Backend)
+**Version**: `1.25.0` (Frontend) / `1.17.0` (Backend)
 
-## 📺 Key Highlights (v1.25.2)
-- **Mobile Density**: Classic Mode now features a **3-column grid** on mobile and tablet devices, allowing users to see more channels at a glance.
-- **Instant Loading**: Home page now renders in **< 2 seconds** thanks to a new Staged Data Fetching strategy (Critical vs Background data).
+## 📺 Key Highlights (v1.25.0)
 - **Lite Player Ultra**: A rewritten "Bare Metal" video player for Android TVs involving:
     - **Immersive UI**: Complete removal of Chrome/Navbars for a native app feel.
     - **Smart Redirection**: Universal interception of "Play" actions on TV to force the optimized player.

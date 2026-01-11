@@ -2,16 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Frontend 1.25.2] - 2026-01-11
-### Changed
-- **Classic Mode Layout**: Increased channel grid density to **3 columns** on Mobile and Tablet devices (previously 2), optimizing screen real estate usage for handheld devices.
-
-### Performance
-- **Instant Loading**: Implemented a "Staged Data Fetching" strategy for the Home Page (`OTT Mode`).
-  - **Stage 1 (Critical)**: Immediately fetches Featured content and Public Settings, allowing the UI (Hero Banner, Navbar) to render in **< 2 seconds**.
-  - **Stage 2 (Background)**: Loads the heavy "All Channels" list and "Trending" data in the background, populating the rows seamlessly as data arrives.
-- **Classic Mode Stability**: Classic Mode gracefully waits for full channel data to ensure correct navigation and prohibit "blank state" errors.
-
+## [Frontend 1.25.0] - 2026-01-11
 ### Added
 - **Lite Player Polish**:
   - **Immersive Mode**: The Navbar and Footer now completely vanish on the `/lite` route, ensuring a distraction-free, full-screen cinematic experience.

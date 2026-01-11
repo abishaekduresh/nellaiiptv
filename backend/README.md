@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.16.1)
+# Nellai IPTV - Backend API (v1.17.0)
 
-**Version 1.16.1** | RESTful API built with Slim PHP Framework
+**Version 1.17.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -152,8 +152,9 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
-## Latest Updates (v1.16.0)
-- ⚙️ **Public Settings**: Expose `top_trending_platforms` configuration to control trending section visibility on different clients.
+## Latest Updates (v1.17.0)
+- 💳 **Subscription Engine**: Full CRUD endpoints for managing subscription plans (`SubscriptionPlanController`) and identifying customer subscriptions.
+- ⚙️ **Public Settings**: Expose `top_trending_platforms` configuration to control trending section visibility.
 
 ## Latest Updates (v1.15.0)
 - 📊 **Analytics API**: New `GET /admin/channels/{uuid}/analytics` provides rich data on channel views (daily trends) and user ratings.
