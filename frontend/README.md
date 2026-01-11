@@ -1,4 +1,4 @@
-# Nellai IPTV - Frontend (v1.22.2)
+# Nellai IPTV - Frontend (v1.23.0)
 
 ## Overview
 
@@ -131,6 +131,10 @@ frontend/
   - **Platform Awareness**: Automatically detects the environment (Web, TV, Mobile) and adapts the UI accordingly.
   - **Platform Control**: Admins can now toggle "Top Trending" visibility per platform (Web, TV, Android, iOS) via the Settings panel.
   - **Modern Admin UI**: Enhanced card-based interfaces for Channel Management (Status flags, Platform restrictions).
+- **HLS Optimization v2.0 (v1.23.0)**:
+  - **TV-Specific Config**: Conservative buffering (20MB) and safe start level (480p/720p) to eliminate startup stutter on older Android TVs.
+  - **Device Profiling**: Expanded detection for Tizen, WebOS, and Legacy Android TV environments.
+  - **Quality Management**: Natural ABR (Adaptive Bitrate) logic replaces hardcoded resolution caps for smoother quality transitions.
 
 ## TV Navigation Controls
 

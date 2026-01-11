@@ -14,7 +14,7 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- Dumping structure for table nellai_iptv.ads
+-- Dumping structure for table nellai_iptv_2.ads
 CREATE TABLE IF NOT EXISTS `ads` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `ads` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.category
+-- Dumping structure for table nellai_iptv_2.category
 CREATE TABLE IF NOT EXISTS `category` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `category` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.channels
+-- Dumping structure for table nellai_iptv_2.channels
 CREATE TABLE IF NOT EXISTS `channels` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `uuid` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `channels` (
   `expiry_at` date NOT NULL,
   `status` enum('active','inactive','expired','deleted') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `allowed_platforms` set('web','android','ios','tv') COLLATE utf8mb4_unicode_ci DEFAULT 'web,android,ios,tv',
+  `allowed_platforms` set('web','android','ios','tv') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'web,android,ios,tv',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`),
   UNIQUE KEY `channel_number` (`channel_number`),
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `channels` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.channel_comments
+-- Dumping structure for table nellai_iptv_2.channel_comments
 CREATE TABLE IF NOT EXISTS `channel_comments` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS `channel_comments` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.channel_ratings
+-- Dumping structure for table nellai_iptv_2.channel_ratings
 CREATE TABLE IF NOT EXISTS `channel_ratings` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS `channel_ratings` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.channel_reports
+-- Dumping structure for table nellai_iptv_2.channel_reports
 CREATE TABLE IF NOT EXISTS `channel_reports` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS `channel_reports` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.channel_views
+-- Dumping structure for table nellai_iptv_2.channel_views
 CREATE TABLE IF NOT EXISTS `channel_views` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `channel_id` int unsigned NOT NULL,
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS `channel_views` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.customers
+-- Dumping structure for table nellai_iptv_2.customers
 CREATE TABLE IF NOT EXISTS `customers` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -152,28 +152,29 @@ CREATE TABLE IF NOT EXISTS `customers` (
   `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `phone` bigint NOT NULL,
   `password` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `status` enum('active','inactive','blocked','deleted') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `max_devices` int NOT NULL DEFAULT '1',
-  `allowed_platforms` json DEFAULT NULL,
+  `status` enum('active','inactive','deleted') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `subscription_plan_id` int unsigned DEFAULT NULL,
+  `subscription_expires_at` datetime DEFAULT NULL,
   `reset_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `reset_token_expiry` datetime DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`),
-  UNIQUE KEY `email` (`email`)
+  UNIQUE KEY `email` (`email`),
+  KEY `customers_subscription_plan_id_index` (`subscription_plan_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.customer_activity_logs
+-- Dumping structure for table nellai_iptv_2.customer_activity_logs
 CREATE TABLE IF NOT EXISTS `customer_activity_logs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `customer_id` int unsigned NOT NULL,
-  `activity_type` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` text COLLATE utf8mb4_unicode_ci,
-  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `user_agent` text COLLATE utf8mb4_unicode_ci,
-  `platform` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `activity_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `platform` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_created_at` (`created_at`),
@@ -183,7 +184,7 @@ CREATE TABLE IF NOT EXISTS `customer_activity_logs` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.customer_sessions
+-- Dumping structure for table nellai_iptv_2.customer_sessions
 CREATE TABLE IF NOT EXISTS `customer_sessions` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `customer_id` int unsigned NOT NULL,
@@ -201,7 +202,7 @@ CREATE TABLE IF NOT EXISTS `customer_sessions` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.districts
+-- Dumping structure for table nellai_iptv_2.districts
 CREATE TABLE IF NOT EXISTS `districts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
@@ -213,26 +214,24 @@ CREATE TABLE IF NOT EXISTS `districts` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.email_logs
-CREATE TABLE IF NOT EXISTS `email_logs` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `customer_id` int unsigned DEFAULT NULL,
-  `recipient` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `subject` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `provider_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'sent',
-  `metadata` json DEFAULT NULL,
+-- Dumping structure for table nellai_iptv_2.favorites
+CREATE TABLE IF NOT EXISTS `favorites` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `channel_id` int unsigned NOT NULL,
+  `customer_id` int unsigned NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_provider_id` (`provider_id`),
-  KEY `idx_customer_id` (`customer_id`),
-  CONSTRAINT `fk_email_logs_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `unique_user_channel` (`channel_id`,`customer_id`),
+  KEY `fk_favorites_customer` (`customer_id`),
+  CONSTRAINT `fk_favorites_channel` FOREIGN KEY (`channel_id`) REFERENCES `channels` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_favorites_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.languages
+-- Dumping structure for table nellai_iptv_2.languages
 CREATE TABLE IF NOT EXISTS `languages` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -244,7 +243,20 @@ CREATE TABLE IF NOT EXISTS `languages` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.settings
+-- Dumping structure for table nellai_iptv_2.live_viewers
+CREATE TABLE IF NOT EXISTS `live_viewers` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `channel_id` int NOT NULL,
+  `device_uuid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `last_heartbeat` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_viewer` (`channel_id`,`device_uuid`),
+  KEY `idx_heartbeat` (`last_heartbeat`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table nellai_iptv_2.settings
 CREATE TABLE IF NOT EXISTS `settings` (
   `id` int NOT NULL AUTO_INCREMENT,
   `setting_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -257,7 +269,7 @@ CREATE TABLE IF NOT EXISTS `settings` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.states
+-- Dumping structure for table nellai_iptv_2.states
 CREATE TABLE IF NOT EXISTS `states` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
@@ -268,7 +280,26 @@ CREATE TABLE IF NOT EXISTS `states` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table nellai_iptv.users
+-- Dumping structure for table nellai_iptv_2.subscription_plans
+CREATE TABLE IF NOT EXISTS `subscription_plans` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `price` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `duration` int NOT NULL DEFAULT '30' COMMENT 'Duration in days',
+  `device_limit` int NOT NULL DEFAULT '1',
+  `platform_access` json DEFAULT NULL COMMENT 'Array of allowed platforms',
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `status` enum('active','inactive') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `subscription_plans_uuid_unique` (`uuid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table nellai_iptv_2.users
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -287,7 +318,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for trigger nellai_iptv.before_insert_channel_comments
+-- Dumping structure for trigger nellai_iptv_2.before_insert_channel_comments
 SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
 DELIMITER //
 CREATE TRIGGER `before_insert_channel_comments` BEFORE INSERT ON `channel_comments` FOR EACH ROW BEGIN
@@ -298,7 +329,7 @@ END//
 DELIMITER ;
 SET SQL_MODE=@OLDTMP_SQL_MODE;
 
--- Dumping structure for trigger nellai_iptv.before_insert_channel_ratings
+-- Dumping structure for trigger nellai_iptv_2.before_insert_channel_ratings
 SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
 DELIMITER //
 CREATE TRIGGER `before_insert_channel_ratings` BEFORE INSERT ON `channel_ratings` FOR EACH ROW BEGIN

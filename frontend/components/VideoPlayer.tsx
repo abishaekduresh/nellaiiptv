@@ -430,120 +430,61 @@ function VideoPlayer({
     if (!video) return;
 
 // Device Profile & HLS Optimization
+    // Device Profile
     const getDeviceProfile = () => {
-        if (typeof navigator === 'undefined') return { isTV: false, isMobile: false, tier: 'low', width: 1920, height: 1080 };
+        if (typeof navigator === 'undefined') return { isTV: false, isMobile: false, cores: 2, memory: 1 };
         
         const ua = navigator.userAgent.toLowerCase();
-        // Use 'any' to bypass TS checks for non-standard properties if needed
         const nav = navigator as any; 
         const cores = nav.hardwareConcurrency || 2;
-        const memory = nav.deviceMemory || 1; // Default to 1GB for safety on old devices
-        const width = window.screen.width;
-        const height = window.screen.height;
+        const memory = nav.deviceMemory || 1;
 
         const isTV =
+            ua.includes("android tv") ||
             ua.includes("smarttv") ||
             ua.includes("tizen") ||
             ua.includes("webos") ||
-            ua.includes("android tv") ||
-            ua.includes("tv") ||
-            ua.includes("crkey") || // Chromecast
-            ua.includes("roku") ||
-            ua.includes("netcast"); // Older LG
+            ua.includes("tv");
 
         const isMobile = /android|iphone|ipad|ipod/.test(ua);
 
-        let tier = "low";
-        if (cores >= 6 && memory >= 4) tier = "high";
-        else if (cores >= 4 && memory >= 3) tier = "mid";
-        
-        // Force low tier for known older engines or low memory
-        if (isTV && (memory <= 1.5 || cores <= 2)) tier = "low";
-
-        return {
-            isTV,
-            isMobile,
-            tier,
-            width,
-            height
-        };
-    };
-
-    const getMaxResolution = (profile: any) => {
-        if (profile.isTV) {
-            // If low tier TV, cap at 720p. High tier can do 1080p.
-            return profile.tier === 'low' ? 720 : 1080;
-        }
-        if (profile.isMobile) return 1080;     // phones OK
-        return 2160;                           // PC / laptop
+        return { isTV, isMobile, cores, memory };
     };
 
     const buildHlsConfig = (profile: any) => {
-        const isLowTierTV = profile.isTV && profile.tier === 'low';
-
-        const base: any = {
+        const base = {
             lowLatencyMode: false,
-            enableWorker: true, 
-            capLevelToPlayerSize: false, // User snippet had this disabled, likely key for TV performance
-            startFragPrefetch: true, 
+            // ❌ Workers cause issues on old TVs
+            enableWorker: false,
+            // ❌ Prevent TV from forcing low res
+            capLevelToPlayerSize: false,
+            // ❌ Avoid aggressive prefetch
+            startFragPrefetch: false,
             progressive: true,
             testBandwidth: true,
-            abrEwmaFastLive: 3, 
-            abrEwmaSlowLive: 9,
+            // ABR stability
+            abrEwmaFastLive: 5,
+            abrEwmaSlowLive: 12,
+            // 🚀 START AT SAFE QUALITY (KEY FIX)
+            startLevel: 1, // 480p / 720p depending on ladder
+            // 🎯 Allow quality upgrade
+            abrBandWidthFactor: 0.85,
+            abrBandWidthUpFactor: 0.7,
+            // Prevent constant downscale
+            abrMaxWithRealBitrate: true
         };
 
-        /* 🔥 Startup safety (MOST IMPORTANT) */
-        base.startLevel = -1; // auto
-        base.abrBandWidthFactor = isLowTierTV ? 0.5 : (profile.isTV ? 0.65 : 0.9);
-        base.abrBandWidthUpFactor = isLowTierTV ? 0.4 : (profile.isTV ? 0.5 : 0.85);
-
-        // /* 📺 TV OPTIMIZATION */
-        // if (profile.isTV) {
-        //     return {
-        //         ...base,
-        //         // Aggressive buffering for slow TV hardware
-        //         maxBufferLength: 15, 
-        //         maxMaxBufferLength: 30,
-        //         backBufferLength: 5,
-        //         maxBufferSize: 15 * 1000 * 1000, 
-        //         maxStarvationDelay: 8,
-        //         maxLoadingDelay: 4,
-        //     };
-        // }
-
-        /* 📺 VERY OLD ANDROID TV OPTIMIZATION */
+        /* 📺 ANDROID TV (OLD MODELS SAFE) */
         if (profile.isTV) {
             return {
                 ...base,
-
-                // Start lower to avoid decoder overload
-                startLevel: 0, // 360p or lowest stable
-
-                // Smaller buffers = less GC pauses
-                maxBufferLength: 8,
-                maxMaxBufferLength: 18,
-                backBufferLength: 3,
-                maxBufferSize: 8 * 1000 * 1000, // 8 MB (IMPORTANT)
-
-                // Let video drop frames instead of freezing
-                maxStarvationDelay: 3,
-                maxLoadingDelay: 2,
-
-                // ABR: VERY conservative
-                abrBandWidthFactor: 0.65,
-                abrBandWidthUpFactor: 0.5,
-                abrEwmaDefaultEstimate: 900000, // 900 kbps
-
-                // Do NOT upscale video
-                capLevelToPlayerSize: true,
-
-                // Old TV compatibility
-                enableWorker: false,
-                lowLatencyMode: false,
-                progressive: true,
-
-                // Prevent rapid quality switching
-                abrMaxWithRealBitrate: true,
+                maxBufferLength: 20,
+                maxMaxBufferLength: 40,
+                backBufferLength: 8,
+                // Low RAM protection
+                maxBufferSize: 20 * 1000 * 1000,
+                maxStarvationDelay: 6,
+                maxLoadingDelay: 4
             };
         }
 
@@ -558,7 +499,7 @@ function VideoPlayer({
             };
         }
 
-        /* 💻 PC / LAPTOP */
+        /* 💻 PC */
         return {
             ...base,
             maxBufferLength: 60,
@@ -577,10 +518,8 @@ function VideoPlayer({
             setIsPlaying(true);
         });
         video.addEventListener('canplay', () => setIsLoading(false));
-        video.addEventListener('error', () => {
+         video.addEventListener('error', () => {
              // Fallback to Hls.js if native fails? 
-             // Ideally we just report error, but let's try HLS.js as last resort if we were rigorous, 
-             // but here we just error out to avoid complex fallback logic for now unless requested.
              setIsLoading(false);
              setErrorMessage("Native Stream failed");
         });
@@ -593,9 +532,7 @@ function VideoPlayer({
     // Fallback to HLS.js
     if (Hls.isSupported()) {
         const profile = getDeviceProfile();
-        // console.log("Device Profile:", profile);
         const hlsConfig = buildHlsConfig(profile);
-        // console.log("HLS Config:", hlsConfig);
 
         hls = new Hls({
              debug: false,
@@ -617,10 +554,6 @@ function VideoPlayer({
         
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
             const levels = hls?.levels || [];
-            const maxRes = getMaxResolution(profile);
-            
-            // Auto Level Capping for Resolution Safety
-            let playLevel = -1;
             
             const mappedLevels = levels.map((level, index) => {
                 let label = '';
@@ -635,17 +568,7 @@ function VideoPlayer({
                 return { index, label, height: level.height };
             });
             
-            if (hls) {
-                let maxAllowedIndex = -1;
-                levels.forEach((lvl, idx) => {
-                     if (lvl.height <= maxRes) {
-                         maxAllowedIndex = idx;
-                     }
-                });
-                if (maxAllowedIndex !== -1) {
-                    hls.autoLevelCapping = maxAllowedIndex;
-                }
-            }
+            // Removed manual capping based on 'tier' as we rely on the new optimized config
             
             setQualities([{ index: -1, label: 'Auto' }, ...mappedLevels.reverse()]); 
             

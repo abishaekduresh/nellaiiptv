@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Current Version**: Frontend v1.22.2 | Backend v1.17.0
+**Current Version**: Frontend v1.23.0 | Backend v1.17.0
 
 ## Overview
 
@@ -173,6 +173,10 @@ JWT_SECRET=your_jwt_secret
 ```
 
 ## Latest Updates
+
+### Frontend (v1.23.0)
+- 🚀 **HLS Engine 2.0**: Massive performance boost for older TVs using a new "Safe Start" profile with conservative 20MB buffering and optimized ABR settings.
+- 📱 **Device Profiling**: Intelligent hardware detection for TV, Mobile, and PC to apply the perfect buffer strategy for each.
 
 ### Backend (v1.16.0) | Frontend (v1.20.0)
 - ⚙️ **Platform Control**: Admins can now granularly toggle "Top Trending" visibility for Web, TV, Android, and iOS platforms.

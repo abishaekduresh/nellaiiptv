@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.23.0] - 2026-01-11
+### Added
+- **Advanced HLS Optimization (v2.0)**:
+  - **Device-Specific Profiles**: Complete overhaul of the HLS configuration engine in `VideoPlayer.tsx`.
+  - **TV Profile**: Implemented a "Safe Start" strategy for older Android TVs (`startLevel: 1`, `maxBufferSize: 20MB`) to prevent startup freezes.
+  - **Mobile Profile**: Balanced configuration for phones (`maxBufferSize: 30MB`) ensuring quick load times.
+  - **PC Profile**: High-quality profile for desktops (`maxBufferSize: 60MB`) for maximized playback stability.
+  - **Legacy Cleanup**: Removed conflicting resolution caps (`capLevelToPlayerSize: false`) to allow the new ABR (Adaptive Bitrate) logic to manage quality naturally.
+
 ## [Frontend 1.22.2] - 2026-01-10
 ### Added
 - **Decoder Optimization**:
