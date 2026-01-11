@@ -39,6 +39,8 @@ export const metadata: Metadata = {
 import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 
+import LiteRouteGuard from "@/components/LiteRouteGuard";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -56,15 +58,20 @@ export default function RootLayout({
             <NetworkStatusMonitor />
             <SessionMonitor />
             <Toaster position="top-right" />
-            <Navbar />
-            <main className="flex-grow pt-6">
-              <MaintenanceCheck>
-                <ClassicModeGuard>
-                  {children}
-                </ClassicModeGuard>
-              </MaintenanceCheck>
-            </main>
-            <Footer />
+            
+            {/* Conditional Layout Rendering */}
+            <LiteRouteGuard>
+                <Navbar />
+                <main className="flex-grow pt-6">
+                    <MaintenanceCheck>
+                        <ClassicModeGuard>
+                        {children}
+                        </ClassicModeGuard>
+                    </MaintenanceCheck>
+                </main>
+                <Footer />
+            </LiteRouteGuard>
+
           </ViewModeProvider>
         </TVNavigationProvider>
       </body>

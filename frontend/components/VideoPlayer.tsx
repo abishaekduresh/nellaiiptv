@@ -431,8 +431,9 @@ function VideoPlayer({
 
 // Device Profile & HLS Optimization
     // Device Profile
+    // Device Profile
     const getDeviceProfile = () => {
-        if (typeof navigator === 'undefined') return { isTV: false, isMobile: false, cores: 2, memory: 1 };
+        if (typeof navigator === 'undefined') return { isTV: false, isMobile: false, tier: 'low' };
         
         const ua = navigator.userAgent.toLowerCase();
         const nav = navigator as any; 
@@ -448,7 +449,12 @@ function VideoPlayer({
 
         const isMobile = /android|iphone|ipad|ipod/.test(ua);
 
-        return { isTV, isMobile, cores, memory };
+        // Tier Logic
+        let tier = 'low';
+        if (cores >= 4 && memory >= 2) tier = 'high';
+        if (isTV && (cores < 4 || memory < 2)) tier = 'low'; // Force low for weak TVs
+
+        return { isTV, isMobile, tier, cores, memory };
     };
 
     const buildHlsConfig = (profile: any) => {
@@ -476,6 +482,26 @@ function VideoPlayer({
 
         /* 📺 ANDROID TV (OLD MODELS SAFE) */
         if (profile.isTV) {
+            // 🛑 LOW TIER TV (Old Android / Tizen / WebOS)
+            if (profile.tier === 'low') {
+                return {
+                    ...base,
+                    startLevel: 0, // Absolute lowest quality start
+                    maxBufferLength: 15, // Reduced buffer overhead
+                    maxMaxBufferLength: 30,
+                    backBufferLength: 5, 
+                    maxBufferSize: 15 * 1000 * 1000, // 15MB limit
+                    
+                    // Very Conservative ABR
+                    abrBandWidthFactor: 0.5, 
+                    abrBandWidthUpFactor: 0.3,
+                    
+                    maxStarvationDelay: 4,
+                    maxLoadingDelay: 2
+                };  
+            }
+
+            // 🚀 HIGH TIER TV (Shield / Fire TV 4K)
             return {
                 ...base,
                 maxBufferLength: 20,
@@ -512,6 +538,15 @@ function VideoPlayer({
     // Priority: HLS.js (Optimized) > Native (Fallback for iOS/Safari)
     if (Hls.isSupported()) {
         const profile = getDeviceProfile();
+        
+        // 🚀 LITE MODE REDIRECT (For Low-End TVs)
+        // If the user is on a slow TV, we redirect them to the Zero-Overhead Lite Player
+        // This bypasses the entire React Render Loop for maximum performance.
+        if (profile.isTV && profile.tier === 'low' && channelUuid) {
+            window.location.href = `/lite?channel=${channelUuid}`;
+            return; // Stop execution
+        }
+
         const hlsConfig = buildHlsConfig(profile);
 
         hls = new Hls({

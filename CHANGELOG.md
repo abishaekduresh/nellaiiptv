@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.23.4] - 2026-01-11
+### Added
+- **Lite Player (v1.0)**:
+  - **Zero-Overhead Playback**: New `/lite` route designed specifically for older Android TVs. Bypasses all React UI rendering to dedicate 100% CPU to video decoding.
+  - **Auto-Redirect Logic**: The main player intelligently detects "Low Tier" devices and seamlessly redirects them to the Lite player.
+  - **Secure Stream Hiding**: The Lite player accepts a `channel` UUID (e.g., `?channel=...`) and internally fetches the secure stream URL, preventing `.m3u8` link exposure in the browser bar.
+
+## [Frontend 1.23.3] - 2026-01-11
+### Fixed
+- **Low-End TV Optimization**:
+  - **Dynamic Tiering**: Restored smart detection for low-spec TVs based on CPU/RAM (`cores < 4` or `memory < 2GB`).
+  - **Lite Profile**: Automatically applies "Safety Mode" for these devices: `startLevel: 0` (Lowest), `maxBuffer: 15MB` (RAM Saver), and `BandwidthFactor: 0.5` (Conservative ABR).
+  - **Result**: Eliminates buffering on older Android TVs where decoding power is the bottleneck, while keeping 1080p/4K unlocked for high-end devices (Shield/FireTV).
+
 ## [Frontend 1.23.2] - 2026-01-11
 ### Fixed
 - **HLS Threading**:
