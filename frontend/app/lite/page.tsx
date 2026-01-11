@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect, useRef, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Script from 'next/script';
+import { Crown } from 'lucide-react';
 import api from '@/lib/api';
 
 // Type definition for Clappr attached to window
@@ -13,6 +14,7 @@ declare global {
 }
 
 function Player() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const channelUuid = searchParams.get('channel');
   const srcParam = searchParams.get('src'); // Fallback
@@ -22,6 +24,14 @@ function Player() {
   const [error, setError] = useState<string | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [isClapprLoaded, setIsClapprLoaded] = useState(false);
+  const [isPremiumRestricted, setIsPremiumRestricted] = useState(false);
+
+  // 0. Immediate Check for Global Clappr (Fixes SPA Navigation infinite load)
+  useEffect(() => {
+      if (typeof window !== 'undefined' && window.Clappr) {
+          setIsClapprLoaded(true);
+      }
+  }, []);
 
   // 1. Fetch Secure Stream URL & Logo
   useEffect(() => {
@@ -36,7 +46,11 @@ function Player() {
           try {
               const res = await api.get(`/channels/${channelUuid}`);
               if (res.data.status && res.data.data.hls_url) {
-                  setStreamUrl(res.data.data.hls_url);
+                  if (res.data.data.hls_url === 'PAID_RESTRICTED') {
+                      setIsPremiumRestricted(true);
+                  } else {
+                      setStreamUrl(res.data.data.hls_url);
+                  }
               } else {
                   setError("Channel Not Found");
               }
@@ -180,6 +194,41 @@ function Player() {
     return () => clearTimeout(initTimer);
   }, [streamUrl, isClapprLoaded]);
 
+  // Handle Premium Restriction UI
+  if (isPremiumRestricted) {
+      return (
+          <div className="flex flex-col items-center justify-center h-screen bg-black text-white p-6 animate-fade-in">
+              <div className="relative mb-6">
+                  {/* Glowing Effect */}
+                  <div className="absolute inset-0 bg-yellow-500/20 blur-xl rounded-full"></div>
+                  <div className="relative w-20 h-20 rounded-full border-2 border-yellow-500/30 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                      <Crown className="w-10 h-10 text-yellow-500" />
+                  </div>
+              </div>
+              
+              <h1 className="text-2xl font-bold mb-2">Premium Content</h1>
+              <p className="text-slate-400 text-center max-w-md mb-8">
+                  This channel is available exclusively for Premium subscribers. Please upgrade your plan to watch.
+              </p>
+
+              <div className="flex flex-col gap-4 w-full max-w-xs">
+                  <button 
+                      onClick={() => router.push('/profile')}
+                      className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                      Upgrade Now
+                  </button>
+                  <button 
+                      onClick={() => router.back()}
+                      className="text-slate-500 hover:text-white text-sm transition-colors"
+                  >
+                      Go Back
+                  </button>
+              </div>
+          </div>
+      );
+  }
+
   if (!channelUuid && !srcParam) return <div className="flex items-center justify-center h-screen text-2xl text-white">No Channel Selected</div>;
   if (!streamUrl && !error) return <div className="flex items-center justify-center h-screen text-2xl text-white">Loading Stream...</div>;
 
@@ -229,6 +278,13 @@ function Player() {
            /* 🎯 Keep only Play/Pause Center */
            .media-control-center {
                display: flex !important;
+           }
+
+           /* 📐 Force Video to Stretch (Fill Screen) */
+           #lite-player video {
+               object-fit: fill !important;
+               width: 100% !important;
+               height: 100% !important;
            }
         `}</style>
     </div>

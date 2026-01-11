@@ -9,6 +9,7 @@ import { Channel } from '@/types';
 import api from '@/lib/api';
 import { useFavorites } from '@/hooks/useFavorites';
 import { isSmartTV } from '@/lib/device';
+import { getSafeImageUrl } from '@/lib/utils';
 
 
 interface ChannelCardProps {
@@ -28,6 +29,7 @@ export default function ChannelCard({ channel, showOverallViewers = false }: Cha
   });
 
   const [isLoadingImage, setIsLoadingImage] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -52,12 +54,12 @@ export default function ChannelCard({ channel, showOverallViewers = false }: Cha
   return (
     <div 
       className="relative group block bg-slate-800 rounded-lg overflow-hidden transition-all duration-300"
-      onClick={handleClick}
     > 
      {/* Link covers the entire card area for navigation */}
      <Link 
       href={`/channel/${channel.uuid}`}
       className={`absolute inset-0 z-10 ${isFocused ? 'ring-4 ring-white scale-105' : 'hover:ring-2 hover:ring-primary'}`}
+      onClick={handleClick}
       tabIndex={focusProps.tabIndex}
       onFocus={focusProps.onFocus}
       onBlur={focusProps.onBlur}
@@ -69,7 +71,7 @@ export default function ChannelCard({ channel, showOverallViewers = false }: Cha
 
       {/* Visual Content (Not interactive, but visible) */}
       <div className="aspect-video relative bg-slate-900 pointer-events-none">
-        {isLoadingImage && channel.thumbnail_url && (
+        {isLoadingImage && !hasError && channel.thumbnail_url && (
           <div className="absolute inset-0 bg-slate-800 animate-pulse z-0" />
         )}
         
@@ -81,13 +83,16 @@ export default function ChannelCard({ channel, showOverallViewers = false }: Cha
           </div>
         )}
         
-        {channel.thumbnail_url ? (
+        {channel.thumbnail_url && !hasError ? (
           <img 
-            src={channel.thumbnail_url} 
+            src={getSafeImageUrl(channel.thumbnail_url)} 
             alt={channel.name}
             loading="lazy"
             onLoad={() => setIsLoadingImage(false)}
-            onError={() => setIsLoadingImage(false)}
+            onError={() => {
+                setIsLoadingImage(false);
+                setHasError(true);
+            }}
             className={`w-full h-full object-contain p-2 opacity-90 transition-opacity ${isLoadingImage ? 'opacity-0' : 'opacity-90'}`}
           />
         ) : (

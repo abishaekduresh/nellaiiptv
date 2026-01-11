@@ -3,10 +3,13 @@
 import Link from 'next/link';
 import { useViewMode } from '@/context/ViewModeContext';
 
+import { usePathname } from 'next/navigation';
+
 const Footer = () => {
   const { mode } = useViewMode();
+  const pathname = usePathname();
 
-  if (mode === 'Classic') return null;
+  if (mode === 'Classic' || pathname?.startsWith('/lite')) return null;
 
   return (
     <footer className="bg-slate-900 border-t border-slate-800 mt-auto">

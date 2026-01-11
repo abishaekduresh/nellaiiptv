@@ -1,6 +1,13 @@
 # Nellai IPTV
 
-**Current Version**: Frontend v1.24.0 | Backend v1.17.0
+**Version**: `1.25.0` (Frontend) / `1.17.0` (Backend)
+
+## 📺 Key Highlights (v1.25.0)
+- **Lite Player Ultra**: A rewritten "Bare Metal" video player for Android TVs involving:
+    - **Immersive UI**: Complete removal of Chrome/Navbars for a native app feel.
+    - **Smart Redirection**: Universal interception of "Play" actions on TV to force the optimized player.
+    - **Premium Gates**: TV-friendly "Access Denied" screens with remote-control navigation.
+- **Resilient UI**: Thumbnails now self-heal from broken links, and the player recovers automatically from network interruptions.
 
 ## Overview
 

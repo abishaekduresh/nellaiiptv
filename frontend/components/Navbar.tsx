@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { Settings, Search, X, Loader2, Menu, Maximize, Minimize, Crown } from 'lucide-react';
 import UserMenu from './UserMenu';
@@ -104,6 +104,13 @@ export default function Navbar() {
 
   /* Existing Logic */
   if (mode === 'Classic') return null;
+  
+  // 🚀 Hide on Lite Player (Immersive Mode)
+  const pathname = usePathname(); // Ensure usePathname is imported or used if already there. 
+  // It is imported in line 5? No, line 5 has useRouter. I need to add usePathname to imports or check if available.
+  // Wait, line 5: import { useRouter } from 'next/navigation';
+  // I need to add usePathname.
+  if (pathname?.startsWith('/lite')) return null;
 
   return (
     <>

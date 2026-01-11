@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Frontend 1.25.0] - 2026-01-11
+### Added
+- **Lite Player Polish**:
+  - **Immersive Mode**: The Navbar and Footer now completely vanish on the `/lite` route, ensuring a distraction-free, full-screen cinematic experience.
+  - **Premium UI**: Replaced generic "Access Denied" errors with a TV-friendly "Premium Content" screen featuring a Crown icon, "Upgrade Now" call-to-action, and a critical "Go Back" button to prevent navigation traps.
+  - **Auto-Play Fix**: Solved "Infinite Loading" loop on TV browsers when navigating from Home Page by detecting pre-loaded Clappr instances immediately.
+
+### Fixed
+- **TV Navigation**:
+  - **Universal Redirect**: Hardened the "TV Detection" logic across the entire application. Clicking ANY video—whether in Featured Banner, Trending Lists, or Search Results—now strictly forces a redirect to the optimized Lite Player on TV devices.
+- **Image Handling**:
+  - **Smart Fallback**: Fixed broken channel thumbnails caused by external provider timeouts (Catbox). The system now gracefully detects load errors and instantly swaps to a generated Initials Avatar, keeping the UI clean.
+  - **Proxy Sanitization**: Added utility to strip `localhost` from image URLs, fixing display issues on non-server devices.
+
 ## [Frontend 1.24.0] - 2026-01-11
 ### Added
 - **Lite Player (Clappr Engine)**:
