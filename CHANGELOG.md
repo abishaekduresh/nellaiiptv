@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 
 
 
+## [Frontend 1.23.2] - 2026-01-11
+### Fixed
+- **HLS Threading**:
+  - **Performance**: Enabled `enableWorker: true` for React applications.
+  - **Why**: While static HTML files work without workers, the React/Next.js runtime consumes significant Main Thread resources. Enabling the worker offloads video parsing to a background thread, preventing CPU starvation and buffering loops on low-spec TVs.
+
 ## [Frontend 1.23.1] - 2026-01-11
 ### Fixed
 - **HLS Priority Engine**:

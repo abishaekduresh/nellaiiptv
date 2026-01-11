@@ -454,8 +454,8 @@ function VideoPlayer({
     const buildHlsConfig = (profile: any) => {
         const base = {
             lowLatencyMode: false,
-            // ❌ Workers cause issues on old TVs
-            enableWorker: false,
+            // ✅ Enable Worker for React Apps (Offloads parsing from Main Thread)
+            enableWorker: true,
             // ❌ Prevent TV from forcing low res
             capLevelToPlayerSize: false,
             // ❌ Avoid aggressive prefetch
