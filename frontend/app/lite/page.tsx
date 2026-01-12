@@ -170,10 +170,10 @@ function Player() {
             // ABR stability
             abrEwmaFastLive: 5,
             abrEwmaSlowLive: 12,
-            // 🚀 START AT SAFE QUALITY (KEY FIX - User requested 1)
-            startLevel: 1, // 480p / 720p depending on ladder
-            // 🎯 Allow quality upgrade
-            abrBandWidthFactor: 0.85,
+            // 🚀 START AT AUTO (Auto Quality Adaptation)
+            startLevel: -1, 
+            // 🎯 Allow quality upgrade (Slightly less conservative)
+            abrBandWidthFactor: 0.9,
             abrBandWidthUpFactor: 0.7,
             // Prevent constant downscale
             abrMaxWithRealBitrate: true
@@ -346,6 +346,13 @@ function Player() {
            /* 🎯 Keep only Play/Pause Center */
            .media-control-center {
                display: flex !important;
+           }
+
+           /* ↔️ Force Video Stretch (User Request) */
+           video {
+               object-fit: fill !important;
+               width: 100% !important;
+               height: 100% !important;
            }
         `}</style>
     </div>

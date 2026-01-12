@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+
 import BackendHealthCheck from "@/components/BackendHealthCheck";
 import { Toaster } from 'react-hot-toast';
 import TVNavigationProvider from "@/components/TVNavigationProvider";
@@ -61,15 +60,7 @@ export default function RootLayout({
             
             {/* Conditional Layout Rendering */}
             <LiteRouteGuard>
-                <Navbar />
-                <main className="flex-grow pt-6">
-                    <MaintenanceCheck>
-                        <ClassicModeGuard>
-                        {children}
-                        </ClassicModeGuard>
-                    </MaintenanceCheck>
-                </main>
-                <Footer />
+                {children}
             </LiteRouteGuard>
 
           </ViewModeProvider>
