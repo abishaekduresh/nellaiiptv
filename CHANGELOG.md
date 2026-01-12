@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Frontend 1.26.0] - 2026-01-12
+### Added
+- **TV Navigation System**:
+  - **Channel Surfing**: Implemented full `Previous` / `Next` channel navigation in the Lite Player (`/lite`).
+  - **Remote Support**: Mapped standard TV Remote keys (`ArrowUp`, `ArrowRight`, `ChannelUp` -> Next) and (`ArrowDown`, `ArrowLeft`, `ChannelDown` -> Previous) to navigation actions.
+  - **Overlay UI**: Added a sleek, auto-hiding overlay that displays the current channel info and provides touch/click navigation buttons.
+  - **Seamless Fetching**: The player now intelligently pre-fetches the entire channel list in the background to enable instant channel switching without returning to the home screen.
+
 ## [Frontend 1.25.0] - 2026-01-11
 ### Added
 - **Lite Player Polish**:

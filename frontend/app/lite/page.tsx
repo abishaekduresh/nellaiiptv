@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useEffect, useRef, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import api from '@/lib/api';
+import { Channel } from '@/types';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Type definition for Clappr attached to window
 declare global {
@@ -13,6 +15,7 @@ declare global {
 }
 
 function Player() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const channelUuid = searchParams.get('channel');
   const srcParam = searchParams.get('src'); // Fallback
@@ -22,6 +25,11 @@ function Player() {
   const [error, setError] = useState<string | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [isClapprLoaded, setIsClapprLoaded] = useState(false);
+
+  // TV Navigation State
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [currentChannelIndex, setCurrentChannelIndex] = useState(-1);
+  const [showUi, setShowUi] = useState(false); // Toggle UI on interaction
 
   // 1. Fetch Secure Stream URL & Logo
   useEffect(() => {
@@ -46,6 +54,77 @@ function Player() {
       }
       fetchData();
   }, [channelUuid, srcParam]);
+
+  // 1.5 Fetch All Channels for Navigation (Background)
+  useEffect(() => {
+    async function fetchAllChannels() {
+        try {
+            const res = await api.get('/channels?limit=-1');
+            if (res.data.status) {
+                let allCh = res.data.data.data || res.data.data || [];
+                // Sort by channel number
+                allCh.sort((a: Channel, b: Channel) => (a.channel_number || 9999) - (b.channel_number || 9999));
+                setChannels(allCh);
+            }
+        } catch (e) {
+            console.error("Failed to load channel list for navigation", e);
+        }
+    }
+    fetchAllChannels();
+  }, []);
+
+  // Update Current Index when channels or current uuid changes
+  useEffect(() => {
+    if (channels.length > 0 && channelUuid) {
+        const idx = channels.findIndex(c => c.uuid === channelUuid);
+        if (idx !== -1) setCurrentChannelIndex(idx);
+    }
+  }, [channels, channelUuid]);
+
+  // Navigation Logic
+  const changeChannel = (direction: 'next' | 'prev') => {
+      if (channels.length === 0) return;
+      
+      let newIndex = direction === 'next' ? currentChannelIndex + 1 : currentChannelIndex - 1;
+      
+      // Loop navigation
+      if (newIndex >= channels.length) newIndex = 0;
+      if (newIndex < 0) newIndex = channels.length - 1;
+
+      const nextChannel = channels[newIndex];
+      if (nextChannel) {
+          // Update URL to trigger main fetch
+          router.replace(`/lite?channel=${nextChannel.uuid}`);
+      }
+  };
+
+  // Keyboard Listeners
+  useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+          // Show UI on any key press
+          setShowUi(true);
+          
+          if (e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ChannelUp') {
+              e.preventDefault(); // Prevent page scroll
+              changeChannel('next');
+          } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ChannelDown') {
+              e.preventDefault();
+              changeChannel('prev');
+          }
+      };
+
+      // Auto-hide UI after 3 seconds of inactivity
+      let uiTimer: NodeJS.Timeout;
+      if (showUi) {
+          uiTimer = setTimeout(() => setShowUi(false), 3000);
+      }
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          clearTimeout(uiTimer);
+      };
+  }, [channels, currentChannelIndex, showUi]);
 
   // 2. Player Logic (User Provided Config)
   useEffect(() => {
@@ -207,7 +286,45 @@ function Player() {
         )}
 
         {/* Player Container */}
-        <div id="lite-player" ref={playerContainerRef} className="w-full h-full"></div>
+        <div 
+            id="lite-player" 
+            ref={playerContainerRef} 
+            className="w-full h-full"
+            onMouseMove={() => {
+                setShowUi(true);
+                // Debounced hide logic could go here but keep it simple
+            }}
+            onClick={() => setShowUi(true)}
+        ></div>
+
+        {/* Navigation UI Overlay */}
+        <div className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${showUi ? 'opacity-100' : 'opacity-0'}`}>
+            {/* Prev Button */}
+            <button 
+                onClick={(e) => { e.stopPropagation(); changeChannel('prev'); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-4 rounded-full pointer-events-auto transition hover:scale-110 z-30"
+                aria-label="Previous Channel"
+            >
+                <ChevronLeft size={32} />
+            </button>
+
+            {/* Next Button */}
+            <button 
+                onClick={(e) => { e.stopPropagation(); changeChannel('next'); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-4 rounded-full pointer-events-auto transition hover:scale-110 z-30"
+                aria-label="Next Channel"
+            >
+                <ChevronRight size={32} />
+            </button>
+            
+            {/* Channel Info Overlay (Optional but helpful) */}
+            {channels[currentChannelIndex] && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 px-6 py-2 rounded-full text-white font-medium z-30">
+                    <span className="text-gray-400 mr-2">#{channels[currentChannelIndex].channel_number || '00'}</span>
+                    {channels[currentChannelIndex].name}
+                </div>
+            )}
+        </div>
 
         <style jsx global>{`
            /* 🛡️ Hide unwanted controllers (Seekbar, Volume) */
