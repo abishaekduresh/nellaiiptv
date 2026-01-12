@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import api from '@/lib/api';
 import { Channel } from '@/types';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
 
 // Type definition for Clappr attached to window
 declare global {
@@ -299,6 +299,15 @@ function Player() {
 
         {/* Navigation UI Overlay */}
         <div className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${showUi ? 'opacity-100' : 'opacity-0'}`}>
+            {/* Home Button */}
+            <button
+                onClick={(e) => { e.stopPropagation(); router.push('/'); }}
+                className="absolute top-6 left-6 bg-black/40 hover:bg-red-600 text-white p-3 rounded-full pointer-events-auto transition-all hover:scale-110 z-50 backdrop-blur-md border border-white/10"
+                aria-label="Return Home"
+            >
+                <Home size={28} />
+            </button>
+
             {/* Prev Button */}
             <button 
                 onClick={(e) => { e.stopPropagation(); changeChannel('prev'); }}

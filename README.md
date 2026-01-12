@@ -1,12 +1,10 @@
 # Nellai IPTV
 
-**Version**: `1.27.0` (Frontend) / `1.17.0` (Backend)
+**Version**: `1.26.0` (Frontend) / `1.17.0` (Backend)
 
-## 📺 Key Highlights (v1.27.0)
-- **Lite Player "Cinematic" Update**: 
-    - **Immersive Mode**: Removed all UI chrome (Header/Footer) for a true full-screen experience.
-    - **Auto-Stretch**: Forces video to fill the screen regardless of aspect ratio (`object-fit: fill`), eliminating black bars.
-    - **Smart Quality**: Now uses Auto-ABR (`startLevel: -1`) to adaptively select the best quality, replacing fixed low-res starts.
+## 📺 Key Highlights (v1.25.0)
+- **Lite Player Ultra**: A rewritten "Bare Metal" video player for Android TVs involving:
+    - **Immersive UI**: Complete removal of Chrome/Navbars for a native app feel.
     - **Smart Redirection**: Universal interception of "Play" actions on TV to force the optimized player.
     - **Premium Gates**: TV-friendly "Access Denied" screens with remote-control navigation.
 - **TV Surfing**: Added "Channel Up/Down" support to the Lite Player. Users can now surf through the entire channel catalog using their TV remote's arrow keys without leaving the video stream.

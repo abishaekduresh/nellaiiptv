@@ -2,13 +2,6 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Frontend 1.27.0] - 2026-01-12
-### Added
-- **Lite Player (v2.0 - "Cinematic")**:
-  - **Auto-Stretch Engine**: Forces video to fill the entire physical screen (`object-fit: fill`), strictly eliminating black bars on all devices regardless of aspect ratio.
-  - **Immersive Layout**: Completely removed Header, Footer, and structural DOM wrappers from the `/lite` route. The player now sits in a `100vw/100vh` locked container for a native app-like experience.
-  - **Smart ABR**: Switched from fixed-quality start to **Auto-Quality (`startLevel: -1`)**. The player now dynamically measures bandwidth to pick the best starting resolution, with a refined `BandwidthFactor` of `0.9` for sharper visuals on stable networks.
-
 ## [Frontend 1.26.0] - 2026-01-12
 ### Added
 - **TV Navigation System**:
