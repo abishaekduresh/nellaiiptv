@@ -19,9 +19,9 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Load preference from localStorage on mount
-    const savedMode = localStorage.getItem('viewMode') as ViewMode;
-    const expiry = localStorage.getItem('viewModeExpiry');
+    // Load preference from sessionStorage on mount
+    const savedMode = sessionStorage.getItem('viewMode') as ViewMode;
+    const expiry = sessionStorage.getItem('viewModeExpiry');
 
     // Check expiry if in Classic Mode
     if (savedMode === 'Classic') {
@@ -29,8 +29,8 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
         if (expiry && now > parseInt(expiry)) {
             // Expired: Revert to OTT
             setModeState('OTT');
-            localStorage.setItem('viewMode', 'OTT');
-            localStorage.removeItem('viewModeExpiry');
+            sessionStorage.setItem('viewMode', 'OTT');
+            sessionStorage.removeItem('viewModeExpiry');
             setIsInitialized(true);
             return;
         }
@@ -49,15 +49,15 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
 
   const setMode = (newMode: ViewMode) => {
     setModeState(newMode);
-    localStorage.setItem('viewMode', newMode);
+    sessionStorage.setItem('viewMode', newMode);
 
     // Set or Clear Expiry
     if (newMode === 'Classic') {
         // Set expiry to 24 hours from now
         const expiryTime = Date.now() + (24 * 60 * 60 * 1000);
-        localStorage.setItem('viewModeExpiry', expiryTime.toString());
+        sessionStorage.setItem('viewModeExpiry', expiryTime.toString());
     } else {
-        localStorage.removeItem('viewModeExpiry');
+        sessionStorage.removeItem('viewModeExpiry');
     }
 
     // Track mode change

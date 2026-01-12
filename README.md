@@ -1,14 +1,13 @@
 # Nellai IPTV
 
-**Version**: `1.26.0` (Frontend) / `1.17.0` (Backend)
+**Version**: `1.27.1` (Frontend) / `1.17.0` (Backend)
 
-## 📺 Key Highlights (v1.25.0)
-- **Lite Player Ultra**: A rewritten "Bare Metal" video player for Android TVs involving:
-    - **Immersive UI**: Complete removal of Chrome/Navbars for a native app feel.
-    - **Smart Redirection**: Universal interception of "Play" actions on TV to force the optimized player.
-    - **Premium Gates**: TV-friendly "Access Denied" screens with remote-control navigation.
-- **TV Surfing**: Added "Channel Up/Down" support to the Lite Player. Users can now surf through the entire channel catalog using their TV remote's arrow keys without leaving the video stream.
-- **Resilient UI**: Thumbnails now self-heal from broken links, and the player recovers automatically from network interruptions.
+## 📺 Key Highlights (v1.27.0)
+- **Cinematic Lite Player**: Complete UI overhaul for the TV player.
+    - **Visual Error Handling**: Replaced generic alerts with a full-screen, dark-themed "Interrupted" overlay.
+    - **Self-Healing**: Implemented a **6-second auto-retry** mechanism that recovers streams automatically.
+    - **Navigation**: Added a discrete "Home" button and refined the channel info overlay for a polished TV look.
+- **TV Surfing**: Full support for "Channel Up/Down" remote keys and arrow navigation.
 
 ## Overview
 

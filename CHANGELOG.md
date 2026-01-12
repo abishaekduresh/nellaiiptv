@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Frontend 1.27.1] - 2026-01-12
+### Changed
+- **Classic Mode Persistence**: Switched from `localStorage` to `sessionStorage` for storing view mode preference.
+  - **Behavior**: "Classic Mode" now persists only during the active browser session. Closing the browser or tab automatically resets the view to "OTT Mode" (default) for the next visit.
+  - **Expiry**: Updates expiry handling to match the new session-based lifecycle.
+
+## [Frontend 1.27.0] - 2026-01-12
+### Added
+- **Lite Player (Cinematic UI)**:
+  - **Full-Screen Error Overlay**: Replaced standard errors with a cinematic, dark-themed "Playback Interrupted" screen for a premium TV experience.
+  - **Smart Retry**: Implemented a visible **6-second auto-retry countdown** to automatically recover from stream failures without user intervention.
+  - **Home Navigation**: Added a transparent "Return Home" button to the top-left corner, allowing users to easily exit the player.
+  - **TV Navigation Polish**: Refined the bottom-left channel info overlay and confirmed "Prev/Next" button visibility for clearer navigation.
+
 ## [Frontend 1.26.0] - 2026-01-12
 ### Added
 - **TV Navigation System**:
