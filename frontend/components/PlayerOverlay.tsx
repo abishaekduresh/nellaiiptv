@@ -509,18 +509,19 @@ export default function PlayerOverlay({
              {/* Gradient Shade */}
              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent h-32 -z-10 bottom-0 pointer-events-none" />
 
-             {/* Mobile: Stack controls or simplified layout? 
-                 Desktop: Absolute center. 
-                 Solution: Flex layout that adapts.
+             {/* 
+                HYBRID LAYOUT:
+                - Mobile/Tablet (< lg): Flexbox flow. Left, Center, Right share space. No overlap possible.
+                - Desktop (lg+): Absolute Center. Left/Right constrained to 35% width to prevent hitting center.
               */}
-             <div className="container mx-auto max-w-5xl px-3 md:px-8 pb-3 md:pb-6 pt-4 md:pt-10 flex items-center md:items-end justify-between gap-2 md:gap-4 relative">
+             <div className="container mx-auto max-w-6xl px-3 md:px-6 pb-3 md:pb-6 pt-4 md:pt-10 flex items-center lg:items-end justify-between gap-2 md:gap-4 relative">
 
                  {/* LEFT: Menu / Channel Info */}
-                 <div className="flex-1 flex items-center justify-start gap-2 md:gap-4 min-w-0">
+                 {/* Constrained on Desktop to avoid hitting absolute center */}
+                 <div className="flex-1 flex items-center justify-start gap-2 md:gap-4 min-w-0 lg:max-w-[35%]">
                      <TVButton
                         onClick={(e: any) => {
                             e.stopPropagation();
-                            // Toggle Sidebar Menu
                             setSidebarOpen(prev => !prev);
                         }}
                         className={`flex items-center gap-2 px-2 py-2 md:px-4 md:py-2.5 rounded-full backdrop-blur-md border transition-all group shrink-0 ${
@@ -535,8 +536,7 @@ export default function PlayerOverlay({
                         </span>
                      </TVButton>
 
-                     {/* Channel Info (Bottom) - Fills the gap */}
-                     {/* Hide on really small screens if they collide? Or just flex-shrink */}
+                     {/* Channel Info */}
                      {currentChannel && (
                         <div className="hidden sm:flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500 min-w-0 overflow-hidden">
                              <div className="hidden sm:block w-12 h-12 bg-white/5 rounded-lg border border-white/10 p-1 backdrop-blur-sm shrink-0">
@@ -563,12 +563,15 @@ export default function PlayerOverlay({
                  </div>
 
                  {/* CENTER: Playback Controls */}
-                 {/* Mobile: Relative/Flex (in flow). Desktop: Absolute center. */}
-                 <div className="relative md:absolute md:left-1/2 md:-translate-x-1/2 md:bottom-6 flex items-center gap-3 md:gap-6 shrink-0">
+                 {/* 
+                    < lg: Relative (Part of flex flow)
+                    lg+: Absolute (Perfect Center)
+                 */}
+                 <div className="relative lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:bottom-6 flex items-center gap-3 md:gap-6 shrink-0 order-2 lg:order-none">
                       <TVButton
                         onClick={(e: any) => { e.stopPropagation(); onPrevChannel(); }}
                         className="text-slate-400 hover:text-white hover:scale-110 transition-all active:scale-95 p-2 rounded-full hidden sm:block" 
-                      >{/* Hide buttons on super small screens if needed, or keep */}
+                      >
                           <SkipBack className="w-4 h-4 md:w-5 md:h-5" />
                       </TVButton>
 
@@ -592,7 +595,8 @@ export default function PlayerOverlay({
                  </div>
 
                  {/* RIGHT: Tools */}
-                 <div className="flex-1 flex justify-end items-center gap-2 md:gap-4">
+                 {/* Constrained on Desktop */}
+                 <div className="flex-1 flex justify-end items-center gap-2 md:gap-4 min-w-0 lg:max-w-[35%] order-3 lg:order-none">
                       {onToggleMute && (
                           <TVButton
                             onClick={onToggleMute}
@@ -606,7 +610,7 @@ export default function PlayerOverlay({
                       {onAirPlay && (
                           <TVButton
                             onClick={(e: any) => { e.stopPropagation(); onAirPlay(); }}
-                            className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                            className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors hidden sm:block"
                             title="AirPlay"
                           >
                             <Cast size={20} />
@@ -616,7 +620,7 @@ export default function PlayerOverlay({
                       {onTogglePiP && (
                           <TVButton
                             onClick={(e: any) => { e.stopPropagation(); onTogglePiP(); }}
-                            className={`p-2 rounded-full transition-colors ${isPiP ? 'bg-white text-black' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+                            className={`p-2 rounded-full transition-colors hidden sm:block ${isPiP ? 'bg-white text-black' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
                             title="Picture-in-Picture"
                           >
                              <PictureInPicture size={20} />

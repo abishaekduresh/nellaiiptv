@@ -2,6 +2,22 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.28.0] - 2026-01-19
+
+### Added
+- **Hybrid Responsive Player**: 
+    - Implemented a smart hybrid layout for the player overlay.
+    - **Large Screens**: Controls are strictly centered for aesthetics.
+    - **Tablet/Mobile**: Controls switch to a flex layout to guarantee zero overlap.
+    - **Side Constraints**: Added width constraints to side panels to prevent them from bleeding into the playback controls.
+- **Immersive Classic Mode**:
+    - **Layout Cleanup**: Removed the standard web `Navbar` and `Footer` when in 'Classic' mode.
+    - **True Fullscreen**: The application now offers a native TV-like experience without web navigation clutter.
+
+### Fixed
+- **Classic Mode Blank Screen**: Resolved a race condition in `ViewModeContext` where the app initialized in 'OTT' mode before switching to 'Classic', causing a render failure.
+- **State Recovery**: Fixed a bug in `ClassicHome` where it failed to recover from a null channel state on page refresh.
+
 ## [1.17.0] - 2026-01-07
 
 ### Added

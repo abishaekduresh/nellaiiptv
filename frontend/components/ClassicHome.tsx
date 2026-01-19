@@ -157,15 +157,21 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
   useEffect(() => {
      if (channels.length > 0 && !selectedChannel) {
          // Should have been set by useState default, but just in case
-         // Or if we want to refresh the default one:
+         // OR if we want to refresh the default one:
          const first = channels[0];
+         // Optimistically set to first channel to unblock UI immediately
+         setSelectedChannel(first);
+         
+         // Then fetch fresh details
          api.get(`/channels/${first.uuid}`).then(res => {
              if (res.data.status && res.data.data) {
-                 setSelectedChannel(prev => (prev?.uuid === first.uuid ? res.data.data : prev));
+                 // Use functional update correctly, but since we just set it to 'first', 
+                 // we can also just check if current selected is still 'first' or null
+                 setSelectedChannel(prev => (prev?.uuid === first.uuid || !prev ? res.data.data : prev));
              }
          });
      }
-  }, [channels]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [channels, selectedChannel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Focus for Exit Button */
   const { focusProps: exitFocus, isFocused: isExitFocused } = useTVFocus({

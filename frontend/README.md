@@ -10,6 +10,15 @@ A Next.js 14 application providing a modern, responsive interface for the Nellai
 - **Auto-Redirect**: The main application detects TV User-Agents and seamlessly redirects playback requests to this optimized player.
 - **TV Navigation**: Full "Channel Surfing" support (`Arrow Keys`, `Channel +/-`) with a polished bottom-left info overlay.
 
+### **Latest Updates (v1.28.0)**
+- **Hybrid Responsive Player**: 
+  - Smart control layout that switches from absolute centering (Desktop) to flexbox (Tablet/Mobile) to guarantee 0% overlap.
+  - Constrained side panels and optimized spacing for all resolutions.
+- **Immersive Classic Mode**: 
+  - Removed standard web Navbar/Footer in Classic Mode for a native TV app feel.
+  - Fixed blank screen race condition on refresh.
+
+
 ### **Core**
 - **Dual Mode Interface**:
   - **OTT Mode**: Modern, Netflix-style layout with Featured Banners, Trending Rows, and "Continue Watching".

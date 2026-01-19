@@ -14,37 +14,37 @@ interface ViewModeContextType {
 const ViewModeContext = createContext<ViewModeContextType | undefined>(undefined);
 
 export function ViewModeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<ViewMode>('OTT');
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [mode, setModeState] = useState<ViewMode>(() => {
+    if (typeof window !== 'undefined') {
+        const savedMode = sessionStorage.getItem('viewMode') as ViewMode;
+        const expiry = sessionStorage.getItem('viewModeExpiry');
+
+         // Check expiry if in Classic Mode
+        if (savedMode === 'Classic') {
+            const now = Date.now();
+            if (expiry && now > parseInt(expiry)) {
+                // Expired: Revert to OTT
+                sessionStorage.setItem('viewMode', 'OTT');
+                sessionStorage.removeItem('viewModeExpiry');
+                return 'OTT';
+            }
+        }
+        
+        if (savedMode === 'OTT' || savedMode === 'Classic') {
+             return savedMode;
+        }
+    }
+    return 'OTT';
+  });
+
+  const [isInitialized, setIsInitialized] = useState(true); // Default to true as we hydrate synchronously
   const router = useRouter();
 
   useEffect(() => {
-    // Load preference from sessionStorage on mount
-    const savedMode = sessionStorage.getItem('viewMode') as ViewMode;
-    const expiry = sessionStorage.getItem('viewModeExpiry');
-
-    // Check expiry if in Classic Mode
-    if (savedMode === 'Classic') {
-        const now = Date.now();
-        if (expiry && now > parseInt(expiry)) {
-            // Expired: Revert to OTT
-            setModeState('OTT');
-            sessionStorage.setItem('viewMode', 'OTT');
-            sessionStorage.removeItem('viewModeExpiry');
-            setIsInitialized(true);
-            return;
-        }
-    }
-
-    if (savedMode && (savedMode === 'OTT' || savedMode === 'Classic')) {
-      setModeState(savedMode);
-      
-      // Track initial mode
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('set', 'user_properties', { view_mode: savedMode });
-      }
-    }
-    setIsInitialized(true);
+     // Side effects for analytics only
+     if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('set', 'user_properties', { view_mode: mode });
+     }
   }, []);
 
   const setMode = (newMode: ViewMode) => {
