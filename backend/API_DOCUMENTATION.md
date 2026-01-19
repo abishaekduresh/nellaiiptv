@@ -1,6 +1,6 @@
-# Nellai IPTV - API Documentation (v1.18.0)
+# Nellai IPTV - API Documentation (v1.18.1)
 
-**Version 1.18.0**
+**Version 1.18.1**
 
 Base URL: `/api`
 

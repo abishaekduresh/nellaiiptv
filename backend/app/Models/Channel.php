@@ -9,9 +9,12 @@ class Channel extends Model
     protected $table = 'channels';
     protected $fillable = [
         'uuid', 'name', 'channel_number', 'hls_url', 'village', 
-        'category_id', 'state_id', 'language_id', 'district_id', 'thumbnail_url', 'logo_url',
+        'category_id', 'state_id', 'language_id', 'district_id', 'thumbnail_path', 'logo_path',
         'is_featured', 'expiry_at', 'status', 'created_at', 'is_premium', 'allowed_platforms'
     ];
+    
+    protected $appends = ['thumbnail_url', 'logo_url'];
+
     public $timestamps = true;
     const UPDATED_AT = null;
 
@@ -50,14 +53,14 @@ class Channel extends Model
         return $this->hasMany(ChannelView::class);
     }
 
-    public function getThumbnailUrlAttribute($value)
+    public function getThumbnailUrlAttribute()
     {
-        return $this->formatUrl($value);
+        return $this->formatUrl($this->attributes['thumbnail_path'] ?? null);
     }
 
-    public function getLogoUrlAttribute($value)
+    public function getLogoUrlAttribute()
     {
-        return $this->formatUrl($value);
+        return $this->formatUrl($this->attributes['logo_path'] ?? null);
     }
 
     private function formatUrl($value)

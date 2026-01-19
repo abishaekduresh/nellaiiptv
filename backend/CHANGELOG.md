@@ -2,6 +2,12 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.18.1] - 2026-01-19
+
+### Refactored
+- **Database Schema**: Renamed `thumbnail_url` to `thumbnail_path` and `logo_url` to `logo_path` in `channels` table to accurately reflect storage of relative paths.
+- **Model Logic**: Updated `Channel` model to store paths but dynamically append full URLs (`thumbnail_url`, `logo_url`) in API responses via accessors.
+
 ## [1.18.0] - 2026-01-19
 
 ### Added

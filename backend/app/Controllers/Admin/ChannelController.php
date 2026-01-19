@@ -58,11 +58,11 @@ class ChannelController
 
         // Handle File Uploads
         if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
-            $data['thumbnail_url'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails');
+            $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails');
         }
         
         if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
-            $data['logo_url'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos');
+            $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos');
         }
 
         $rules = [
@@ -109,15 +109,18 @@ class ChannelController
         $data = $request->getParsedBody() ?? [];
         $uploadedFiles = $request->getUploadedFiles();
 
-        unset($data['thumbnail_url']);
-        unset($data['logo_url']);
+
+        unset($data['thumbnail_url']); // Frontend might send this
+        unset($data['logo_url']);      // Frontend might send this
+        unset($data['thumbnail_path']);
+        unset($data['logo_path']);
 
         // Fetch old data for cleanup
         try {
             $oldChannel = $this->channelService->getOne($uuid);
-            // Access raw attributes directly to bypass Accessor (which adds domain)
-            $oldThumbnail = $oldChannel->getAttributes()['thumbnail_url'] ?? null;
-            $oldLogo = $oldChannel->getAttributes()['logo_url'] ?? null;
+            // Access raw attributes directly
+            $oldThumbnail = $oldChannel->getAttributes()['thumbnail_path'] ?? null;
+            $oldLogo = $oldChannel->getAttributes()['logo_path'] ?? null;
         } catch (\Exception $e) {
             $oldThumbnail = null;
             $oldLogo = null;
@@ -126,20 +129,20 @@ class ChannelController
         try {
             // Handle File Uploads
             if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
-                $data['thumbnail_url'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails');
+                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails');
             }
             
             if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
-                $data['logo_url'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos');
+                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos');
             }
 
             $channel = $this->channelService->update($uuid, $data);
 
             // Cleanup Old Files if replaced
-            if (isset($data['thumbnail_url']) && $oldThumbnail && $oldThumbnail !== $data['thumbnail_url']) {
+            if (isset($data['thumbnail_path']) && $oldThumbnail && $oldThumbnail !== $data['thumbnail_path']) {
                 $this->deleteFile($oldThumbnail);
             }
-            if (isset($data['logo_url']) && $oldLogo && $oldLogo !== $data['logo_url']) {
+            if (isset($data['logo_path']) && $oldLogo && $oldLogo !== $data['logo_path']) {
                 $this->deleteFile($oldLogo);
             }
 
