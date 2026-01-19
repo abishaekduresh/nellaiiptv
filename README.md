@@ -1,11 +1,11 @@
 # Nellai IPTV
 
-**Version**: `1.28.0` (Frontend) / `1.17.0` (Backend)
+**Version**: `1.28.1` (Frontend) / `1.17.0` (Backend)
 
-## 📺 Key Highlights (v1.28.0)
-- **Hybrid Responsive Player**: New "fail-safe" player control layout that adapts to any screen size (Desktop/Tablet/Mobile) without overlapping.
-- **Immersive Classic Mode**: Removed web navigation (Navbar/Footer) in Classic Mode for a true full-screen TV experience.
-- **Bug Fixes**: Resolved race conditions causing blank screens on refresh in Classic Mode.
+## 📺 Key Highlights (v1.28.1)
+- **Zero-Flash Refresh**: Fixed UI mismatch on refresh in Classic Mode by implementing strict initialization gates.
+- **Hybrid Responsive Player** (v1.28.0): Safe layout for all screens.
+- **Immersive Classic Mode** (v1.28.0): removed Navigation/Footer.
 
 ## 📺 Key Highlights (v1.27.0)
 - **Cinematic Lite Player**: Complete UI overhaul for the TV player.

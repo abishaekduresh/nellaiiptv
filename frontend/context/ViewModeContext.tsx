@@ -9,6 +9,7 @@ interface ViewModeContextType {
   mode: ViewMode;
   toggleMode: () => void;
   setMode: (mode: ViewMode) => void;
+  isInitialized: boolean;
 }
 
 const ViewModeContext = createContext<ViewModeContextType | undefined>(undefined);
@@ -37,7 +38,7 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
     return 'OTT';
   });
 
-  const [isInitialized, setIsInitialized] = useState(true); // Default to true as we hydrate synchronously
+  const [isInitialized, setIsInitialized] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
      if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('set', 'user_properties', { view_mode: mode });
      }
+     setIsInitialized(true);
   }, []);
 
   const setMode = (newMode: ViewMode) => {
@@ -79,12 +81,8 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  if (!isInitialized) {
-     /* Optional: Return loading state */
-  }
-
   return (
-    <ViewModeContext.Provider value={{ mode, toggleMode, setMode }}>
+    <ViewModeContext.Provider value={{ mode, toggleMode, setMode, isInitialized }}>
       {children}
     </ViewModeContext.Provider>
   );

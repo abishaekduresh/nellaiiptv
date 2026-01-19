@@ -9,8 +9,13 @@ import { useViewMode } from '@/context/ViewModeContext';
 
 export default function LiteRouteGuard({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const { mode } = useViewMode();
+    const { mode, isInitialized } = useViewMode();
     const isLite = pathname?.startsWith('/lite');
+
+    // Prevent hydration mismatch / flash of wrong mode
+    if (!isInitialized) {
+        return <div className="min-h-screen bg-slate-950" />;
+    }
 
     if (isLite) {
         return <div className="h-screen w-screen bg-black text-white overflow-hidden">{children}</div>;

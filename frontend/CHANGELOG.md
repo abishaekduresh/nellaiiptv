@@ -2,6 +2,11 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.28.1] - 2026-01-19
+
+### Fixed
+- **Refresh Flash**: Eliminated the brief "White Flash" or default OTT layout flicker when refreshing the page in Classic Mode. Implemented a strict hydration gate in `LiteRouteGuard` that waits for the view mode to be fully initialized before rendering.
+
 ## [1.28.0] - 2026-01-19
 
 ### Added
