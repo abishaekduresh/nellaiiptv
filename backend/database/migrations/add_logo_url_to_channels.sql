@@ -1,0 +1,1 @@
+ALTER TABLE channels ADD COLUMN logo_url VARCHAR(255) DEFAULT NULL AFTER thumbnail_url;

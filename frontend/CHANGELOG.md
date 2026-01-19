@@ -7,6 +7,15 @@ All notable changes to the Nellai IPTV Frontend will be documented in this file.
 ### Fixed
 - **Refresh Flash**: Eliminated the brief "White Flash" or default OTT layout flicker when refreshing the page in Classic Mode. Implemented a strict hydration gate in `LiteRouteGuard` that waits for the view mode to be fully initialized before rendering.
 
+## [1.28.2] - 2026-01-19
+
+### Added
+- **Channel Branding**: Added "Channel Logo" upload support in `ChannelForm`.
+- **Visual Feedback**: Added instant image preview for uploaded channel logos.
+
+### Fixed
+- **Upload Reliability**: Fixed `Content-Type` header issue in `adminApi.ts` that caused silent upload failures.
+
 ## [1.28.0] - 2026-01-19
 
 ### Added

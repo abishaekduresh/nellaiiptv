@@ -2,6 +2,16 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.18.0] - 2026-01-19
+
+### Added
+- **Smart File Management**: Implemented automatic cleanup of old files when replacing channel logos/thumbnails.
+- **Relative Path Storage**: Optimized database storage to save only relative paths (`/uploads/...`) while APIs return full absolute URLs.
+
+### Fixed
+- **Upload Stability**: Fixed "Slim Application Error" (500) caused by duplicate file processing.
+- **API Compatibility**: Updated `Channel` model accessors to ensure consistent full URL generation for all clients.
+
 ## [1.12.1] - 2026-01-07
 
 ### Fixed

@@ -9,7 +9,7 @@ class Channel extends Model
     protected $table = 'channels';
     protected $fillable = [
         'uuid', 'name', 'channel_number', 'hls_url', 'village', 
-        'category_id', 'state_id', 'language_id', 'district_id', 'thumbnail_url', 
+        'category_id', 'state_id', 'language_id', 'district_id', 'thumbnail_url', 'logo_url',
         'is_featured', 'expiry_at', 'status', 'created_at', 'is_premium', 'allowed_platforms'
     ];
     public $timestamps = true;
@@ -48,5 +48,28 @@ class Channel extends Model
     public function views()
     {
         return $this->hasMany(ChannelView::class);
+    }
+
+    public function getThumbnailUrlAttribute($value)
+    {
+        return $this->formatUrl($value);
+    }
+
+    public function getLogoUrlAttribute($value)
+    {
+        return $this->formatUrl($value);
+    }
+
+    private function formatUrl($value)
+    {
+        if (empty($value)) return $value;
+        if (strpos($value, 'http') === 0) return $value;
+        
+        // Basic detection for Web context
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        
+        // This assumes WAMP setup as observed
+        return "$protocol://$host/nellaiiptv/backend/public" . $value;
     }
 }

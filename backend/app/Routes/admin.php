@@ -19,6 +19,7 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->post('/channels', [\App\Controllers\Admin\ChannelController::class, 'create']);
         $group->get('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'show']);
         $group->put('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'update']);
+        $group->post('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'update']); // Allow POST for file uploads
         $group->delete('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'delete']);
         $group->get('/channels/{uuid}/analytics', [\App\Controllers\Admin\ChannelController::class, 'getAnalytics']);
         

@@ -1,10 +1,24 @@
-# Nellai IPTV - API Documentation (v1.16.1)
+# Nellai IPTV - API Documentation (v1.18.0)
 
-**Version 1.17.0**
+**Version 1.18.0**
 
 Base URL: `/api`
 
 ## Security & Headers
+...
+(rest of headers)
+...
+        "channel_number": 1,
+        "hls_url": "https://...",
+        "thumbnail_url": "https://...",
+        "logo_url": "https://domain.com/uploads/channel/logos/...",
+        "viewers_count": 150,
+...
+    "channel_number": 1,
+    "hls_url": "https://...",
+    "thumbnail_url": "https://...",
+    "logo_url": "https://domain.com/uploads/channel/logos/...",
+    "viewers_count": 150
 
 **CRITICAL**: All public API requests MUST include the **API Key**.
 Protected endpoints require BOTH the API Key and a Bearer Token.
@@ -286,6 +300,7 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
         "channel_number": 1,
         "hls_url": "https://...",
         "thumbnail_url": "https://...",
+        "logo_url": "https://...",
         "viewers_count": 150,
         "is_featured": true,
         "is_premium": true,
@@ -322,6 +337,7 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
     "channel_number": 1,
     "hls_url": "https://...",
     "thumbnail_url": "https://...",
+    "logo_url": "https://...",
     "viewers_count": 150
   }
 }
