@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.17.0)
+# Nellai IPTV - Backend API (v1.18.0)
 
-**Version 1.17.0** | RESTful API built with Slim PHP Framework
+**Version 1.18.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -61,7 +61,8 @@ JWT_SECRET=your_jwt_secret_here
 API_SECRET=your_strong_api_secret_here
 
 # General
-APP_URL=https://api.yoursite.com  # Required for correct logo URL generation behind proxies
+# General
+APP_URL=https://api.yoursite.com/backend/public  # Required for correct absolute URL generation (supports subdirectories)
 ```
 
 ### 4. Start Development Server
@@ -151,6 +152,11 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.18.0)
+- 🖼️ **Logo System Refactor**: Settings now store relative paths and dynamically resolve URLs based on `APP_URL` or Proxy headers (`X-Forwarded-*`).
+- 📁 **Subdirectory Support**: Fixed asset URL generation for backends deployed in subfolders (e.g., `/nellaiiptv/backend`).
+- 💧 **Watermark Setting**: Added dedicated `app_logo_png_path` setting for the video player's transparent overlay.
 
 ## Latest Updates (v1.17.0)
 - 💳 **Subscription Engine**: Full CRUD endpoints for managing subscription plans (`SubscriptionPlanController`) and identifying customer subscriptions.

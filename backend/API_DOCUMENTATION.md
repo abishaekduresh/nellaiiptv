@@ -1,6 +1,6 @@
-# Nellai IPTV - API Documentation (v1.18.1)
+# Nellai IPTV - API Documentation (v1.18.0)
 
-**Version 1.18.1**
+**Version 1.18.0**
 
 Base URL: `/api`
 
@@ -510,7 +510,7 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 
 ### Get Public Settings
 **Endpoint**: `GET /settings/public`
-**Response**: `{ "status": true, "data": { "logo_url": "...", "top_trending_platforms": "web,tv,android,ios" } }`
+**Response**: `{ "status": true, "data": { "logo_url": "...", "app_logo_png_url": "...", "top_trending_platforms": "web,tv,android,ios" } }`
 
 ---
 

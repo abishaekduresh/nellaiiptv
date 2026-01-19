@@ -79,6 +79,36 @@ export default function SettingsPage() {
       }
   };
 
+  const [uploadingPngLogo, setUploadingPngLogo] = useState(false);
+  const handlePngLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (file.type !== 'image/png') {
+        toast.error('Only PNG files are allowed');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('logo', file);
+
+      setUploadingPngLogo(true);
+      try {
+          const res = await adminApi.post('/admin/settings/logo-png', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          
+          if (res.data.status) {
+              toast.success('PNG Logo updated successfully');
+              window.location.reload(); 
+          }
+      } catch (error: any) {
+          toast.error(error.response?.data?.message || 'Failed to upload logo');
+      } finally {
+          setUploadingPngLogo(false);
+      }
+  };
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -89,7 +119,7 @@ export default function SettingsPage() {
         
         // Smart Fix: Sanitize logo_url if present
         settingsData = settingsData.map((s: Setting) => {
-            if (s.setting_key === 'logo_url' && s.setting_value) {
+            if ((s.setting_key === 'logo_url' || s.setting_key === 'app_logo_png_path') && s.setting_value) {
                 let url = s.setting_value;
                 if (url.includes('/uploads/')) {
                      if (url.includes('localhost') || url.includes('127.0.0.1')) {
@@ -201,6 +231,37 @@ export default function SettingsPage() {
                       </label>
                       <p className="text-xs text-slate-500">
                           Recommended: 512x512 PNG/WEBP
+                      </p>
+                  </div>
+              </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center mt-6 pt-6 border-t border-gray-800">
+              <label className="text-text-secondary font-medium">Player Overlay Logo (PNG)</label>
+              <div className="md:col-span-3">
+                  <div className="flex items-center gap-4">
+                      {settings.find(s => s.setting_key === 'app_logo_png_path') && (
+                          <div className="w-16 h-16 bg-slate-900 rounded-lg border border-gray-700 overflow-hidden flex items-center justify-center">
+                              <img 
+                                  src={settings.find(s => s.setting_key === 'app_logo_png_path')?.setting_value} 
+                                  alt="App Logo PNG" 
+                                  className="w-full h-full object-contain p-2"
+                              />
+                          </div>
+                      )}
+                      
+                      <label className={`bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg cursor-pointer transition-colors ${uploadingPngLogo ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          {uploadingPngLogo ? 'Uploading...' : 'Upload PNG Logo'}
+                          <input 
+                              type="file" 
+                              accept="image/png" 
+                              className="hidden" 
+                              onChange={handlePngLogoUpload} 
+                              disabled={uploadingPngLogo}
+                          />
+                      </label>
+                      <p className="text-xs text-slate-500">
+                          Required: Transparent PNG
                       </p>
                   </div>
               </div>

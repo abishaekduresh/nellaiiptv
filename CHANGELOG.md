@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Frontend 1.28.2] - 2026-01-20
+### Added
+- **Dynamic Watermark**: The video player now supports a dynamic, transparent PNG watermark managed via Admin Settings (`app_logo_png_path`).
+- **Backend Sync**: Removed hardcoded watermark assets; the player now fetches the watermark URL directly from the backend configuration.
+
+### Fixed
+- **Image Loading**: Implemented robust URL resolution in `useBranding` to handle backend proxy paths and subdirectories correctly.
+
+## [Backend 1.18.0] - 2026-01-20
+### Added
+- **Logo Management Refactor**:
+  - **Relative Storage**: Settings now strictly store relative paths (`/uploads/...`) instead of absolute URLs, ensuring portability across environments.
+  - **Proxy Support**: Implemented robust URL generation that respects `APP_URL`, `X-Forwarded-Proto`, and `X-Forwarded-Host` headers for accurate image loading behind reverse proxies.
+  - **Subdirectory Support**: Fixed path generation for deployments in subdirectories (e.g., `/nellaiiptv/backend`).
+- **Watermark Setting**: Added `app_logo_png_path` key to `Settings` table for storing the transparent player logo.
+
 ## [Frontend 1.27.1] - 2026-01-12
 ### Changed
 - **Classic Mode Persistence**: Switched from `localStorage` to `sessionStorage` for storing view mode preference.

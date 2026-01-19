@@ -11,6 +11,7 @@ import PlayerOverlay from './PlayerOverlay';
 import { Channel } from '@/types';
 import { useViewMode } from '@/context/ViewModeContext';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
+import { useBranding } from '@/hooks/useBranding';
 
 interface Props {
   src: string;
@@ -111,6 +112,7 @@ function VideoPlayer({
 
   // History Hook
   const { addToHistory } = useWatchHistory();
+  const { app_logo_png_url } = useBranding();
   const historyTrackedRef = useRef(false);
 
   // Picture in Picture State
@@ -936,11 +938,14 @@ function VideoPlayer({
       {overlayPortal}
       
       {/* Watermark */}
-      <img 
-          src="/png_logo.png" 
-          alt="Watermark" 
-          className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 w-16 sm:w-24 md:w-32 lg:w-40 opacity-60 pointer-events-none select-none z-20 drop-shadow-md transition-all duration-300"
-      />
+      {app_logo_png_url && (
+        <img 
+            src={app_logo_png_url} 
+            alt="Watermark" 
+            onError={(e) => console.error("Watermark Load Error", app_logo_png_url, e)}
+            className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 w-16 sm:w-24 md:w-32 lg:w-40 opacity-60 pointer-events-none select-none z-20 drop-shadow-md transition-all duration-300"
+        />
+      )}
     </div>
 
     <ReportModal

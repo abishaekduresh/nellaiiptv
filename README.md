@@ -1,10 +1,12 @@
 # Nellai IPTV
 
-**Version**: `1.28.1` (Frontend) / `1.17.0` (Backend)
+**Version**: `1.28.2` (Frontend) / `1.18.0` (Backend)
 
 ## 📺 Key Highlights (v1.28.1)
 - **Zero-Flash Refresh**: Fixed UI mismatch on refresh in Classic Mode by implementing strict initialization gates.
 - **Hybrid Responsive Player** (v1.28.0): Safe layout for all screens.
+- **Dynamic Watermark** (v1.28.2): Player overlays now use a dynamic, admin-configurable transparent PNG logo.
+- **Cloud-Ready Backend** (v1.18.0): Full support for reverse proxies, load balancers, and subdirectory deployments.
 - **Immersive Classic Mode** (v1.28.0): removed Navigation/Footer.
 
 ## 📺 Key Highlights (v1.27.0)

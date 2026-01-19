@@ -89,28 +89,82 @@ class SettingController
         try {
             $uploadedFile->moveTo($path);
             
-            // Generate URL
              $relativeUrl = '/uploads/branding/' . $filename;
              $logoUrl = $relativeUrl;
 
-            // Try to make it absolute for storage consistency
             if (!empty($_ENV['APP_URL'])) {
                 $baseUrl = rtrim($_ENV['APP_URL'], '/');
                 $logoUrl = $baseUrl . $relativeUrl;
             } else {
-                 // Fallback: Store absolute URL if possible, or just relative
                  $uri = $request->getUri();
+                 $scheme = $request->getHeaderLine('X-Forwarded-Proto') ?: $uri->getScheme();
+                 $authority = $request->getHeaderLine('X-Forwarded-Host') ?: $uri->getAuthority();
                  $basePath = $uri->getBasePath();
-                 $scheme = $uri->getScheme();
-                 $authority = $uri->getAuthority();
                  $base = ($basePath === '/' || $basePath === '') ? '' : $basePath;
+                 if (empty($authority)) $authority = 'localhost';
+                 
                  $logoUrl = $scheme . '://' . $authority . $base . $relativeUrl;
             }
 
-            // Update Setting
-            Setting::set('logo_url', $logoUrl);
+            // Update Setting with PATH ONLY
+            Setting::set('logo_path', $relativeUrl);
 
-            return ResponseFormatter::success($response, ['url' => $logoUrl], 'Logo uploaded successfully');
+            return ResponseFormatter::success($response, ['url' => $logoUrl, 'path' => $relativeUrl], 'Logo uploaded successfully');
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, 'Failed to upload logo: ' . $e->getMessage(), 500);
+        }
+    }
+    public function uploadAppLogoPng(Request $request, Response $response): Response
+    {
+        $uploadedFiles = $request->getUploadedFiles();
+        $uploadedFile = $uploadedFiles['logo'] ?? null;
+
+        if (!$uploadedFile || $uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            return ResponseFormatter::error($response, 'No valid file uploaded', 400);
+        }
+
+        $extension = pathinfo($uploadedFile->getClientFilename(), PATHINFO_EXTENSION);
+        if (strtolower($extension) !== 'png') {
+            return ResponseFormatter::error($response, 'Invalid file type. Only PNG allowed', 400);
+        }
+
+        // Define upload directory
+        $directory = __DIR__ . '/../../../public/uploads/branding';
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filename = 'app_logo_' . time() . '.png';
+        $path = $directory . DIRECTORY_SEPARATOR . $filename;
+
+        try {
+            $uploadedFile->moveTo($path);
+            
+            // Generate Path
+             $relativeUrl = '/uploads/branding/' . $filename; // Store only path
+
+            // Generate Display URL
+            $logoUrl = $relativeUrl;
+            if (!empty($_ENV['APP_URL'])) {
+                $baseUrl = rtrim($_ENV['APP_URL'], '/');
+                $logoUrl = $baseUrl . $relativeUrl;
+            } else {
+                 $uri = $request->getUri();
+                 $scheme = $request->getHeaderLine('X-Forwarded-Proto') ?: $uri->getScheme();
+                 $authority = $request->getHeaderLine('X-Forwarded-Host') ?: $uri->getAuthority();
+                 $basePath = $uri->getBasePath();
+                 $base = ($basePath === '/' || $basePath === '') ? '' : $basePath;
+                 
+                 // If authority is empty (CLI context?), fallback to localhost
+                 if (empty($authority)) $authority = 'localhost';
+                 
+                 $logoUrl = $scheme . '://' . $authority . $base . $relativeUrl;
+            }
+
+            // Update Setting with PATH ONLY
+            Setting::set('app_logo_png_path', $relativeUrl);
+
+            return ResponseFormatter::success($response, ['url' => $logoUrl, 'path' => $relativeUrl], 'App Logo (PNG) uploaded successfully');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, 'Failed to upload logo: ' . $e->getMessage(), 500);
         }
