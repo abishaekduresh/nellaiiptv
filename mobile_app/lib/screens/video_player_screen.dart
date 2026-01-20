@@ -279,28 +279,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
               ),
             ),
 
-          // 6. Mute Toggle (Top Right)
-          if (_videoPlayerController != null && _videoPlayerController!.value.isInitialized)
-            Positioned(
-              top: 20,
-              right: 20,
-              child: IconButton(
-                icon: Icon(
-                  _videoPlayerController!.value.volume > 0 ? Icons.volume_up : Icons.volume_off,
-                  color: Colors.white,
-                  size: 30,
-                ),
-                onPressed: () {
-                  setState(() {
-                     if (_videoPlayerController!.value.volume > 0) {
-                        _videoPlayerController!.setVolume(0.0);
-                     } else {
-                        _videoPlayerController!.setVolume(1.0);
-                     }
-                  });
-                },
-              ),
-            ),
+            // 6. Mute Toggle Removed
+
         ],
       ),
       ),

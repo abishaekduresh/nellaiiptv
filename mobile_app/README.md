@@ -1,6 +1,6 @@
 # Royal TV Mobile App
 
-**Version**: `1.0.2`
+**Version**: `1.0.3`
 **Framework**: Flutter 3.x
 
 A high-performance, native Android application for streaming HLS content, optimized for both Mobile and TV interfaces.

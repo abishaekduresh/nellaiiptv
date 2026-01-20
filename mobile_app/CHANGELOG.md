@@ -1,6 +1,10 @@
 # Changelog
 
-## [1.0.2] - 2026-01-20
+## [1.0.3] - 2026-01-20
+
+### UX
+- **Immersive Player**: Removed on-screen Volume/Mute toggle button to reduce UI clutter and provide a more immersive viewing experience. Auto-play audio remains enabled.
+
 
 ### Maintenance
 - **Backend Sync**: Verified image loading compatibility with Backend v1.20.2 adjustments.

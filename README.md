@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version**: `1.30.2` (Frontend) / `1.20.2` (Backend) / `1.0.2` (App)
+**Version**: `1.30.2` (Frontend) / `1.20.2` (Backend) / `1.0.3` (App)
 
 ## 📺 Key Highlights (v1.30.0)
 - **Production Asset Pipeline**: Implemented a robust `resolveImageUrl` engine that ensures all images (Logos, Thumbnails, Watermarks) are correctly resolved in production environments (`APP_URL`-aware).
