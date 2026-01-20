@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/splash_screen.dart';
+import 'widgets/connectivity_wrapper.dart';
+import 'services/toast_service.dart';
 
 Future<void> main() async {
   runZonedGuarded(() async {
@@ -20,6 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: ToastService().scaffoldMessengerKey,
       title: dotenv.env['APP_TITLE'] ?? 'Nellai IPTV',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -33,6 +36,9 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF0F172A),
         useMaterial3: true,
       ),
+      builder: (context, child) {
+        return ConnectivityWrapper(child: child!);
+      },
       home: const SplashScreen(),
     );
   }

@@ -1,6 +1,13 @@
 # Nellai IPTV
 
-**Version**: `1.30.2` (Frontend) / `1.20.2` (Backend) / `1.0.3` (App)
+**Version**: `1.30.2` (Frontend) / `1.20.2` (Backend) / `1.2.0` (App)
+
+## 📱 Mobile App (v1.2.0)
+- **Refined PiP**: Distraction-free floating window with zero-pause entry and auto-hidden controls/watermark.
+- **Session-Based Volume**: Protects system audio settings by restoring original volume on exit.
+- **Safe Gestures**: Center-weighted tap-to-mute to avoid accidental touches near edges.
+- **Viewer Counts**: Live `v1.2K` display in top-left (hidden in PiP).
+- **Dynamic Branding**: App titles and dialogs now respect `.env` naming.
 
 ## 📺 Key Highlights (v1.30.0)
 - **Production Asset Pipeline**: Implemented a robust `resolveImageUrl` engine that ensures all images (Logos, Thumbnails, Watermarks) are correctly resolved in production environments (`APP_URL`-aware).
@@ -43,7 +50,7 @@ Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT
 | :--- | :--- | :--- |
 | **Frontend** | `1.29.0` | Next.js 14, React 18, TailwindCSS, Video.js |
 | **Backend** | `1.19.0` | Slim PHP 4, Eloquent ORM, MySQL |**Database**: MySQL with MyISAM engine
-| **Mobile** | `1.0.0` | Flutter 3.x, Kotlin, Dart | Native Android/TV support |
+| **Mobile** | `1.2.0` | Flutter 3.x, Kotlin, Dart | Native Android/TV support |
 - **Styling**: Tailwind CSS with custom design system
 
 ## Key Features

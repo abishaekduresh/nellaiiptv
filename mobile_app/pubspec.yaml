@@ -41,6 +41,12 @@ dependencies:
   wakelock_plus: ^1.4.0
   google_fonts: ^6.3.2
   url_launcher: ^6.2.5
+  screen_brightness: ^2.1.7
+  volume_controller: ^3.4.1
+  package_info_plus: ^9.0.0
+  internet_connection_checker_plus: ^2.9.1+2
+  connectivity_plus: ^7.0.0
+  simple_pip_mode: ^1.1.0
 
 
 dev_dependencies:

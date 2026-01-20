@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Mobile App 1.2.0] - 2026-01-21
+### Added
+- **Refined Picture-in-Picture (PiP)**:
+    - **Zero-Pause Entry**: Prevented video from pausing during PiP transition.
+    - **Clean UI**: Automatically hides Cast/PiP buttons and watermarks while in PiP mode.
+- **Session-Based Volume**:
+    - **Automatic Restore**: App now saves original system volume on launch and restores it when exited or backgrounded.
+    - **In-App Memory**: Remembers last set volume when resuming within the same session.
+- **Live Viewer Stats**: Top-left display of `viewers_count_formated` with eye icon, hidden in PiP.
+- **Safe Gestures**: Restricted Tap-to-Mute to the center 50% of the screen to prevent accidental muting.
+- **Dynamic Branding**: Integrated `APP_NAME` from `.env` into UI strings (e.g., Exit Dialog).
+
 ## [Mobile App 1.0.0] - 2026-01-20
 ### Added
 - **Initial Release**: Production-ready Flutter application for Android and Android TV.

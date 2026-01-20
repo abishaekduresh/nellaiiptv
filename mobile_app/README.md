@@ -1,6 +1,6 @@
 # Royal TV Mobile App
 
-**Version**: `1.0.3`
+**Version**: `1.2.0`
 **Framework**: Flutter 3.x
 
 A high-performance, native Android application for streaming HLS content, optimized for both Mobile and TV interfaces.
@@ -13,12 +13,17 @@ A high-performance, native Android application for streaming HLS content, optimi
 
 - **Native Playback**: Uses the official `video_player` package for hardware-accelerated HLS streaming.
 - **Smart UI**:
-    - **Splash Screen**: Professional startup with versioning.
+    - **Splash Screen**: Professional startup with versioning and asset-optimized logo.
     - **Auto-Landscape**: Forces landscape mode for immersive viewing.
     - **Stretch Mode**: Fills the entire screen regardless of aspect ratio.
+    - **Viewer Stats**: Real-time Top-Left viewer count (hidden in PiP).
+- **Pro Experience**:
+    - **Refined PiP**: Floating video with auto-hide controls and zero-pause entry.
+    - **Session Volume**: Keeps separate app volume levels and restores system volume on exit.
+    - **Safe Gestures**: Tap-to-Mute restricted to center zone.
 - **Production Ready**:
     - **SecureConfig**: API keys managed via `.env`.
-    - **Optimized**: APK size under 20MB.
+    - **Optimized**: APK size under 24MB.
 
 ## 🛠️ Setup & Development
 

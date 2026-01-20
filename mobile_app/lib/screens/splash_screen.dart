@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import '../services/api_service.dart';
 
 import 'video_player_screen.dart';
 
@@ -23,6 +25,41 @@ class _SplashScreenState extends State<SplashScreen> {
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     }
     _startTimer();
+    _initPackageInfo();
+    _fetchLogo();
+  }
+
+  String _version = "";
+  String? _logoUrl;
+
+  Future<void> _fetchLogo() async {
+    try {
+      final uuid = dotenv.env['CHANNEL_UUID'];
+      if (uuid != null) {
+        final channel = await ApiService().getChannelDetails(uuid);
+        if (mounted) {
+          setState(() {
+             // Logic: Use logoUrl if valid (isNotEmpty), else thumbnail, else null (Asset fallback)
+             String? validLogo = (channel.logoUrl != null && channel.logoUrl!.isNotEmpty) 
+                 ? channel.logoUrl 
+                 : (channel.thumbnailUrl != null && channel.thumbnailUrl!.isNotEmpty) 
+                     ? channel.thumbnailUrl 
+                     : null;
+                     
+             _logoUrl = validLogo;
+          });
+        }
+      }
+    } catch (_) {
+       // Silent fail -> shows Asset Logo
+    }
+  }
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _version = "${info.version} (${info.buildNumber})";
+    });
   }
 
   Future<void> _startTimer() async {
@@ -73,7 +110,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 24.0),
               child: Text(
-                "Version: ${dotenv.env['APP_VERSION'] ?? '1.0.0'}",
+                _version.isNotEmpty ? "Version: ${dotenv.env['APP_VERSION'] ?? ""}" : "Loading...",
                 style: const TextStyle(
                   color: Colors.white24,
                   fontSize: 12,
