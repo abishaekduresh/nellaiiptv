@@ -3,25 +3,28 @@
 ## [1.2.0] - 2026-01-21
 
 ### Added
+- **Intelligent View Counting**: 
+    - App now waits for 10s of watch-time before counting a view (Session-base guarding).
+    - Synchronized `decrement` logic with frontend for real-time viewer accuracy.
+- **Consolidated Viewer Stats**: 
+    - Displays Eye-icon viewer count and Average Star Rating in synchronized top-left overlay.
+    - Added safety logic to hide overlay if data is missing, zero, or "0".
+- **Hard Exit Behavior**: 
+    - Uses `exit(0)` to ensure background processes are killed on dialog confirmation.
+    - Forces Singleton app instance via `singleTask` launch mode in Manifest.
 - **Session-Based Volume**: 
-    - App now saves original system volume on start.
-    - Automatically restores original system volume when backgrounded or exited.
+    - Saves original system volume on start and restores it when exited/backgrounded.
     - Remembers last-set in-app volume during active session.
-- **Viewer Stats**: 
-    - Integrated `viewers_count_formated` from API.
-    - Added Top-Left display within safe areas.
-    - Integrated with PiP logic to auto-hide.
-- **Dynamic Branding**:
-    - App title in exit dialog dynamically reads from `APP_NAME` in `.env`.
 - **Safe Gestures**:
-    - Tap-to-Mute is now restricted to the center 50% zone of the screen.
-    - Edge taps strictly toggle the Cast/PiP controls.
+    - Tap-to-Mute is restricted to the center 50% zone of the screen to avoid edge-tap conflicts.
 
 ### Fixed
-- **PiP Smoothness**:
-    - Prevented "Pause" state from triggering during PiP transition (optimistic state).
-    - Hardened "Clean UI" by hiding Cast/PiP buttons and watermarks while in PiP.
+- **PiP Recovery**: Robustly resets `_isPipMode` state and re-enters Landscape on app `resumed` lifecycle.
+- **UI Smoothness**:
+    - Prevented "Pause" state from triggering during PiP transition.
+    - Hardened "Clean UI" by hiding Cast/PiP buttons, stats, and watermarks while in PiP.
 - **Volume UI**: Re-enabled `AudioManager` init to ensure hardware buttons hide the native system slider.
+- **Data Mapping**: Fixed `viewers_count_formatted` key mismatch to ensure live stats populate correctly.
 
 ## [1.1.1] - 2026-01-20
 

@@ -88,4 +88,20 @@ class ApiService {
         throw Exception(msg);
       }
   }
+
+  Future<void> incrementView(String uuid) async {
+    try {
+      await _dio.post('/channels/$uuid/view');
+    } catch (e) {
+      print("Increment View Error: $e");
+    }
+  }
+
+  Future<void> decrementView(String uuid) async {
+    try {
+      await _dio.post('/channels/view/decrement', data: {'channel_uuid': uuid});
+    } catch (e) {
+      print("Decrement View Error: $e");
+    }
+  }
 }

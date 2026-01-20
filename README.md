@@ -1,13 +1,14 @@
 # Nellai IPTV
 
-**Version**: `1.30.2` (Frontend) / `1.20.2` (Backend) / `1.2.0` (App)
+**Version**: `1.30.3` (Frontend) / `1.20.3` (Backend) / `1.2.0` (App)
 
 ## 📱 Mobile App (v1.2.0)
-- **Refined PiP**: Distraction-free floating window with zero-pause entry and auto-hidden controls/watermark.
+- **Intelligent Analytics**: 10s watch-time delay and session-based tracking (synced with web logic).
+- **Visual Stats Overlay**: Clean Top-Left display for Viewer Counts and Average Ratings.
+- **Single Instance**: Enforced singleton app instance for stability.
+- **Refined PiP**: Distraction-free floating window with zero-pause entry and auto-hidden controls/stats.
 - **Session-Based Volume**: Protects system audio settings by restoring original volume on exit.
-- **Safe Gestures**: Center-weighted tap-to-mute to avoid accidental touches near edges.
-- **Viewer Counts**: Live `v1.2K` display in top-left (hidden in PiP).
-- **Dynamic Branding**: App titles and dialogs now respect `.env` naming.
+- **Safe Gestures**: Center-weighted tap-to-mute to avoid accidental touches.
 
 ## 📺 Key Highlights (v1.30.0)
 - **Production Asset Pipeline**: Implemented a robust `resolveImageUrl` engine that ensures all images (Logos, Thumbnails, Watermarks) are correctly resolved in production environments (`APP_URL`-aware).
@@ -48,8 +49,8 @@
 Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT Mode) and TV (Classic Mode) interfaces. Built with modern technologies, it provides a seamless viewing
 | Project | Version | Tech Stack |
 | :--- | :--- | :--- |
-| **Frontend** | `1.29.0` | Next.js 14, React 18, TailwindCSS, Video.js |
-| **Backend** | `1.19.0` | Slim PHP 4, Eloquent ORM, MySQL |**Database**: MySQL with MyISAM engine
+| **Frontend** | `1.30.3` | Next.js 14, React 18, TailwindCSS, Video.js |
+| **Backend** | `1.20.3` | Slim PHP 4, Eloquent ORM, MySQL |**Database**: MySQL with MyISAM engine
 | **Mobile** | `1.2.0` | Flutter 3.x, Kotlin, Dart | Native Android/TV support |
 - **Styling**: Tailwind CSS with custom design system
 

@@ -14,7 +14,7 @@ class Channel extends Model
     ];
     
     protected $hidden = ['thumbnail_path', 'logo_path'];
-    protected $appends = ['thumbnail_url', 'logo_url'];
+    protected $appends = ['thumbnail_url', 'logo_url', 'viewers_count_formatted', 'average_rating'];
 
     public $timestamps = true;
     const UPDATED_AT = null;
@@ -62,6 +62,16 @@ class Channel extends Model
     public function getLogoUrlAttribute()
     {
         return $this->formatUrl($this->attributes['logo_path'] ?? null);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return $this->attributes['average_rating'] ?? 0;
+    }
+
+    public function getViewersCountFormattedAttribute()
+    {
+        return $this->attributes['viewers_count_formatted'] ?? '';
     }
 
     private function formatUrl($value)

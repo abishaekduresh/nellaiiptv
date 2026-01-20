@@ -5,6 +5,7 @@ class Channel {
   final String? thumbnailUrl;
   final String? hlsUrl;
   final String? viewersCountFormatted;
+  final double? averageRating;
 
   Channel({
     required this.uuid,
@@ -13,6 +14,7 @@ class Channel {
     this.thumbnailUrl,
     this.hlsUrl,
     this.viewersCountFormatted,
+    this.averageRating,
   });
 
   factory Channel.fromJson(Map<String, dynamic> json) {
@@ -22,7 +24,8 @@ class Channel {
       logoUrl: json['logo_url'],
       thumbnailUrl: json['thumbnail_url'],
       hlsUrl: json['hls_url'],
-      viewersCountFormatted: json['viewers_count_formated'],
+      viewersCountFormatted: json['viewers_count_formatted'],
+      averageRating: json['average_rating']?.toDouble(),
     );
   }
 }

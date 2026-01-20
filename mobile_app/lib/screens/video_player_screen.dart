@@ -14,6 +14,7 @@ import '../services/toast_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/audio_manager.dart';
 import 'dart:async';
+import 'dart:io';
 
 
 class VideoPlayerScreen extends StatefulWidget {
@@ -43,6 +44,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   Timer? _hideTimer;
   bool _isPipMode = false;
 
+  // View Count Logic
+  Timer? _viewCountTimer;
+  bool _hasIncrementedView = false;
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +69,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
       },
     );
 
+    // Initialize Audio Manager
+    AudioManager().init();
+
     _fetchAppLogo();
     _fetchChannel();
   }
@@ -83,6 +91,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
       _videoPlayerController!.play();
       // Re-apply Session Volume when foregrounded
       AudioManager().reapplyAppVolume();
+      
+      // Safety: Ensure we exit PiP state and re-force landscape when returning to foreground
+      if (mounted) {
+        setState(() {
+          _isPipMode = false;
+        });
+        _enterLandscape();
+      }
     }
   }
 
@@ -145,8 +161,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
       final channel = await _api.getChannelDetails(uuid);
       if (mounted) {
         if (channel.hlsUrl != null) {
-           setState(() {
+          setState(() {
             _channel = channel;
+            // Reset view increment state for new channel
+            _hasIncrementedView = false;
+            _viewCountTimer?.cancel();
           });
           _initVideoPlayer(channel.hlsUrl!);
         } else {
@@ -189,6 +208,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
       setState(() {
         _isLoading = false;
       });
+
+      // Start 10s timer for view increment (Same as Frontend)
+      _startViewCountTimer();
       
     } catch (e) {
       print("Video Init Error: $e");
@@ -246,6 +268,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
     });
   }
 
+  void _startViewCountTimer() {
+    _viewCountTimer?.cancel();
+    _viewCountTimer = Timer(const Duration(seconds: 10), () {
+      if (mounted && _channel != null && !_hasIncrementedView) {
+        _api.incrementView(_channel!.uuid);
+        _hasIncrementedView = true;
+      }
+    });
+  }
+
   void _disposeControllers() {
     if (_videoPlayerController != null) {
        _videoPlayerController!.removeListener(_videoListener);
@@ -261,6 +293,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
     WakelockPlus.disable();
     // Restore System Volume on Exit
     AudioManager().restoreOriginalVolume();
+
+    // Decrement view if it was incremented (Sync with Frontend)
+    if (_hasIncrementedView && _channel != null) {
+      _api.decrementView(_channel!.uuid);
+    }
+    _viewCountTimer?.cancel();
+
     super.dispose();
   }
 
@@ -273,7 +312,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
         final bool shouldExit = await _showExitConfirmation();
         if (shouldExit) {
           if (context.mounted) {
-             SystemNavigator.pop();
+             exit(0); // Hard Kill Process
           }
         }
       },
@@ -367,27 +406,50 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
               ),
             ),
 
-            // 6. Viewer Count (Top Left)
-            if (!kIsWeb && _channel?.viewersCountFormatted != null && !_isPipMode)
+            // 6. Viewer Count & Rating (Top Left)
+            if (_channel != null && 
+                !_isPipMode && 
+                ((_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty) || 
+                 (_channel!.averageRating != null && _channel!.averageRating! > 0)))
               Positioned(
-                top: 25, // Align with buttons top margin (20) + some padding if needed
+                top: 25,
                 left: 20,
-                child: SafeArea( // Ensure it respects notch
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.remove_red_eye_outlined, color: Colors.white70, size: 16),
-                        const SizedBox(width: 5),
-                        Text(
-                          _channel!.viewersCountFormatted!,
-                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                child: AnimatedOpacity(
+                  opacity: _showControls ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: IgnorePointer(
+                    ignoring: !_showControls,
+                    child: SafeArea(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty) ...[
+                              const Icon(Icons.remove_red_eye_outlined, color: Colors.white70, size: 16),
+                              const SizedBox(width: 5),
+                              Text(
+                                _channel!.viewersCountFormatted!,
+                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                            if (_channel!.averageRating != null && _channel!.averageRating! > 0) ...[
+                              if (_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty)
+                                const SizedBox(width: 12),
+                              const Icon(Icons.star, color: Color(0xFFFCD34D), size: 16),
+                              const SizedBox(width: 4),
+                              Text(
+                                _channel!.averageRating!.toStringAsFixed(1),
+                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),

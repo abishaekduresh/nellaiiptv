@@ -11,19 +11,18 @@ A high-performance, native Android application for streaming HLS content, optimi
 
 ## 🚀 Features
 
-- **Native Playback**: Uses the official `video_player` package for hardware-accelerated HLS streaming.
+- **Intelligent Analytics**: Mirroring web logic with 10s watch-time delay and session-guarded increments.
+- **Native Playback**: Hardware-accelerated HLS streaming via `video_player`.
 - **Smart UI**:
     - **Splash Screen**: Professional startup with versioning and asset-optimized logo.
     - **Auto-Landscape**: Forces landscape mode for immersive viewing.
-    - **Stretch Mode**: Fills the entire screen regardless of aspect ratio.
-    - **Viewer Stats**: Real-time Top-Left viewer count (hidden in PiP).
+    - **Consolidated Stats**: Real-time Viewer Counts and Star Ratings (hidden in PiP).
 - **Pro Experience**:
-    - **Refined PiP**: Floating video with auto-hide controls and zero-pause entry.
-    - **Session Volume**: Keeps separate app volume levels and restores system volume on exit.
-    - **Safe Gestures**: Tap-to-Mute restricted to center zone.
-- **Production Ready**:
-    - **SecureConfig**: API keys managed via `.env`.
-    - **Optimized**: APK size under 24MB.
+    - **Refined PiP**: Floating video with zero-pause entry and auto-hidden UI.
+    - **Stability**: Single-instance enforcement and hard process termination on exit.
+    - **Session Volume**: Restores system audio settings on exit.
+    - **Safe Gestures**: Center-weighted tap-to-mute.
+- **Production Ready**: Sub-24MB APK size with R8 shrinking.
 
 ## 🛠️ Setup & Development
 
