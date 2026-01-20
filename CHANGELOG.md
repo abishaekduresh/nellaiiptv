@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Mobile App 1.0.0] - 2026-01-20
+### Added
+- **Initial Release**: Production-ready Flutter application for Android and Android TV.
+- **Native Video Player**: Integrated `video_player` with HLS support, adaptive bitrate, and hardware acceleration.
+- **Custom UI**:
+    - **Splash Screen**: Branded startup with "Powered by" footer and version display.
+    - **Video Player**: Distraction-free landscape player with custom "Stretch" mode (`BoxFit.fill`).
+    - **Watermark**: Dynamic, large-scale (150px) branding overlay.
+    - **Controls**: Manual Mute/Unmute toggle and error retry logic.
+- **Production Optimization**:
+    - **Deep Linking**: `flutter_dotenv` integration for secure API configuration.
+    - **APK Size**: Optimized release build configuration using R8 shrinking and ABI splitting (< 20MB).
+
+## [Frontend 1.29.0] - 2026-01-20
+### Added
+- **API Key Management**: Added `allowed_platforms` restriction (Web, Android, iOS, TV) to API Keys.
+- **Admin**: New interactive API Documentation via `/admin/api-docs` with **Required Headers** display.
+- **Admin API Documentation**: Added a comprehensive, interactive API Documentation page (`/admin/api-docs`) in the Admin Panel. It includes payload examples, response structures, header requirements, and "Copy to Clipboard" functionality.
+- **API Key Management UI**: Complete interface for creating, listing, updating, and revoking API keys directly from the Admin Panel. Includes access control status and expiry dates.
+- **Sidebar Integration**: Added navigation links for "API Keys" and "API Docs".
+### Fixed
+- **API Keys**: Fixed "Failed to delete key" error and runtime crash on missing platforms.
+
+## [Backend 1.19.0] - 2026-01-20
+### Added
+- **API Key Management System**:
+  - **Dynamic Keys**: Replaced static `.env` secrets with database-backed API keys (`api_keys` table).
+  - **CRUD Endpoints**: Added full lifecycle management endpoints (`GET/POST/PUT/DELETE /admin/api-keys`).
+  - **Middleware Upgrade**: Updated `ApiKeyMiddleware` to validate requests against active keys in the database while maintaining backward compatibility with `API_SECRET`.
+  - **Soft Deletes**: Implemented soft-delete logic for secure audit trails.
+- **Security**: keys are generated with `nk_` prefix and random hex strings for easy identification.
+
 ## [Frontend 1.28.2] - 2026-01-20
 ### Added
 - **Dynamic Watermark**: The video player now supports a dynamic, transparent PNG watermark managed via Admin Settings (`app_logo_png_path`).

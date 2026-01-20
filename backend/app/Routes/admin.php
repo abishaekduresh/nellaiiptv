@@ -44,6 +44,12 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->put('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'update']);
         $group->delete('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'delete']);
 
+        // API Keys Management
+        $group->get('/api-keys', [\App\Controllers\Admin\ApiKeyController::class, 'index']);
+        $group->post('/api-keys', [\App\Controllers\Admin\ApiKeyController::class, 'create']);
+        $group->put('/api-keys/{uuid}', [\App\Controllers\Admin\ApiKeyController::class, 'update']);
+        $group->delete('/api-keys/{uuid}', [\App\Controllers\Admin\ApiKeyController::class, 'delete']);
+
         // Dashboard Stats
         $group->get('/dashboard/stats', [\App\Controllers\Admin\DashboardController::class, 'getStats']);
         $group->get('/dashboard/trending', [\App\Controllers\Admin\DashboardController::class, 'getTrendingStats']);

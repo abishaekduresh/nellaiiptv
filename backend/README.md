@@ -153,13 +153,18 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
+## Latest Updates (v1.19.0)
+- **API Key System**: Database-backed API key management with expiry, soft-delete, and Platform Restrictions.
+- 🔐 **Security**: Legacy `.env` API secrets supported alongside new DB keys.
+
 ## Latest Updates (v1.18.0)
 - 🖼️ **Logo System Refactor**: Settings now store relative paths and dynamically resolve URLs based on `APP_URL` or Proxy headers (`X-Forwarded-*`).
 - 📁 **Subdirectory Support**: Fixed asset URL generation for backends deployed in subfolders (e.g., `/nellaiiptv/backend`).
 - 💧 **Watermark Setting**: Added dedicated `app_logo_png_path` setting for the video player's transparent overlay.
 
 ## Latest Updates (v1.17.0)
-- 💳 **Subscription Engine**: Full CRUD endpoints for managing subscription plans (`SubscriptionPlanController`) and identifying customer subscriptions.
+- **API Key System**: Database-backed API key management with expiry and soft-delete support (`api_keys` table).
+- 💳 **Subscription Engine**: Flexible plan management and validation logic. subscription plans (`SubscriptionPlanController`) and identifying customer subscriptions.
 - ⚙️ **Public Settings**: Expose `top_trending_platforms` configuration to control trending section visibility.
 
 ## Latest Updates (v1.15.0)

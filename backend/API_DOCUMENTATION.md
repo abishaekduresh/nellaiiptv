@@ -1,6 +1,6 @@
-# Nellai IPTV - API Documentation (v1.18.0)
+# Nellai IPTV - API Documentation (v1.19.0)
 
-**Version 1.18.0**
+**Version 1.19.0**
 
 Base URL: `/api`
 
@@ -499,6 +499,42 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 
 ### Delete Subscription Plan
 **Endpoint**: `DELETE /admin/subscription-plans/{uuid}` (Protected: Admin)
+
+---
+
+## API Key Management
+
+### List API Keys
+**Endpoint**: `GET /admin/api-keys` (Protected: Admin)
+
+**Response**:
+```json
+{
+  "status": true,
+  "data": [
+    {
+      "uuid": "api-key-uuid",
+      "key": "sk_live_dummy_key_value",
+      "name": "My Application Key",
+      "allowed_platforms": "web,tv,android,ios",
+      "status": "active",
+      "created_at": "2026-01-01T12:00:00Z"
+    }
+  ]
+}
+```
+
+### Create API Key
+**Endpoint**: `POST /admin/api-keys` (Protected: Admin)
+**Body**:
+```json
+{
+  "name": "New Application Key"
+}
+```
+
+### Revoke API Key
+**Endpoint**: `DELETE /admin/api-keys/{uuid}` (Protected: Admin)
 
 ---
 
