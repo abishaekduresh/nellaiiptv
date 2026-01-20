@@ -1,6 +1,11 @@
 # Nellai IPTV
 
-**Version**: `1.29.0` (Frontend) / `1.19.0` (Backend) / `1.0.0` (App)
+**Version**: `1.30.0` (Frontend) / `1.20.0` (Backend) / `1.0.0` (App)
+
+## 📺 Key Highlights (v1.30.0)
+- **Production Asset Pipeline**: Implemented a robust `resolveImageUrl` engine that ensures all images (Logos, Thumbnails, Watermarks) are correctly resolved in production environments (`APP_URL`-aware).
+- **Backend Path Normalization**: The API now smartly handles relative paths vs absolute URLs, ensuring compatibility whether running on generic hosting or Docker containers.
+- **Frontend Resilience**: Refactored `useBranding`, `Navbar`, and `ClassicHome` to prioritize the new `logo_path` schema while maintaining backward compatibility.
 
 ## 📺 Key Highlights (v1.29.0)
 - **API Documentation**: Interactive, built-in API docs with header requirements for admins.

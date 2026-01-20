@@ -2,6 +2,15 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.30.0] - 2026-01-20
+
+### Fixed
+- **Image URL Resolution**: Implemented `resolveImageUrl` to ensure thumbnails, logos, and watermarks load correctly in production by dynamically prepending the backend `API_URL`.
+- **Branding Consistency**: Standardized `useBranding` to support both `logo_path` and `logo_url`, fixing potential breakages after backend schema normalization.
+
+## [1.29.0]
+- **API Key Manager**: GUI for managing secure API access keys.
+
 ## [1.28.1] - 2026-01-19
 
 ### Fixed

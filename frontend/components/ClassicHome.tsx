@@ -10,6 +10,7 @@ import AdBanner from './AdBanner';
 import api from '@/lib/api';
 import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
+import { resolveImageUrl } from '@/lib/utils';
 
 interface ClassicHomeProps {
   channels: Channel[];
@@ -32,15 +33,9 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
               const response = await api.get('/settings/public');
               if (response.data.status) {
                   // Logo Logic
-                  if (response.data.data.logo_url) {
-                      let url = response.data.data.logo_url;
-                      if (url.includes('/uploads/')) {
-                          if (url.includes('localhost') || url.includes('127.0.0.1')) {
-                              const match = url.match(/\/uploads\/.*$/);
-                              if (match) url = match[0];
-                          }
-                      }
-                      setLogoUrl(url);
+                  const logo = response.data.data.logo_path || response.data.data.logo_url;
+                  if (logo) {
+                      setLogoUrl(resolveImageUrl(logo) || '/icon.jpg');
                   }
                   
                   // Top Trending Logic (Classic = tv)
@@ -539,7 +534,7 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
         <>
             <div className={`absolute inset-0 bg-slate-800 animate-pulse ${isLoadingImage ? 'opacity-100 z-10' : 'opacity-0 -z-10'} transition-opacity`} />
             <img
-            src={channel.thumbnail_url}
+            src={resolveImageUrl(channel.thumbnail_url)}
             alt={channel.name}
             loading="lazy"
             onLoad={() => setIsLoadingImage(false)}

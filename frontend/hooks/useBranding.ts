@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
+import { resolveImageUrl } from '@/lib/utils';
 
 interface BrandingSettings {
-    logo_url: string;
-    app_logo_png_url: string | null;
+    logo_path: string;
+    app_logo_png_path: string | null;
     loading: boolean;
 }
 
 export function useBranding() {
     const [branding, setBranding] = useState<BrandingSettings>({
-        logo_url: '/icon.jpg',
-        app_logo_png_url: null,
+        logo_path: '/icon.jpg',
+        app_logo_png_path: null,
         loading: true
     });
 
@@ -26,8 +27,8 @@ export function useBranding() {
 
 
                     setBranding({
-                        logo_url: data.logo_url || '/icon.jpg',
-                        app_logo_png_url: data.app_logo_png_url,
+                        logo_path: resolveImageUrl(data.logo_path) || '/icon.jpg',
+                        app_logo_png_path: resolveImageUrl(data.app_logo_png_path),
                         loading: false
                     });
                 }

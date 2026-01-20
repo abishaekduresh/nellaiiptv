@@ -10,7 +10,13 @@ A Next.js 14 application providing a modern, responsive interface for the Nellai
 - **Auto-Redirect**: The main application detects TV User-Agents and seamlessly redirects playback requests to this optimized player.
 - **TV Navigation**: Full "Channel Surfing" support (`Arrow Keys`, `Channel +/-`) with a polished bottom-left info overlay.
 
-### **Latest Updates (v1.29.0)**
+### **Latest Updates (v1.30.0)**
+- **Image Resolution Engine**:
+  - Implemented `resolveImageUrl` utility to handle production URL construction dynamically.
+  - Fixed `logo_url` vs `logo_path` inconsistencies across the application.
+  - Ensures correct image loading regardless of subfolder deployment (e.g. `/backend/public`).
+
+### **Previous Updates (v1.29.0)**
 - **Admin Tools**:
   - **API Documentation**: Interactive API reference with detailed header requirements built directly into the Admin Panel.
   - **API Key Manager**: GUI for managing secure API access keys with platform restrictions (Web, TV, Android, iOS).

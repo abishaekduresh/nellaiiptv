@@ -2,6 +2,12 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.20.0] - 2026-01-20
+
+### Fixed
+- **Production URLs**: Refactored `Channel.php` and `Settings` logic to use `APP_URL` env variable for generating absolute URLs, removing hardcoded local paths.
+- **Documentation**: Updated README to properly document `APP_URL` requirement for production deployments.
+
 ## [1.18.1] - 2026-01-19
 
 ### Refactored

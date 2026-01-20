@@ -112,7 +112,9 @@ function VideoPlayer({
 
   // History Hook
   const { addToHistory } = useWatchHistory();
-  const { app_logo_png_url } = useBranding();
+  const { app_logo_png_path } = useBranding();
+  // Alias for backward compatibility if needed, but we should use path
+  const app_logo_png_url = app_logo_png_path; 
   const historyTrackedRef = useRef(false);
 
   // Picture in Picture State

@@ -9,6 +9,7 @@ import { Channel } from '@/types';
 import api from '@/lib/api';
 import { useFavorites } from '@/hooks/useFavorites';
 import { isSmartTV } from '@/lib/device';
+import { resolveImageUrl } from '@/lib/utils';
 
 
 interface ChannelCardProps {
@@ -83,7 +84,7 @@ export default function ChannelCard({ channel, showOverallViewers = false }: Cha
         
         {channel.thumbnail_url ? (
           <img 
-            src={channel.thumbnail_url} 
+            src={resolveImageUrl(channel.thumbnail_url)} 
             alt={channel.name}
             loading="lazy"
             onLoad={() => setIsLoadingImage(false)}

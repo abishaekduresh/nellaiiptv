@@ -12,6 +12,7 @@ import { useTVFocus } from '@/hooks/useTVFocus';
 import { useViewMode } from '@/context/ViewModeContext';
 import { Monitor, LayoutGrid } from 'lucide-react';
 import { isSmartTV } from '@/lib/device';
+import { resolveImageUrl } from '@/lib/utils';
 
 export default function Navbar() {
   const { user, isAdmin } = useAuthStore();
@@ -29,20 +30,11 @@ export default function Navbar() {
     const fetchLogo = async () => {
       try {
         const response = await api.get('/settings/public');
-        if (response.data.status && response.data.data.logo_url) {
-          let url = response.data.data.logo_url;
-          
-          // Smart Fix: Always sanitize localhost/127.0.0.1 URLs for uploads
-          // This ensures we use the Next.js proxy (which is correctly configured)
-          // instead of a potentially wrong backend absolute URL (e.g. localhost:80 when running on localhost:3000)
-          if (url.includes('/uploads/')) {
-             if (url.includes('localhost') || url.includes('127.0.0.1')) {
-                 const match = url.match(/\/uploads\/.*$/);
-                 if (match) url = match[0];
-             }
+        if (response.data.status) {
+          const logo = response.data.data.logo_path || response.data.data.logo_url;
+          if (logo) {
+             setLogoUrl(resolveImageUrl(logo) || '/icon.jpg');
           }
-          
-          setLogoUrl(url);
         }
       } catch (e) {
         // ignore
@@ -455,7 +447,7 @@ function SearchResultItem({ channel, onClick }: { channel: Channel; onClick: () 
     >
       <div className="w-12 h-8 bg-slate-900 rounded overflow-hidden flex-shrink-0">
         {channel.thumbnail_url ? (
-          <img src={channel.thumbnail_url} alt={channel.name} className="w-full h-full object-cover" />
+          <img src={resolveImageUrl(channel.thumbnail_url)} alt={channel.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-600 text-xs">IMG</div>
         )}

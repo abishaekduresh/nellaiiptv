@@ -5,6 +5,10 @@
 
 A high-performance, native Android application for streaming HLS content, optimized for both Mobile and TV interfaces.
 
+## 🔗 Compatibility
+- **Backend API**: v1.20.0+ (Required for correct image resolution)
+- **Frontend**: v1.30.0+ (Shared assets)
+
 ## 🚀 Features
 
 - **Native Playback**: Uses the official `video_player` package for hardware-accelerated HLS streaming.

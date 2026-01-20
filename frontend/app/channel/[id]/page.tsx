@@ -15,6 +15,7 @@ import Player from 'video.js/dist/types/player';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useFavorites } from '@/hooks/useFavorites';
 import { Heart } from 'lucide-react';
+import { resolveImageUrl } from '@/lib/utils';
 
 // TV-friendly Button Component
 function TVButton({ onClick, className, children, ...props }: any) {
@@ -311,7 +312,7 @@ export default function ChannelPage() {
           <div className="aspect-video w-full">
             <VideoPlayer 
               src={channel.hls_url || ''} 
-              poster={channel.thumbnail_url}
+              poster={resolveImageUrl(channel.thumbnail_url)}
               onVideoPlay={handleVideoPlay}
               onVideoPause={handleVideoPause}
               channelUuid={channel.uuid}

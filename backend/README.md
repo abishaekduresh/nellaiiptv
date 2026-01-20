@@ -1,6 +1,6 @@
 # Nellai IPTV - Backend API (v1.18.0)
 
-**Version 1.18.0** | RESTful API built with Slim PHP Framework
+**Version 1.20.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -61,8 +61,7 @@ JWT_SECRET=your_jwt_secret_here
 API_SECRET=your_strong_api_secret_here
 
 # General
-APP_URL=https://api.nellaiiptv.com/public  # REQUIRED in Production. Base URL where this backend is hosted.
-# APP_URL=http://localhost/nellaiiptv/backend/public  # For Local WAMP Development
+APP_URL=https://api.yoursite.com/backend/public  # Required for correct absolute URL generation (supports subdirectories)
 ```
 
 ### 4. Start Development Server
@@ -152,6 +151,10 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.20.0)
+- **Production URL Fixes**: Refactored `Channel` and `Settings` models to prioritize `APP_URL` from environment to generate correct absolute URLs for images in production.
+- **Env Configuration**: Clarified `APP_URL` usage in `README` to prevent localhost leakages.
 
 ## Latest Updates (v1.19.0)
 - **API Key System**: Database-backed API key management with expiry, soft-delete, and Platform Restrictions.
