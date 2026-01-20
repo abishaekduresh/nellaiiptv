@@ -61,8 +61,8 @@ JWT_SECRET=your_jwt_secret_here
 API_SECRET=your_strong_api_secret_here
 
 # General
-# General
-APP_URL=https://api.yoursite.com/backend/public  # Required for correct absolute URL generation (supports subdirectories)
+APP_URL=https://api.nellaiiptv.com/public  # REQUIRED in Production. Base URL where this backend is hosted.
+# APP_URL=http://localhost/nellaiiptv/backend/public  # For Local WAMP Development
 ```
 
 ### 4. Start Development Server

@@ -33,6 +33,27 @@ CREATE TABLE IF NOT EXISTS `ads` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table nellai_iptv_2.api_keys
+CREATE TABLE IF NOT EXISTS `api_keys` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `key_string` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `allowed_platforms` set('web','android','ios','tv') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'web',
+  `status` enum('active','inactive','expired','deleted') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
+  `expires_at` datetime DEFAULT NULL,
+  `last_used_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `key_string` (`key_string`),
+  KEY `status` (`status`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table nellai_iptv_2.category
 CREATE TABLE IF NOT EXISTS `category` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -57,7 +78,8 @@ CREATE TABLE IF NOT EXISTS `channels` (
   `state_id` int NOT NULL,
   `language_id` int NOT NULL,
   `district_id` int NOT NULL,
-  `thumbnail_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `thumbnail_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `logo_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `is_featured` tinyint(1) NOT NULL DEFAULT '0',
   `is_premium` tinyint(1) NOT NULL DEFAULT '0',
   `is_ad_enabled` tinyint NOT NULL DEFAULT '1',

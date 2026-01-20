@@ -1,0 +1,8 @@
+API_BASE_URL=http://localhost/nellaiiptv/backend/public/api
+API_KEY=nk_16b75ed01027a2877ff3823632b7d40a
+CHANNEL_UUID=019ab510-4c40-7829-b363-d2489397b9da
+APP_VERSION=1.0.0
+POWERED_BY_TEXT=Powered by Nellai IPTV
+POWERED_BY_URL=https://www.nellaiiptv.com
+
+APP_TITLE=Royal TV

@@ -68,11 +68,15 @@ class Channel extends Model
         if (empty($value)) return $value;
         if (strpos($value, 'http') === 0) return $value;
         
-        // Basic detection for Web context
+        // Prioritize APP_URL from .env
+        if (!empty($_ENV['APP_URL'])) {
+            return rtrim($_ENV['APP_URL'], '/') . $value;
+        }
+        
+        // Dynamic fallback
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
         
-        // This assumes WAMP setup as observed
-        return "$protocol://$host/nellaiiptv/backend/public" . $value;
+        return "$protocol://$host" . $value;
     }
 }
