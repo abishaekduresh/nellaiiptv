@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.18.0)
+# Nellai IPTV - Backend API (v1.20.1)
 
-**Version 1.20.0** | RESTful API built with Slim PHP Framework
+**Version 1.20.1** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -151,6 +151,10 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.20.1)
+- **Security**: Removed `_path` fields from API responses.
+- **Architecture**: Enforced absolute URL usage for all media assets.
 
 ## Latest Updates (v1.20.0)
 - **Production URL Fixes**: Refactored `Channel` and `Settings` models to prioritize `APP_URL` from environment to generate correct absolute URLs for images in production.

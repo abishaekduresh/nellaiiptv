@@ -10,7 +10,7 @@ import AdBanner from './AdBanner';
 import api from '@/lib/api';
 import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
-import { resolveImageUrl } from '@/lib/utils';
+
 
 interface ClassicHomeProps {
   channels: Channel[];
@@ -33,9 +33,9 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
               const response = await api.get('/settings/public');
               if (response.data.status) {
                   // Logo Logic
-                  const logo = response.data.data.logo_path || response.data.data.logo_url;
+                  const logo = response.data.data.logo_url || response.data.data.logo_path;
                   if (logo) {
-                      setLogoUrl(resolveImageUrl(logo) || '/icon.jpg');
+                      setLogoUrl(logo);
                   }
                   
                   // Top Trending Logic (Classic = tv)
@@ -534,7 +534,7 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
         <>
             <div className={`absolute inset-0 bg-slate-800 animate-pulse ${isLoadingImage ? 'opacity-100 z-10' : 'opacity-0 -z-10'} transition-opacity`} />
             <img
-            src={resolveImageUrl(channel.thumbnail_url)}
+            src={channel.thumbnail_url}
             alt={channel.name}
             loading="lazy"
             onLoad={() => setIsLoadingImage(false)}

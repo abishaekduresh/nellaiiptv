@@ -2,7 +2,12 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
-## [1.30.0] - 2026-01-20
+## [1.30.1] - 2026-01-20
+
+### Changed
+- **URL Resolution**: Removed `resolveImageUrl` logic entirely. The frontend now consumes fully qualified absolute URLs (`logo_url`, `thumbnail_url`) directly from the backend, improving performance and simplifying the codebase.
+- **Cleanup**: Removed unused relative path properties from `Channel` interfaces (`logo_path`, `thumbnail_path`).
+
 
 ### Fixed
 - **Image URL Resolution**: Implemented `resolveImageUrl` to ensure thumbnails, logos, and watermarks load correctly in production by dynamically prepending the backend `API_URL`.

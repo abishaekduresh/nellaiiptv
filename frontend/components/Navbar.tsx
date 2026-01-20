@@ -12,7 +12,7 @@ import { useTVFocus } from '@/hooks/useTVFocus';
 import { useViewMode } from '@/context/ViewModeContext';
 import { Monitor, LayoutGrid } from 'lucide-react';
 import { isSmartTV } from '@/lib/device';
-import { resolveImageUrl } from '@/lib/utils';
+
 
 export default function Navbar() {
   const { user, isAdmin } = useAuthStore();
@@ -31,9 +31,9 @@ export default function Navbar() {
       try {
         const response = await api.get('/settings/public');
         if (response.data.status) {
-          const logo = response.data.data.logo_path || response.data.data.logo_url;
+          const logo = response.data.data.logo_url;
           if (logo) {
-             setLogoUrl(resolveImageUrl(logo) || '/icon.jpg');
+             setLogoUrl(logo);
           }
         }
       } catch (e) {
@@ -447,7 +447,7 @@ function SearchResultItem({ channel, onClick }: { channel: Channel; onClick: () 
     >
       <div className="w-12 h-8 bg-slate-900 rounded overflow-hidden flex-shrink-0">
         {channel.thumbnail_url ? (
-          <img src={resolveImageUrl(channel.thumbnail_url)} alt={channel.name} className="w-full h-full object-cover" />
+          <img src={channel.thumbnail_url} alt={channel.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-600 text-xs">IMG</div>
         )}

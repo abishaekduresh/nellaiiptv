@@ -13,6 +13,7 @@ class Channel extends Model
         'is_featured', 'expiry_at', 'status', 'created_at', 'is_premium', 'allowed_platforms'
     ];
     
+    protected $hidden = ['thumbnail_path', 'logo_path'];
     protected $appends = ['thumbnail_url', 'logo_url'];
 
     public $timestamps = true;

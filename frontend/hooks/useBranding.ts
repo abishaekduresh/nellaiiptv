@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
-import { resolveImageUrl } from '@/lib/utils';
+
 
 interface BrandingSettings {
-    logo_path: string;
-    app_logo_png_path: string | null;
+    logo_url: string;
+    app_logo_png_url: string | null;
     loading: boolean;
 }
 
 export function useBranding() {
     const [branding, setBranding] = useState<BrandingSettings>({
-        logo_path: '/icon.jpg',
-        app_logo_png_path: null,
+        logo_url: '/icon.jpg',
+        app_logo_png_url: null,
         loading: true
     });
 
@@ -22,13 +22,10 @@ export function useBranding() {
                 if (response.data.status) {
                     const data = response.data.data;
                     
-                    // URL Sanitization Helper Removed - Use direct URL from backend
-                    // to ensure cross-port access (e.g. localhost:3000 frontend vs localhost:80 backend)
-
-
+                    // Direct URL usage
                     setBranding({
-                        logo_path: resolveImageUrl(data.logo_path) || '/icon.jpg',
-                        app_logo_png_path: resolveImageUrl(data.app_logo_png_path),
+                        logo_url: data.logo_url || '/icon.jpg',
+                        app_logo_png_url: data.app_logo_png_url,
                         loading: false
                     });
                 }

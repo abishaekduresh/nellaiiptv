@@ -2,7 +2,12 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
-## [1.20.0] - 2026-01-20
+## [1.20.1] - 2026-01-20
+
+### Security
+- **Path Disclosure**: Removed `_path` fields (`logo_path`, `thumbnail_path`, `app_logo_png_path`) from public API responses to prevent exposing internal file system structures.
+- **Access Control**: `Channel` model now enforces hiding of path attributes, ensuring only `_url` accessors are visible.
+
 
 ### Fixed
 - **Production URLs**: Refactored `Channel.php` and `Settings` logic to use `APP_URL` env variable for generating absolute URLs, removing hardcoded local paths.

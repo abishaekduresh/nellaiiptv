@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Channel } from '@/types';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useBranding } from '@/hooks/useBranding';
-import { resolveImageUrl } from '@/lib/utils';
+
 import {
     ChevronLeft, ChevronRight, Tv, Eye,
     Play, Pause, Volume2, VolumeX, SkipBack, SkipForward,
@@ -479,7 +479,7 @@ export default function PlayerOverlay({
                                  <>
                                      <div className="w-9 h-9 rounded-lg bg-black/40 flex items-center justify-center overflow-hidden border border-white/5 shrink-0">
                                          {channel?.logo_url ? (
-                                             <img src={resolveImageUrl(channel.logo_url)} className="w-full h-full object-contain p-0.5" alt="" />
+                                             <img src={channel.logo_url} className="w-full h-full object-contain p-0.5" alt="" />
                                          ) : (
                                              <Tv size={14} className="text-slate-600" />
                                          )}
@@ -543,7 +543,7 @@ export default function PlayerOverlay({
                         <div className="hidden sm:flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500 min-w-0 overflow-hidden">
                              <div className="hidden sm:block w-12 h-12 bg-white/5 rounded-lg border border-white/10 p-1 backdrop-blur-sm shrink-0">
                                  {currentChannel.logo_url ? (
-                                     <img src={resolveImageUrl(currentChannel.logo_url)} className="w-full h-full object-contain" alt="" />
+                                     <img src={currentChannel.logo_url} className="w-full h-full object-contain" alt="" />
                                  ) : (
                                      <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold text-xs">CH</div>
                                  )}
