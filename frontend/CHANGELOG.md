@@ -2,7 +2,11 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
-## [1.30.1] - 2026-01-20
+## [1.30.2] - 2026-01-20
+
+### Maintenance
+- **Backend Sync**: Verified compatibility with Backend v1.20.2 to ensure consistent image loading in production environments.
+
 
 ### Changed
 - **URL Resolution**: Removed `resolveImageUrl` logic entirely. The frontend now consumes fully qualified absolute URLs (`logo_url`, `thumbnail_url`) directly from the backend, improving performance and simplifying the codebase.

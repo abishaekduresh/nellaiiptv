@@ -2,7 +2,12 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
-## [1.20.1] - 2026-01-20
+## [1.20.2] - 2026-01-20
+
+### Fixed
+- **URL Resolution**: Enhanced `APP_URL` detection to support `getenv()` and `$_SERVER` variables, ensuring correct cloud domain generation even when `$_ENV` is not populated (e.g., specific server configs).
+- **Admin Settings**: Applied the same robust URL resolution logic to the Admin Settings controller.
+
 
 ### Security
 - **Path Disclosure**: Removed `_path` fields (`logo_path`, `thumbnail_path`, `app_logo_png_path`) from public API responses to prevent exposing internal file system structures.

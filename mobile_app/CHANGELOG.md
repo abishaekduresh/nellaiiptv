@@ -1,6 +1,10 @@
 # Changelog
 
-## [1.0.1] - 2026-01-20
+## [1.0.2] - 2026-01-20
+
+### Maintenance
+- **Backend Sync**: Verified image loading compatibility with Backend v1.20.2 adjustments.
+
 
 ### Changed
 - **API Compatibility**: Verified compatibility with Backend v1.20.1 which adheres to absolute URL responses.

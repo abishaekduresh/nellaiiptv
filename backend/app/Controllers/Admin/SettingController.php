@@ -18,8 +18,9 @@ class SettingController
         $settings->transform(function($setting) use ($request) {
             if ($setting->setting_key === 'logo_url' && strpos($setting->setting_value, '/uploads/') === 0) {
                 // Check for explicit APP_URL in environment first
-                if (!empty($_ENV['APP_URL'])) {
-                    $baseUrl = rtrim($_ENV['APP_URL'], '/');
+                $appUrl = $_ENV['APP_URL'] ?? getenv('APP_URL') ?? $_SERVER['APP_URL'] ?? null;
+                if (!empty($appUrl)) {
+                    $baseUrl = rtrim($appUrl, '/');
                     $setting->setting_value = $baseUrl . $setting->setting_value;
                 } else {
                     // Fallback to auto-detection (best effort for admin)
@@ -92,8 +93,9 @@ class SettingController
              $relativeUrl = '/uploads/branding/' . $filename;
              $logoUrl = $relativeUrl;
 
-            if (!empty($_ENV['APP_URL'])) {
-                $baseUrl = rtrim($_ENV['APP_URL'], '/');
+            $appUrl = $_ENV['APP_URL'] ?? getenv('APP_URL') ?? $_SERVER['APP_URL'] ?? null;
+            if (!empty($appUrl)) {
+                $baseUrl = rtrim($appUrl, '/');
                 $logoUrl = $baseUrl . $relativeUrl;
             } else {
                  $uri = $request->getUri();
@@ -145,8 +147,9 @@ class SettingController
 
             // Generate Display URL
             $logoUrl = $relativeUrl;
-            if (!empty($_ENV['APP_URL'])) {
-                $baseUrl = rtrim($_ENV['APP_URL'], '/');
+            $appUrl = $_ENV['APP_URL'] ?? getenv('APP_URL') ?? $_SERVER['APP_URL'] ?? null;
+            if (!empty($appUrl)) {
+                $baseUrl = rtrim($appUrl, '/');
                 $logoUrl = $baseUrl . $relativeUrl;
             } else {
                  $uri = $request->getUri();

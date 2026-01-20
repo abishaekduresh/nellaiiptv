@@ -23,8 +23,11 @@ class PublicSettingController
             if (strpos($path, 'http') === 0) return $path; // Already absolute
             
             if (strpos($path, '/uploads/') === 0) {
-                if (!empty($_ENV['APP_URL'])) {
-                    return rtrim($_ENV['APP_URL'], '/') . $path;
+                // Robust Env Fetch
+                $appUrl = $_ENV['APP_URL'] ?? getenv('APP_URL') ?? $_SERVER['APP_URL'] ?? null;
+
+                if (!empty($appUrl)) {
+                    return rtrim($appUrl, '/') . $path;
                 }
                  // Fallback with Proxy Support
                 $uri = $request->getUri();

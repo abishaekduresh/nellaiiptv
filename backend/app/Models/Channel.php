@@ -69,9 +69,11 @@ class Channel extends Model
         if (empty($value)) return $value;
         if (strpos($value, 'http') === 0) return $value;
         
-        // Prioritize APP_URL from .env
-        if (!empty($_ENV['APP_URL'])) {
-            return rtrim($_ENV['APP_URL'], '/') . $value;
+        // Robust Env Fetch
+        $appUrl = $_ENV['APP_URL'] ?? getenv('APP_URL') ?? $_SERVER['APP_URL'] ?? null;
+        
+        if (!empty($appUrl)) {
+            return rtrim($appUrl, '/') . $value;
         }
         
         // Dynamic fallback
