@@ -13,6 +13,7 @@ import { useViewMode } from '@/context/ViewModeContext';
 import { Monitor, LayoutGrid } from 'lucide-react';
 import { isSmartTV } from '@/lib/device';
 
+
 export default function Navbar() {
   const { user, isAdmin } = useAuthStore();
   const { mode, toggleMode } = useViewMode();
@@ -29,20 +30,11 @@ export default function Navbar() {
     const fetchLogo = async () => {
       try {
         const response = await api.get('/settings/public');
-        if (response.data.status && response.data.data.logo_url) {
-          let url = response.data.data.logo_url;
-          
-          // Smart Fix: Always sanitize localhost/127.0.0.1 URLs for uploads
-          // This ensures we use the Next.js proxy (which is correctly configured)
-          // instead of a potentially wrong backend absolute URL (e.g. localhost:80 when running on localhost:3000)
-          if (url.includes('/uploads/')) {
-             if (url.includes('localhost') || url.includes('127.0.0.1')) {
-                 const match = url.match(/\/uploads\/.*$/);
-                 if (match) url = match[0];
-             }
+        if (response.data.status) {
+          const logo = response.data.data.logo_url;
+          if (logo) {
+             setLogoUrl(logo);
           }
-          
-          setLogoUrl(url);
         }
       } catch (e) {
         // ignore

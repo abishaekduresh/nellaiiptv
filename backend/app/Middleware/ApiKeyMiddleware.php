@@ -25,20 +25,34 @@ class ApiKeyMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        // Allow public/health endpoints if needed, but for now we enforce key on all api routes
-        // You might want to allow some public assets or root path without key, but strictly speaking "api" should have it.
-        
         $apiKey = $request->getHeaderLine('X-API-KEY');
 
-        if (empty($this->apiSecret)) {
-            error_log('Warning: API_SECRET is not set in .env');
-            return $handler->handle($request); // Fail open or closed? Better warn and proceed or fail? Proceed for now to avoid breaking if config missing, but log error.
+        // 1. Check Master Key (Environment Secret)
+        if (!empty($this->apiSecret) && $apiKey === $this->apiSecret) {
+            return $handler->handle($request);
         }
 
-        if ($apiKey !== $this->apiSecret) {
-            return ResponseFormatter::error(new SlimResponse(), 'Unauthorized: Invalid API Key', 401);
+        // 2. Check Database Keys
+        // Lazy load model to avoid DB hit on OPTION or missing key if secret matched (optimized above)
+        if (!empty($apiKey)) {
+            $keyRecord = \App\Models\ApiKey::where('key_string', $apiKey)
+                ->where('status', 'active')
+                ->first();
+
+            if ($keyRecord) {
+                // Check Expiry
+                if ($keyRecord->expires_at && $keyRecord->expires_at < date('Y-m-d H:i:s')) {
+                     return ResponseFormatter::error(new SlimResponse(), 'Unauthorized: API Key Expired', 401);
+                }
+
+                // Valid Key - Update Last Used (Async usually, but direct for now)
+                $keyRecord->last_used_at = date('Y-m-d H:i:s');
+                $keyRecord->save();
+
+                return $handler->handle($request);
+            }
         }
 
-        return $handler->handle($request);
+        return ResponseFormatter::error(new SlimResponse(), 'Unauthorized: Invalid API Key', 401);
     }
 }

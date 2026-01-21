@@ -63,6 +63,9 @@ $app->add(new \App\Middleware\CorsMiddleware()); // Must run first (added last t
 // So we add RoutingMiddleware LAST.
 $app->addRoutingMiddleware();
 
+// Method Override Middleware (Parses _method, MUST run before Routing but after BodyParsing)
+$app->add(new \Slim\Middleware\MethodOverrideMiddleware());
+
 // Body Parsing Middleware
 $app->addBodyParsingMiddleware();
 

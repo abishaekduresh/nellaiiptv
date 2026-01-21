@@ -1,10 +1,24 @@
-# Nellai IPTV - API Documentation (v1.16.1)
+# Nellai IPTV - API Documentation (v1.19.0)
 
-**Version 1.17.0**
+**Version 1.19.0**
 
 Base URL: `/api`
 
 ## Security & Headers
+...
+(rest of headers)
+...
+        "channel_number": 1,
+        "hls_url": "https://...",
+        "thumbnail_url": "https://...",
+        "logo_url": "https://domain.com/uploads/channel/logos/...",
+        "viewers_count": 150,
+...
+    "channel_number": 1,
+    "hls_url": "https://...",
+    "thumbnail_url": "https://...",
+    "logo_url": "https://domain.com/uploads/channel/logos/...",
+    "viewers_count": 150
 
 **CRITICAL**: All public API requests MUST include the **API Key**.
 Protected endpoints require BOTH the API Key and a Bearer Token.
@@ -286,6 +300,7 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
         "channel_number": 1,
         "hls_url": "https://...",
         "thumbnail_url": "https://...",
+        "logo_url": "https://...",
         "viewers_count": 150,
         "is_featured": true,
         "is_premium": true,
@@ -322,6 +337,7 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
     "channel_number": 1,
     "hls_url": "https://...",
     "thumbnail_url": "https://...",
+    "logo_url": "https://...",
     "viewers_count": 150
   }
 }
@@ -486,6 +502,42 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 
 ---
 
+## API Key Management
+
+### List API Keys
+**Endpoint**: `GET /admin/api-keys` (Protected: Admin)
+
+**Response**:
+```json
+{
+  "status": true,
+  "data": [
+    {
+      "uuid": "api-key-uuid",
+      "key": "sk_live_dummy_key_value",
+      "name": "My Application Key",
+      "allowed_platforms": "web,tv,android,ios",
+      "status": "active",
+      "created_at": "2026-01-01T12:00:00Z"
+    }
+  ]
+}
+```
+
+### Create API Key
+**Endpoint**: `POST /admin/api-keys` (Protected: Admin)
+**Body**:
+```json
+{
+  "name": "New Application Key"
+}
+```
+
+### Revoke API Key
+**Endpoint**: `DELETE /admin/api-keys/{uuid}` (Protected: Admin)
+
+---
+
 ## System Settings
 
 ### Upload Logo
@@ -494,7 +546,7 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 
 ### Get Public Settings
 **Endpoint**: `GET /settings/public`
-**Response**: `{ "status": true, "data": { "logo_url": "...", "top_trending_platforms": "web,tv,android,ios" } }`
+**Response**: `{ "status": true, "data": { "logo_url": "...", "app_logo_png_url": "...", "top_trending_platforms": "web,tv,android,ios" } }`
 
 ---
 

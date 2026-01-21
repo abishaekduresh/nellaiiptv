@@ -19,6 +19,7 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->post('/channels', [\App\Controllers\Admin\ChannelController::class, 'create']);
         $group->get('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'show']);
         $group->put('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'update']);
+        $group->post('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'update']); // Allow POST for file uploads
         $group->delete('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'delete']);
         $group->get('/channels/{uuid}/analytics', [\App\Controllers\Admin\ChannelController::class, 'getAnalytics']);
         
@@ -34,6 +35,7 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/settings', [\App\Controllers\Admin\SettingController::class, 'index']);
         $group->put('/settings/{key}', [\App\Controllers\Admin\SettingController::class, 'update']);
         $group->post('/settings/logo', [\App\Controllers\Admin\SettingController::class, 'uploadLogo']);
+        $group->post('/settings/logo-png', [\App\Controllers\Admin\SettingController::class, 'uploadAppLogoPng']);
         
         // Subscription Plans
         $group->get('/plans', [\App\Controllers\Admin\SubscriptionPlanController::class, 'index']);
@@ -41,6 +43,12 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'show']);
         $group->put('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'update']);
         $group->delete('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'delete']);
+
+        // API Keys Management
+        $group->get('/api-keys', [\App\Controllers\Admin\ApiKeyController::class, 'index']);
+        $group->post('/api-keys', [\App\Controllers\Admin\ApiKeyController::class, 'create']);
+        $group->put('/api-keys/{uuid}', [\App\Controllers\Admin\ApiKeyController::class, 'update']);
+        $group->delete('/api-keys/{uuid}', [\App\Controllers\Admin\ApiKeyController::class, 'delete']);
 
         // Dashboard Stats
         $group->get('/dashboard/stats', [\App\Controllers\Admin\DashboardController::class, 'getStats']);

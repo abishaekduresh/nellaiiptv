@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.17.0)
+# Nellai IPTV - Backend API (v1.20.2)
 
-**Version 1.17.0** | RESTful API built with Slim PHP Framework
+**Version 1.20.2** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -61,7 +61,7 @@ JWT_SECRET=your_jwt_secret_here
 API_SECRET=your_strong_api_secret_here
 
 # General
-APP_URL=https://api.yoursite.com  # Required for correct logo URL generation behind proxies
+APP_URL=https://api.yoursite.com/backend/public  # Required for correct absolute URL generation (supports subdirectories)
 ```
 
 ### 4. Start Development Server
@@ -152,8 +152,34 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
+## Latest Updates (v1.20.2)
+- **Production URL Fix**: Robust `APP_URL` detection supporting `getenv` and `$_SERVER` fallbacks.
+- **Admin**: Updated settings resolution logic.
+
+## Latest Updates (v1.20.2)
+- **Production URL Fix**: Enhanced `APP_URL` detection supporting `getenv` and `$_SERVER` fallbacks.
+- **Admin**: Updated settings resolution logic.
+
+## Latest Updates (v1.20.1)
+- **Security**: Removed `_path` fields from API responses.
+- **Architecture**: Enforced absolute URL usage for all media assets.
+
+## Latest Updates (v1.20.0)
+- **Production URL Fixes**: Refactored `Channel` and `Settings` models to prioritize `APP_URL` from environment to generate correct absolute URLs for images in production.
+- **Env Configuration**: Clarified `APP_URL` usage in `README` to prevent localhost leakages.
+
+## Latest Updates (v1.19.0)
+- **API Key System**: Database-backed API key management with expiry, soft-delete, and Platform Restrictions.
+- 🔐 **Security**: Legacy `.env` API secrets supported alongside new DB keys.
+
+## Latest Updates (v1.18.0)
+- 🖼️ **Logo System Refactor**: Settings now store relative paths and dynamically resolve URLs based on `APP_URL` or Proxy headers (`X-Forwarded-*`).
+- 📁 **Subdirectory Support**: Fixed asset URL generation for backends deployed in subfolders (e.g., `/nellaiiptv/backend`).
+- 💧 **Watermark Setting**: Added dedicated `app_logo_png_path` setting for the video player's transparent overlay.
+
 ## Latest Updates (v1.17.0)
-- 💳 **Subscription Engine**: Full CRUD endpoints for managing subscription plans (`SubscriptionPlanController`) and identifying customer subscriptions.
+- **API Key System**: Database-backed API key management with expiry and soft-delete support (`api_keys` table).
+- 💳 **Subscription Engine**: Flexible plan management and validation logic. subscription plans (`SubscriptionPlanController`) and identifying customer subscriptions.
 - ⚙️ **Public Settings**: Expose `top_trending_platforms` configuration to control trending section visibility.
 
 ## Latest Updates (v1.15.0)

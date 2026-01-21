@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Tv, Settings, LogOut, Users } from 'lucide-react';
+import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 const menuItems = [
@@ -22,14 +22,24 @@ const menuItems = [
     href: '/admin/customers', // Assuming this route might exist or will be added later
   },
   {
-    title: 'Settings',
-    icon: Settings,
-    href: '/admin/settings',
+    title: 'API Keys',
+    icon: Shield,
+    href: '/admin/api-keys',
+  },
+  {
+    title: 'API Docs',
+    icon: BookOpen,
+    href: '/admin/api-docs',
   },
   {
     title: 'Plans',
     icon: Settings, // Or CreditCard if available, using Settings for now as I don't import CreditCard
     href: '/admin/plans',
+  },
+  {
+    title: 'Settings',
+    icon: Settings,
+    href: '/admin/settings',
   },
 ];
 

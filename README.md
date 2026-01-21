@@ -1,13 +1,43 @@
 # Nellai IPTV
 
-**Version**: `1.28.1` (Frontend) / `1.17.0` (Backend)
+**Version**: `1.30.3` (Frontend) / `1.20.3` (Backend) / `1.2.0` (App)
+
+## 📱 Mobile App (v1.2.0)
+- **Intelligent Analytics**: 10s watch-time delay and session-based tracking (synced with web logic).
+- **Visual Stats Overlay**: Clean Top-Left display for Viewer Counts and Average Ratings.
+- **Single Instance**: Enforced singleton app instance for stability.
+- **Refined PiP**: Distraction-free floating window with zero-pause entry and auto-hidden controls/stats.
+- **Session-Based Volume**: Protects system audio settings by restoring original volume on exit.
+- **Safe Gestures**: Center-weighted tap-to-mute to avoid accidental touches.
+
+## 📺 Key Highlights (v1.30.0)
+- **Production Asset Pipeline**: Implemented a robust `resolveImageUrl` engine that ensures all images (Logos, Thumbnails, Watermarks) are correctly resolved in production environments (`APP_URL`-aware).
+- **Backend Path Normalization**: The API now smartly handles relative paths vs absolute URLs, ensuring compatibility whether running on generic hosting or Docker containers.
+- **Frontend Resilience**: Refactored `useBranding`, `Navbar`, and `ClassicHome` to prioritize the new `logo_path` schema while maintaining backward compatibility.
+
+## 📺 Key Highlights (v1.29.0)
+- **API Documentation**: Interactive, built-in API docs with header requirements for admins.
+- **API Key Management**: Generate and manage API keys with platform-specific restrictions (Web, Android, iOS, TV).tion and revocation.
+- **Classic Mode Persistence**: Session-based view mode retention.
 
 ## 📺 Key Highlights (v1.28.1)
 - **Zero-Flash Refresh**: Fixed UI mismatch on refresh in Classic Mode by implementing strict initialization gates.
 - **Hybrid Responsive Player** (v1.28.0): Safe layout for all screens.
+- **Dynamic Watermark** (v1.28.2): Player overlays now use a dynamic, admin-configurable transparent PNG logo.
+- **Cloud-Ready Backend** (v1.18.0): Full support for reverse proxies, load balancers, and subdirectory deployments.
 - **Immersive Classic Mode** (v1.28.0): removed Navigation/Footer.
 
-## 📺 Key Highlights (v1.27.0)
+## � App (v1.0.0)
+- **Native Efficiency**: Built with Flutter for near-native performance on Android & TV.
+- **Smart Video Player**:
+    - **HLS Support**: Direct m3u8 streaming with adaptive bitrate.
+    - **Optimized UI**: Custom "Stretch" mode, large branding watermark, and distraction-free interface.
+    - **Audio Focus**: Enhanced background audio handling and auto-play configuration.
+- **Production Ready**:
+    - **Size Optimized**: Sub-20MB APKs via R8 shrinking and ABI splitting.
+    - **Secure**: Application ID and Package Name validation.
+
+## �📺 Key Highlights (v1.27.0)
 - **Cinematic Lite Player**: Complete UI overhaul for the TV player.
     - **Visual Error Handling**: Replaced generic alerts with a full-screen, dark-themed "Interrupted" overlay.
     - **Self-Healing**: Implemented a **6-second auto-retry** mechanism that recovers streams automatically.
@@ -16,11 +46,12 @@
 
 ## Overview
 
-Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT Mode) and TV (Classic Mode) interfaces. Built with modern technologies, it provides a seamless viewing experience across all devices.
-
-- **Frontend**: Next.js 14 (React 18) with TypeScript
-- **Backend**: Slim PHP REST API with Eloquent ORM
-- **Database**: MySQL with MyISAM engine
+Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT Mode) and TV (Classic Mode) interfaces. Built with modern technologies, it provides a seamless viewing
+| Project | Version | Tech Stack |
+| :--- | :--- | :--- |
+| **Frontend** | `1.30.3` | Next.js 14, React 18, TailwindCSS, Video.js |
+| **Backend** | `1.20.3` | Slim PHP 4, Eloquent ORM, MySQL |**Database**: MySQL with MyISAM engine
+| **Mobile** | `1.2.0` | Flutter 3.x, Kotlin, Dart | Native Android/TV support |
 - **Styling**: Tailwind CSS with custom design system
 
 ## Key Features
@@ -90,6 +121,11 @@ nellai-iptv/
 │   ├── database/
 │   │   └── migrations/     # SQL migration files
 │   └── public/             # Entry point
+│
+├── mobile_app/              # Flutter Application
+│   ├── lib/                 # Dart source code
+│   ├── android/             # Native Android code
+│   └── pubspec.yaml         # Dependencies
 │
 ├── CHANGELOG.md            # Version history
 └── README.md              # This file

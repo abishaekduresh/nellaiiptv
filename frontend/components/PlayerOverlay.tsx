@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Channel } from '@/types';
 import { useTVFocus } from '@/hooks/useTVFocus';
+import { useBranding } from '@/hooks/useBranding';
+
 import {
     ChevronLeft, ChevronRight, Tv, Eye,
     Play, Pause, Volume2, VolumeX, SkipBack, SkipForward,
@@ -329,7 +331,7 @@ export default function PlayerOverlay({
             onClick={() => setSidebarOpen(false)}
         />
 
-        {/* --- SIDEBAR DRAWER --- */}
+         {/* --- SIDEBAR DRAWER --- */}
         <div
             className={`fixed sm:absolute left-0 top-0 bottom-0 w-full sm:w-80 md:w-96 max-w-[90vw] bg-slate-950/95 sm:bg-black/80 backdrop-blur-2xl sm:border-r border-white/10 sm:rounded-r-2xl shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] z-[60] pointer-events-auto flex flex-col ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}
             onClick={(e) => e.stopPropagation()}
@@ -476,8 +478,8 @@ export default function PlayerOverlay({
                                  // CHANNEL ITEM RENDER
                                  <>
                                      <div className="w-9 h-9 rounded-lg bg-black/40 flex items-center justify-center overflow-hidden border border-white/5 shrink-0">
-                                         {channel?.thumbnail_url ? (
-                                             <img src={channel.thumbnail_url} className="w-full h-full object-contain p-0.5" alt="" />
+                                         {channel?.logo_url ? (
+                                             <img src={channel.logo_url} className="w-full h-full object-contain p-0.5" alt="" />
                                          ) : (
                                              <Tv size={14} className="text-slate-600" />
                                          )}
@@ -540,8 +542,8 @@ export default function PlayerOverlay({
                      {currentChannel && (
                         <div className="hidden sm:flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500 min-w-0 overflow-hidden">
                              <div className="hidden sm:block w-12 h-12 bg-white/5 rounded-lg border border-white/10 p-1 backdrop-blur-sm shrink-0">
-                                 {currentChannel.thumbnail_url ? (
-                                     <img src={currentChannel.thumbnail_url} className="w-full h-full object-contain" alt="" />
+                                 {currentChannel.logo_url ? (
+                                     <img src={currentChannel.logo_url} className="w-full h-full object-contain" alt="" />
                                  ) : (
                                      <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold text-xs">CH</div>
                                  )}

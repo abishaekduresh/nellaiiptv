@@ -2,6 +2,38 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.20.2] - 2026-01-20
+
+### Fixed
+- **URL Resolution**: Enhanced `APP_URL` detection to support `getenv()` and `$_SERVER` variables, ensuring correct cloud domain generation even when `$_ENV` is not populated (e.g., specific server configs).
+- **Admin Settings**: Applied the same robust URL resolution logic to the Admin Settings controller.
+
+
+### Security
+- **Path Disclosure**: Removed `_path` fields (`logo_path`, `thumbnail_path`, `app_logo_png_path`) from public API responses to prevent exposing internal file system structures.
+- **Access Control**: `Channel` model now enforces hiding of path attributes, ensuring only `_url` accessors are visible.
+
+
+### Fixed
+- **Production URLs**: Refactored `Channel.php` and `Settings` logic to use `APP_URL` env variable for generating absolute URLs, removing hardcoded local paths.
+- **Documentation**: Updated README to properly document `APP_URL` requirement for production deployments.
+
+## [1.18.1] - 2026-01-19
+
+### Refactored
+- **Database Schema**: Renamed `thumbnail_url` to `thumbnail_path` and `logo_url` to `logo_path` in `channels` table to accurately reflect storage of relative paths.
+- **Model Logic**: Updated `Channel` model to store paths but dynamically append full URLs (`thumbnail_url`, `logo_url`) in API responses via accessors.
+
+## [1.18.0] - 2026-01-19
+
+### Added
+- **Smart File Management**: Implemented automatic cleanup of old files when replacing channel logos/thumbnails.
+- **Relative Path Storage**: Optimized database storage to save only relative paths (`/uploads/...`) while APIs return full absolute URLs.
+
+### Fixed
+- **Upload Stability**: Fixed "Slim Application Error" (500) caused by duplicate file processing.
+- **API Compatibility**: Updated `Channel` model accessors to ensure consistent full URL generation for all clients.
+
 ## [1.12.1] - 2026-01-07
 
 ### Fixed

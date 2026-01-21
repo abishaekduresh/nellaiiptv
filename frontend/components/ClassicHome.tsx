@@ -11,6 +11,7 @@ import api from '@/lib/api';
 import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
 
+
 interface ClassicHomeProps {
   channels: Channel[];
   topTrending?: Channel[];
@@ -32,15 +33,9 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
               const response = await api.get('/settings/public');
               if (response.data.status) {
                   // Logo Logic
-                  if (response.data.data.logo_url) {
-                      let url = response.data.data.logo_url;
-                      if (url.includes('/uploads/')) {
-                          if (url.includes('localhost') || url.includes('127.0.0.1')) {
-                              const match = url.match(/\/uploads\/.*$/);
-                              if (match) url = match[0];
-                          }
-                      }
-                      setLogoUrl(url);
+                  const logo = response.data.data.logo_url || response.data.data.logo_path;
+                  if (logo) {
+                      setLogoUrl(logo);
                   }
                   
                   // Top Trending Logic (Classic = tv)

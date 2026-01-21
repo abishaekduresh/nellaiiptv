@@ -2,10 +2,37 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.30.2] - 2026-01-20
+
+### Maintenance
+- **Backend Sync**: Verified compatibility with Backend v1.20.2 to ensure consistent image loading in production environments.
+
+
+### Changed
+- **URL Resolution**: Removed `resolveImageUrl` logic entirely. The frontend now consumes fully qualified absolute URLs (`logo_url`, `thumbnail_url`) directly from the backend, improving performance and simplifying the codebase.
+- **Cleanup**: Removed unused relative path properties from `Channel` interfaces (`logo_path`, `thumbnail_path`).
+
+
+### Fixed
+- **Image URL Resolution**: Implemented `resolveImageUrl` to ensure thumbnails, logos, and watermarks load correctly in production by dynamically prepending the backend `API_URL`.
+- **Branding Consistency**: Standardized `useBranding` to support both `logo_path` and `logo_url`, fixing potential breakages after backend schema normalization.
+
+## [1.29.0]
+- **API Key Manager**: GUI for managing secure API access keys.
+
 ## [1.28.1] - 2026-01-19
 
 ### Fixed
 - **Refresh Flash**: Eliminated the brief "White Flash" or default OTT layout flicker when refreshing the page in Classic Mode. Implemented a strict hydration gate in `LiteRouteGuard` that waits for the view mode to be fully initialized before rendering.
+
+## [1.28.2] - 2026-01-19
+
+### Added
+- **Channel Branding**: Added "Channel Logo" upload support in `ChannelForm`.
+- **Visual Feedback**: Added instant image preview for uploaded channel logos.
+
+### Fixed
+- **Upload Reliability**: Fixed `Content-Type` header issue in `adminApi.ts` that caused silent upload failures.
 
 ## [1.28.0] - 2026-01-19
 

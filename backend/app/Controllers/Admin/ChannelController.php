@@ -29,9 +29,41 @@ class ChannelController
         }
     }
 
+    private function handleUpload($file, $directory)
+    {
+        if ($file->getError() === UPLOAD_ERR_OK) {
+            $extension = pathinfo($file->getClientFilename(), PATHINFO_EXTENSION);
+            // Sanitize and rename: timestamp_random.ext
+            $filename = time() . '_' . bin2hex(random_bytes(8)) . '.' . $extension;
+            
+            // Ensure directory exists
+            $path = __DIR__ . '/../../../public' . $directory;
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+            $file->moveTo($path . '/' . $filename);
+            
+
+            
+            // Return relative path for database storage
+            return "$directory/$filename";
+        }
+        return null;
+    }
+
     public function create(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody() ?? [];
+        $uploadedFiles = $request->getUploadedFiles();
+
+        // Handle File Uploads
+        if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
+            $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails');
+        }
+        
+        if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
+            $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos');
+        }
 
         $rules = [
             'required' => [['name'], ['hls_url']],
@@ -59,14 +91,63 @@ class ChannelController
         }
     }
 
+    private function deleteFile($relativePath)
+    {
+        if (empty($relativePath)) return;
+        
+        $baseDir = __DIR__ . '/../../../public';
+        // Construct full path - simplistic check, realpath better but just use known structure
+        $fullPath = $baseDir . $relativePath;
+        
+        if (file_exists($fullPath) && is_file($fullPath)) {
+            @unlink($fullPath);
+        }
+    }
+
     public function update(Request $request, Response $response, string $uuid): Response
     {
         $data = $request->getParsedBody() ?? [];
+        $uploadedFiles = $request->getUploadedFiles();
+
+
+        unset($data['thumbnail_url']); // Frontend might send this
+        unset($data['logo_url']);      // Frontend might send this
+        unset($data['thumbnail_path']);
+        unset($data['logo_path']);
+
+        // Fetch old data for cleanup
+        try {
+            $oldChannel = $this->channelService->getOne($uuid);
+            // Access raw attributes directly
+            $oldThumbnail = $oldChannel->getAttributes()['thumbnail_path'] ?? null;
+            $oldLogo = $oldChannel->getAttributes()['logo_path'] ?? null;
+        } catch (\Exception $e) {
+            $oldThumbnail = null;
+            $oldLogo = null;
+        }
 
         try {
+            // Handle File Uploads
+            if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
+                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails');
+            }
+            
+            if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
+                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos');
+            }
+
             $channel = $this->channelService->update($uuid, $data);
+
+            // Cleanup Old Files if replaced
+            if (isset($data['thumbnail_path']) && $oldThumbnail && $oldThumbnail !== $data['thumbnail_path']) {
+                $this->deleteFile($oldThumbnail);
+            }
+            if (isset($data['logo_path']) && $oldLogo && $oldLogo !== $data['logo_path']) {
+                $this->deleteFile($oldLogo);
+            }
+
             return ResponseFormatter::success($response, $channel, 'Channel updated successfully');
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 500);
         }
     }
