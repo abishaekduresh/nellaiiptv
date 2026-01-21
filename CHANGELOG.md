@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Frontend 1.30.3] - 2026-01-22
+### Added
+- **Admin Channel Details**:
+  - **Details Modal**: Introduced a "View Details" popup for channels handling detailed metadata display (Database IDs, HLS URL, Stats, System Info).
+  - **Clipboard Tools**: integrated "Copy to Clipboard" buttons for UUID, HLS URL, User Agent, and Referer.
+  - **Visuals**: Enhanced modal UI with channel branding (Logo/Thumbnail), status badges, and formatted statistics (View Count, Ratings).
+  - **Table Improvements**: Replaced database ID with **Sequential Serial Numbering** (1, 2, 3...) that persists correctly across pagination.
+  - **Table Improvements**: Added "Channel Number" (CH No) as a dedicated column.
+
+### Fixed
+- **Admin Channel Form**: Resolved an issue where Category, Language, and State dropdowns were empty by restoring the missing data fetching logic (`useEffect`).
+
 ## [Mobile App 1.2.0] - 2026-01-21
 ### Added
 - **Intelligent View Counting**: Mirroring the web, the app now waits for 10s of continuous watch-time before incrementing views (session-guarded).

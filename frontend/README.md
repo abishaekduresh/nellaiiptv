@@ -1,16 +1,17 @@
-# Nellai IPTV - Frontend v1.30.2
+# Nellai IPTV - Frontend v1.30.3
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platfrom. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Lite Player (TV Mode)**
-- **Zero-Overhead Playback**: specialized `/lite` route that strips all React UI to dedicate 100% CPU to video decoding on low-spec Android TVs.
-- **Cinematic Experience**: Distraction-free UI with auto-hiding controls. Includes a sleek, dark-themed error overlay with **6s auto-retry** and "Home" navigation.
-- **Auto-Redirect**: The main application detects TV User-Agents and seamlessly redirects playback requests to this optimized player.
-- **TV Navigation**: Full "Channel Surfing" support (`Arrow Keys`, `Channel +/-`) with a polished bottom-left info overlay.
+### **Latest Updates (v1.30.3)**
+- **Admin Channel Details**: 
+  - Implemented a comprehensive **Channel Details Modal** to view all channel metadata (IDs, Stream URL, Stats, System Info).
+  - Added **Copy-to-Clipboard** functionality for UUIDs, HLS URLs, and User Agents.
+  - Enhanced the Channels Table with **Sequential Numbering** (e.g., 1-20, 21-40) for better readability.
+- **Bug Fix**: Fixed empty dropdowns (Category, Language, State) in the Admin Edit Channel form.
 
-### **Latest Updates (v1.30.2)**
+### **Previous Updates (v1.30.2)**
 - **Absolute URLs**: The application now strictly uses `_url` properties from API responses, eliminating relative path resolution logic.
 
 ### **Previous Updates (v1.30.0)**

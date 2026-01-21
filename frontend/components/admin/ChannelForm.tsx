@@ -41,7 +41,36 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
 
-  // ... (useEffect and handleStateChange remain same)
+  useEffect(() => {
+    const fetchFormData = async () => {
+      try {
+        const [statesRes, languagesRes, categoriesRes] = await Promise.all([
+          adminApi.get('/states'),
+          adminApi.get('/languages'),
+          adminApi.get('/categories')
+        ]);
+        
+        setStates(statesRes.data.data);
+        setLanguages(languagesRes.data.data);
+        setCategories(categoriesRes.data.data);
+
+        // Fetch districts if state is already selected (editing mode)
+        if (initialData?.state_id) {
+            try {
+                const districtsRes = await adminApi.get(`/districts?state_id=${initialData.state_id}`);
+                setDistricts(districtsRes.data.data);
+            } catch (err) {
+                console.error('Failed to fetch initial districts', err);
+            }
+        }
+      } catch (error) {
+        console.error('Failed to fetch form options', error);
+        toast.error('Failed to load form options');
+      }
+    };
+
+    fetchFormData();
+  }, [initialData]);
 
   const handleStateChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const stateId = e.target.value;

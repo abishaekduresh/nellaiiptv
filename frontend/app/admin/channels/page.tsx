@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Search, ExternalLink, Filter, BarChart2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, ExternalLink, Filter, BarChart2, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import { Category, Language, State } from '@/types';
 import ChannelAnalyticsModal from '@/components/admin/ChannelAnalyticsModal';
+import ChannelDetailsModal from '@/components/admin/ChannelDetailsModal';
 
 interface AdminChannel {
   uuid: string;
@@ -43,6 +44,7 @@ export default function ChannelsPage() {
 
   // Analytics Modal State
   const [analyticsUuid, setAnalyticsUuid] = useState<string | null>(null);
+  const [detailsUuid, setDetailsUuid] = useState<string | null>(null);
 
   const fetchFilters = async () => {
     try {
@@ -189,6 +191,7 @@ export default function ChannelsPage() {
             <thead className="bg-gray-800/50 text-text-secondary text-sm uppercase">
               <tr>
                 <th className="px-6 py-4">#</th>
+                <th className="px-6 py-4">CH No</th>
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">TOT Views</th>
                 <th className="px-6 py-4">Category</th>
@@ -208,9 +211,10 @@ export default function ChannelsPage() {
                     <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">No channels found</td>
                 </tr>
               ) : (
-                channels.map((channel) => (
+                channels.map((channel, index) => (
                   <tr key={channel.uuid} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 text-text-secondary">{channel.id || '-'}</td>
+                    <td className="px-6 py-4 text-text-secondary font-mono text-white">{(page - 1) * 20 + index + 1}</td>
+                    <td className="px-6 py-4 text-text-secondary font-mono font-bold text-white">{channel.channel_number || '-'}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {channel.thumbnail_url ? (
@@ -263,6 +267,13 @@ export default function ChannelsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button
+                          onClick={() => setDetailsUuid(channel.uuid)}
+                          className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 p-2 rounded transition-colors"
+                          title="View Details"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
                           onClick={() => setAnalyticsUuid(channel.uuid)}
                           className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2 rounded transition-colors"
                           title="View Analytics"
@@ -314,6 +325,13 @@ export default function ChannelsPage() {
             uuid={analyticsUuid || ''} 
             isOpen={!!analyticsUuid} 
             onClose={() => setAnalyticsUuid(null)} 
+        />
+        
+        {/* Details Modal */}
+        <ChannelDetailsModal 
+            uuid={detailsUuid || ''} 
+            isOpen={!!detailsUuid} 
+            onClose={() => setDetailsUuid(null)} 
         />
       </div>
     </div>
