@@ -1,6 +1,6 @@
 # Nellai IPTV
 
-**Version**: `1.30.3` (Frontend) / `1.20.3` (Backend) / `1.2.1` (App)
+**Version**: `1.30.3` (Frontend) / `1.20.3` (Backend) / `1.3.0` (Main App) / `1.2.1` (Single Channel)
 
 ## 📱 Single Channel Player App (v1.2.1)
 - **Intelligent Analytics**: 10s watch-time delay and session-based tracking (synced with web logic).

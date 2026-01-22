@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Main App 1.3.0] - 2026-01-23
+### Added
+- **Classic UI (Multi-Pane Layout)**:
+    - Dedicated orientation lock to **Landscape-Only**.
+    - Split-screen architecture: 60% Player Panel, 40% Interactive Grid.
+    - Cascading entry animations for channel cards.
+    - Selection effects with scale and glow animations.
+- **Enhanced Player Controls**:
+    - **Double-Tap Fullscreen**: Seamlessly toggle between split-view and true fullscreen.
+    - **Picture-in-Picture (PiP)**: Full support for background/overlay playback on Android.
+- **UX Improvements**:
+    - **Tap-to-Toggle Category**: Replaced dropdown with a sleek toggle button for switching grouping modes.
+    - **Horizontal Scrolling**: Native x-axis scrolling for category chips.
+- **Android Support**:
+    - Enabled `android:supportsPictureInPicture` in `AndroidManifest.xml`.
+
+### Changed
+- Refactored `PulseLoader` to use a high-end ripple effect loader.
+- Reduced height of Channel Information banner and Stats Box.
+
 ## [Frontend 1.30.3] - 2026-01-22
 ### Added
 - **Refactor**: Renamed `mobile_app` folder to `single_channel_player_app`.
