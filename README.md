@@ -10,6 +10,11 @@
 - **Session-Based Volume**: Protects system audio settings by restoring original volume on exit.
 - **Safe Gestures**: Center-weighted tap-to-mute to avoid accidental touches.
 
+## 📺 Key Highlights (v1.30.3)
+- **Enhanced Admin Experience**: Introduced a detailed **Channel Inspector** modal with deep metadata visibility (Stream URLs, System IDs, Stats).
+- **Clipboard Tools**: Added one-click copy functionality for critical technical data (UUIDs, User Agents, HLS URLs).
+- **Data Integrity**: Fixed data loading issues in Channel Edit forms.
+
 ## 📺 Key Highlights (v1.30.0)
 - **Production Asset Pipeline**: Implemented a robust `resolveImageUrl` engine that ensures all images (Logos, Thumbnails, Watermarks) are correctly resolved in production environments (`APP_URL`-aware).
 - **Backend Path Normalization**: The API now smartly handles relative paths vs absolute URLs, ensuring compatibility whether running on generic hosting or Docker containers.
@@ -122,7 +127,7 @@ nellai-iptv/
 │   │   └── migrations/     # SQL migration files
 │   └── public/             # Entry point
 │
-├── mobile_app/              # Flutter Application
+└── single_channel_player_app/ # Flutter Application
 │   ├── lib/                 # Dart source code
 │   ├── android/             # Native Android code
 │   └── pubspec.yaml         # Dependencies

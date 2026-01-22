@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Frontend 1.30.3] - 2026-01-22
 ### Added
+- **Refactor**: Renamed `mobile_app` folder to `single_channel_player_app`.
 - **Admin Channel Details**:
   - **Details Modal**: Introduced a "View Details" popup for channels handling detailed metadata display (Database IDs, HLS URL, Stats, System Info).
   - **Clipboard Tools**: integrated "Copy to Clipboard" buttons for UUID, HLS URL, User Agent, and Referer.

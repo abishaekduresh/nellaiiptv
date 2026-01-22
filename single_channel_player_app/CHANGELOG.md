@@ -3,6 +3,7 @@
 ## [1.2.0] - 2026-01-21
 
 ### Added
+- **Refactor**: Project renamed from `mobile_app` to `single_channel_player_app`.
 - **Intelligent View Counting**: 
     - App now waits for 10s of watch-time before counting a view (Session-base guarding).
     - Synchronized `decrement` logic with frontend for real-time viewer accuracy.

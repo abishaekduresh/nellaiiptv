@@ -1,4 +1,4 @@
-# Royal TV Mobile App
+# Single Channel Player App
 
 **Version**: `1.2.0`
 **Framework**: Flutter 3.x
@@ -35,7 +35,7 @@ A high-performance, native Android application for streaming HLS content, optimi
 
 1.  **Navigate to directory**:
     ```bash
-    cd mobile_app
+    cd single_channel_player_app
     ```
 2.  **Install Dependencies**:
     ```bash
