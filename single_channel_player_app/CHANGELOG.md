@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1] - 2026-01-22
+
+### Fixed
+- **App Icon**: Resolved issue where App Icon was not updating by regenerating resources.
+- **UI Polish**: Updated Exit Confirmation Popup to use a transparent background, aligning with the app's theme.
+- **Signing**: Corrected release keystore configuration to resolve password mismatch and missing file issues.
+
 ## [1.2.0] - 2026-01-21
 
 ### Added

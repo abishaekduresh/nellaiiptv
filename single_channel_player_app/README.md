@@ -1,6 +1,6 @@
 # Single Channel Player App
 
-**Version**: `1.2.0`
+**Version**: `1.2.1`
 **Framework**: Flutter 3.x
 
 A high-performance, native Android application for streaming HLS content, optimized for both Mobile and TV interfaces.

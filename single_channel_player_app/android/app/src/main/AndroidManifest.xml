@@ -7,7 +7,7 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
     <application
-        android:label="Royal TV"
+        android:label="SMS TV"
         android:banner="@mipmap/ic_launcher"
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"

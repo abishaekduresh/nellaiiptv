@@ -1,4 +1,4 @@
-package com.nellaiiptv.royaltv
+package com.nellaiiptv.smstv
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -518,7 +518,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
     return await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B), // Surface Color
+        backgroundColor: Colors.black.withOpacity(0.5), // Transparent like theme
         title: Text(
           "Exit ${dotenv.env['APP_NAME'] ?? "App"}?", 
           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),

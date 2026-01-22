@@ -1,8 +1,8 @@
 # Nellai IPTV
 
-**Version**: `1.30.3` (Frontend) / `1.20.3` (Backend) / `1.2.0` (App)
+**Version**: `1.30.3` (Frontend) / `1.20.3` (Backend) / `1.2.1` (App)
 
-## 📱 Mobile App (v1.2.0)
+## 📱 Single Channel Player App (v1.2.1)
 - **Intelligent Analytics**: 10s watch-time delay and session-based tracking (synced with web logic).
 - **Visual Stats Overlay**: Clean Top-Left display for Viewer Counts and Average Ratings.
 - **Single Instance**: Enforced singleton app instance for stability.
