@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:io'; // Import for exit(0)
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../providers/channel_provider.dart';
 import '../../models/channel.dart';
 import '../../models/ad.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../core/api_service.dart';
+import '../../models/public_settings.dart';
 import 'embedded_player.dart';
 
 class ClassicScreen extends StatefulWidget {
@@ -29,6 +32,9 @@ class _ClassicScreenState extends State<ClassicScreen> {
   
   // Fullscreen State
   bool _isFullScreen = false;
+  
+  // Settings
+  PublicSettings? _settings;
 
   @override
   void initState() {
@@ -39,6 +45,15 @@ class _ClassicScreenState extends State<ClassicScreen> {
   }
 
   Future<void> _loadData() async {
+    // Fetch Settings
+    _api.getPublicSettings().then((settings) {
+       if (mounted && settings != null) {
+          setState(() {
+             _settings = settings;
+          });
+       }
+    });
+
     await context.read<ChannelProvider>().fetchChannels();
     final channels = context.read<ChannelProvider>().channels;
     if (channels.isNotEmpty && mounted) {
@@ -86,11 +101,58 @@ class _ClassicScreenState extends State<ClassicScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: Row(
-        children: [
-          // Left Panel (Player + Info + Ads)
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final bool shouldExit = await _showExitConfirmation();
+        if (shouldExit) {
+          if (context.mounted) {
+             exit(0);
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0F172A),
+      body: Consumer<ChannelProvider>(
+        builder: (context, provider, child) {
+          if (provider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 60),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Error Loading Content",
+                    style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      provider.error!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => provider.fetchChannels(),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Retry"),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                  )
+                ],
+              ),
+            );
+          }
+          
+          return Row(
+            children: [
+              // Left Panel (Player + Info + Ads)
           Expanded(
             flex: 6,
             child: Column(
@@ -103,6 +165,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                     ? EmbeddedPlayer(
                         channelUuid: _selectedChannel!.uuid, 
                         key: ValueKey(_selectedChannel!.uuid),
+                        isFullScreen: _isFullScreen,
                         onDoubleTap: () => setState(() => _isFullScreen = !_isFullScreen),
                       )
                     : const Center(child: CircularProgressIndicator()),
@@ -194,8 +257,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
 
                       // Right Side: Stats Box
                         Container(
-                        margin: const EdgeInsets.fromLTRB(12, 12, 8, 12),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        margin: const EdgeInsets.fromLTRB(12, 8, 8, 8), // Reduced vertical margin
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), // Slightly reduced padding
                         decoration: BoxDecoration(
                             color: const Color(0xFF1E293B),
                             borderRadius: BorderRadius.circular(6),
@@ -258,7 +321,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
             ),
           ),
 
-          // Right Panel (Grid + Filters)
+                   // Right Panel (Grid + Filters)
           if (!_isFullScreen)
           Expanded(
             flex: 4,
@@ -266,10 +329,38 @@ class _ClassicScreenState extends State<ClassicScreen> {
               children: [
                    Consumer<ChannelProvider>(
                      builder: (context, provider, _) {
-                       // Determine title based on selection
-                       String title = "All Channels";
-                       if (provider.selectedCategory != null) title = provider.selectedCategory!.name;
-                       if (provider.selectedLanguage != null) title = provider.selectedLanguage!.name;
+                       // Always Show Logo and App Name layout
+                       Widget titleWidget = Row(
+                             children: [
+                               if (_settings != null && _settings!.logoUrl != null && _settings!.logoUrl!.isNotEmpty)
+                                 Padding(
+                                   padding: const EdgeInsets.only(right: 12.0),
+                                   child: ClipRRect(
+                                     borderRadius: BorderRadius.circular(8),
+                                     child: Image.network(
+                                       _settings!.logoUrl!,
+                                       height: 48, 
+                                       width: 48,
+                                       fit: BoxFit.cover,
+                                       errorBuilder: (_,__,___) => const SizedBox(),
+                                     ),
+                                   ),
+                                 ),
+                               Column(
+                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                 children: [
+                                   Text(
+                                     _settings?.appName ?? dotenv.env['APP_TITLE'] ?? "Nellai IPTV",
+                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)
+                                   ),
+                                   const Text(
+                                     "CLASSIC MODE",
+                                     style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.0)
+                                   ),
+                                 ],
+                               ),
+                             ],
+                           );
 
                        return Container(
                         padding: const EdgeInsets.all(12),
@@ -282,10 +373,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    title, 
-                                    style: const TextStyle(color: Color(0xFF0EA5E9), fontWeight: FontWeight.bold, fontSize: 16)
-                                  ),
+                                  titleWidget,
                                   // Toggle Button to switch Group Mode (Categories / Languages)
                                    GestureDetector(
                                       onTap: () {
@@ -365,6 +453,21 @@ class _ClassicScreenState extends State<ClassicScreen> {
                    Expanded(
                      child: Consumer<ChannelProvider>(
                         builder: (context, provider, _) {
+                          // SKELETON LOADING
+                          if (provider.isLoading) {
+                             return GridView.builder(
+                               padding: const EdgeInsets.all(12),
+                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                 crossAxisCount: 3, 
+                                 childAspectRatio: 1.1,
+                                 crossAxisSpacing: 10,
+                                 mainAxisSpacing: 10,
+                               ),
+                               itemCount: 12, // Show 12 skeletons
+                               itemBuilder: (context, index) => const SkeletonChannelCard(),
+                             );
+                          }
+
                           final channels = provider.filteredChannels;
                           return GridView.builder(
                             padding: const EdgeInsets.all(12),
@@ -384,73 +487,112 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                   ? channel.thumbnailUrl 
                                   : channel.logoUrl;
 
-                              return GestureDetector(
-                                onTap: () => setState(() => _selectedChannel = channel),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  curve: Curves.easeOut,
-                                  transform: isSelected ? Matrix4.identity().scaled(1.05) : Matrix4.identity(),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF1E293B),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: isSelected ? Border.all(color: const Color(0xFF0EA5E9), width: 2) : Border.all(color: Colors.transparent, width: 2),
-                                    boxShadow: isSelected ? [
-                                      BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.4), blurRadius: 12, spreadRadius: 1)
-                                    ] : [],
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          if (displayImage != null)
-                                            Expanded(
-                                              child: Center(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: Image.network(
-                                                    displayImage, 
-                                                    fit: BoxFit.contain, 
-                                                    alignment: Alignment.center,
-                                                    errorBuilder: (_,__,___) => const Icon(Icons.tv, color: Colors.white24)
+                              return Builder(
+                                builder: (context) {
+                                  // Focus handling for TV
+                                  final focusNode = FocusNode();
+                                  
+                                  return InkWell(
+                                    focusNode: focusNode,
+                                    onTap: () => setState(() => _selectedChannel = channel),
+                                    child: AnimatedBuilder(
+                                      animation: focusNode,
+                                      builder: (context, child) {
+                                        final isFocused = focusNode.hasFocus;
+                                        final active = isSelected || isFocused;
+                                        
+                                        return AnimatedContainer(
+                                          duration: const Duration(milliseconds: 200),
+                                          curve: Curves.easeOut,
+                                          transform: active ? Matrix4.identity().scaled(1.05) : Matrix4.identity(),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF1E293B),
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: active ? Border.all(color: const Color(0xFF0EA5E9), width: 2) : Border.all(color: Colors.transparent, width: 2),
+                                            boxShadow: active ? [
+                                              BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.4), blurRadius: 12, spreadRadius: 1)
+                                            ] : [],
+                                          ),
+                                          child: Stack(
+                                            children: [
+                                              Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  if (displayImage != null)
+                                                    Expanded(
+                                                      child: Center(
+                                                        child: Padding(
+                                                          padding: const EdgeInsets.all(8.0),
+                                                          child: Image.network(
+                                                            displayImage, 
+                                                            fit: BoxFit.contain, 
+                                                            alignment: Alignment.center,
+                                                            errorBuilder: (_,__,___) => const Icon(Icons.tv, color: Colors.white24)
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                                    child: Text(
+                                                      channel.name, 
+                                                      style: TextStyle(
+                                                        color: isSelected ? const Color(0xFF0EA5E9) : Colors.white, 
+                                                        fontSize: 11, 
+                                                        fontWeight: FontWeight.bold
+                                                      ), 
+                                                      textAlign: TextAlign.center, 
+                                                      maxLines: 1,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              // Premium Badge
+                                              if (channel.isPremium)
+                                                Positioned(
+                                                  top: 6,
+                                                  left: 6,
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFFFBBF24), // Amber
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        const Icon(Icons.workspace_premium, size: 10, color: Colors.black),
+                                                        const SizedBox(width: 2),
+                                                        const Text(
+                                                          "PREMIUM",
+                                                          style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              // Channel Number
+                                               Positioned(
+                                                top: 6,
+                                                right: 6,
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black.withOpacity(0.6),
+                                                    borderRadius: BorderRadius.circular(4),
+                                                  ),
+                                                  child: Text(
+                                                    "CH-${channel.channelNumber ?? '-'}",
+                                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                                            child: Text(
-                                              channel.name, 
-                                              style: TextStyle(
-                                                color: isSelected ? const Color(0xFF0EA5E9) : Colors.white, 
-                                                fontSize: 11, 
-                                                fontWeight: FontWeight.bold
-                                              ), 
-                                              textAlign: TextAlign.center, 
-                                              maxLines: 1,
-                                            ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      // Channel Number
-                                       Positioned(
-                                        top: 6,
-                                        right: 6,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withOpacity(0.6),
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Text(
-                                            "CH-${channel.channelNumber ?? '-'}",
-                                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
                               ).animate().fadeIn(duration: 400.ms).scale(delay: (30 * (index % 20)).ms);
                             },
                           );
@@ -461,8 +603,11 @@ class _ClassicScreenState extends State<ClassicScreen> {
               ),
             ),
           ],
-        ),
-      );
+        );
+        },
+      ),
+      ),
+    );
   }
 
   Widget _buildCategoryChip(String label, bool isSelected, VoidCallback onTap) {
@@ -496,6 +641,78 @@ class _ClassicScreenState extends State<ClassicScreen> {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Future<bool> _showExitConfirmation() async {
+    return await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.black.withOpacity(0.9),
+        title: Text(
+          "Exit ${dotenv.env['APP_TITLE'] ?? "App"}?", 
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          "Are you sure you want to exit the app?",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text("Cancel", style: TextStyle(color: Color(0xFFFCD34D))),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text("Exit", style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+}
+
+class SkeletonChannelCard extends StatelessWidget {
+  const SkeletonChannelCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Center(
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: Colors.white10,
+                  shape: BoxShape.circle,
+                ),
+              ).animate(onPlay: (c) => c.repeat())
+               .shimmer(duration: 1.5.seconds, color: Colors.white24),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Container(
+              height: 12,
+              width: 60,
+              decoration: BoxDecoration(
+                 color: Colors.white10,
+                 borderRadius: BorderRadius.circular(4)
+              ),
+            ).animate(onPlay: (c) => c.repeat())
+             .shimmer(duration: 1.5.seconds, color: Colors.white24, delay: 200.ms),
+          ),
+        ],
+      ),
     );
   }
 }

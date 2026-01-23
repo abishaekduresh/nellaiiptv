@@ -6,8 +6,8 @@ plugins {
 }
 
 android {
-    namespace = "com.nellaiiptv.nellai_iptv_app"
-    compileSdk = flutter.compileSdkVersion
+    namespace = "com.nellaiiptv"
+    compileSdk = 36
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.nellaiiptv.nellai_iptv_app"
+        applicationId = "com.nellaiiptv"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

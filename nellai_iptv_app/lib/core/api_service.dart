@@ -5,6 +5,7 @@ import '../models/channel.dart';
 import '../models/ad.dart';
 import '../models/category.dart';
 import '../models/language.dart';
+import '../models/public_settings.dart';
 
 class ApiService {
   late Dio _dio;
@@ -146,6 +147,22 @@ class ApiService {
     } catch (e) {
       debugPrint('Error fetching languages: $e');
       return [];
+    }
+  }
+
+  Future<PublicSettings?> getPublicSettings() async {
+    try {
+      final response = await _dio.get('/settings/public', options: Options(headers: {
+        'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+        'Accept': 'application/json',
+      }));
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        return PublicSettings.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching public settings: $e');
+      return null;
     }
   }
 }

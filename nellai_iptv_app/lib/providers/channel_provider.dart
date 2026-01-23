@@ -83,7 +83,18 @@ class ChannelProvider with ChangeNotifier {
         _apiService.getLanguages(),
       ]);
 
-      _channels = results[0] as List<Channel>;
+      final channels = results[0] as List<Channel>;
+      
+      // Filter only ACTIVE channels
+      final activeChannels = channels.where((c) => c.status.toLowerCase() == 'active').toList();
+      
+      // Sort by channel number ascending
+      activeChannels.sort((a, b) {
+        final numA = a.channelNumber ?? 0;
+        final numB = b.channelNumber ?? 0;
+        return numA.compareTo(numB);
+      });
+      _channels = activeChannels;
       _allCategories = results[1] as List<Category>;
       _allLanguages = results[2] as List<Language>;
 

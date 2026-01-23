@@ -1,50 +1,32 @@
-# Nellai IPTV Main App (Classic Mode)
+# Nellai IPTV App
 
-**Version**: `1.3.0`
+A premium Flutter-based IPTV application built for Android TV and Mobile devices.
 
-A production-ready, high-performance Flutter application optimized for Android Tablets and TV devices. This app focuses on providing a **Classic IPTV experience** with a split-screen layout and advanced player controls.
+## Features
 
-## 📺 Key Features
+- **Live TV Streaming**: High-quality streaming with MediaKit player.
+- **Classic TV Interface**: Grid-based channel selection optimized for Remote controls.
+- **Premium Content**: Secure handling of premium channels with status indicators.
+- **Security**: Built-in screenshot and screen recording prevention.
+- **Responsive Design**: Adapts to Mobile and TV landscape orientations.
+- **Ads Integration**: Server-controlled ad rotation system.
 
-### 🎨 Immersive Design
-- **Landscape-Only Architecture**: Optimized for horizontal screens (TVs, Tablets).
-- **Classic Split Layout**: 
-    - **Left (60%)**: Premium Video Player with dynamic overlays and Ad banners.
-    - **Right (40%)**: Interactive Channel Grid with smart category/language filtering.
-- **Micro-Animations**: Cascading card entry and subtle selection glow effects for a premium feel.
+## Version 1.4.0 Highlights
 
-### 🎥 Advanced Playback
-- **HLS Performance**: Smart buffering and adaptive bitrate management.
-- **Double-Tap Fullscreen**: Instant toggle between multi-pane and cinematic fullscreen.
-- **Picture-in-Picture (PiP)**: Continue watching while using other apps.
-- **Smart Loader**: Cyan ripple-effect pulse loader for smooth buffering transitions.
+- **Enhanced Security**: Screen recording blocked.
+- **Better Navigation**: Validated TV remote D-pad support.
+- **Visuals**: New animated splash screen and responsive watermarks.
+- **Reliability**: Blocking error screens for API failures and volume persistence fixes.
 
-### 🛠 Tech Stack
-- **Framework**: Flutter 3.x
-- **Video Logic**: `video_player` + `simple_pip_mode`
-- **Networking**: `dio` + `flutter_dotenv` for secure environment management.
-- **State**: `provider` for efficient channel and advertisement management.
+## Tech Stack
 
-## 🚀 Getting Started
+- **Flutter**: ^3.27.0
+- **Player**: MediaKit
+- **State Management**: Provider
+- **Networking**: Dio
+- **Animation**: Flutter Animate
 
-### Prerequisites
-- Flutter SDK (^3.8.1)
-- Android Studio / VS Code
-- Android Device (Tablet/TV recommended)
+## Getting Started
 
-### Setup
-1. Clone the repository.
-2. Navigate to `nellai_iptv_app`.
-3. Create a `.env` file based on `.env.example`.
-4. Run `flutter pub get`.
-5. Run `flutter run --release`.
-
-## 📦 Build Instructions
-To build the final production APK:
-```bash
-flutter build apk --release --split-per-abi
-```
-
-## 📜 Documentation
-- [CHANGELOG.md](./CHANGELOG.md): History of all major changes.
-- [Project Root README](../README.md): Overview of the entire ecosystem.
+1.  **Environment**: Ensure `.env` is configured with `API_BASE_URL` and `API_KEY`.
+2.  **Run**: `flutter run` (Landscape mode enforced).
