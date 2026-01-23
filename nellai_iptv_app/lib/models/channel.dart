@@ -16,6 +16,9 @@ class Channel {
   final String? village;
   final String? districtName;
   final String? stateName;
+  final String status; // 'active', 'inactive', or 'blocked'
+
+  final bool isPremium;
 
   Channel({
     required this.uuid,
@@ -31,6 +34,8 @@ class Channel {
     this.village,
     this.districtName,
     this.stateName,
+    this.status = 'active', // Default to active
+    this.isPremium = false,
   });
 
   factory Channel.fromJson(Map<String, dynamic> json) {
@@ -48,6 +53,8 @@ class Channel {
       village: json['village'],
       districtName: json['district'] != null ? json['district']['name'] : null,
       stateName: json['state'] != null ? json['state']['name'] : null,
+      status: json['status'] ?? 'active',
+      isPremium: (json['is_premium'] == true || json['is_premium'] == 1 || json['is_premium'] == '1' || json['is_premium'].toString().toLowerCase() == 'true'),
     );
   }
 

@@ -146,6 +146,8 @@ class ChannelService
             } elseif ($filters['sort'] === 'newest') {
                 $query->orderBy('created_at', 'desc');
             }
+        } else {
+            $query->orderBy('channel_number', 'asc');
         }
 
         $results = [];
