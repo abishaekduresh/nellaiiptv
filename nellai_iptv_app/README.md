@@ -13,10 +13,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 
 ## Version 1.4.0 Highlights
 
-- **Enhanced Security**: Screen recording blocked.
+- **Enhanced Security**: Screen recording blocked and secure `.env` signing configuration.
 - **Better Navigation**: Validated TV remote D-pad support.
 - **Visuals**: New animated splash screen and responsive watermarks.
 - **Reliability**: Blocking error screens for API failures and volume persistence fixes.
+- **Distribution**: Release-ready Android App Bundle (.aab) generated.
 
 ## Tech Stack
 
