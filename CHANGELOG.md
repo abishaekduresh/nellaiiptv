@@ -7,8 +7,10 @@
 - **Wakelock**: Implemented global wakelock to prevent screen sleep.
 - **Watermark**: Responsive player watermark scaling.
 - **API Error Handling**: Blocking UI for API errors (e.g. Unauthorized) with Retry option.
+- **Build**: Generated release Android App Bundle (.aab).
 
 ### Changed
+- **Build**: Migrated Android signing configuration to `.env` variables for better security (removed `key.properties`).
 - **Splash Screen**: Layout is now scrollable to prevent overflow on landscape devices.
 - **Volume Control**: Removed software volume overrides. Player now relies strictly on system/hardware volume.
 - **Icons**: Updated app launcher icons.

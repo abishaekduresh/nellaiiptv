@@ -11,9 +11,10 @@ A premium IPTV player built for Android and Android TV.
 
 ## Recent Updates (v1.4.0)
 
-- **Security Hardening**: Screenshots and screen recording are now blocked to protect premium content.
+- **Security Hardening**: Screenshots/screen recording blocked and secure `.env` signing migration.
 - **UI Enhancements**: New animated splash screen and improved TV remote navigation.
 - **Stability**: Fixed volume persistence and layout overflows.
+- **Build**: Finalized release Android App Bundle (.aab).
 
 ## Setup
 
