@@ -1,3 +1,16 @@
+## [1.4.2+3] - 2026-01-25
+
+### Added
+- **Full-Screen STB Overlay**: Multi-column channel navigation drawer available directly in full-screen mode (Left-side aligned).
+- **TV Priority Navigation**: Autofocus for category selection and "All Channels" prioritized list.
+
+### Changed
+- **Persistent Player Stats**: Live viewer counts and ratings always visible in player.
+
+### Fixed
+- **Overlay Interaction**: Resolved bug where category clicks triggered overlay closure.
+- **Build**: Finalized Android 15 stability and Kotlin versioning.
+
 ## [1.4.1+2] - 2026-01-24
 
 ### Added

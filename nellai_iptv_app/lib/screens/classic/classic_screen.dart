@@ -11,6 +11,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../core/api_service.dart';
 import '../../models/public_settings.dart';
 import 'embedded_player.dart';
+import 'stb_navigation_overlay.dart';
 
 class ClassicScreen extends StatefulWidget {
   const ClassicScreen({super.key});
@@ -34,6 +35,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
   
   // Fullscreen State
   bool _isFullScreen = false;
+  bool _showChannelOverlay = false;
   
   // Settings
   PublicSettings? _settings;
@@ -111,6 +113,10 @@ class _ClassicScreenState extends State<ClassicScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (_showChannelOverlay) {
+          setState(() => _showChannelOverlay = false);
+          return;
+        }
         final bool shouldExit = await _showExitConfirmation();
         if (shouldExit) {
           if (context.mounted) {
@@ -167,15 +173,40 @@ class _ClassicScreenState extends State<ClassicScreen> {
                 Expanded(
                   child: Container(
                     color: Colors.black,
-                    child: _selectedChannel != null 
-                    ? EmbeddedPlayer(
-                        channelUuid: _selectedChannel!.uuid, 
-                        initialChannel: _selectedChannel,
-                        key: ValueKey(_selectedChannel!.uuid),
-                        isFullScreen: _isFullScreen,
-                        onDoubleTap: () => setState(() => _isFullScreen = !_isFullScreen),
-                      )
-                    : const Center(child: CircularProgressIndicator()),
+                    child: Stack(
+                      children: [
+                        _selectedChannel != null 
+                        ? EmbeddedPlayer(
+                            channelUuid: _selectedChannel!.uuid, 
+                            initialChannel: _selectedChannel,
+                            key: ValueKey(_selectedChannel!.uuid),
+                            isFullScreen: _isFullScreen,
+                            hideControls: _showChannelOverlay,
+                            onDoubleTap: () => setState(() => _isFullScreen = !_isFullScreen),
+                            onTap: () {
+                              if (_isFullScreen) {
+                                setState(() => _showChannelOverlay = !_showChannelOverlay);
+                              }
+                            },
+                          )
+                        : const Center(child: CircularProgressIndicator()),
+                        
+                        // Set-top Box Navigation Overlay
+                        if (_isFullScreen && _showChannelOverlay)
+                           STBNavigationOverlay(
+                              key: const ValueKey('stb_overlay'),
+                              groupedChannels: _getGroupedChannels(provider),
+                              currentChannel: _selectedChannel,
+                              onClose: () => setState(() => _showChannelOverlay = false),
+                              onChannelSelected: (channel) {
+                                setState(() {
+                                  _selectedChannel = channel;
+                                  _showChannelOverlay = false; // Auto close on select
+                                });
+                              },
+                           ),
+                      ],
+                    ),
                   ),
                 ),
                 
@@ -685,6 +716,30 @@ class _ClassicScreenState extends State<ClassicScreen> {
         ],
       ),
     ) ?? false;
+  }
+
+  Map<String, List<Channel>> _getGroupedChannels(ChannelProvider provider) {
+    final Map<String, List<Channel>> grouped = {};
+    final channels = provider.channels;
+
+    // Add "All Channels" first if not empty
+    if (channels.isNotEmpty) {
+      grouped["All Channels"] = channels;
+    }
+
+    if (_groupBy == 'Categories') {
+      for (var cat in provider.categories) {
+        final list = channels.where((c) => c.category?.id == cat.id).toList();
+        if (list.isNotEmpty) grouped[cat.name] = list;
+      }
+    } else {
+      for (var lang in provider.languages) {
+        final list = channels.where((c) => c.language?.id == lang.id).toList();
+        if (list.isNotEmpty) grouped[lang.name] = list;
+      }
+    }
+
+    return grouped;
   }
 }
 
