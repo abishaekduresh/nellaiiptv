@@ -21,14 +21,18 @@ class EmbeddedPlayer extends StatefulWidget {
   final String channelUuid;
   final Channel? initialChannel; // Support passing the object for instant load
   final VoidCallback? onDoubleTap;
+  final VoidCallback? onTap;
   final bool isFullScreen; 
+  final bool hideControls;
 
   const EmbeddedPlayer({
     super.key, 
     required this.channelUuid,
     this.initialChannel,
     this.onDoubleTap,
+    this.onTap,
     required this.isFullScreen,
+    this.hideControls = false,
   });
 
   @override
@@ -121,12 +125,15 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   }
 
   void _toggleControls() {
-    if (_isPremiumContent) return; // No controls for premium content
+    if (_isPremiumContent || widget.hideControls) return; // No controls for premium or if hidden by parent
     setState(() {
       _showControls = !_showControls;
     });
     if (_showControls) _startHideTimer();
     else _hideTimer?.cancel();
+    
+    // Call external onTap if provided
+    widget.onTap?.call();
   }
 
   void _startHideTimer() {
@@ -396,10 +403,10 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                 top: 25,
                 left: 20,
                 child: AnimatedOpacity(
-                  opacity: _showControls ? 1.0 : 0.0,
+                  opacity: 1.0, // Always visible
                   duration: const Duration(milliseconds: 300),
                   child: IgnorePointer(
-                    ignoring: !_showControls,
+                    ignoring: false, // Don't ignore pointers
                     child: SafeArea(
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

@@ -1,3 +1,17 @@
+## [1.4.2+3] - 2026-01-25
+
+### Added
+- **Full-Screen STB Overlay**: Premium set-top box style navigation drawer (Left-side aligned) for browsing categories and channels seamlessly.
+- **TV Priority Navigation**: "All Channels" is now the default first category with automatic focus for D-Pad/Remote controls.
+
+### Changed
+- **Persistent Player Stats**: Viewer counts and ratings are now visible at all times in the player interface, regardless of control state.
+
+### Fixed
+- **Overlay Stability**: Fixed a bug where interacting with the category list would prematurely hide the navigation overlay.
+- **Touch Interaction**: Improved touch target responsiveness for mobile users within the STB overlay.
+- **Build**: Resolved native Android build failures and synchronized versioning.
+
 ## [1.4.1+2] - 2026-01-24
 
 ### Added
