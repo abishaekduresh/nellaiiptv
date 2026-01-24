@@ -11,17 +11,18 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
-## Version 1.4.0 Highlights
+## Version 1.4.1 Highlights
 
-- **Enhanced Security**: Screen recording blocked and secure `.env` signing configuration.
-- **Better Navigation**: Validated TV remote D-pad support.
-- **Visuals**: New animated splash screen and responsive watermarks.
-- **Reliability**: Blocking error screens for API failures and volume persistence fixes.
-- **Distribution**: Release-ready Android App Bundle (.aab) generated.
+
+- **Near-Instant Switching**: Parallel API/Player logic for zero-delay channel loading.
+- **Session-Based Caching**: High-speed thumbnail caching with automatic startup reset.
+- **Enhanced Ad UX**: Dual-level skeleton loading for API calls and image downloads.
+- **Android TV Ready**: Added `LEANBACK_LAUNCHER` support and optimized D-pad grids.
+- **Security**: Screenshot/Recording prevention and secure `.env` signing.
 
 ## Tech Stack
 
-- **Flutter**: ^3.27.0
+- **Flutter**: ^3.32.6
 - **Player**: MediaKit
 - **State Management**: Provider
 - **Networking**: Dio

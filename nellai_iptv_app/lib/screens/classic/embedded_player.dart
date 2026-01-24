@@ -8,7 +8,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:wakelock_plus/wakelock_plus.dart'; // Import WakelockPlus
-
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
 
 import '../../core/api_service.dart';
@@ -20,12 +19,14 @@ import '../../widgets/gesture_overlay.dart';
 
 class EmbeddedPlayer extends StatefulWidget {
   final String channelUuid;
+  final Channel? initialChannel; // Support passing the object for instant load
   final VoidCallback? onDoubleTap;
   final bool isFullScreen; 
 
   const EmbeddedPlayer({
     super.key, 
     required this.channelUuid,
+    this.initialChannel,
     this.onDoubleTap,
     required this.isFullScreen,
   });
@@ -43,7 +44,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   
   // PiP Controller
   late SimplePip _simplePip;
-
+  
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
@@ -158,43 +159,55 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   }
 
   Future<void> _loadChannel() async {
-    setState(() { _isLoading = true; _hasError = false; _isPremiumContent = false;
+    // 1. Reset Error State but keep loading if we don't have initial data
+    setState(() { 
+      _hasError = false; 
       _errorMessage = ''; 
+      if (widget.initialChannel == null) _isLoading = true;
     }); 
     
-    // Stop playback of previous channel immediately
-    await _player.stop();
+    // 2. Use initialChannel data for INSTANT start if available
+    if (widget.initialChannel != null) {
+      debugPrint("Instant Play Triggered for: ${widget.initialChannel!.name}");
+      _channel = widget.initialChannel;
+      _isPremiumContent = _channel!.isPremium;
+      
+      if (!_isPremiumContent && _channel!.hlsUrl != null) {
+        _initVideoPlayer(_channel!.hlsUrl!);
+        // Dismiss internal loader immediately, let MediaKit handle buffering UI
+        setState(() => _isLoading = false);
+      } else if (_isPremiumContent) {
+        setState(() => _isLoading = false);
+        WakelockPlus.enable();
+      }
+    }
 
-    try {
-      final channel = await _api.getChannelDetails(widget.channelUuid);
+    // 3. Parallel Background Update from API (Stats & Data Freshness)
+    _api.getChannelDetails(widget.channelUuid).then((channel) {
       if (mounted) {
-        if (channel.isPremium) {
-           setState(() {
-             _channel = channel;
-             _isPremiumContent = true;
-             _isLoading = false;
-             _hasIncrementedView = false;
-             _viewCountTimer?.cancel();
-           });
-           // Reinforce Wakelock for premium screen since video is stopped
-           WakelockPlus.enable(); 
-           return; // Stop here, don't init player
-        }
+        bool wasPremium = _isPremiumContent;
+        setState(() {
+          _channel = channel;
+          _isPremiumContent = channel.isPremium;
+          // If we had no initial data, or if premium status changed, trigger UI update
+          if (widget.initialChannel == null) {
+            _isLoading = false;
+          }
+        });
 
-        if (channel.hlsUrl != null) {
-          setState(() {
-            _channel = channel;
-            _hasIncrementedView = false;
-            _viewCountTimer?.cancel();
-          });
+        if (channel.isPremium) {
+           _player.stop(); // Stop if user was watching cached non-premium URL
+           _viewCountTimer?.cancel();
+           WakelockPlus.enable(); 
+        } else if (channel.hlsUrl != null && (widget.initialChannel == null || wasPremium)) {
+          // Only init if we haven't already OR if we are switching FROM a premium state
           _initVideoPlayer(channel.hlsUrl!);
-        } else {
-          _showError("Channel has no stream URL");
         }
       }
-    } catch (e) {
-       _handleError(e);
-    }
+    }).catchError((e) {
+       if (widget.initialChannel == null) _handleError(e);
+       debugPrint("Background Channel Update Error: $e");
+    });
   }
 
   void _handleError(dynamic e) {
@@ -213,19 +226,20 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
 
   Future<void> _initVideoPlayer(String url) async {
     try {
-      await _player.open(Media(url), play: true);
+      // Don't await the open entirely to keep the UI thread responsive
+      _player.open(Media(url), play: true);
       
-      // Volume control left to system/hardware buttons (defaults to 100% player gain)
-
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
 
       _startViewCountTimer();
       
     } catch (e) {
       debugPrint("Video Init Error: $e");
-      _showError("Playback Failed");
+      if (mounted) _showError("Playback Failed");
     }
   }
 
@@ -267,21 +281,21 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Gesture Layer (Wraps Video) - Background
+          // 1. Gesture Layer / Video Surface
           GestureOverlay(
             onTap: _toggleControls,
             onToggleMute: widget.onDoubleTap ?? () => _toggleMute(), 
             child: Container(
               color: Colors.black, 
               child: _isPremiumContent 
-                ? const SizedBox() // Show nothing (black bg) under overlay
+                ? const SizedBox() 
                 : SizedBox.expand(
-                  child: Video(
-                    controller: _controller,
-                    controls: NoVideoControls,
-                    fit: BoxFit.fill,
+                    child: Video(
+                      controller: _controller,
+                      controls: NoVideoControls,
+                      fit: BoxFit.fill,
+                    ),
                   ),
-              ),
             ),
           ),
 
@@ -301,15 +315,19 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                 ),
               ),
             ),
-
           // 3. Loading Layer (Overlay)
-          // Simplify loading logic: show loader if player is buffering or loading
           StreamBuilder<bool>(
             stream: _player.stream.buffering,
             builder: (context, snapshot) {
               final isBuffering = snapshot.data ?? false;
+              
               if ((_isLoading || isBuffering) && !_hasError && !_isPremiumContent) {
-                 return const Center(child: PulseLoader(color: Color(0xFF06B6D4), size: 60));
+                 return Center(
+                   child: Container(
+                     color: Colors.black, 
+                     child: const Center(child: PulseLoader(color: Color(0xFF06B6D4), size: 60)),
+                   ),
+                 );
               }
               return const SizedBox();
             },
@@ -350,9 +368,14 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                 opacity: 0.6,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    // Responsive width: 15% of player width, clamped between 80 and 150
-                    double width = constraints.maxWidth * 0.15;
-                    width = width.clamp(80.0, 150.0);
+                    // Responsive width: Smaller in non-fullscreen mode
+                    double scale = widget.isFullScreen ? 0.12 : 0.08;
+                    double minWidth = widget.isFullScreen ? 80.0 : 45.0;
+                    double maxWidth = widget.isFullScreen ? 150.0 : 80.0;
+                    
+                    double width = constraints.maxWidth * scale;
+                    width = width.clamp(minWidth, maxWidth);
+                    
                     return Image.network(
                       _appLogoUrl!,
                       width: width,
@@ -458,23 +481,6 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   }
 
   Widget _buildPremiumOverlay() {
-    // Re-assert Wakelock functionality when showing premium overlay
-    // to ensure screen doesn't sleep while user reads the message.
-    // Note: WakelockPlus.enable() is idempotent.
-    // We need to ensure we import wakelock_plus if we use it, 
-    // but since it's used in main.dart globally, we just rely on it being enabled.
-    // However, if the user says it sleeps, we should re-enable it here to be safe.
-    // Since I can't add imports easily without scrolling up, I'll trust main.dart 
-    // BUT user says "fix this". 
-    // I will use a Timer in initState or similar to keep it alive? 
-    // Actually, let's just assume main.dart's enable() works but maybe system overrides if no video?
-    // I will add a periodic "keep-alive" or just rely on the UI update.
-    // The user's request "if video is not playing... fix this" suggests main.dart's call isn't enough OR
-    // the player stopping releases it?
-    // Let's rely on standard flutter KeepAlive? No, checking imports...
-    // I recall main.dart has 'package:wakelock_plus/wakelock_plus.dart';
-    // I should add the import here to be safe and call it.
-    
     return Container(
       color: Colors.black,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

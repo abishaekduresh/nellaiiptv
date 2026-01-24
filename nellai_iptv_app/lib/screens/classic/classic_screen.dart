@@ -3,6 +3,7 @@ import 'dart:io'; // Import for exit(0)
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/channel_provider.dart';
 import '../../models/channel.dart';
 import '../../models/ad.dart';
@@ -24,6 +25,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
   
   // Ad State
   List<Ad> _ads = [];
+  bool _isLoadingAds = true;
   int _currentAdIndex = 0;
   Timer? _adTimer;
   
@@ -65,12 +67,16 @@ class _ClassicScreenState extends State<ClassicScreen> {
   }
 
   Future<void> _loadAds() async {
+    setState(() => _isLoadingAds = true);
     final ads = await _api.getAds();
     if (mounted && ads.isNotEmpty) {
       setState(() {
         _ads = ads;
+        _isLoadingAds = false;
       });
       _startAdRotation();
+    } else {
+      setState(() => _isLoadingAds = false);
     }
   }
 
@@ -164,6 +170,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                     child: _selectedChannel != null 
                     ? EmbeddedPlayer(
                         channelUuid: _selectedChannel!.uuid, 
+                        initialChannel: _selectedChannel,
                         key: ValueKey(_selectedChannel!.uuid),
                         isFullScreen: _isFullScreen,
                         onDoubleTap: () => setState(() => _isFullScreen = !_isFullScreen),
@@ -303,20 +310,23 @@ class _ClassicScreenState extends State<ClassicScreen> {
                   ) : const SizedBox(),
                 ),
                 
-                // Ad Banner
-                if (_ads.isNotEmpty && !_isFullScreen)
-                  Container(
-                    height: 100,
-                    width: double.infinity,
-                    color: Colors.black,
-                     child: Image.network(
-                       _ads[_currentAdIndex].imageUrl,
-                       fit: BoxFit.cover,
-                       errorBuilder: (_,__,___) => const SizedBox(), 
-                     ).animate(key: ValueKey(_currentAdIndex)).fadeIn(),
-                  )
-                else if (!_isFullScreen) // Show "No Ads" only if not full screen
-                  const SizedBox(height: 100, child: Center(child: Text("No Ads", style: TextStyle(color: Colors.white10)))),
+                // Ad Banner - Shown if ads exist OR if loading
+                if (!_isFullScreen)
+                  _isLoadingAds 
+                    ? const SkeletonAdBanner()
+                    : _ads.isNotEmpty 
+                        ? Container(
+                            height: 100,
+                            width: double.infinity,
+                            color: Colors.black,
+                             child: CachedNetworkImage(
+                               imageUrl: _ads[_currentAdIndex].imageUrl,
+                               fit: BoxFit.cover,
+                               placeholder: (context, url) => const SkeletonAdBanner(),
+                               errorWidget: (context, url, error) => const SizedBox(), 
+                             ).animate(key: ValueKey(_currentAdIndex)).fadeIn(),
+                          )
+                        : const SizedBox(),
               ],
             ),
           ),
@@ -523,11 +533,17 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                                       child: Center(
                                                         child: Padding(
                                                           padding: const EdgeInsets.all(8.0),
-                                                          child: Image.network(
-                                                            displayImage, 
+                                                          child: CachedNetworkImage(
+                                                            imageUrl: displayImage, 
                                                             fit: BoxFit.contain, 
                                                             alignment: Alignment.center,
-                                                            errorBuilder: (_,__,___) => const Icon(Icons.tv, color: Colors.white24)
+                                                            placeholder: (context, url) => Center(
+                                                              child: Container(
+                                                                width: 32, height: 32,
+                                                                decoration: const BoxDecoration(color: Colors.white10, shape: BoxShape.circle),
+                                                              ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1.5.seconds, color: Colors.white24),
+                                                            ),
+                                                            errorWidget: (context, url, error) => const Icon(Icons.tv, color: Colors.white24),
                                                           ),
                                                         ),
                                                       ),
@@ -581,7 +597,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                                     borderRadius: BorderRadius.circular(4),
                                                   ),
                                                   child: Text(
-                                                    "CH-${channel.channelNumber ?? '-'}",
+                                                    "${channel.channelNumber ?? '-'}",
                                                     style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                                                   ),
                                                 ),
@@ -710,6 +726,50 @@ class SkeletonChannelCard extends StatelessWidget {
               ),
             ).animate(onPlay: (c) => c.repeat())
              .shimmer(duration: 1.5.seconds, color: Colors.white24, delay: 200.ms),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SkeletonAdBanner extends StatelessWidget {
+  const SkeletonAdBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 100,
+      width: double.infinity,
+      color: Colors.black,
+      child: Stack(
+        children: [
+          // Background shimmer
+          Container(
+            decoration: const BoxDecoration(
+              color: Colors.white10,
+            ),
+          ).animate(onPlay: (c) => c.repeat())
+           .shimmer(duration: 2.seconds, color: Colors.white24),
+          
+          // Ad label hint
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black26, 
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                "ADVERTISEMENT LOADING",
+                style: TextStyle(
+                  color: Colors.white24,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ),
           ),
         ],
       ),
