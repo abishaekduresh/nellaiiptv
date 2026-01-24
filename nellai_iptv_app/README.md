@@ -14,10 +14,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 ## Version 1.4.1 Highlights
 
 
+- **Android 15 Ready**: Full Edge-to-Edge support (Target SDK 35) with modern native integration.
 - **Near-Instant Switching**: Parallel API/Player logic for zero-delay channel loading.
 - **Session-Based Caching**: High-speed thumbnail caching with automatic startup reset.
 - **Enhanced Ad UX**: Dual-level skeleton loading for API calls and image downloads.
-- **Android TV Ready**: Added `LEANBACK_LAUNCHER` support and optimized D-pad grids.
+- **TV Support**: Native `LEANBACK_LAUNCHER` and optimized D-pad remote navigation.
 - **Security**: Screenshot/Recording prevention and secure `.env` signing.
 
 ## Tech Stack
