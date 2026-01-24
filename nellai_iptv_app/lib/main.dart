@@ -9,10 +9,15 @@ import 'screens/classic/classic_screen.dart';
 import 'screens/splash_screen.dart'; // Import Splash
 
 import 'package:media_kit/media_kit.dart'; // Import MediaKit
+import 'package:flutter_cache_manager/flutter_cache_manager.dart'; // Import CacheManager
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized(); // Initialize MediaKit
+  
+  // Clear channel thumbnail cache on startup (Session-based caching)
+  await DefaultCacheManager().emptyCache();
+  
   await dotenv.load(fileName: ".env");
   
   // Enable Wakelock globally

@@ -1,13 +1,12 @@
-## [1.4.0] - 2026-01-24
+## [1.4.1] - 2026-01-24
 
 ### Added
-- **Security**: Enabled `FLAG_SECURE` to prevent screenshots and screen recordings.
-- **Splash Screen**: Larger, animated logo with fade-in, scale, and shimmer effects.
-- **TV Support**: Improved D-pad navigation for channel grid (Focus/InkWell).
-- **Wakelock**: Implemented global wakelock to prevent screen sleep.
-- **Watermark**: Responsive player watermark scaling.
-- **API Error Handling**: Blocking UI for API errors (e.g. Unauthorized) with Retry option.
-- **Build**: Generated release Android App Bundle (.aab).
+- **Near-Instant Switching**: Parallelized API fetching and player initialization for zero-delay channel loading.
+- **Session-Based Caching**: Integrated `CachedNetworkImage` for thumbnails & ads with automatic per-session cache clearing on app startup.
+- **Enhanced Ad UX**: Dual-level skeleton loading logic (API level + Image byte download state).
+- **TV Support**: Added `LEANBACK_LAUNCHER` intent and improved D-pad navigation.
+- **Security**: Enabled `FLAG_SECURE` for screenshot/recording prevention.
+- **Icons**: Regenerated high-resolution app launcher icons.
 
 ### Changed
 - **Build**: Migrated Android signing configuration to `.env` variables for better security (removed `key.properties`).
