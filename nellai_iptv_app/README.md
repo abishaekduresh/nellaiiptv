@@ -11,8 +11,9 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
-## Version 1.5.0 Highlights
+## Version 1.5.1 Highlights
 
+- **Broad Device Support**: Optimized manifest to support legacy/specialized Android TV boxes without WiFi or geolocation hardware.
 - **HLS Fallback Player**: Smart error recovery that switches to a default video feed if a channel goes offline (404/Connection Error).
 - **Auto-Retry UI**: "Retry Connection" button with pulse animation appears during fallback for manual recovery.
 - **Connectivity Monitoring**: Real-time "Offline"/"Online" status alerts to keep users informed of their network state.
