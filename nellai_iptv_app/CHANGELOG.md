@@ -1,3 +1,8 @@
+## [1.5.1+6] - 2026-01-25
+
+### Fixed
+- **Device Support**: Restored compatibility for 7+ device models (Ethernet-only TV boxes) by making WiFi/Location hardware requirements optional.
+
 ## [1.5.0+5] - 2026-01-25
 
 ### Added

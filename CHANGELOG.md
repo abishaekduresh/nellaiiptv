@@ -1,3 +1,8 @@
+## [1.5.1+6] - App | [1.20.4] - Backend - 2026-01-25
+
+### App (Flutter)
+- **Fixed**: Play Store device compatibility issue (Ethernet-tier devices) by relaxing manifest hardware requirements.
+
 ## [1.5.0+5] - App | [1.20.4] - Backend - 2026-01-25
 
 ### App (Flutter)

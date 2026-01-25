@@ -6,11 +6,12 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.5.0+5
+- **Version**: 1.5.1+6
 - **Key Features**: Fallback HLS, Retry UI, Connectivity Monitoring, Android TV Compliance.
 
-## Recent Updates (v1.5.0+5)
+## Recent Updates (v1.5.1+6)
 
+- **Device Compatibility**: Restored support for Ethernet-only and non-GPS devices.
 - **Available Fallback**: Player automatically switches to a backup stream when the main channel is down.
 - **Connectivity Alerts**: Animated Toasts notify users of internet loss and restoration.
 - **TV Store Ready**: Fully compliant with Google Play Store Android TV requirements.
