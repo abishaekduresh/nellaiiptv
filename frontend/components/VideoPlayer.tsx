@@ -91,12 +91,77 @@ function VideoPlayer({
   const [showReport, setShowReport] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
+  const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
+  const [isFallbackPlaying, setIsFallbackPlaying] = useState(false);
+  const [nextRetryIn, setNextRetryIn] = useState(30);
+
+  // Fetch Settings for Fallback
+  useEffect(() => {
+        import('@/lib/api').then(({ default: api }) => {
+            api.get('/settings/public').then(res => {
+                if(res.data.status && res.data.data.fallback_404_mp4_url) {
+                    setFallbackUrl(res.data.data.fallback_404_mp4_url);
+                }
+            }).catch(() => {});
+        });
+  }, []);
+  
+  const playFallback = useCallback(() => {
+        if (fallbackUrl && videoRef.current && !isFallbackPlaying) {
+            if (hlsRef.current) {
+                hlsRef.current.destroy();
+                hlsRef.current = null;
+            }
+            
+            // Critical: Ensure clean slate
+            const video = videoRef.current;
+            video.removeAttribute('src'); // Detach old
+            video.load();
+
+            setTimeout(() => {
+                video.src = fallbackUrl;
+                video.loop = true;
+                video.playsInline = true;
+                video.load();
+                video.play().catch(() => {});
+            }, 50); // Small yield to ensure DOM update
+
+            setIsFallbackPlaying(true);
+            setIsLoading(false);
+            setErrorMessage(null); 
+        } else if (!fallbackUrl) {
+           setErrorMessage("Stream temporarily unavailable");
+           setIsLoading(false); 
+        }
+  }, [fallbackUrl, isFallbackPlaying]);
 
   const handleRetry = useCallback(() => {
       setErrorMessage(null);
       setIsLoading(true);
+      setIsFallbackPlaying(false); // Reset fallback on manual retry
+      setNextRetryIn(30); // Reset countdown
       setRetryKey(prev => prev + 1);
   }, []);
+
+  // Auto-Retry Logic when Fallback is playing
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isFallbackPlaying) {
+        setNextRetryIn(20); // Start fresh
+        interval = setInterval(() => {
+            setNextRetryIn(prev => {
+                if (prev <= 1) {
+                    handleRetry();
+                    return 20;
+                }
+                return prev - 1;
+            });
+        }, 1000); 
+    }
+    return () => {
+        if (interval) clearInterval(interval);
+    };
+  }, [isFallbackPlaying, handleRetry]);
   
   // YouTube Command Helper
   const sendYoutubeCommand = useCallback((func: string, args: any[] = []) => {
@@ -126,6 +191,12 @@ function VideoPlayer({
     historyTrackedRef.current = false;
   }, [channelUuid]);
   
+  // Reset Fallback on Channel Change
+  useEffect(() => {
+      setIsFallbackPlaying(false);
+      setErrorMessage(null);
+  }, [src, channelUuid]);
+
   // Create AirPlay availability listener
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).WebKitPlaybackTargetAvailabilityEvent) {
@@ -418,12 +489,41 @@ function VideoPlayer({
 
   // -- Hls.js Logic --
   useEffect(() => {
-    // Skip HLS logic if youtube OR restricted
+    // Skip HLS logic if youtube OR restricted OR playing fallback
+    // Note: handleRetry resets isFallbackPlaying to false, allowing retry.
     if (isYoutube || isPaidRestricted || isPlatformRestricted) {
         setIsLoading(false);
         return;
     }
 
+    // Only skip if fallback is actually playing AND we haven't changed channel (src)
+    // Actually this effect re-runs on 'src' change.
+    // So we should Reset fallback status on mount of this effect.
+    if (isFallbackPlaying && retryKey === 0) { 
+        // If we are playing fallback, do not re-init HLS? 
+        // But HLS effect runs on 'src' or 'retryKey'. 
+        // If we switch channel, 'src' changes. 
+        // We need to set isFallbackPlaying(false) when src changes.
+        // We can do that by adding a separate effect or handling it here.
+    }
+    
+    // Reset Fallback on new source load 
+    // (We can't update state here synchronously without triggering re-render loop if we are not careful)
+    // But since 'src' changed, we WANT to reset.
+    // However, playFallback sets src manually on the video element, but the PROP src hasn't changed.
+    // Wait, playFallback sets video.src. Does it change the prop? No.
+    // So if the user changes channel, prop src changes -> Effect runs -> we init HLS.
+    // So we just need to ensure we don't init HLS if we INTEND to play fallback for THIS src.
+    // But we only play fallback AFTER error.
+    // So initially we ALWAYS want HLS.
+    
+    // Therefore, we should NOT check isFallbackPlaying in the dependency array or early return?
+    // If we return, we keep playing fallback.
+    // Correct. But if 'src' changes, state 'isFallbackPlaying' is still 'true' from previous channel?
+    // WE NEED TO RESET IT.
+    
+    // Let's use a separate effect to reset on channel change
+    
     let hls: Hls | null = null;
     const video = videoRef.current;
     
@@ -595,17 +695,16 @@ function VideoPlayer({
 
         hls.on(Hls.Events.ERROR, function (event, data) {
             if (data.fatal) {
-               setIsLoading(false);
                 switch (data.type) {
                   case Hls.ErrorTypes.NETWORK_ERROR:
-                    hls?.startLoad();
+                    playFallback();
                     break;
                   case Hls.ErrorTypes.MEDIA_ERROR:
                     hls?.recoverMediaError();
                     break;
                   default:
                     hls?.destroy();
-                    setErrorMessage("Stream failed (HLS Error)");
+                    playFallback();
                     break;
               }
             }
@@ -621,7 +720,7 @@ function VideoPlayer({
         video.addEventListener('canplay', () => setIsLoading(false));
         video.addEventListener('error', () => {
              setIsLoading(false);
-             setErrorMessage("Native Stream failed");
+             playFallback();
         });
     } else {
         setIsLoading(false);
@@ -667,10 +766,10 @@ function VideoPlayer({
     let timeout: NodeJS.Timeout;
     if (isLoading && !errorMessage) {
         timeout = setTimeout(() => {
-            setErrorMessage("Connection Timeout");
-            setIsLoading(false);
-            if (videoRef.current) videoRef.current.pause();
-            if (hlsRef.current) hlsRef.current.stopLoad();
+            console.warn("Connection Timeout - Triggering Fallback");
+            playFallback(); 
+            // setErrorMessage("Connection Timeout");
+            // setIsLoading(false); // playFallback handles this
         }, 20000); // 20s Timeout
     }
     return () => clearTimeout(timeout);
@@ -721,7 +820,7 @@ function VideoPlayer({
   // Portal Target
   const mountTarget = overlayRef.current || containerRef.current;
 
-  const overlayPortal = (useCustomOverlay && channels && mountTarget && !isPaidRestricted && !isPlatformRestricted) ? createPortal(
+  const overlayPortal = (useCustomOverlay && channels && mountTarget && !isPaidRestricted && !isPlatformRestricted && !isFallbackPlaying) ? createPortal(
     <PlayerOverlay
       visible={controlsVisible}
       channels={channels}
@@ -865,7 +964,7 @@ function VideoPlayer({
       )}
 
       {/* Playback Error Overlay */}
-      {errorMessage && !isPaidRestricted && (
+      {errorMessage && !isPaidRestricted && !isFallbackPlaying && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black">
           <div className="text-center px-6 max-w-md">
             <div className="inline-flex p-3 rounded-full bg-red-500/20 text-red-500 mb-4">
@@ -895,8 +994,21 @@ function VideoPlayer({
         </div>
       )}
 
+      {/* Fallback Mode UI (Manual Retry) */}
+      {isFallbackPlaying && (
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[65] flex flex-col items-center gap-4 pointer-events-auto">
+              <button
+                  onClick={(e) => { e.stopPropagation(); handleRetry(); }}
+                  className="bg-primary/90 hover:bg-primary text-white px-8 py-3 rounded-full font-bold flex items-center gap-3 border border-primary/20 backdrop-blur-md transition-all shadow-xl transform hover:scale-105 active:scale-95"
+              >
+                  <RefreshCw size={22} className="animate-spin-slow" />
+                  <span>Re-connecting in {nextRetryIn}s</span>
+              </button>
+          </div>
+      )}
+
       {/* Manual Report Button */}
-      {!errorMessage && (controlsVisible || !isPlaying || isLoading) && !isPaidRestricted && (
+      {!errorMessage && (controlsVisible || !isPlaying || isLoading || isFallbackPlaying) && !isPaidRestricted && (
         <TVReportButton 
             onClick={(e) => {
                 e.stopPropagation();

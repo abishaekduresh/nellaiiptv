@@ -388,6 +388,42 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center pt-6 border-t border-gray-800">
+                <label className="text-text-secondary font-medium">Default Frontend Mode</label>
+                <div className="md:col-span-3">
+                    <div className="grid grid-cols-2 gap-4 max-w-md">
+                        {[
+                            { id: 'ott', label: 'OTT Mode (Netflix Style)', icon: LayoutGrid },
+                            { id: 'classic', label: 'Classic Mode (TV Guide)', icon: Tv },
+                        ].map((mode) => {
+                            const currentMode = settings.find(s => s.setting_key === 'frontend_default_mode')?.setting_value || 'ott';
+                            const isChecked = currentMode === mode.id;
+
+                            return (
+                                <label key={mode.id} className={`flex flex-col items-center justify-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${isChecked ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}`}>
+                                    <input 
+                                        type="radio" 
+                                        name="frontend_default_mode"
+                                        className="hidden" 
+                                        checked={isChecked}
+                                        onChange={() => {
+                                            handleUpdate('frontend_default_mode', mode.id);
+                                            handleSave('frontend_default_mode', mode.id);
+                                        }}
+                                    />
+                                    <mode.icon size={24} className={isChecked ? 'text-primary' : 'text-slate-500'} />
+                                    <span className="font-bold text-sm text-center">{mode.label}</span>
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isChecked ? 'bg-primary border-primary' : 'border-slate-600'}`}>
+                                        {isChecked && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                    </div>
+                                </label>
+                            );
+                        })}
+                    </div>
+                    <p className="text-sm text-slate-400 mt-2">Determines the initial view for new visitors.</p>
+                </div>
+            </div>
         </div>
       </div>
 

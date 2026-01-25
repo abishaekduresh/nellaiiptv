@@ -32,9 +32,14 @@ class ChannelController
         
         if ($user) {
              $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
-             if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
-                 if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
-                     $allowPremium = true;
+             if ($customer) {
+                 // Pass customer ID for fetching user-specific ratings
+                 $filters['customer_id'] = $customer->id;
+                 
+                 if ($customer->status === 'active' && $customer->subscription_plan_id) {
+                     if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
+                         $allowPremium = true;
+                     }
                  }
              }
         }
@@ -92,6 +97,22 @@ class ChannelController
                  // Let's stick to returning object so UI can show "Locked" state
             }
 
+            // Fetch User Rating if Authenticated
+            if ($user && isset($user->sub)) {
+                 $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
+                 if ($customer) {
+                     $ratingVal = \App\Models\ChannelRating::where('channel_id', is_object($channel) ? $channel->id : $channel['id'])
+                                 ->where('customer_id', $customer->id)
+                                 ->value('rating');
+                     
+                     if (is_object($channel)) {
+                         $channel->user_rating = $ratingVal ? (int)$ratingVal : 0;
+                     } else {
+                         $channel['user_rating'] = $ratingVal ? (int)$ratingVal : 0;
+                     }
+                 }
+            }
+
             return ResponseFormatter::success($response, $channel, 'Channel details retrieved successfully');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 404);
@@ -128,7 +149,9 @@ class ChannelController
 
         try {
             $this->channelService->rate($uuid, $data['rating'], $customer->id);
-            return ResponseFormatter::success($response, null, 'Rating submitted successfully');
+            // Return updated ratings
+            $newRatings = $this->channelService->getRatings($uuid);
+            return ResponseFormatter::success($response, $newRatings, 'Rating submitted successfully');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 400);
         }

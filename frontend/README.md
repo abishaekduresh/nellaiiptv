@@ -1,17 +1,20 @@
-# Nellai IPTV - Frontend v1.30.3
+# Nellai IPTV - Frontend v1.31.0
 
-A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platfrom. Optimized for Web, Mobile, and TV browsers.
+A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.30.3)**
-- **Admin Channel Details**: 
-  - Implemented a comprehensive **Channel Details Modal** to view all channel metadata (IDs, Stream URL, Stats, System Info).
-  - Added **Copy-to-Clipboard** functionality for UUIDs, HLS URLs, and User Agents.
-  - Enhanced the Channels Table with **Sequential Numbering** (e.g., 1-20, 21-40) for better readability.
-- **Bug Fix**: Fixed empty dropdowns (Category, Language, State) in the Admin Edit Channel form.
+### **Latest Updates (v1.31.0)**
+- **Smart Fallback & Recovery**:
+    - Implemented automatic switch to high-quality MP4 fallback when HLS streams fail or time out (20s).
+    - Added background monitoring with real-time countdown for automatic live stream recovery.
+    - Professional, distraction-free player UI during maintenance states.
+- **Classic Mode Enhancements**:
+    - **Global Side Menu**: Integrated a TV-optimized navigation menu (Login, Register, Profile, About, Contact).
+    - **Focus Management**: Seamless TV-remote navigation for the new menu system.
+- **Production Sanitization**: Removed technical console logging and detailed error codes to prevent HLS URL exposure on the client side.
 
-### **Previous Updates (v1.30.2)**
+### **Previous Updates (v1.30.3)**
 - **Absolute URLs**: The application now strictly uses `_url` properties from API responses, eliminating relative path resolution logic.
 
 ### **Previous Updates (v1.30.0)**

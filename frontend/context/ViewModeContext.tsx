@@ -2,8 +2,10 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import api from '@/lib/api';
+import { ViewMode } from '@/types';
 
-type ViewMode = 'OTT' | 'Classic';
+// type ViewMode removed
 
 interface ViewModeContextType {
   mode: ViewMode;
@@ -41,12 +43,40 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
   const router = useRouter();
 
+
+
   useEffect(() => {
-     // Side effects for analytics only
-     if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('set', 'user_properties', { view_mode: mode });
-     }
-     setIsInitialized(true);
+     const initMode = async () => {
+         // Side effects for analytics
+         if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('set', 'user_properties', { view_mode: mode });
+         }
+         
+         // Fetch Defaults if not set in session
+         const savedMode = sessionStorage.getItem('viewMode');
+         
+         // Always fetch latest settings from API to enforce server-side config
+         try {
+             const res = await api.get('/settings/public');
+             if (res.data.status) {
+                 const defaultSetting = res.data.data.frontend_default_mode;
+                 const targetMode: ViewMode = defaultSetting === 'classic' ? 'Classic' : 'OTT';
+                 
+                 // Enforce API setting (Override session if different)
+                 if (targetMode !== mode) {
+                     setModeState(targetMode);
+                     sessionStorage.setItem('viewMode', targetMode); 
+                 }
+             }
+         } catch (e) {
+             console.error("Failed to fetch default mode", e);
+             // Fallback to session or default 'OTT' if API fails
+         }
+
+         setIsInitialized(true);
+     };
+
+     initMode();
   }, []);
 
   const setMode = (newMode: ViewMode) => {

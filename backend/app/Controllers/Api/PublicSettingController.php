@@ -52,8 +52,12 @@ class PublicSettingController
         // Trending Platforms
         $trendingPlatformsStr = Setting::get('top_trending_platforms', 'web,android,ios,tv');
         $trendingPlatforms = array_map('trim', explode(',', $trendingPlatformsStr));
+        
+        $frontendDefaultMode = Setting::get('frontend_default_mode', 'ott');
 
-        $fallbackMp4Url = Setting::get('fallback_404_mp4_url', '');
+        // Default to a public high-quality placeholder if not set
+        $fallbackMp4Path = Setting::get('fallback_404_mp4_url', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
+        $fallbackMp4Url = $resolveUrl($fallbackMp4Path);
 
         return ResponseFormatter::success($response, [
             'logo_url' => $logoUrl,
@@ -63,6 +67,7 @@ class PublicSettingController
             'maintenance_title' => $maintenanceTitle,
             'maintenance_message' => $maintenanceMessage,
             'top_trending_platforms' => $trendingPlatforms,
+            'frontend_default_mode' => $frontendDefaultMode,
         ]);
     }
 }

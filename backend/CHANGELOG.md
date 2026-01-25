@@ -2,6 +2,15 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.21.0] - 2026-01-26
+
+### Added
+- **Sanitized Fallback Handling**: Updated `PublicSettingController` to resolve full absolute URLs for `fallback_404_mp4_url`.
+- **Default Asset Resilience**: Integrated high-quality fallback video samples for newly deployed systems with unconfigured settings.
+
+### Fixed
+- **Settings API**: Resolved relative path resolution issues in `PublicSettingController` to ensure cross-platform compatibility.
+
 ## [1.20.4] - 2026-01-25
 
 ### Added

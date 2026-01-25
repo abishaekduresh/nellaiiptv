@@ -18,8 +18,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     
     if (!token) {
         router.push('/admin');
+    } else if (!user) {
+        // Hydrate store if we have an admin token but no user state (e.g. refresh)
+        import('@/lib/adminApi').then(({ default: adminApi }) => {
+            adminApi.get('/admin/profile')
+                .then(res => {
+                    if (res.data && res.data.data) {
+                        useAuthStore.getState().setAuth(token, res.data.data, true);
+                    }
+                })
+                .catch(() => {
+                    // Token likely invalid
+                    localStorage.removeItem('admin_token');
+                    router.push('/admin');
+                });
+        });
     }
-  }, [router]);
+  }, [router, user]);
 
   if (!mounted) return null;
 
