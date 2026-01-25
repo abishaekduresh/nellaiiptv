@@ -10,6 +10,7 @@ import 'screens/splash_screen.dart'; // Import Splash
 
 import 'package:media_kit/media_kit.dart'; // Import MediaKit
 import 'package:flutter_cache_manager/flutter_cache_manager.dart'; // Import CacheManager
+import 'core/toast_service.dart'; // Import ToastService
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,6 +74,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: ToastService().snackbarKey,
       debugShowCheckedModeBanner: false,
       title: dotenv.env['APP_TITLE'] ?? 'Nellai IPTV',
       theme: ThemeData(

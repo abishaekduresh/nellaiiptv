@@ -1,3 +1,11 @@
+## [1.5.0+5] - 2026-01-25
+
+### Added
+- **Fallback Player**: Robust HLS fallback mechanism with race-condition handling and "Retry Connection" UI for seamless playback recovery.
+- **TV Store Compliance**: Added `LEANBACK_LAUNCHER` intent, TV banner assets, and touch-screen indepedence flags.
+- **Connectivity Monitoring**: Real-time internet status alerts (Toast with animation) and auto-recovery/retry logic.
+- **UI Refinements**: Responsive "Retry" button with pulse animation and adaptive sizing for embedded vs. full-screen modes.
+
 ## [1.4.3+4] - 2026-01-25
 
 ### Added
