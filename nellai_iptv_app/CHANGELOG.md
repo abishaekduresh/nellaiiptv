@@ -1,3 +1,17 @@
+## [1.4.3+4] - 2026-01-25
+
+### Added
+- **State Persistence**: STB Navigation now remembers the last selected category and restores it upon reopening.
+- **Real-Time Sync**: Player now instantly synchronizes fresh channel data (ratings/view counts) back to the Classic Screen "Channel Info" banner.
+
+### Changed
+- **Minimal UI**: Redesigned the player's view count and rating overlay to be smaller and less intrusive (12px icons).
+- **View Logic**: Backend view count formatting updated to strict integer math for consistent "+K" suffixes.
+
+### Fixed
+- **Interaction Blockers**: Hoisted `GestureOverlay` to the top level, fixing issues where loading/error screens blocked STB navigation gestures.
+- **Stability**: Fixed syntax errors in `EmbeddedPlayer` related to premium content logic.
+
 ## [1.4.2+3] - 2026-01-25
 
 ### Added

@@ -218,9 +218,15 @@ class ChannelService
         }
 
         if ($count < 1000000) {
-            return round($count / 1000, 1) . 'K';
+            $value = floor($count / 100); // 2253 -> 22
+            $normalized = $value / 10;    // 2.2
+            $suffix = ($count > ($value * 100)) ? 'K' : 'K';
+            return $normalized . $suffix;
         }
 
-        return round($count / 1000000, 1) . 'M';
+        $value = floor($count / 100000); // 2253000 -> 22
+        $normalized = $value / 10;       // 2.2
+        $suffix = ($count > ($value * 100000)) ? 'M' : 'M';
+        return $normalized . $suffix;
     }
 }

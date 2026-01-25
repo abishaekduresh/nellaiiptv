@@ -37,6 +37,9 @@ class _ClassicScreenState extends State<ClassicScreen> {
   bool _isFullScreen = false;
   bool _showChannelOverlay = false;
   
+  // STB Persisted State
+  String? _lastStbCategory; // Remembers the last browsed category in STB Menu
+  
   // Settings
   PublicSettings? _settings;
 
@@ -188,6 +191,14 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                 setState(() => _showChannelOverlay = !_showChannelOverlay);
                               }
                             },
+                            onChannelLoaded: (updatedChannel) {
+                               // Update local state to show ratings/views which weren't in the list API
+                               if (mounted && _selectedChannel?.uuid == updatedChannel.uuid) {
+                                  setState(() {
+                                    _selectedChannel = updatedChannel;
+                                  });
+                               }
+                            },
                           )
                         : const Center(child: CircularProgressIndicator()),
                         
@@ -197,6 +208,10 @@ class _ClassicScreenState extends State<ClassicScreen> {
                               key: const ValueKey('stb_overlay'),
                               groupedChannels: _getGroupedChannels(provider),
                               currentChannel: _selectedChannel,
+                              initialCategory: _lastStbCategory,
+                              onCategoryChanged: (newCategory) {
+                                 _lastStbCategory = newCategory;
+                              },
                               onClose: () => setState(() => _showChannelOverlay = false),
                               onChannelSelected: (channel) {
                                 setState(() {
