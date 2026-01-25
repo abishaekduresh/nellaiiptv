@@ -362,29 +362,32 @@ class _ClassicScreenState extends State<ClassicScreen> {
                   _isLoadingAds 
                     ? const SkeletonAdBanner()
                     : _ads.isNotEmpty 
-                        ? Container(
-                            height: 100,
-                            width: double.infinity,
+                        ? Material(
                             color: Colors.black,
-                             child: GestureDetector(
-                               onTap: () async {
-                                  final url = _ads[_currentAdIndex].linkUrl;
-                                  if (url != null && url.isNotEmpty) {
-                                      final uri = Uri.parse(url);
-                                      if (await canLaunchUrl(uri)) {
-                                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                      }
-                                  }
-                               },
-                               child: CachedNetworkImage(
-                               imageUrl: _ads[_currentAdIndex].imageUrl,
-                               // Changed to BoxFit.fill to stretch height as requested
-                               fit: BoxFit.fill,
-                               placeholder: (context, url) => const SkeletonAdBanner(),
-                               errorWidget: (context, url, error) => const SizedBox(), 
-                             ),
-                             ).animate(key: ValueKey(_currentAdIndex)).fadeIn(),
-                          )
+                            child: InkWell(
+                              onTap: () async {
+                                 final url = _ads[_currentAdIndex].linkUrl;
+                                 if (url != null && url.isNotEmpty) {
+                                     final uri = Uri.parse(url);
+                                     if (await canLaunchUrl(uri)) {
+                                         await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                     }
+                                 }
+                              },
+                              focusColor: const Color(0xFF06B6D4).withOpacity(0.4), // Cyan highlight on focus
+                              splashColor: const Color(0xFF06B6D4).withOpacity(0.2),
+                              child: SizedBox(
+                                height: 100,
+                                width: double.infinity,
+                                child: CachedNetworkImage(
+                                  imageUrl: _ads[_currentAdIndex].imageUrl,
+                                  fit: BoxFit.fill,
+                                  placeholder: (context, url) => const SkeletonAdBanner(),
+                                  errorWidget: (context, url, error) => const SizedBox(), 
+                                ),
+                              ),
+                            ),
+                          ).animate(key: ValueKey(_currentAdIndex)).fadeIn()
                         : const SizedBox(),
               ],
             ),

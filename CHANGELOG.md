@@ -1,3 +1,9 @@
+## [1.5.3+8] - App | [1.20.4] - Backend - 2026-01-26
+
+### App (Flutter)
+- **Added**: Full TV Remote (D-Pad) compatibility for Classic Mode Ads and Retry functionality.
+- **Improved**: Focus management with visual cyan highlights for selected elements.
+
 ## [1.5.2+7] - App | [1.20.4] - Backend - 2026-01-25
 
 ### App (Flutter)

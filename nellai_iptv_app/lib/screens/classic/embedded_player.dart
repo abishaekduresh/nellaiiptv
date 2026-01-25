@@ -400,7 +400,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
 
   void _startViewCountTimer() {
     _viewCountTimer?.cancel();
-    _viewCountTimer = Timer(const Duration(seconds: 10), () {
+    _viewCountTimer = Timer(const Duration(seconds: 5), () {
       if (mounted && _channel != null && !_hasIncrementedView && !_isPremiumContent) {
         _api.incrementView(_channel!.uuid);
         _hasIncrementedView = true;
@@ -491,6 +491,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
               child: SafeArea(
                 child: Center(
                   child: ElevatedButton.icon(
+                    autofocus: true, // Auto-focus on fallback for D-Pad
                     onPressed: () {
                       // Manually trigger reload
                       _loadChannel();
