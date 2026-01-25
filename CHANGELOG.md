@@ -1,3 +1,15 @@
+## [1.5.2+7] - App | [1.20.4] - Backend - 2026-01-25
+
+### App (Flutter)
+- **Added**: MP4 Fallback support with instant loading logic.
+- **Added**: Clickable Banner Ads with `redirect_url` support.
+- **Improved**: Retry button countdown and Cyan theming.
+- **Fixed**: Disabled In-App Updates in debug builds.
+
+### Backend (PHP)
+- **Added**: `fallback_404_mp4_url` in Public Settings API.
+- **Added**: `redirect_url` support for Ads model.
+
 ## [1.5.1+6] - App | [1.20.4] - Backend - 2026-01-25
 
 ### App (Flutter)

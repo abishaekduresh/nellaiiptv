@@ -1,3 +1,17 @@
+## [1.5.2+7] - 2026-01-25
+
+### Added
+- **MP4 Fallback**: Replaced HLS fallback with MP4 (`fallback_404_mp4_url`) for better compatibility.
+- **Instant Fallback**: Logic optimization to hide loading spinner immediately when switching to fallback video.
+- **Clickable Ads**: Left panel banner ads now redirect to external URLs (`redirect_url`) via system browser.
+- **Countdown**: "Retry" button now features an auto-countdown (20s) before automatic reload.
+
+### Fixed
+- **In-App Update**: Disabled update checks in Debug mode to prevent `Install Error(-10)`.
+- **UI Styling**: Updated Retry button color to Cyan (`0xFF06B6D4`) to match app theme.
+- **Layout**: Balanced Classic Screen layout to 50/50 split (Player/List).
+- **UX**: Hidden viewer count overlay when playing fallback video to reduce clutter.
+
 ## [1.5.1+6] - 2026-01-25
 
 ### Fixed

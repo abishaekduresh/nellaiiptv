@@ -56,7 +56,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   bool _hasError = false;
   String _errorMessage = '';
   String? _appLogoUrl;
-  String? _fallbackHlsUrl;
+  String? _fallbackMp4Url;
   bool _fallbackUsed = false;
   Channel? _channel;
   
@@ -71,6 +71,10 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   // View Count Logic
   Timer? _viewCountTimer;
   bool _hasIncrementedView = false;
+  
+  // Auto-Retry Logic
+  Timer? _retryTimer;
+  int _retrySeconds = 20;
 
   @override
   void initState() {
@@ -209,7 +213,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
       if (mounted && settings != null) {
         setState(() {
           _appLogoUrl = settings.appLogoPngUrl ?? settings.logoUrl;
-          _fallbackHlsUrl = settings.fallbackHlsUrl;
+          _fallbackMp4Url = settings.fallbackMp4Url;
         });
       }
     } catch (e) {
@@ -218,6 +222,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   }
 
   Future<void> _loadChannel() async {
+    _retryTimer?.cancel(); // Cancel any existing retry loop when starting a new load
     // 1. Reset Error State but keep loading if we don't have initial data
     setState(() { 
       _hasError = false; 
@@ -331,22 +336,33 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
       
       // If fallback URL is missing, try fetching settings one last time (Race condition fix)
       // This handles cases where error occurs before settings load completion.
-      if (_fallbackHlsUrl == null) {
+      if (_fallbackMp4Url == null) {
           // debugPrint("Fallback URL is null. Attempting to fetch settings...");
           await _fetchSettings();
       }
 
       // debugPrint("State: _fallbackUsed=$_fallbackUsed, _isPremiumContent=$_isPremiumContent");
-      // debugPrint("Fallback URL: $_fallbackHlsUrl");
+      // debugPrint("Fallback URL: $_fallbackMp4Url");
 
       // Check Fallback Conditions:
       // 1. Fallback hasn't been used yet (prevent loop)
       // 2. Fallback URL exists
       // 3. User is allowed to watch (not premium blocked)
-      if (!_fallbackUsed && _fallbackHlsUrl != null && _fallbackHlsUrl!.isNotEmpty && !_isPremiumContent) {
-          // debugPrint("Switching to Fallback URL: $_fallbackHlsUrl");
+      if (!_fallbackUsed && _fallbackMp4Url != null && _fallbackMp4Url!.isNotEmpty && !_isPremiumContent) {
+          // debugPrint("Switching to Fallback URL: $_fallbackMp4Url");
           _fallbackUsed = true; // Prevent infinite loop
-          _initVideoPlayer(_fallbackHlsUrl!);
+          
+          if (mounted) {
+            setState(() {
+               _isLoading = false; // Hide loader immediately to show player/button
+            });
+          }
+
+          _initVideoPlayer(_fallbackMp4Url!);
+          
+          // Start Auto-Retry Countdown
+          _startRetryCountdown();
+          
           // Seamless switch - no toast to user, just play the fallback stream
           return;
       } else {
@@ -354,6 +370,24 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
       }
       // Sanitize error to not expose URL to user
       _showError("Stream Unavailable");
+  }
+
+  void _startRetryCountdown() {
+    setState(() => _retrySeconds = 20);
+    _retryTimer?.cancel();
+    _retryTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          if (_retrySeconds > 0) {
+            _retrySeconds--;
+          } else {
+            // Time up! Retry
+            timer.cancel();
+            _loadChannel();
+          }
+        });
+      }
+    });
   }
 
   void _showError(String msg) {
@@ -385,6 +419,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
       // _api.decrementView(_channel!.uuid); 
     }
     _viewCountTimer?.cancel();
+    _retryTimer?.cancel();
     super.dispose();
   }
 
@@ -462,11 +497,11 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                     },
                     // Responsive sizing: Larger in fullscreen, compact in embedded
                     icon: Icon(Icons.refresh, size: widget.isFullScreen ? 18 : 14),
-                    label: Text("Retry Connection", 
+                    label: Text("$_retrySeconds", 
                       style: TextStyle(fontSize: widget.isFullScreen ? 15 : 12)
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent, // Solid color
+                      backgroundColor: const Color(0xFF06B6D4), // Cyan to match theme
                       foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(
                         horizontal: widget.isFullScreen ? 20 : 12, 
@@ -541,6 +576,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
             if (_channel != null && 
                 !_isPipMode && 
                 !_isPremiumContent &&
+                !_fallbackUsed &&
                 ((_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty) || 
                  (_channel!.averageRating != null && _channel!.averageRating! > 0)))
               Positioned(
