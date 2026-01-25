@@ -50,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final minSplashTime = Future.delayed(const Duration(seconds: 3));
 
     try {
-      if (!kIsWeb) { // In-App Update is Android only
+      if (!kIsWeb && kReleaseMode) { // In-App Update is Android only & Release only
         final info = await InAppUpdate.checkForUpdate();
         if (info.updateAvailability == UpdateAvailability.updateAvailable &&
             info.immediateUpdateAllowed) {

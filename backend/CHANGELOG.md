@@ -2,6 +2,12 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.20.4] - 2026-01-25
+
+### Added
+- **Ad Redirection**: `Ad` model now supports `redirect_url` via `$fillable` for creating clickable banner ads.
+- **MP4 Fallback**: `PublicSettingController` now returns `fallback_404_mp4_url` instead of HLS, supporting the new app-side fallback player.
+
 ## [1.20.3] - 2026-01-25
 
 ### Changed

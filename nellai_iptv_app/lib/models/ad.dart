@@ -18,7 +18,7 @@ class Ad {
       uuid: json['uuid'] ?? '',
       title: json['title'] ?? '',
       imageUrl: json['media_url'] ?? '',
-      linkUrl: json['url'],
+      linkUrl: json['redirect_url'],
       runTimeSeconds: json['run_time_sec'] ?? 10,
     );
   }

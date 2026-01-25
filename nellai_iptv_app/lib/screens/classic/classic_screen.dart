@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io'; // Import for exit(0)
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -169,7 +170,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
             children: [
               // Left Panel (Player + Info + Ads)
           Expanded(
-            flex: 6,
+            flex: 5,
             child: Column(
               children: [
                 // Player Area - Maximized (Flex 6 normally, or expanded if fullscreen)
@@ -365,11 +366,23 @@ class _ClassicScreenState extends State<ClassicScreen> {
                             height: 100,
                             width: double.infinity,
                             color: Colors.black,
-                             child: CachedNetworkImage(
+                             child: GestureDetector(
+                               onTap: () async {
+                                  final url = _ads[_currentAdIndex].linkUrl;
+                                  if (url != null && url.isNotEmpty) {
+                                      final uri = Uri.parse(url);
+                                      if (await canLaunchUrl(uri)) {
+                                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                      }
+                                  }
+                               },
+                               child: CachedNetworkImage(
                                imageUrl: _ads[_currentAdIndex].imageUrl,
-                               fit: BoxFit.cover,
+                               // Changed to BoxFit.fill to stretch height as requested
+                               fit: BoxFit.fill,
                                placeholder: (context, url) => const SkeletonAdBanner(),
                                errorWidget: (context, url, error) => const SizedBox(), 
+                             ),
                              ).animate(key: ValueKey(_currentAdIndex)).fadeIn(),
                           )
                         : const SizedBox(),
@@ -377,10 +390,10 @@ class _ClassicScreenState extends State<ClassicScreen> {
             ),
           ),
 
-                   // Right Panel (Grid + Filters)
+          // Right Panel (Grid + Filters)
           if (!_isFullScreen)
           Expanded(
-            flex: 4,
+            flex: 5,
             child: Column(
               children: [
                    Consumer<ChannelProvider>(
@@ -525,137 +538,55 @@ class _ClassicScreenState extends State<ClassicScreen> {
                           }
 
                           final channels = provider.filteredChannels;
-                          return GridView.builder(
-                            padding: const EdgeInsets.all(12),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3, 
-                              childAspectRatio: 1.1,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                            ),
-                            itemCount: channels.length,
-                            itemBuilder: (context, index) {
-                              final channel = channels[index];
-                              final isSelected = _selectedChannel?.uuid == channel.uuid;
-                              
-                              // Use thumbnail if available, else logo
-                              final String? displayImage = channel.thumbnailUrl != null && channel.thumbnailUrl!.isNotEmpty 
-                                  ? channel.thumbnailUrl 
-                                  : channel.logoUrl;
+                          final int itemsPerRow = 3;
+                          final int rowCount = (channels.length / itemsPerRow).ceil();
 
-                              return Builder(
-                                builder: (context) {
-                                  // Focus handling for TV
-                                  final focusNode = FocusNode();
-                                  
-                                  return InkWell(
-                                    focusNode: focusNode,
-                                    onTap: () => setState(() => _selectedChannel = channel),
-                                    child: AnimatedBuilder(
-                                      animation: focusNode,
-                                      builder: (context, child) {
-                                        final isFocused = focusNode.hasFocus;
-                                        final active = isSelected || isFocused;
-                                        
-                                        return AnimatedContainer(
-                                          duration: const Duration(milliseconds: 200),
-                                          curve: Curves.easeOut,
-                                          transform: active ? Matrix4.identity().scaled(1.05) : Matrix4.identity(),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF1E293B),
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: active ? Border.all(color: const Color(0xFF0EA5E9), width: 2) : Border.all(color: Colors.transparent, width: 2),
-                                            boxShadow: active ? [
-                                              BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.4), blurRadius: 12, spreadRadius: 1)
-                                            ] : [],
-                                          ),
-                                          child: Stack(
-                                            children: [
-                                              Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  if (displayImage != null)
-                                                    Expanded(
-                                                      child: Center(
-                                                        child: Padding(
-                                                          padding: const EdgeInsets.all(8.0),
-                                                          child: CachedNetworkImage(
-                                                            imageUrl: displayImage, 
-                                                            fit: BoxFit.contain, 
-                                                            alignment: Alignment.center,
-                                                            placeholder: (context, url) => Center(
-                                                              child: Container(
-                                                                width: 32, height: 32,
-                                                                decoration: const BoxDecoration(color: Colors.white10, shape: BoxShape.circle),
-                                                              ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1.5.seconds, color: Colors.white24),
-                                                            ),
-                                                            errorWidget: (context, url, error) => const Icon(Icons.tv, color: Colors.white24),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  Padding(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                                                    child: Text(
-                                                      channel.name, 
-                                                      style: TextStyle(
-                                                        color: isSelected ? const Color(0xFF0EA5E9) : Colors.white, 
-                                                        fontSize: 11, 
-                                                        fontWeight: FontWeight.bold
-                                                      ), 
-                                                      textAlign: TextAlign.center, 
-                                                      maxLines: 1,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              // Premium Badge
-                                              if (channel.isPremium)
-                                                Positioned(
-                                                  top: 6,
-                                                  left: 6,
-                                                  child: Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(0xFFFBBF24), // Amber
-                                                      borderRadius: BorderRadius.circular(4),
-                                                    ),
-                                                    child: Row(
-                                                      children: [
-                                                        const Icon(Icons.workspace_premium, size: 10, color: Colors.black),
-                                                        const SizedBox(width: 2),
-                                                        const Text(
-                                                          "PREMIUM",
-                                                          style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              // Channel Number
-                                               Positioned(
-                                                top: 6,
-                                                right: 6,
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black.withOpacity(0.6),
-                                                    borderRadius: BorderRadius.circular(4),
-                                                  ),
-                                                  child: Text(
-                                                    "${channel.channelNumber ?? '-'}",
-                                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
+                          return ListView.separated(
+                            padding: const EdgeInsets.all(12),
+                            itemCount: rowCount,
+                            separatorBuilder: (context, index) {
+                               // Insert Ad every 5 rows (indexes 0-4 are the first 5 rows, so after index 4 (5th row) we show ad)
+                               if ((index + 1) % 5 == 0 && _ads.isNotEmpty) {
+                                  final adIndex = ((index + 1) ~/ 5) % _ads.length;
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(vertical: 10),
+                                    height: 100,
+                                    width: double.infinity,
+                                    color: Colors.black,
+                                    child: CachedNetworkImage(
+                                       imageUrl: _ads[adIndex].imageUrl,
+                                       fit: BoxFit.fill,
+                                       placeholder: (context, url) => const SkeletonAdBanner(),
+                                       errorWidget: (context, url, error) => const SizedBox(), 
                                     ),
                                   );
-                                },
-                              ).animate().fadeIn(duration: 400.ms).scale(delay: (30 * (index % 20)).ms);
+                               }
+                               return const SizedBox(height: 10);
+                            },
+                            itemBuilder: (context, rowIndex) {
+                               final int startIndex = rowIndex * itemsPerRow;
+                               final int endIndex = (startIndex + itemsPerRow < channels.length) 
+                                   ? startIndex + itemsPerRow 
+                                   : channels.length;
+                               final rowChannels = channels.sublist(startIndex, endIndex);
+
+                               return Row(
+                                 children: [
+                                   for (int i = 0; i < itemsPerRow; i++)
+                                     Expanded(
+                                       child: (i < rowChannels.length) 
+                                         ? Padding(
+                                             // Add spacing: Right padding for all except last item
+                                             padding: EdgeInsets.only(right: (i < itemsPerRow - 1) ? 10.0 : 0),
+                                             child: AspectRatio(
+                                               aspectRatio: 1.1,
+                                               child: _buildChannelCard(rowChannels[i]),
+                                             ),
+                                           )
+                                         : const SizedBox(), // Spacer for unfilled rows
+                                     ),
+                                 ],
+                               );
                             },
                           );
                         },
@@ -755,6 +686,128 @@ class _ClassicScreenState extends State<ClassicScreen> {
     }
 
     return grouped;
+  }
+
+  Widget _buildChannelCard(Channel channel) {
+    final isSelected = _selectedChannel?.uuid == channel.uuid;
+    // Use thumbnail if available, else logo
+    final String? displayImage = channel.thumbnailUrl != null && channel.thumbnailUrl!.isNotEmpty 
+        ? channel.thumbnailUrl 
+        : channel.logoUrl;
+
+    return Builder(
+      builder: (context) {
+        // Focus handling for TV
+        final focusNode = FocusNode();
+        
+        return InkWell(
+          focusNode: focusNode,
+          onTap: () => setState(() => _selectedChannel = channel),
+          child: AnimatedBuilder(
+            animation: focusNode,
+            builder: (context, child) {
+              final isFocused = focusNode.hasFocus;
+              final active = isSelected || isFocused;
+              
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                transform: active ? Matrix4.identity().scaled(1.05) : Matrix4.identity(),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(8),
+                  border: active ? Border.all(color: const Color(0xFF0EA5E9), width: 2) : Border.all(color: Colors.transparent, width: 2),
+                  boxShadow: active ? [
+                    BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.4), blurRadius: 12, spreadRadius: 1)
+                  ] : [],
+                ),
+                child: Stack(
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (displayImage != null)
+                          Expanded(
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: CachedNetworkImage(
+                                  imageUrl: displayImage, 
+                                  fit: BoxFit.contain, 
+                                  alignment: Alignment.center,
+                                  placeholder: (context, url) => Center(
+                                    child: Container(
+                                      width: 32, height: 32,
+                                      decoration: const BoxDecoration(color: Colors.white10, shape: BoxShape.circle),
+                                    ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1.5.seconds, color: Colors.white24),
+                                  ),
+                                  errorWidget: (context, url, error) => const Icon(Icons.tv, color: Colors.white24),
+                                ),
+                              ),
+                            ),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                          child: Text(
+                            channel.name, 
+                            style: TextStyle(
+                              color: isSelected ? const Color(0xFF0EA5E9) : Colors.white, 
+                              fontSize: 11, 
+                              fontWeight: FontWeight.bold
+                            ), 
+                            textAlign: TextAlign.center, 
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Premium Badge
+                    if (channel.isPremium)
+                      Positioned(
+                        top: 6,
+                        left: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFBBF24), // Amber
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.workspace_premium, size: 10, color: Colors.black),
+                              const SizedBox(width: 2),
+                              const Text(
+                                "PREMIUM",
+                                style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    // Channel Number
+                      Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          "${channel.channelNumber ?? '-'}",
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 }
 

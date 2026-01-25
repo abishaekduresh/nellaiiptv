@@ -53,12 +53,12 @@ class PublicSettingController
         $trendingPlatformsStr = Setting::get('top_trending_platforms', 'web,android,ios,tv');
         $trendingPlatforms = array_map('trim', explode(',', $trendingPlatformsStr));
 
-        $fallbackHlsUrl = Setting::get('fallback_404_hls_url', '');
+        $fallbackMp4Url = Setting::get('fallback_404_mp4_url', '');
 
         return ResponseFormatter::success($response, [
             'logo_url' => $logoUrl,
             'app_logo_png_url' => $pngLogoUrl,
-            'fallback_404_hls_url' => $fallbackHlsUrl,
+            'fallback_404_mp4_url' => $fallbackMp4Url,
             'maintenance_mode' => $maintenanceMode === '1',
             'maintenance_title' => $maintenanceTitle,
             'maintenance_message' => $maintenanceMessage,
