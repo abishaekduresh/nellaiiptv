@@ -2,6 +2,21 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.31.0] - 2026-01-26
+
+### Added
+- **Smart Fallback System**: Implemented automatic fallback to MP4 video for HLS stream errors and connection timeouts (20s).
+- **Auto-Recovery**: Added background monitoring with a 20s countdown for automatic reconnection attempts.
+- **Classic Mode Menu**: TV-optimized side navigation menu featuring Login, Register, Profile, Devices, About, and Contact pages.
+- **Responsive Recovery**: Centered recovery button with real-time countdown for manual and automatic stream restoration.
+
+### Improved
+- **Player Aesthetics**: Removed technical "Playback Error" overlays during fallback playback for a cleaner broadcast experience.
+- **Privacy & Security**: Sanitized client-side logs to prevent exposure of HLS URLs and internal system states.
+
+### Fixed
+- **Cleanup Persistence**: Fixed video element state management when switching between broken HLS streams and fallback MP4.
+
 ## [1.30.2] - 2026-01-20
 
 ### Maintenance

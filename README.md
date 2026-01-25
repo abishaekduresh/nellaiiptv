@@ -4,12 +4,23 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ## Components
 
+### `frontend` (Next.js)
+Premium web interface optimized for Browsers and Smart TV.
+- **Version**: 1.31.0
+- **Key Features**: Smart Fallback Player, Auto-Recovery, TV Navigation Menu.
+
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
 - **Version**: 1.5.3+8
 - **Key Features**: MP4 Fallback, Clickable Ads, Retry Countdown, Android TV Compliance.
 
-## Recent Updates (v1.5.3+8)
+## Recent Updates (v1.31.0 Frontend / v1.21.0 Backend)
+
+- **Smart Fallback**: Automatic recovery system for broken streams with centered countdown UI.
+- **Classic Menu**: Integrated TV-optimized side menu for user accounts and information.
+- **Asset Resilience**: Automatic resolution of fallback video paths in backend.
+
+## Recent Updates (v1.5.3+8 App)
 
 - **TV Focus**: Full D-Pad navigation support for ads and interactive elements.
 - **Auto-Focus**: Intelligent focus snapping for error screens.

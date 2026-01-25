@@ -23,6 +23,8 @@ export interface SubscriptionPlan {
   created_at: string;
 }
 
+export type ViewMode = 'OTT' | 'Classic';
+
 export interface User {
   uuid: string;
   username: string;

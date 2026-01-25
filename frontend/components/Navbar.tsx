@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { Settings, Search, X, Loader2, Menu, Maximize, Minimize, Crown } from 'lucide-react';
 import UserMenu from './UserMenu';
@@ -10,8 +10,8 @@ import api from '@/lib/api';
 import { Channel } from '@/types';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useViewMode } from '@/context/ViewModeContext';
-import { Monitor, LayoutGrid } from 'lucide-react';
 import { isSmartTV } from '@/lib/device';
+import { ViewMode } from '@/types'; // Import ViewMode if not already
 
 
 export default function Navbar() {
@@ -95,7 +95,10 @@ export default function Navbar() {
   };
 
   /* Existing Logic */
-  if (mode === 'Classic') return null;
+  const pathname = usePathname(); // Need this hook
+  const isExcluded = pathname?.startsWith('/admin') || ['/login', '/register', '/profile', '/about'].some(p => pathname?.startsWith(p));
+  
+  if (mode === 'Classic' && !isExcluded) return null;
 
   return (
     <>
@@ -122,8 +125,7 @@ export default function Navbar() {
               {/* Fullscreen Toggle */}
               <FullScreenToggle />
 
-              {/* View Mode Toggle */}
-              <ViewModeToggle />
+
 
               {/* Search Icon (Mobile/Desktop) */}
               <button 
@@ -376,28 +378,7 @@ function NavButton({ href, label }: { href: string; label: string }) {
 }
 
 // Helper for View Mode Toggle Button with TV Focus
-function ViewModeToggle() {
-    // 📺 Hide toggle on TVs (Force OTT Mode)
-    if (isSmartTV()) return null;
 
-    const { mode, toggleMode } = useViewMode();
-    const { focusProps, isFocused } = useTVFocus({
-        onEnter: toggleMode,
-        className: "flex items-center gap-2 p-2 md:px-4 md:py-2 rounded-full border border-slate-700 bg-slate-800/50 text-slate-300 hover:text-white transition-all outline-none"
-    });
-
-    return (
-        <button
-            onClick={toggleMode}
-            {...focusProps}
-            className={`${focusProps.className} ${isFocused ? 'ring-2 ring-primary bg-slate-800 text-white scale-105 shadow-lg' : ''}`}
-            title={`Switch to ${mode === 'OTT' ? 'Classic' : 'OTT'} Mode`}
-        >
-            {mode === 'OTT' ? <LayoutGrid size={18} /> : <Monitor size={18} />}
-            <span className="hidden md:inline text-sm font-medium">{mode === 'OTT' ? 'Classic' : 'OTT'}</span>
-        </button>
-    );
-}
 
 function FullScreenToggle() {
     const [isFullscreen, setIsFullscreen] = useState(false);

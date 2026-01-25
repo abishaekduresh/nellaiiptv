@@ -1,3 +1,14 @@
+## [1.6.0+9] - App | [1.31.0] - Frontend | [1.21.0] - Backend - 2026-01-26
+
+### Frontend (Next.js)
+- **Added**: Smart Video Fallback system for HLS errors and timeouts with 20s auto-recovery countdown.
+- **Added**: TV-optimized Classic Menu (Login, Register, Profile, etc.) with remote focus support.
+- **Improved**: Sanitized player logs to prevent technical URL exposure.
+
+### Backend (PHP)
+- **Improved**: Automatic URL resolution for fallback video assets.
+- **Added**: Default high-quality placeholder samples for out-of-the-box readiness.
+
 ## [1.5.3+8] - App | [1.20.4] - Backend - 2026-01-26
 
 ### App (Flutter)

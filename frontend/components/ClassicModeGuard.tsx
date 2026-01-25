@@ -10,7 +10,7 @@ export default function ClassicModeGuard({ children }: { children: React.ReactNo
   const pathname = usePathname();
 
   // Allowed paths that should not trigger a redirect in Classic Mode
-  const allowedPaths = ['/login', '/register', '/forgot-password'];
+  const allowedPaths = ['/login', '/register', '/forgot-password', '/admin', '/profile', '/about'];
   const isAllowedPath = allowedPaths.some(path => pathname.startsWith(path));
 
   useEffect(() => {

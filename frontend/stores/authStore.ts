@@ -37,8 +37,14 @@ export const useAuthStore = create<AuthState>()(
                 console.error('Logout failed', e);
             }
         }
+        // Aggressive Cleanup
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('admin_token'); // Clear Admin Token too
+        localStorage.removeItem('auth-storage'); // Clear Zustand persist
+        // Also clear any legacy or other potential tokens
+        localStorage.removeItem('tempToken'); 
+        
         set({ token: null, user: null, isAdmin: false, tempToken: null });
       },
     }),

@@ -4,12 +4,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Channel } from '@/types';
 import VideoPlayer from './VideoPlayer';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { Play, Eye, MapPin, Star, LogOut, ChevronDown, Heart, Crown } from 'lucide-react';
+import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
 import AdBanner from './AdBanner';
 import api from '@/lib/api';
 import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
+import ClassicMenu from './ClassicMenu';
 
 
 interface ClassicHomeProps {
@@ -18,11 +19,12 @@ interface ClassicHomeProps {
 }
 
 export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeProps) {
-  const { toggleMode } = useViewMode();
+  // const { toggleMode } = useViewMode(); // Removed toggle capability
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(channels.length > 0 ? channels[0] : null);
   const [selectedSource, setSelectedSource] = useState<string>('main');
   const [viewersCount, setViewersCount] = useState(0);
   const [logoUrl, setLogoUrl] = useState('/icon.jpg'); // Default fallback
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Filtering State
   const [showTopTrending, setShowTopTrending] = useState(true);
@@ -169,10 +171,13 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
   }, [channels, selectedChannel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Focus for Exit Button */
+  // Exit Button Removed
+  /* 
   const { focusProps: exitFocus, isFocused: isExitFocused } = useTVFocus({
-      onEnter: toggleMode,
+      onEnter: () => {}, // No-op
       className: "text-slate-400 hover:text-white transition-colors"
   });
+  */
 
   if (!selectedChannel) return null;
 
@@ -376,6 +381,49 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                                 <span className="truncate max-w-[200px]">{address}</span>
                             </span>
                             )}
+                            
+                            {/* Interactive Rating */}
+                            <span className="flex items-center gap-1 border-l border-slate-700/50 pl-3">
+                                <span className="text-slate-500 text-[9px] mr-1 hidden sm:inline">Rate:</span>
+                                <div className="flex">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                api.post(`/channels/${selectedChannel.uuid}/rate`, { rating: star })
+                                                   .then((res) => {
+                                                       // Update local state to reflect rating immediately
+                                                       // Also update average rating from response
+                                                       if (res.data.status && res.data.data) {
+                                                            const newStats = res.data.data;
+                                                            setSelectedChannel(prev => prev ? { 
+                                                                ...prev, 
+                                                                user_rating: star,
+                                                                average_rating: newStats.average_rating,
+                                                                ratings_avg_rating: newStats.average_rating, // Ensure consistency
+                                                                total_ratings: newStats.total_ratings
+                                                            } : null);
+                                                       } else {
+                                                            // Fallback if no data returned (just user_rating)
+                                                            setSelectedChannel(prev => prev ? { ...prev, user_rating: star } : null);
+                                                       }
+                                                   })
+                                                   .catch((err) => {
+                                                       console.error("Rating failed", err);
+                                                   });
+                                            }}
+                                            className="hover:scale-125 transition-transform focus:outline-none p-0.5"
+                                        >
+                                            <Star 
+                                                size={12} 
+                                                fill={star <= Number(selectedChannel.user_rating || 0) ? "currentColor" : "none"}
+                                                className={`transition-colors ${star <= Number(selectedChannel.user_rating || 0) ? 'text-amber-400' : 'text-slate-600 hover:text-amber-400'}`} 
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                            </span>
                     </div>
                 </div>
            </div>
@@ -398,20 +446,11 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                     <img src={logoUrl} alt="Logo" className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg object-contain bg-black" />
                     <div>
                         <h2 className="font-bold text-white text-sm lg:text-base leading-tight">Nellai IPTV</h2>
-                        <span className="text-[10px] text-primary font-medium tracking-wide">CLASSIC MODE</span>
+                        <span className="text-[10px] text-primary font-bold tracking-wide uppercase">Classic Mode</span>
                     </div>
                  </div>
 
-                 <button
-                    id="switch-mode-btn"
-                    onClick={toggleMode}
-                    {...exitFocus}
-                    className={`${exitFocus.className} ${isExitFocused ? 'ring-2 ring-white bg-slate-700 scale-105 z-50 shadow-xl' : 'bg-slate-800/50 text-slate-400'} px-2 py-1 lg:px-3 lg:py-1.5 rounded-lg border border-slate-700 transition-all text-[10px] lg:text-xs font-bold flex items-center gap-1.5`}
-                    title="Switch to OTT Mode"
-                >
-                    <LogOut size={12} />
-                    <span className="hidden sm:inline">Back</span>
-                </button>
+                 <ClassicMenuButton onClick={() => setIsMenuOpen(true)} />
              </div>
 
              {/* Filters - TV Friendly Cycle Button */}
@@ -469,20 +508,36 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                     {groupBy === 'all' ? 'All Channels' : (effectiveActiveGroup || 'Select Group')} <span className="text-slate-600">({displayChannels.length})</span>
                  </h3>
                  <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {displayChannels.map((channel, index) => (
-                      <ChannelListItem 
-                      key={channel.uuid} 
-                      channel={channel} 
-                      index={index}
-                      isActive={selectedChannel.uuid === channel.uuid && selectedSource === 'main'}
-                      onSelect={() => handleChannelClick(channel, 'main')}
-                    />
-                  ))}
+                  {displayChannels.reduce((acc: React.ReactNode[], channel, index) => {
+                      // Add Channel
+                      acc.push(
+                        <ChannelListItem 
+                          key={channel.uuid} 
+                          channel={channel} 
+                          index={index}
+                          isActive={selectedChannel.uuid === channel.uuid && selectedSource === 'main'}
+                          onSelect={() => handleChannelClick(channel, 'main')}
+                        />
+                      );
+
+                      // Insert Ad every 24 items (LCM of 3 and 4) to ensure no gaps in grid on both Mobile (3 cols) and Desktop (4 cols)
+                      if ((index + 1) % 24 === 0 && index !== displayChannels.length - 1) {
+                          acc.push(
+                              <div key={`inline-ad-${index}`} className="col-span-3 sm:col-span-3 lg:col-span-4 py-2">
+                                  <div className="w-full h-auto min-h-[50px] lg:min-h-[90px] rounded-xl bg-slate-900/50 border border-slate-800 flex items-center justify-center overflow-hidden">
+                                      <AdBanner type="banner" />
+                                  </div>
+                              </div>
+                          );
+                      }
+                      return acc;
+                  }, [])}
                 </div>
             </div>
           </div>
         </div>
       </div>
+      <ClassicMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
     </div>
   );
 }
@@ -606,4 +661,26 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
       </div>
     </div>
   );
+}
+
+function ClassicMenuButton({ onClick }: { onClick: () => void }) {
+    const { focusProps, isFocused } = useTVFocus({
+        onEnter: onClick,
+        className: "p-2 rounded-lg transition-all duration-200 flex items-center gap-2 group",
+        focusClassName: "bg-primary text-white scale-105 shadow-lg shadow-primary/20"
+    });
+
+    return (
+        <button
+            {...focusProps}
+            onClick={onClick}
+            className={`
+                ${focusProps.className}
+                ${isFocused ? '' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'}
+            `}
+        >
+            <Menu size={20} className={isFocused ? 'animate-pulse' : ''} />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Menu</span>
+        </button>
+    );
 }
