@@ -1,3 +1,9 @@
+## [1.5.3+8] - 2026-01-26
+
+### Added
+- **TV Focus**: Upgraded Classic Mode Banner Ads with `InkWell` for full D-Pad support and visual focus states (Cyan highlight).
+- **UX**: Added `autofocus` to the "Retry Connection" button, ensuring immediate remote control accessibility during playback errors.
+
 ## [1.5.2+7] - 2026-01-25
 
 ### Added

@@ -11,6 +11,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version 1.5.3 Highlights
+
+- **TV Remote Compatibility**: Fully focusable interface elements (Ads, Buttons) with D-Pad navigation support.
+- **Smart Focus**: "Retry" button automatically captures focus on error screens.
+
 ## Version 1.5.2 Highlights
 
 - **MP4 Fallback Player**: Enhanced fallback reliability using direct MP4 streams (`fallback_404_mp4_url`) instead of HLS.
