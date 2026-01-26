@@ -7,6 +7,7 @@ import { useTVFocus } from '@/hooks/useTVFocus';
 import { 
     X, LogIn, UserPlus, Info, Mail, User, LogOut, Monitor, Home 
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 interface ClassicMenuProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export default function ClassicMenu({ isOpen, onClose }: ClassicMenuProps) {
     { label: 'About Us', icon: Info, action: () => handleNavigation('/about') },
     { label: 'Contact', icon: Mail, action: () => handleNavigation('/contact') },
     ...(user ? [
-        { label: 'Sign Out', icon: LogOut, action: () => { logout(); onClose(); }, color: 'text-red-400' }
+        { label: 'Sign Out', icon: LogOut, action: () => { logout(); onClose(); toast.success('Logged out successfully'); }, color: 'text-red-400' }
     ] : [])
   ];
 
@@ -109,7 +110,6 @@ function MenuItem({ label, icon: Icon, action, color = 'text-slate-300' }: any) 
     return (
         <button
             {...focusProps}
-            onClick={action}
             className={`
                 ${focusProps.className}
                 ${isFocused ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : `hover:bg-slate-800/50 ${color}`}
@@ -138,7 +138,6 @@ function MenuCloseButton({ onClick }: { onClick: () => void }) {
     return (
         <button
             {...focusProps}
-            onClick={onClick}
             className={`
                 ${focusProps.className}
                 ${isFocused ? 'bg-white text-slate-900 scale-110 shadow-lg' : 'text-slate-500 hover:text-white hover:bg-slate-800'}

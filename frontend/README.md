@@ -1,18 +1,26 @@
-# Nellai IPTV - Frontend v1.31.0
+# Nellai IPTV - Frontend v1.32.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.31.0)**
+### **Latest Updates (v1.32.0)**
+- **Immersive User Experience**:
+    - **SEO Landing Page**: New root interface (`/`) with optimized sections and clear call-to-actions.
+    - **Dedicated Player**: Moved Classic Mode to `/channels` with automatic immersive layout (no navbar/footer).
+- **Community & Social**:
+    - **Channel Discussion**: Built-in real-time comment section for live interaction.
+    - **Smart Redirection**: Returns users to their exact location after login.
+- **Global TV Optimization**:
+    - **Navigable UI**: Native-level D-pad support for landing page buttons, ratings, and comments.
+    - **Enhanced Feedback**: Clear focus indicators and logout success notifications.
+- **Visual Polishing**:
+    - **Modernized Layout**: Glowing dynamic logos and high-end gradients in `Navbar` and `Footer`.
+
+### **Previous Updates (v1.31.0)**
 - **Smart Fallback & Recovery**:
     - Implemented automatic switch to high-quality MP4 fallback when HLS streams fail or time out (20s).
     - Added background monitoring with real-time countdown for automatic live stream recovery.
-    - Professional, distraction-free player UI during maintenance states.
-- **Classic Mode Enhancements**:
-    - **Global Side Menu**: Integrated a TV-optimized navigation menu (Login, Register, Profile, About, Contact).
-    - **Focus Management**: Seamless TV-remote navigation for the new menu system.
-- **Production Sanitization**: Removed technical console logging and detailed error codes to prevent HLS URL exposure on the client side.
 
 ### **Previous Updates (v1.30.3)**
 - **Absolute URLs**: The application now strictly uses `_url` properties from API responses, eliminating relative path resolution logic.

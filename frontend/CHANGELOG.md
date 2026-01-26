@@ -2,6 +2,20 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.32.0] - 2026-01-27
+
+### Added
+- **SEO Landing Page**: Implemented a rich, multi-section landing page at `/` to improve search indexing and user onboarding.
+- **Community Discussion**: Integrated a new `ChannelComments` component in the player view, enabling real-time user engagement.
+- **Post-Login Redirection**: Added intelligent logic to remember the user's current path and redirect back after a successful login.
+- **TV Optimized Interactions**: Integrated `useTVFocus` across all landing page CTAs and the channel rating system.
+- **User Feedback**: Added global toast notifications for logout actions.
+
+### Changed
+- **Player Access**: Re-routed the main Classic Player to `/channels` to separate standard web content from the immersive TV experience.
+- **Layout Cleanup**: Enabled standard `Navbar` and `Footer` for the root and marketing pages, while maintaining immersive mode for the player.
+- **Header Branding**: Refined the `Navbar` and `Footer` with dynamic, glowing logo support tied to backend settings.
+
 ## [1.31.0] - 2026-01-26
 
 ### Added

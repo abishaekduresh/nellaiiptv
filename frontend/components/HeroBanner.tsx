@@ -94,7 +94,6 @@ export default function HeroBanner({ channels }: Props) {
             </p>
             <div className="flex items-center justify-start gap-3 pt-4">
               <button
-                onClick={() => router.push(`/channel/${featuredChannel.uuid}`)}
                 {...focusProps}
               >
                 <Play size={24} fill="currentColor" />

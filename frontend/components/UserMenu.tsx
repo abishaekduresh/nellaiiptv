@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { Crown } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 interface UserProps {
   user: {
@@ -40,6 +41,7 @@ const UserMenu = ({ user }: UserProps) => {
 
   const handleLogout = () => {
     logout();
+    toast.success('Logged out successfully');
     router.push('/login');
   };
 

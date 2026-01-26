@@ -5,7 +5,6 @@ import BackendHealthCheck from "@/components/BackendHealthCheck";
 import { Toaster } from 'react-hot-toast';
 import TVNavigationProvider from "@/components/TVNavigationProvider";
 import { ViewModeProvider } from "@/context/ViewModeContext";
-import ClassicModeGuard from "@/components/ClassicModeGuard";
 import NetworkStatusMonitor from "@/components/NetworkStatusMonitor";
 import FaviconUpdater from "@/components/FaviconUpdater";
 import SessionMonitor from "@/components/SessionMonitor";

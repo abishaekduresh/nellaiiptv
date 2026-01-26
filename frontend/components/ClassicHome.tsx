@@ -11,16 +11,26 @@ import api from '@/lib/api';
 import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
 import ClassicMenu from './ClassicMenu';
+import ChannelComments from './ChannelComments';
 
 
 interface ClassicHomeProps {
   channels: Channel[];
   topTrending?: Channel[];
+  initialChannelUuid?: string | null;
 }
 
-export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeProps) {
-  // const { toggleMode } = useViewMode(); // Removed toggle capability
-  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(channels.length > 0 ? channels[0] : null);
+export default function ClassicHome({ channels, topTrending = [], initialChannelUuid = null }: ClassicHomeProps) {
+  // Find initial channel if provided
+  const getInitialChannel = () => {
+    if (initialChannelUuid) {
+      const found = channels.find(c => c.uuid === initialChannelUuid);
+      if (found) return found;
+    }
+    return channels.length > 0 ? channels[0] : null;
+  };
+
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(getInitialChannel());
   const [selectedSource, setSelectedSource] = useState<string>('main');
   const [viewersCount, setViewersCount] = useState(0);
   const [logoUrl, setLogoUrl] = useState('/icon.jpg'); // Default fallback
@@ -142,6 +152,11 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
           }
       } catch (e) {
           console.error("Error fetching channel details:", e);
+      }
+
+      // Update URL silently for SEO
+      if (typeof window !== 'undefined') {
+          window.history.pushState(null, '', `/channel/${channel.uuid}`);
       }
 
       // Scroll to player on mobile (lg breakpoint is 1024px)
@@ -383,54 +398,43 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
                             )}
                             
                             {/* Interactive Rating */}
-                            <span className="flex items-center gap-1 border-l border-slate-700/50 pl-3">
+                            <div className="flex items-center gap-1 border-l border-slate-700/50 pl-3">
                                 <span className="text-slate-500 text-[9px] mr-1 hidden sm:inline">Rate:</span>
                                 <div className="flex">
                                     {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
+                                        <RatingStar 
                                             key={star}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                api.post(`/channels/${selectedChannel.uuid}/rate`, { rating: star })
+                                            star={star}
+                                            currentRating={Number(selectedChannel.user_rating || 0)}
+                                            onRate={(val) => {
+                                                api.post(`/channels/${selectedChannel.uuid}/rate`, { rating: val })
                                                    .then((res) => {
-                                                       // Update local state to reflect rating immediately
-                                                       // Also update average rating from response
                                                        if (res.data.status && res.data.data) {
                                                             const newStats = res.data.data;
                                                             setSelectedChannel(prev => prev ? { 
                                                                 ...prev, 
-                                                                user_rating: star,
+                                                                user_rating: val,
                                                                 average_rating: newStats.average_rating,
-                                                                ratings_avg_rating: newStats.average_rating, // Ensure consistency
+                                                                ratings_avg_rating: newStats.average_rating,
                                                                 total_ratings: newStats.total_ratings
                                                             } : null);
                                                        } else {
-                                                            // Fallback if no data returned (just user_rating)
-                                                            setSelectedChannel(prev => prev ? { ...prev, user_rating: star } : null);
+                                                            setSelectedChannel(prev => prev ? { ...prev, user_rating: val } : null);
                                                        }
                                                    })
-                                                   .catch((err) => {
-                                                       console.error("Rating failed", err);
-                                                   });
+                                                   .catch((err) => console.error("Rating failed", err));
                                             }}
-                                            className="hover:scale-125 transition-transform focus:outline-none p-0.5"
-                                        >
-                                            <Star 
-                                                size={12} 
-                                                fill={star <= Number(selectedChannel.user_rating || 0) ? "currentColor" : "none"}
-                                                className={`transition-colors ${star <= Number(selectedChannel.user_rating || 0) ? 'text-amber-400' : 'text-slate-600 hover:text-amber-400'}`} 
-                                            />
-                                        </button>
+                                        />
                                     ))}
                                 </div>
-                            </span>
+                            </div>
                     </div>
                 </div>
            </div>
 
-           {/* Banner Ad - Responsive Height (Auto fit content) */}
-           <div className="w-full h-auto min-h-[50px] lg:min-h-[180px] shrink-0 overflow-hidden rounded-xl bg-slate-900/30 border border-slate-800/30 flex items-center justify-center p-1">
-                <AdBanner type="banner" />
+           {/* Channel Discussion - Replaces Ad Banner */}
+           <div className="w-full h-auto lg:h-[250px] shrink-0 overflow-hidden mb-1 lg:mb-0">
+                <ChannelComments channelUuid={selectedChannel.uuid} />
            </div>
 
         </div>
@@ -456,7 +460,6 @@ export default function ClassicHome({ channels, topTrending = [] }: ClassicHomeP
              {/* Filters - TV Friendly Cycle Button */}
              <div className="flex gap-2">
                  <button
-                    onClick={cycleGrouping}
                     {...groupFocus}
                     className={`flex-1 flex items-center justify-between bg-slate-950 text-white text-xs p-2 lg:p-2.5 rounded border transition-all ${isGroupFocused ? 'border-primary ring-2 ring-primary/50 bg-slate-900' : 'border-slate-800'}`}
                  >
@@ -565,7 +568,6 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
   return (
     <div
       id={`channel-${index}`}
-      onClick={onSelect}
       {...focusProps}
       onKeyDown={(e) => {
         focusProps.onKeyDown?.(e);
@@ -673,14 +675,30 @@ function ClassicMenuButton({ onClick }: { onClick: () => void }) {
     return (
         <button
             {...focusProps}
-            onClick={onClick}
-            className={`
-                ${focusProps.className}
-                ${isFocused ? '' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'}
-            `}
+            className={`${focusProps.className} ${isFocused ? 'ring-2 ring-primary bg-primary/20 scale-110' : 'bg-slate-900 border border-slate-700/50 hover:border-primary/50 text-slate-400 hover:text-white'}`}
         >
             <Menu size={20} className={isFocused ? 'animate-pulse' : ''} />
             <span className="text-[10px] font-bold uppercase tracking-wider">Menu</span>
+        </button>
+    );
+}
+
+function RatingStar({ star, currentRating, onRate }: { star: number; currentRating: number; onRate: (val: number) => void }) {
+    const { focusProps, isFocused } = useTVFocus({
+        onEnter: () => onRate(star),
+        className: "transition-transform focus:outline-none p-0.5"
+    });
+
+    return (
+        <button
+            {...focusProps}
+            className={`${focusProps.className} ${isFocused ? 'scale-150' : ''}`}
+        >
+            <Star 
+                size={12} 
+                fill={star <= currentRating ? "currentColor" : "none"}
+                className={`transition-colors ${isFocused ? 'text-white' : (star <= currentRating ? 'text-amber-400' : 'text-slate-600 hover:text-amber-400')}`} 
+            />
         </button>
     );
 }
