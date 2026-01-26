@@ -56,7 +56,6 @@ export default function DisclaimerModal({ isOpen, onClose }: Props) {
           </div>
           
           <button
-            onClick={onClose}
             {...focusProps}
           >
             I Understand & Accept

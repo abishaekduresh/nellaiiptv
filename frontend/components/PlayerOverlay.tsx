@@ -63,7 +63,6 @@ interface Props {
       });
       return (
           <button
-            onClick={onClick}
             {...props}
             {...focusProps}
             className={`${className} ${isFocused ? 'ring-4 ring-white z-50 scale-110 bg-white/20' : ''}`}

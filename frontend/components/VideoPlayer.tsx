@@ -58,7 +58,6 @@ function TVReportButton({ onClick, className }: { onClick: (e: any) => void; cla
 
     return (
         <button 
-            onClick={onClick} 
             {...focusProps} 
             className={`${className} ${isFocused ? 'ring-2 ring-red-500 scale-110 bg-red-600' : ''}`}
             title="Report Stream Issue"
@@ -250,11 +249,6 @@ function VideoPlayer({
      }
   }, [channels, topTrending, channelUuid]);
 
-  // Focus Handling
-  const { focusProps, isFocused } = useTVFocus({
-    className: 'relative w-full h-full outline-none transition-all duration-200',
-    focusClassName: 'ring-4 ring-primary z-20'
-  });
 
   // User Activity / Interaction Handler
   const showControls = useCallback(() => {
@@ -280,6 +274,33 @@ function VideoPlayer({
            return false;
       });
   }, [showControls]);
+
+  // Focus Handling
+  const { focusProps: containerFocusProps, isFocused: isContainerFocused } = useTVFocus({
+    onEnter: toggleControls,
+    className: 'relative w-full h-full outline-none transition-all duration-200',
+    focusClassName: 'ring-4 ring-primary z-20'
+  });
+
+  const { focusProps: retryFocus } = useTVFocus({
+    onEnter: handleRetry,
+    className: "flex-1 bg-white hover:bg-slate-200 text-black px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg flex items-center justify-center gap-2"
+  });
+
+  const { focusProps: fallbackFocus } = useTVFocus({
+    onEnter: handleRetry,
+    className: "bg-primary/90 hover:bg-primary text-white px-8 py-3 rounded-full font-bold flex items-center gap-3 border border-primary/20 backdrop-blur-md transition-all shadow-xl transform hover:scale-105 active:scale-95"
+  });
+
+  const { focusProps: homeFocus } = useTVFocus({
+    onEnter: () => router.push('/'),
+    className: "bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+  });
+
+  const { focusProps: reportFocus } = useTVFocus({
+    onEnter: () => setShowReport(true),
+    className: "flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg hover:shadow-red-600/20"
+  });
 
   // Handle Mouse Move 
   const handleMouseMove = useCallback(() => {
@@ -874,16 +895,15 @@ function VideoPlayer({
     <div
       ref={containerRef}
       style={{ maxWidth: '1920px', width: '100%', height: '100%', margin: '0 auto', position: 'relative', overflow: 'hidden' }}
-      {...focusProps}
+      {...containerFocusProps}
       onKeyDown={(e) => {
         handleKeyDown(e);
-        if (focusProps.onKeyDown) focusProps.onKeyDown(e);
+        if (containerFocusProps.onKeyDown) containerFocusProps.onKeyDown(e);
       }}
       // Mouse/Touch Handlers for Visibility
       onMouseMove={handleMouseMove}
-      onClick={toggleControls}
       onDoubleClick={handleDoubleClick}
-      className={`${focusProps.className} ${isFocused ? 'ring-4 ring-white z-20 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : ''} cursor-pointer bg-black`} 
+      className={`${containerFocusProps.className} ${isContainerFocused ? 'ring-4 ring-white z-20 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : ''} cursor-pointer bg-black`} 
     >
       {/* RENDER LOGIC SWITCH */}
       {isPlatformRestricted ? (
@@ -896,9 +916,7 @@ function VideoPlayer({
                   {platformRestrictionMessage || 'This channel does not support the current platform.'}
               </p>
               <button 
-                {...focusProps} // Re-use focus props for back button
-                onClick={() => router.push('/')}
-                className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                {...homeFocus}
               >
                   Back to Home
               </button>
@@ -977,15 +995,13 @@ function VideoPlayer({
 
             <div className="flex items-center gap-3">
                 <button
-                    onClick={(e) => { e.stopPropagation(); handleRetry(); }}
-                    className="flex-1 bg-white hover:bg-slate-200 text-black px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg flex items-center justify-center gap-2"
+                    {...retryFocus}
                 >
                     <RefreshCw size={18} className={retryCountdown ? 'animate-spin' : ''} />
                     {retryCountdown ? `${retryCountdown}` : 'Retry'}
                 </button>
                 <button
-                    onClick={(e) => { e.stopPropagation(); setShowReport(true); }}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg hover:shadow-red-600/20"
+                    {...reportFocus}
                 >
                     Report
                 </button>
@@ -997,13 +1013,12 @@ function VideoPlayer({
       {/* Fallback Mode UI (Manual Retry) */}
       {isFallbackPlaying && (
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[65] flex flex-col items-center gap-4 pointer-events-auto">
-              <button
-                  onClick={(e) => { e.stopPropagation(); handleRetry(); }}
-                  className="bg-primary/90 hover:bg-primary text-white px-8 py-3 rounded-full font-bold flex items-center gap-3 border border-primary/20 backdrop-blur-md transition-all shadow-xl transform hover:scale-105 active:scale-95"
-              >
+                <button
+                    {...fallbackFocus}
+                >
                   <RefreshCw size={22} className="animate-spin-slow" />
                   <span>Re-connecting in {nextRetryIn}s</span>
-              </button>
+                </button>
           </div>
       )}
 

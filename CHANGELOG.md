@@ -1,3 +1,13 @@
+## [1.6.0+9] - App | [1.32.0] - Frontend | [1.21.0] - Backend - 2026-01-27
+
+### Frontend (Next.js)
+- **Added**: Immersive SEO-friendly Landing Page at root (`/`) with Hero, Features, and About sections.
+- **Refactored**: Dedicated player experience at `/channels` with automatic immersive mode (hidden navbar/footer).
+- **Added**: Community Discussion section for channels with real-time comment support.
+- **Improved**: Global TV Navigation (D-pad support) for all landing page actions and player interactions (ratings, comments).
+- **Improved**: Smart Post-Login Redirection to return users to their previous context.
+- **Added**: Logout success notifications and refined focus indicators for TV visibility.
+
 ## [1.6.0+9] - App | [1.31.0] - Frontend | [1.21.0] - Backend - 2026-01-26
 
 ### Frontend (Next.js)

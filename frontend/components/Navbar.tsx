@@ -9,14 +9,11 @@ import UserMenu from './UserMenu';
 import api from '@/lib/api';
 import { Channel } from '@/types';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { useViewMode } from '@/context/ViewModeContext';
-import { isSmartTV } from '@/lib/device';
-import { ViewMode } from '@/types'; // Import ViewMode if not already
+import { ViewMode } from '@/types'; 
 
 
 export default function Navbar() {
   const { user, isAdmin } = useAuthStore();
-  const { mode, toggleMode } = useViewMode();
   const router = useRouter();
   const [showSearch, setShowSearch] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -94,15 +91,15 @@ export default function Navbar() {
     setSearchResults([]);
   };
 
-  /* Existing Logic */
-  const pathname = usePathname(); // Need this hook
-  const isExcluded = pathname?.startsWith('/admin') || ['/login', '/register', '/profile', '/about'].some(p => pathname?.startsWith(p));
-  
-  if (mode === 'Classic' && !isExcluded) return null;
+  /* Exclude Navbar from non-admin pages if needed, though LiteRouteGuard handles this now */
+  const pathname = usePathname();
+  if (pathname !== '/' && !pathname.startsWith('/admin')) {
+      // Logic handled by LiteRouteGuard, but this is a secondary safety
+  }
 
   return (
     <>
-      <nav className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
+      <nav className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 pb-1 mb-4">
         <div className="container-custom">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -115,9 +112,9 @@ export default function Navbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <NavButton href="/" label="Home" />
-              <NavButton href="/channels" label="Channels" />
-              <NavButton href="/about" label="About" />
+              {/* <NavButton href="/" label="Home" /> */}
+              {/* <NavButton href="/channels" label="Watch TV" /> */}
+              {/* <NavButton href="/about" label="About" /> */}
             </div>
 
             {/* Right Side Actions */}
@@ -152,7 +149,7 @@ export default function Navbar() {
               ) : (
                 <div className="hidden md:flex items-center space-x-3">
                   <Link
-                    href="/login"
+                    href={`/login?redirect=${encodeURIComponent(pathname)}`}
                     className="text-slate-300 hover:text-white font-medium text-sm transition-colors"
                   >
                     Login
@@ -227,7 +224,7 @@ export default function Navbar() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block text-lg font-medium text-slate-300 hover:text-white hover:bg-slate-800 px-4 py-3 rounded-lg transition-all"
               >
-                Channels
+                Watch TV
               </Link>
               <Link 
                 href="/about" 
@@ -278,7 +275,7 @@ export default function Navbar() {
             ) : (
               <div className="space-y-3">
                 <Link
-                  href="/login"
+                  href={`/login?redirect=${encodeURIComponent(pathname)}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block text-center px-4 py-3 rounded-lg border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors font-medium"
                 >
@@ -404,7 +401,6 @@ function FullScreenToggle() {
 
     return (
         <button
-            onClick={toggleFullscreen}
             {...focusProps}
             className={`${focusProps.className} ${isFocused ? 'ring-2 ring-primary bg-slate-800 text-white' : ''}`}
             title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
@@ -422,7 +418,6 @@ function SearchResultItem({ channel, onClick }: { channel: Channel; onClick: () 
 
   return (
     <button
-      onClick={onClick}
       {...focusProps}
       className={`${focusProps.className} ${isFocused ? 'bg-slate-700 ring-2 ring-primary z-10' : ''}`}
     >

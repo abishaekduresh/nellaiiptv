@@ -50,7 +50,10 @@ function LoginForm() {
       if (response.data.status) {
         const { token, user } = response.data.data;
         setAuth(token, user, false);
-        router.push('/');
+        
+        // Handle redirection
+        const redirectPath = searchParams.get('redirect') || '/';
+        router.push(redirectPath);
       } else {
         toast.error(response.data.message || 'Login failed');
       }

@@ -4,16 +4,16 @@ import { usePathname } from 'next/navigation';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MaintenanceCheck from "@/components/MaintenanceCheck";
-import ClassicModeGuard from "@/components/ClassicModeGuard";
 import { useViewMode } from '@/context/ViewModeContext';
 
 export default function LiteRouteGuard({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const { mode, isInitialized } = useViewMode();
+    const { isInitialized } = useViewMode();
     const isLite = pathname?.startsWith('/lite');
     const isAdmin = pathname?.startsWith('/admin');
-    const isAuth = ['/login', '/register', '/profile', '/about'].some(p => pathname?.startsWith(p));
-    const forceStandardLayout = isAdmin || isAuth;
+    
+    // Immersive paths (No Navbar/Footer)
+    const isPlayerPage = pathname?.startsWith('/channels') || pathname?.startsWith('/channel/') || isLite;
 
     // Prevent hydration mismatch / flash of wrong mode
     if (!isInitialized) {
@@ -24,31 +24,27 @@ export default function LiteRouteGuard({ children }: { children: React.ReactNode
         return <div className="h-screen w-screen bg-black text-white overflow-hidden">{children}</div>;
     }
 
-    // Classic Mode: Full immersive (No layout) - EXCEPT for Admin/Auth pages
-    if (mode === 'Classic' && !forceStandardLayout) {
+    // Standard Layout for landing, auth, about, contact, and admin
+    if (!isPlayerPage) {
         return (
-            <main className="min-h-screen bg-slate-950">
-                 <MaintenanceCheck>
-                    <ClassicModeGuard>
+            <>
+                <Navbar />
+                <main className="flex-grow">
+                    <MaintenanceCheck>
                         {children}
-                    </ClassicModeGuard>
-                </MaintenanceCheck>
-            </main>
+                    </MaintenanceCheck>
+                </main>
+                <Footer />
+            </>
         );
     }
 
-    // OTT Mode: Standard Layout
+    // Immersive layout for player pages
     return (
-        <>
-            <Navbar />
-            <main className="flex-grow pt-6">
+        <main className="min-h-screen bg-slate-950">
                 <MaintenanceCheck>
-                    <ClassicModeGuard>
-                        {children}
-                    </ClassicModeGuard>
+                    {children}
                 </MaintenanceCheck>
-            </main>
-            <Footer />
-        </>
+        </main>
     );
 }

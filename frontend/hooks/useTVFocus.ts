@@ -37,6 +37,10 @@ export function useTVFocus({ onEnter, className = '', focusClassName }: UseTVFoc
       onFocus: handleFocus,
       onBlur: handleBlur,
       onKeyDown: handleKeyDown,
+      onClick: (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onEnter?.();
+      },
       className: `${className} transition-all duration-200 ${isFocused ? defaultFocusClass : ''} outline-none cursor-pointer`,
     }
   };

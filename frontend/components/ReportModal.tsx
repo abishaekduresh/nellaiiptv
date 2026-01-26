@@ -99,7 +99,7 @@ export default function ReportModal({ isOpen, onClose, channelName = 'Channel', 
             <AlertTriangle size={24} />
             <h2 className="text-xl font-bold text-white">Report Issue</h2>
           </div>
-          <button onClick={onClose} {...closeFocus}>
+          <button {...closeFocus}>
             <X size={24} />
           </button>
         </div>
@@ -147,7 +147,6 @@ export default function ReportModal({ isOpen, onClose, channelName = 'Channel', 
         </div>
 
         <button
-          onClick={handleSubmit}
           disabled={!selectedIssue || (selectedIssue === 'Other' && !otherDescription.trim()) || isSubmitting}
           {...submitFocus}
         >
