@@ -99,7 +99,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 pb-1 mb-4">
+      <nav className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 pb-1">
         <div className="container-custom">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -112,9 +112,12 @@ export default function Navbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              {/* <NavButton href="/" label="Home" /> */}
-              {/* <NavButton href="/channels" label="Watch TV" /> */}
-              {/* <NavButton href="/about" label="About" /> */}
+              <NavButton href="/" label="Home" />
+              {(user as any)?.role === 'reseller' ? (
+                <NavButton href="/reseller" label="Reseller" />
+              ) : (
+                <NavButton href="/plans" label="Plans" />
+              )}
             </div>
 
             {/* Right Side Actions */}
@@ -226,6 +229,23 @@ export default function Navbar() {
               >
                 Watch TV
               </Link>
+              {(user as any)?.role === 'reseller' ? (
+                <Link 
+                  href="/reseller" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block text-lg font-medium text-slate-300 hover:text-white hover:bg-slate-800 px-4 py-3 rounded-lg transition-all"
+                >
+                  Reseller Panel
+                </Link>
+              ) : (
+                <Link 
+                  href="/plans" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block text-lg font-medium text-slate-300 hover:text-white hover:bg-slate-800 px-4 py-3 rounded-lg transition-all"
+                >
+                  Subscription Plans
+                </Link>
+              )}
               <Link 
                 href="/about" 
                 onClick={() => setIsMobileMenuOpen(false)}

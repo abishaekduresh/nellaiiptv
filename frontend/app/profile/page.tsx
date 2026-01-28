@@ -90,42 +90,71 @@ export default function ProfilePage() {
                 <p className="text-slate-400 text-sm mb-4">
                   {(displayUser as any).email || (displayUser as any).phone}
                 </p>
-                <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-medium">
-                  Active
+                <div className="flex flex-col gap-2">
+                  <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-medium">
+                    Active
+                  </div>
+                  <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium ${
+                    (displayUser as any).role === 'reseller' 
+                      ? 'bg-purple-500/10 text-purple-400' 
+                      : 'bg-blue-500/10 text-blue-400'
+                  }`}>
+                    {(displayUser as any).role === 'reseller' ? 'Reseller' : 'Customer'}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Details */}
             <div className="md:col-span-2 space-y-6">
-              {/* Subscription */}
+              {/* Subscription / Account Type */}
               <div className="bg-slate-800/30 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                   <CreditCard size={20} className="mr-2 text-primary" />
-                  Subscription Details
+                  {(displayUser as any).role === 'reseller' ? 'Account Details' : 'Subscription Details'}
                 </h3>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center border-b border-slate-700 pb-4">
-                    <span className="text-slate-400">Plan</span>
-                    <span className="text-white font-medium">
-                        {(displayUser as any).plan?.name || 'Free Plan'}
-                    </span>
+                
+                {(displayUser as any).role === 'reseller' ? (
+                  // Reseller View
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-700 pb-4">
+                      <span className="text-slate-400">Account Type</span>
+                      <span className="text-purple-400 font-medium">Reseller</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-slate-700 pb-4">
+                      <span className="text-slate-400">Device Limit</span>
+                      <span className="text-white font-medium">1 Device</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Status</span>
+                      <span className="text-green-400">Active (No Subscription Required)</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center border-b border-slate-700 pb-4">
-                    <span className="text-slate-400">Status</span>
-                    <span className={(displayUser as any).status === 'active' ? "text-green-400" : "text-red-400"}>
-                        {(displayUser as any).status === 'active' ? 'Active' : 'Inactive'}
-                    </span>
+                ) : (
+                  // Customer View
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-700 pb-4">
+                      <span className="text-slate-400">Plan</span>
+                      <span className="text-white font-medium">
+                          {(displayUser as any).plan?.name || 'No Active Subscription'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-slate-700 pb-4">
+                      <span className="text-slate-400">Status</span>
+                      <span className={((displayUser as any).status === 'active' && (displayUser as any).plan) ? "text-green-400" : "text-red-400"}>
+                          {((displayUser as any).status === 'active' && (displayUser as any).plan) ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    {((displayUser as any).plan && (displayUser as any).subscription_expires_at) && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Expires On</span>
+                        <span className="text-white">
+                            {new Date((displayUser as any).subscription_expires_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Expires On</span>
-                    <span className="text-white">
-                        {(displayUser as any).subscription_expires_at 
-                            ? new Date((displayUser as any).subscription_expires_at).toLocaleDateString() 
-                            : 'N/A'}
-                    </span>
-                  </div>
-                </div>
+                )}
               </div>
 
                {/* Device Manager */}

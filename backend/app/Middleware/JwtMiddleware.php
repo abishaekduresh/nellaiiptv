@@ -37,10 +37,68 @@ class JwtMiddleware implements MiddlewareInterface
                 $session->save();
             }
 
-            // Scope Check for Restricted Tokens
-            if (isset($decoded->scope) && $decoded->scope === 'manage_devices') {
+            // Security: Global Device Limit Enforcement Guard
+            // This ensures that if a plan limit is changed or multiple logins slip through, 
+            // the user is blocked until they manage their devices.
+            $isRestrictedToken = (isset($decoded->scopes) && in_array('manage_devices', $decoded->scopes));
+            
+            if (!$isRestrictedToken) {
+                $customer = \App\Models\Customer::with('plan')->where('uuid', $decoded->sub)->first();
+                if ($customer) {
+                    $path = $request->getUri()->getPath();
+                    $managementPaths = [
+                        '/api/customers/profile', 
+                        '/api/customers/sessions', 
+                        '/api/customers/logout',
+                        '/api/customers/refresh-token',
+                        '/api/payments'
+                    ];
+                    $isManagementPath = false;
+                    foreach ($managementPaths as $mPath) {
+                        if (strpos($path, $mPath) !== false) {
+                            $isManagementPath = true;
+                            break;
+                        }
+                    }
+
+                    // POLICY: Redirect to Plans if plan is missing AND NOT accessing management/profile
+                    // EXCEPTION: Resellers don't need a subscription plan
+                    $isReseller = ($customer->role === 'reseller');
+                    if (!$customer->plan && !$isManagementPath && !$isReseller) {
+                         return ResponseFormatter::error(new SlimResponse(), 'An active subscription plan is required to access this feature.', 403, ['error' => 'subscription_required']);
+                    }
+
+                    // Enforce Device Limit
+                    // Resellers: Always 1 device
+                    // Customers with plan: Use plan's device_limit
+                    // Customers without plan: Default to 1
+                    if ($isReseller) {
+                        $deviceLimit = 1;
+                    } else {
+                        $deviceLimit = $customer->plan ? $customer->plan->device_limit : 1;
+                    }
+                    
+                    $activeSessionsCount = \App\Models\CustomerSession::where('customer_id', $customer->id)->count();
+                    
+                    if ($activeSessionsCount > $deviceLimit) {
+                        // Only allow logout or session retrieval when over limit
+                        $allowedPaths = ['/api/customers/sessions', '/api/customers/logout', '/api/payments'];
+                        $isAllowed = false;
+                        foreach ($allowedPaths as $allowed) {
+                            if (strpos($path, $allowed) !== false) {
+                                $isAllowed = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!$isAllowed) {
+                            return ResponseFormatter::error(new SlimResponse(), 'Device limit reached. Please manage your devices.', 403, ['error' => 'device_limit_reached']);
+                        }
+                    }
+                }
+            } else {
+                // Restricted Scope: Handle tokens that only permit device management (revocation Flow)
                 $path = $request->getUri()->getPath();
-                // Allow only session management endpoints
                 $allowedPaths = [
                     '/api/customers/sessions',
                     '/api/customers/logout'

@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Channel } from '@/types';
 import VideoPlayer from './VideoPlayer';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu } from 'lucide-react';
+import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu, ArrowLeft } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
 import AdBanner from './AdBanner';
 import api from '@/lib/api';
@@ -454,7 +455,10 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
                     </div>
                  </div>
 
-                 <ClassicMenuButton onClick={() => setIsMenuOpen(true)} />
+                 <div className="flex items-center gap-2">
+                     <ClassicBackButton />
+                     <ClassicMenuButton onClick={() => setIsMenuOpen(true)} />
+                 </div>
              </div>
 
              {/* Filters - TV Friendly Cycle Button */}
@@ -699,6 +703,27 @@ function RatingStar({ star, currentRating, onRate }: { star: number; currentRati
                 fill={star <= currentRating ? "currentColor" : "none"}
                 className={`transition-colors ${isFocused ? 'text-white' : (star <= currentRating ? 'text-amber-400' : 'text-slate-600 hover:text-amber-400')}`} 
             />
+        </button>
+    );
+}
+
+function ClassicBackButton() {
+    const router = useRouter(); 
+    
+    const { focusProps, isFocused } = useTVFocus({
+        onEnter: () => router.push('/'),
+        className: "p-2 rounded-lg transition-all duration-200 flex items-center gap-2 group",
+        focusClassName: "bg-primary text-white scale-105 shadow-lg shadow-primary/20"
+    });
+
+    return (
+        <button
+            {...focusProps}
+            onClick={() => router.push('/')}
+            className={`${focusProps.className} ${isFocused ? 'ring-2 ring-primary bg-primary/20 scale-110' : 'bg-slate-900 border border-slate-700/50 hover:border-primary/50 text-slate-400 hover:text-white'}`}
+        >
+            <ArrowLeft size={20} className={isFocused ? 'animate-pulse' : ''} />
+             <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Back</span>
         </button>
     );
 }

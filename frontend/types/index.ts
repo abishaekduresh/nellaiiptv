@@ -3,6 +3,7 @@ export interface Customer {
   name: string;
   email: string;
   phone: string;
+  role?: 'customer' | 'reseller';
   status: string;
   created_at: string;
   subscription_plan_id?: number;
@@ -14,12 +15,16 @@ export interface SubscriptionPlan {
   id: number;
   uuid: string;
   name: string;
-  price: number;
+  price: number | string;
+  reseller_price: number | string;
   duration: number;
   device_limit: number;
   platform_access: string[];
+  features?: string[];
   description: string;
   status: string;
+  is_popular?: boolean;
+  show_to?: 'customer' | 'reseller' | 'both';
   created_at: string;
 }
 

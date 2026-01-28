@@ -1,21 +1,29 @@
-# Nellai IPTV - Frontend v1.32.0
+# Nellai IPTV - Frontend v1.35.1
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.32.0)**
-- **Immersive User Experience**:
-    - **SEO Landing Page**: New root interface (`/`) with optimized sections and clear call-to-actions.
-    - **Dedicated Player**: Moved Classic Mode to `/channels` with automatic immersive layout (no navbar/footer).
-- **Community & Social**:
-    - **Channel Discussion**: Built-in real-time comment section for live interaction.
-    - **Smart Redirection**: Returns users to their exact location after login.
-- **Global TV Optimization**:
-    - **Navigable UI**: Native-level D-pad support for landing page buttons, ratings, and comments.
-    - **Enhanced Feedback**: Clear focus indicators and logout success notifications.
-- **Visual Polishing**:
-    - **Modernized Layout**: Glowing dynamic logos and high-end gradients in `Navbar` and `Footer`.
+### **Latest Updates (v1.35.1)**
+- **Reseller Dashboard**: Optimized UI with integrated Wallet Card and removal of redundant stats.
+- **Timezone Support**: Fixed date calculation issues in "Assign Plan" modal.
+- **Navbar**: Improved layout by removing bottom margin.
+- **Reseller Management**:
+    - **Admin Panel**: Added role selection (Customer/Reseller) to customer creation/editing forms.
+    - **Visual Indicators**: Role badges throughout the UI (purple for Resellers, blue for Customers).
+    - **Profile Customization**: Profile page now displays different layouts for resellers vs customers.
+- **Transaction Management**:
+    - **Advanced Filtering**: Search and filter admin transactions by status, gateway, and search term.
+    - **Improved UX**: Added dedicated transaction layout for consistency.
+- **Enhanced Customer Management**:
+    - **Role Column**: Added sortable role column to customer table.
+    - **Role Filter**: Filter customers by role (All/Customer/Reseller).
+
+### **Previous Updates (v1.33.0)**
+- **Authentication Guards**: Implemented automatic redirects for authenticated users on login/register pages.
+- **Home UX**: Conditionally hide guest-specific UI for logged-in users.
+
+### **Previous Updates (v1.32.0)**
 
 ### **Previous Updates (v1.31.0)**
 - **Smart Fallback & Recovery**:

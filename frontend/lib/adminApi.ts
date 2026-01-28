@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '@/stores/authStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/backend/public/api';
 
@@ -19,6 +20,17 @@ adminApi.interceptors.request.use((config) => {
   if (apiKey) {
     config.headers['X-API-KEY'] = apiKey;
   }
+  
+  // Add Device ID for consistency
+  try {
+      const deviceId = localStorage.getItem('deviceId') || useAuthStore.getState().getDeviceId();
+      if (deviceId) {
+          config.headers['X-Device-Id'] = deviceId;
+      }
+  } catch (e) {
+      // ignore
+  }
+
   return config;
 });
 
@@ -35,7 +47,11 @@ adminApi.interceptors.response.use(
         localStorage.removeItem('user');
         
         // Force redirect
-        window.location.href = '/admin'; 
+        if (window.location.pathname.startsWith('/reseller')) {
+            window.location.href = '/login?error=session_expired';
+        } else {
+            window.location.href = '/admin'; 
+        } 
       }
     }
     return Promise.reject(error);

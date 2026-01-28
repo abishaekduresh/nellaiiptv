@@ -50,28 +50,8 @@ export default function DeviceManager({ className = '', redirectOnSuccess, onRev
     };
 
     const handleRevoke = async (id: number) => {
-        toast((t) => (
-            <div className="flex flex-col gap-2">
-                <span className="font-medium">Remove this device?</span>
-                <div className="flex gap-2 text-sm justify-end">
-                    <button 
-                        onClick={() => toast.dismiss(t.id)}
-                        className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 transition-colors"
-                    >
-                        Cancel
-                    </button>
-                    <button 
-                        onClick={() => {
-                            toast.dismiss(t.id);
-                            deleteSession(id);
-                        }}
-                        className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                    >
-                        Remove
-                    </button>
-                </div>
-            </div>
-        ), { duration: 4000 });
+        // Direct removal without confirmation as per user request
+        deleteSession(id);
     };
 
     const deleteSession = async (id: number) => {

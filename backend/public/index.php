@@ -3,9 +3,9 @@
 // 1. CORS Headers (Early Exit for Preflight)
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 // Validate origin if needed, or allow all for dev
-header("Access-Control-Allow-Origin: $origin"); 
+header("Access-Control-Allow-Origin: " . ($origin ?: '*')); 
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-KEY, X-Client-Platform');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-KEY, X-Client-Platform, X-Device-Id');
 header('Access-Control-Allow-Credentials: true');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

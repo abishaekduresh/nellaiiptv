@@ -11,6 +11,8 @@ interface ReportModalProps {
   onClose: () => void;
   channelName?: string;
   channelUuid?: string;
+  // container allows portaling the modal into a specific element (e.g. for Fullscreen support)
+  container?: HTMLElement | null;
 }
 
 const ISSUES = [
@@ -22,7 +24,7 @@ const ISSUES = [
   'Other'
 ];
 
-export default function ReportModal({ isOpen, onClose, channelName = 'Channel', channelUuid }: ReportModalProps) {
+export default function ReportModal({ isOpen, onClose, channelName = 'Channel', channelUuid, container }: ReportModalProps) {
   const [selectedIssue, setSelectedIssue] = useState<string>('');
   const [otherDescription, setOtherDescription] = useState<string>('');
   const [mounted, setMounted] = useState(false);
@@ -154,6 +156,6 @@ export default function ReportModal({ isOpen, onClose, channelName = 'Channel', 
         </button>
       </div>
     </div>,
-    document.body
+    container || document.body
   );
 }

@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.21.0)
+# Nellai IPTV - Backend API (v1.24.1)
 
-**Version 1.21.0** | RESTful API built with Slim PHP Framework
+**Version 1.24.1** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -152,11 +152,22 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
-## Latest Updates (v1.21.0)
-- **Settings Resolution**: Enhanced `PublicSettingController` to resolve full absolute URLs for fallback assets.
-- **Resilience**: Added automated fallback video sample defaults for empty configurations.
+## Latest Updates (v1.24.1)
+- **Timezone**: Default system timezone set to `Asia/Kolkata` (IST).
+- **Reseller Stats**: Fixed database schema for customer tracking (`created_by_id`).
 
-## Latest Updates (v1.20.4)
+## Latest Updates (v1.23.0)
+- **Reseller System**: Added role-based customer management with 'customer' and 'reseller' roles.
+- **Device Limits**: Resellers fixed at 1 device; customers use plan limits.
+- **Subscription Bypass**: Resellers no longer require active subscriptions.
+- **Transaction Filters**: Enhanced admin transaction endpoint with search and filtering.
+- **Payment Flow**: Fixed blocking issue preventing subscription purchases for users without plans.
+
+## Latest Updates (v1.22.0)
+- **Route Conflict Fix**: Resolved critical 500 error on `/api/plans`.
+- **Security**: Enhanced OptionalAuthMiddleware to handle malformed tokens.
+
+## Latest Updates (v1.21.0)
 - **Settings**: Added `fallback_404_mp4_url` support for compatible fallback playback.
 - **Ads**: Enabled `redirect_url` support for clickable banner ads.
 

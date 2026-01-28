@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS `transactions` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `customer_id` int unsigned NOT NULL,
+  `plan_id` int unsigned NOT NULL,
+  `gateway` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'razorpay, stripe, etc.',
+  `amount` decimal(10,2) NOT NULL,
+  `currency` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'INR',
+  `gateway_order_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `gateway_payment_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `gateway_signature` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` enum('pending','success','failed','refunded') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `raw_response` json DEFAULT NULL,
+  `error_message` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `transactions_uuid_unique` (`uuid`),
+  KEY `transactions_customer_id_foreign` (`customer_id`),
+  KEY `transactions_plan_id_foreign` (`plan_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

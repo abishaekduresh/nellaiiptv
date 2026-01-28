@@ -5,20 +5,40 @@ import { Customer, User } from '@/types';
 interface AuthState {
   token: string | null;
   tempToken: string | null;
+  deviceId: string | null;
   user: Customer | User | null;
   isAdmin: boolean;
   setAuth: (token: string, user: Customer | User, isAdmin?: boolean) => void;
   setTempToken: (token: string) => void;
+  getDeviceId: () => string;
   logout: (skipApi?: boolean) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       tempToken: null,
+      deviceId: null,
       user: null,
       isAdmin: false,
+      // Industry-Standard Device Identification:
+      // Generates a persistent unique ID for each browser/device that persists
+      // even if cookies or site data are cleared.
+      getDeviceId: () => {
+        const state = get();
+        if (state.deviceId) return state.deviceId;
+        
+        let id = localStorage.getItem('deviceId');
+        if (!id) {
+          id = typeof crypto !== 'undefined' && crypto.randomUUID 
+            ? crypto.randomUUID() 
+            : Math.random().toString(36).substring(2) + Date.now().toString(36);
+          localStorage.setItem('deviceId', id);
+        }
+        set({ deviceId: id });
+        return id;
+      },
       setAuth: (token, user, isAdmin = false) => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));

@@ -1,3 +1,64 @@
+## [1.6.1+10] - App | [1.35.1] - Frontend | [1.24.1] - Backend - 2026-01-28
+
+### Backend (PHP)
+- **Fixed**: Timezone synchronization (IST) and database schema for reseller tracking.
+
+### Frontend (Next.js)
+- **Fixed**: Reseller dashboard layout optimization and timezone-aware date handling.
+
+## [1.6.1+10] - App | [1.35.0] - Frontend | [1.24.0] - Backend - 2026-01-28
+
+### Backend (PHP)
+- **Added**: Customer creation tracking with `created_by_type` (self/admin/reseller) and `created_by_id` fields.
+- **Added**: Database migration for customer ownership tracking (`add_customer_creation_tracking.sql`).
+- **Changed**: Reseller customers filtered by ownership - list shows only owned customers, search shows all.
+- **Changed**: Admin customer creation now tracks admin user ID as creator.
+- **Changed**: Password field is now required for reseller customer creation.
+- **Fixed**: Reseller customer search returns ownership indicator (`is_owned_by_reseller` flag).
+
+### Frontend (Next.js)
+- **Added**: Reseller dashboard at `/reseller` with stats, quick actions, and recent customers.
+- **Added**: Reseller plans page at `/reseller/plans` showing both retail and reseller pricing with profit margins.
+- **Added**: Customer ownership badges in reseller search results ("Your Customer" vs "Other").
+- **Added**: Phone number input validation - accepts only numeric characters.
+- **Changed**: Sidebar for resellers now shows Dashboard, Plans, and Customers menu items.
+- **Changed**: Navbar shows "Reseller" button instead of "Plans" for reseller users.
+- **Changed**: Resellers can watch channels at `/channels` and `/channel/[uuid]` without subscription.
+- **Fixed**: Reseller authentication in AdminLayout using correct `/customers/profile` endpoint.
+- **Fixed**: Plans page API endpoint changed from `/admin/plans` to public `/plans` to prevent logout.
+- **Fixed**: Sidebar active state now highlights only current page (no multiple highlights).
+- **Fixed**: Reduced main content padding for better space utilization.
+
+### App (Flutter)
+- No changes in this release.
+
+## [1.6.1+10] - App | [1.34.0] - Frontend | [1.23.0] - Backend - 2026-01-27
+
+### Backend (PHP)
+- **Added**: Reseller management system with role-based access control.
+- **Added**: Transaction search and filtering by status and gateway.
+- **Changed**: Device limit enforcement - resellers fixed at 1 device, customers use plan limits.
+- **Changed**: Subscription validation now exempts resellers (no plan required).
+- **Fixed**: Payment flow blocking issue where users without plans couldn't purchase subscriptions.
+
+### Frontend (Next.js)
+- **Added**: Reseller creation and management UI in admin panel.
+- **Added**: Role badge display on customer list, profile page, and admin tables.
+- **Added**: Transaction page search/filter functionality (status, gateway, search term).
+- **Changed**: Profile page now shows different layouts for resellers vs customers.
+- **Improved**: Customer table with role column and filtering capabilities.
+
+## [1.6.1+10] - App | [1.33.0] - Frontend | [1.22.0] - Backend - 2026-01-27
+
+### Backend (PHP)
+- **Fixed**: Critical 500 Slim Application Error on `/api/plans` (FastRoute route shadowing conflict).
+- **Fixed**: Undefined variable `$fallbackMp4Url` in `PublicSettingController.php`.
+- **Improved**: `OptionalAuthMiddleware.php` resilience with global `Throwable` catch blocks.
+
+### Frontend (Next.js)
+- **Added**: Redirect logic for authenticated users on `/register` and `/login` (auto-redirect to `/`).
+- **Improved**: Home page UX with conditional rendering for logged-in users.
+
 ## [1.6.0+9] - App | [1.32.0] - Frontend | [1.21.0] - Backend - 2026-01-27
 
 ### Frontend (Next.js)

@@ -18,10 +18,14 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
   const [formData, setFormData] = useState({
     name: '',
     price: '',
+    reseller_price: '',
     duration: '30',
     device_limit: '1',
     description: '',
+    features: '',
     status: 'active',
+    is_popular: false,
+    show_to: 'both',
     platform_access: [] as string[]
   });
 
@@ -38,10 +42,14 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
       setFormData({
         name: plan.name,
         price: plan.price.toString(),
+        reseller_price: (plan.reseller_price || '0').toString(),
         duration: plan.duration.toString(),
         device_limit: plan.device_limit.toString(),
         description: plan.description || '',
+        features: Array.isArray(plan.features) ? plan.features.join('\n') : '',
         status: plan.status,
+        is_popular: !!plan.is_popular,
+        show_to: plan.show_to || 'both',
         platform_access: plan.platform_access || []
       });
     } catch (error) {
@@ -50,8 +58,10 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const target = e.target as HTMLInputElement;
+    const { name, value, type } = target;
+    const val = type === 'checkbox' ? target.checked : value;
+    setFormData(prev => ({ ...prev, [name]: val }));
   };
 
   const handlePlatformToggle = (platform: string) => {
@@ -73,8 +83,10 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
       const payload = {
         ...formData,
         price: parseFloat(formData.price),
+        reseller_price: parseFloat(formData.reseller_price || '0'),
         duration: parseInt(formData.duration),
-        device_limit: parseInt(formData.device_limit)
+        device_limit: parseInt(formData.device_limit),
+        features: formData.features.split('\n').map(f => f.trim()).filter(f => f !== '')
       };
 
       if (planUuid) {
@@ -109,7 +121,7 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
 
       <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">Price</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Retail Price</label>
             <input
               type="number"
               name="price"
@@ -122,6 +134,22 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
             />
           </div>
           <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Reseller Price</label>
+            <input
+              type="number"
+              name="reseller_price"
+              value={formData.reseller_price}
+              onChange={handleChange}
+              required
+              step="0.01"
+              className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+              placeholder="e.g. 7.99"
+            />
+          </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+          <div>
             <label className="block text-sm font-medium text-text-secondary mb-1">Duration (days)</label>
             <input
               type="number"
@@ -133,19 +161,18 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
               placeholder="e.g. 30"
             />
           </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Device Limit</label>
-        <input
-          type="number"
-          name="device_limit"
-          value={formData.device_limit}
-          onChange={handleChange}
-          required
-          min="1"
-          className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
-        />
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Device Limit</label>
+            <input
+              type="number"
+              name="device_limit"
+              value={formData.device_limit}
+              onChange={handleChange}
+              required
+              min="1"
+              className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+            />
+          </div>
       </div>
 
       <div>
@@ -169,15 +196,39 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Description</label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Features (one per line)</label>
+        <textarea
+          name="features"
+          value={formData.features}
+          onChange={handleChange}
+          rows={4}
+          className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary font-mono text-sm"
+          placeholder="High Quality Streams&#10;All Devices Support&#10;24/7 Support"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Description (Internal Notes)</label>
         <textarea
           name="description"
           value={formData.description}
           onChange={handleChange}
-          rows={3}
+          rows={2}
           className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
-          placeholder="Plan features description..."
+          placeholder="Internal notes about this plan..."
         />
+      </div>
+
+      <div className="flex items-center gap-2 py-2">
+        <input
+          type="checkbox"
+          name="is_popular"
+          id="is_popular"
+          checked={formData.is_popular}
+          onChange={handleChange}
+          className="w-4 h-4 rounded border-gray-800 text-primary focus:ring-primary bg-background"
+        />
+        <label htmlFor="is_popular" className="text-sm font-medium text-text-secondary cursor-pointer">Mark as Popular Plan</label>
       </div>
 
       <div>
@@ -190,6 +241,20 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
         >
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Visible To</label>
+        <select
+          name="show_to"
+          value={formData.show_to}
+          onChange={handleChange}
+          className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+        >
+          <option value="both">Both (Everyone)</option>
+          <option value="customer">Customers Only</option>
+          <option value="reseller">Resellers Only</option>
         </select>
       </div>
 

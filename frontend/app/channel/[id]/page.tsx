@@ -6,16 +6,33 @@ import api from '@/lib/api';
 import { Channel } from '@/types';
 import { Loader2 } from 'lucide-react';
 import ClassicHome from '@/components/ClassicHome';
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
 
 export default function ChannelPage() {
   const params = useParams();
   const uuid = params.id as string;
+  const { user } = useAuthStore();
+  const router = useRouter();
   
   const [channels, setChannels] = useState<Channel[]>([]);
   const [topTrending, setTopTrending] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Subscription Guard - bypass for resellers
+    if (!user) {
+        router.push('/plans?error=subscription_required');
+        return;
+    }
+    
+    // Resellers don't need a subscription plan
+    const isReseller = (user as any).role === 'reseller';
+    if (!isReseller && !(user as any).plan) {
+        router.push('/plans?error=subscription_required');
+        return;
+    }
+
     const fetchAllData = async () => {
       try {
         setLoading(true);
@@ -41,7 +58,7 @@ export default function ChannelPage() {
     };
 
     fetchAllData();
-  }, []);
+  }, [user, router]);
 
   if (loading) {
     return (

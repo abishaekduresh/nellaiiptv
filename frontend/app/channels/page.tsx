@@ -9,9 +9,14 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
 import ClassicHome from '@/components/ClassicHome';
 
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
+
 export default function ChannelsPage() {
   const { favorites } = useFavorites();
   const { history } = useWatchHistory();
+  const { user } = useAuthStore();
+  const router = useRouter();
   
   const [rawChannels, setRawChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,9 +24,22 @@ export default function ChannelsPage() {
   const [topTrending, setTopTrending] = useState<Channel[]>([]);
 
   useEffect(() => {
+    // Subscription Guard - bypass for resellers
+    if (!user) {
+      router.push('/plans?error=subscription_required');
+      return;
+    }
+    
+    // Resellers don't need a subscription plan
+    const isReseller = (user as any).role === 'reseller';
+    if (!isReseller && !(user as any).plan) {
+      router.push('/plans?error=subscription_required');
+      return;
+    }
+
     fetchChannels();
     checkDisclaimer();
-  }, []);
+  }, [user, router]);
 
   const checkDisclaimer = () => {
     if (typeof window === 'undefined') return;

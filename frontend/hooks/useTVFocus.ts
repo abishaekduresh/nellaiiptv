@@ -3,7 +3,9 @@
 import { useState, useCallback } from 'react';
 
 interface UseTVFocusOptions {
-  onEnter?: () => void;
+  // onEnter is used for both KeyDown (Enter) and Click events.
+  // It now accepts an optional event argument to allow handlers to call stopPropagation() etc.
+  onEnter?: (e?: any) => void;
   className?: string;
   focusClassName?: string;
 }
@@ -25,7 +27,7 @@ export function useTVFocus({ onEnter, className = '', focusClassName }: UseTVFoc
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      onEnter?.();
+      onEnter?.(e);
     }
   }, [onEnter]);
 
@@ -39,7 +41,7 @@ export function useTVFocus({ onEnter, className = '', focusClassName }: UseTVFoc
       onKeyDown: handleKeyDown,
       onClick: (e: React.MouseEvent) => {
         e.stopPropagation();
-        onEnter?.();
+        onEnter?.(e);
       },
       className: `${className} transition-all duration-200 ${isFocused ? defaultFocusClass : ''} outline-none cursor-pointer`,
     }

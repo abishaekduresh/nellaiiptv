@@ -23,6 +23,32 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     // Webhooks
     $group->post('/webhooks/resend', [\App\Controllers\WebhookController::class, 'handleResend']);
     
+    // Public Routes with Optional Auth
+    $group->group('', function (RouteCollectorProxy $group) {
+        // Plans (Public)
+        $group->get('/plans', [\App\Controllers\PlanController::class, 'index']);
+
+        // Search
+        $group->get('/channels/search', [\App\Controllers\SearchController::class, 'searchChannels']);
+
+        // Ads
+        $group->get('/ads', [\App\Controllers\AdController::class, 'index']);
+        $group->post('/ads/{uuid}/impression', [\App\Controllers\AdController::class, 'impression']);
+
+        // Geo
+        $group->get('/states', [\App\Controllers\GeoController::class, 'getStates']);
+        $group->get('/districts', [\App\Controllers\GeoController::class, 'getDistricts']);
+        $group->get('/languages', [\App\Controllers\GeoController::class, 'getLanguages']);
+        $group->get('/categories', [\App\Controllers\GeoController::class, 'getCategories']);
+
+        // Contact
+        $group->post('/contact', [\App\Controllers\ContactController::class, 'submit']);
+
+        // Settings (Public)
+        $group->get('/settings/disclaimer', [\App\Controllers\Admin\SettingController::class, 'getDisclaimer']);
+        $group->get('/settings/public', [\App\Controllers\Api\PublicSettingController::class, 'getPublicSettings']);
+    })->add(new \App\Middleware\OptionalAuthMiddleware());
+
     // Protected Routes
     $group->group('', function (RouteCollectorProxy $group) {
         $group->post('/customers/refresh-token', [\App\Controllers\AuthController::class, 'refreshToken']);
@@ -45,13 +71,8 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         $group->get('/customers/favorites', [\App\Controllers\FavoriteController::class, 'index']);
         $group->get('/customers/favorites/ids', [\App\Controllers\FavoriteController::class, 'getIds']);
         $group->post('/customers/favorites/toggle', [\App\Controllers\FavoriteController::class, 'toggle']);
-    })->add(new \App\Middleware\JwtMiddleware());
 
-    // Search
-    $group->get('/channels/search', [\App\Controllers\SearchController::class, 'searchChannels']);
-
-    // Public Channel Routes (Optional Auth)
-    $group->group('', function (RouteCollectorProxy $group) {
+        // Channels
         $group->get('/channels', [\App\Controllers\ChannelController::class, 'index']);
         $group->get('/channels/featured', [\App\Controllers\ChannelController::class, 'getFeatured']);
         $group->get('/channels/new', [\App\Controllers\ChannelController::class, 'getNew']);
@@ -59,27 +80,39 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         $group->get('/channels/{uuid}/ratings', [\App\Controllers\ChannelController::class, 'getRatings']);
         $group->get('/channels/{uuid}/comments', [\App\Controllers\ChannelController::class, 'getComments']);
         $group->get('/channels/related/{uuid}', [\App\Controllers\ChannelController::class, 'getRelated']);
-    })->add(new \App\Middleware\OptionalAuthMiddleware());
-    $group->post('/channels/{uuid}/heartbeat', [\App\Controllers\ChannelController::class, 'heartbeat']);
-    $group->post('/channels/{uuid}/view', [\App\Controllers\ChannelController::class, 'incrementView']);
+        
+        $group->post('/channels/{uuid}/heartbeat', [\App\Controllers\ChannelController::class, 'heartbeat']);
+        $group->post('/channels/{uuid}/view', [\App\Controllers\ChannelController::class, 'incrementView']);
+        $group->post('/channels/{uuid}/report', [\App\Controllers\ChannelController::class, 'report']);
 
-    $group->post('/channels/{uuid}/report', [\App\Controllers\ChannelController::class, 'report']);
+        // Payments
+        $group->post('/payments/create-order', [\App\Controllers\Api\PaymentController::class, 'createOrder']);
+        $group->post('/payments/verify', [\App\Controllers\Api\PaymentController::class, 'verifyPayment']);
 
-    // Ads
-    $group->get('/ads', [\App\Controllers\AdController::class, 'index']);
-    $group->post('/ads/{uuid}/impression', [\App\Controllers\AdController::class, 'impression']);
 
-    // Geo
-    $group->get('/states', [\App\Controllers\GeoController::class, 'getStates']);
-    $group->get('/districts', [\App\Controllers\GeoController::class, 'getDistricts']);
-    $group->get('/languages', [\App\Controllers\GeoController::class, 'getLanguages']);
-    $group->get('/categories', [\App\Controllers\GeoController::class, 'getCategories']);
+        // Reseller Routes (Protected by ResellerAuthMiddleware)
+        $group->group('/reseller', function (RouteCollectorProxy $group) {
+            $group->get('/customers/search', [\App\Controllers\Reseller\ResellerCustomerController::class, 'searchByPhone']);
+            $group->get('/customers', [\App\Controllers\Reseller\ResellerCustomerController::class, 'listCustomers']);
+            $group->post('/customers', [\App\Controllers\Reseller\ResellerCustomerController::class, 'createCustomer']);
+            $group->post('/customers/{uuid}/assign-plan', [\App\Controllers\Reseller\ResellerCustomerController::class, 'assignPlan']);
 
-    // Contact
-    $group->post('/contact', [\App\Controllers\ContactController::class, 'submit']);
+            // Wallet
+            $group->get('/wallet', [\App\Controllers\Reseller\ResellerWalletController::class, 'getBalance']);
+            $group->get('/wallet/transactions', [\App\Controllers\Reseller\ResellerWalletController::class, 'getTransactions']);
+            $group->post('/wallet/add-funds', [\App\Controllers\Reseller\ResellerWalletController::class, 'addFunds']);
+            $group->post('/wallet/verify', [\App\Controllers\Reseller\ResellerWalletController::class, 'verifyPayment']);
+            
+            // Dashboard
+            $group->get('/dashboard/stats', [\App\Controllers\Reseller\ResellerDashboardController::class, 'getStats']);
+        })->add(new \App\Middleware\ResellerAuthMiddleware());
 
-    // Settings (Public)
-    $group->get('/settings/disclaimer', [\App\Controllers\Admin\SettingController::class, 'getDisclaimer']);
-    $group->get('/settings/public', [\App\Controllers\Api\PublicSettingController::class, 'getPublicSettings']);
+    })->add(new \App\Middleware\JwtMiddleware());
+
+    // Admin Protected Routes (Need to verify if we have separate middleware group for Admin or if they share JwtMiddleware but check role internally. 
+    // Looking at admin.php, it uses AdminAuthMiddleware. 
+    // New Admin Wallet Routes should go to admin.php? Or here with admin middleware?
+    // Let's assume admin.php handles admin routes.
+
 
 });

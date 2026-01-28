@@ -11,7 +11,7 @@ use Slim\Psr7\Response as SlimResponse;
 
 class PlatformMiddleware implements MiddlewareInterface
 {
-    private const ALLOWED_PLATFORMS = ['web', 'android', 'ios', 'tv'];
+    private const ALLOWED_PLATFORMS = ['web', 'android', 'ios', 'tv', 'mobile'];
 
     public function process(Request $request, RequestHandler $handler): Response
     {

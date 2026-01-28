@@ -51,7 +51,9 @@ const getYoutubeEmbedUrl = (url: string) => {
 // Internal TV-Focusable Report Button
 function TVReportButton({ onClick, className }: { onClick: (e: any) => void; className: string }) {
     const { focusProps, isFocused } = useTVFocus({
-        onEnter: () => onClick({} as any), // Mock event or just call it
+        // BUGFIX: Passing the actual event 'e' to the onClick handler.
+        // This ensures e.stopPropagation() works correctly within the handler.
+        onEnter: (e) => onClick(e), 
         className: className,
         focusClassName: 'ring-2 ring-red-500 scale-110 bg-red-600'
     });
@@ -969,7 +971,8 @@ function VideoPlayer({
       )}
 
       {/* Overlay Mount Point - Always Render */}
-      <div ref={overlayRef} className="absolute inset-0 w-full h-full pointer-events-none z-30" />
+      {/* BUGFIX: Increased z-index to 50 to ensure overlay is always visible across all player states */}
+      <div ref={overlayRef} className="absolute inset-0 w-full h-full pointer-events-none z-50" />
 
       {/* Loading Spinner */}
       {isLoading && !errorMessage && !isPaidRestricted && (
@@ -1082,6 +1085,9 @@ function VideoPlayer({
       onClose={() => setShowReport(false)}
       channelUuid={channelUuid}
       channelName={channelName}
+      // BUGFIX: Passing the containerRef to ensure the modal portals into the player's context.
+      // This is essential for visibility when the video player is in Fullscreen mode.
+      container={containerRef.current}
     />
     </>
   );
