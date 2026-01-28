@@ -20,22 +20,30 @@ export default function ChannelPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Subscription Guard - bypass for resellers
-    if (!user) {
-        router.push('/plans?error=subscription_required');
-        return;
-    }
-    
-    // Resellers don't need a subscription plan
-    const isReseller = (user as any).role === 'reseller';
-    if (!isReseller && !(user as any).plan) {
-        router.push('/plans?error=subscription_required');
-        return;
-    }
+    checkAuthAndFetch();
+  }, [user, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const fetchAllData = async () => {
-      try {
+  const checkAuthAndFetch = async () => {
+    try {
         setLoading(true);
+        // 1. Fetch Settings First
+        const settingsRes = await api.get('/settings/public');
+        const isOpenAccess = settingsRes.data.status && settingsRes.data.data.is_open_access;
+        
+        // 2. Auth Check Logic (Only if NOT Open Access)
+        if (!isOpenAccess) {
+            if (!user) {
+                router.push('/plans?error=subscription_required');
+                return;
+            }
+            const isReseller = (user as any).role === 'reseller';
+            if (!isReseller && !(user as any).plan) {
+                router.push('/plans?error=subscription_required');
+                return;
+            }
+        }
+
+        // 3. Fetch Content
         const [channelsRes, trendingRes] = await Promise.all([
           api.get('/channels?limit=-1'),
           api.get('/channels?sort=top_trending&limit=10')
@@ -50,15 +58,13 @@ export default function ChannelPage() {
         if (trendingRes.data.status) {
           setTopTrending(trendingRes.data.data.data || trendingRes.data.data || []);
         }
-      } catch (error) {
-        console.error('Error fetching data for channel page:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchAllData();
-  }, [user, router]);
+    } catch (error) {
+        console.error('Error fetching data for channel page:', error);
+    } finally {
+        setLoading(false);
+    }
+  };
 
   if (loading) {
     return (

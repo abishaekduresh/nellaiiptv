@@ -1,3 +1,15 @@
+## [1.6.1+10] - App | [1.36.0] - Frontend | [1.25.0] - Backend - 2026-01-28
+
+### Frontend (Next.js)
+- **Feature**: **Open Access Mode** - Guests can now watch channels without login if enabled in backend.
+- **UX**: Auto-redirect from Landing Page to Channels List for guests in Open Access mode.
+- **Fix**: Resolved mobile layout issues (double headers) in Reseller Dashboard.
+
+### Backend (PHP)
+- **Feature**: Logic to support "Open Access" mode, bypassing subscription checks.
+- **Feature**: Unified Admin Transaction Report combining Gateway payments and Wallet logs.
+- **Fix**: Relaxed type checking for boolean-like settings from database.
+
 ## [1.6.1+10] - App | [1.35.1] - Frontend | [1.24.1] - Backend - 2026-01-28
 
 ### Backend (PHP)

@@ -23,53 +23,13 @@ export default function ChannelsPage() {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [topTrending, setTopTrending] = useState<Channel[]>([]);
 
-  useEffect(() => {
-    // Subscription Guard - bypass for resellers
-    if (!user) {
-      router.push('/plans?error=subscription_required');
-      return;
-    }
-    
-    // Resellers don't need a subscription plan
-    const isReseller = (user as any).role === 'reseller';
-    if (!isReseller && !(user as any).plan) {
-      router.push('/plans?error=subscription_required');
-      return;
-    }
-
-    fetchChannels();
-    checkDisclaimer();
-  }, [user, router]);
-
-  const checkDisclaimer = () => {
-    if (typeof window === 'undefined') return;
-    const accepted = document.cookie.includes('disclaimer_accepted=true');
-    if (!accepted) {
-      setShowDisclaimer(true);
-    }
-  };
-
-  const handleDisclaimerClose = () => {
-    setShowDisclaimer(false);
-    if (typeof window !== 'undefined') {
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + 7);
-      document.cookie = `disclaimer_accepted=true; expires=${expiryDate.toUTCString()}; path=/`;
-    }
-  };
-
-  const fetchChannels = async () => {
+  // Fetch Logic moved here to be accessible
+  const fetchChannelsData = async (settingsData: any) => {
     try {
-      setLoading(true);
-      
-      const [settingsRes] = await Promise.all([
-        api.get('/settings/public')
-      ]);
-
       // Check Top Trending Permission
       let showTrending = true;
-      if (settingsRes.data.status) {
-         const platformsStr = settingsRes.data.data.top_trending_platforms || 'web,android,ios,tv';
+      if (settingsData) {
+         const platformsStr = settingsData.top_trending_platforms || 'web,android,ios,tv';
          const platforms = Array.isArray(platformsStr) ? platformsStr : (typeof platformsStr === 'string' ? platformsStr.split(',') : []);
          showTrending = platforms.includes('web');
       }
@@ -95,6 +55,59 @@ export default function ChannelsPage() {
       setLoading(false);
     }
   };
+
+  const checkAuthAndFetch = async () => {
+    try {
+        setLoading(true);
+        const settingsRes = await api.get('/settings/public');
+        const isOpenAccess = settingsRes.data.status && settingsRes.data.data.is_open_access;
+        
+        // Auth Check Logic
+        if (!isOpenAccess) {
+            if (!user) {
+                router.push('/plans?error=subscription_required');
+                return;
+            }
+            const isReseller = (user as any).role === 'reseller';
+            if (!isReseller && !(user as any).plan) {
+                router.push('/plans?error=subscription_required');
+                return;
+            }
+        }
+
+        // If we get here, access is allowed. Fetch Channels.
+        await fetchChannelsData(settingsRes.data.data);
+
+    } catch (e) {
+        console.error("Auth check failed", e);
+        setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAuthAndFetch();
+    checkDisclaimer();
+  }, [user, router]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const checkDisclaimer = () => {
+    if (typeof window === 'undefined') return;
+    const accepted = document.cookie.includes('disclaimer_accepted=true');
+    if (!accepted) {
+      setShowDisclaimer(true);
+    }
+  };
+
+  const handleDisclaimerClose = () => {
+    setShowDisclaimer(false);
+    if (typeof window !== 'undefined') {
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 7);
+      document.cookie = `disclaimer_accepted=true; expires=${expiryDate.toUTCString()}; path=/`;
+    }
+  };
+
+  // Deprecated direct call, now used by checkAuthAndFetch
+  const fetchChannels = async () => { /* no-op or proxy */ };
 
   if (loading) {
     return (

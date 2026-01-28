@@ -2,6 +2,16 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.25.0] - 2026-01-28
+
+### Added
+- **Open Access API**: Exposed `is_open_access` key in `PublicSettingController`.
+- **Auth Bypass Logic**: Updated `ChannelController` to skip subscription validation when Open Access is enabled in settings.
+- **Unified Reporting**: Implemented `getUnifiedLogs` in `AdminTransactionController` merging Gateway and Wallet transactions.
+
+### Fixed
+- **Settings Check**: Relaxed type strictness for `is_open_access` setting to handle database integer returns correctly.
+
 ## [1.24.1] - 2026-01-28
 
 ### Fixed

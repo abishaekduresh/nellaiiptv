@@ -47,6 +47,19 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         // Settings (Public)
         $group->get('/settings/disclaimer', [\App\Controllers\Admin\SettingController::class, 'getDisclaimer']);
         $group->get('/settings/public', [\App\Controllers\Api\PublicSettingController::class, 'getPublicSettings']);
+
+        // Channels (Open Access Optional)
+        $group->get('/channels', [\App\Controllers\ChannelController::class, 'index']);
+        $group->get('/channels/featured', [\App\Controllers\ChannelController::class, 'getFeatured']);
+        $group->get('/channels/new', [\App\Controllers\ChannelController::class, 'getNew']);
+        $group->get('/channels/{uuid}', [\App\Controllers\ChannelController::class, 'show']);
+        $group->get('/channels/{uuid}/ratings', [\App\Controllers\ChannelController::class, 'getRatings']);
+        $group->get('/channels/{uuid}/comments', [\App\Controllers\ChannelController::class, 'getComments']);
+        $group->get('/channels/related/{uuid}', [\App\Controllers\ChannelController::class, 'getRelated']);
+        
+        $group->post('/channels/{uuid}/heartbeat', [\App\Controllers\ChannelController::class, 'heartbeat']);
+        $group->post('/channels/{uuid}/view', [\App\Controllers\ChannelController::class, 'incrementView']);
+        $group->post('/channels/{uuid}/report', [\App\Controllers\ChannelController::class, 'report']);
     })->add(new \App\Middleware\OptionalAuthMiddleware());
 
     // Protected Routes
@@ -73,17 +86,18 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         $group->post('/customers/favorites/toggle', [\App\Controllers\FavoriteController::class, 'toggle']);
 
         // Channels
-        $group->get('/channels', [\App\Controllers\ChannelController::class, 'index']);
-        $group->get('/channels/featured', [\App\Controllers\ChannelController::class, 'getFeatured']);
-        $group->get('/channels/new', [\App\Controllers\ChannelController::class, 'getNew']);
-        $group->get('/channels/{uuid}', [\App\Controllers\ChannelController::class, 'show']);
-        $group->get('/channels/{uuid}/ratings', [\App\Controllers\ChannelController::class, 'getRatings']);
-        $group->get('/channels/{uuid}/comments', [\App\Controllers\ChannelController::class, 'getComments']);
-        $group->get('/channels/related/{uuid}', [\App\Controllers\ChannelController::class, 'getRelated']);
+        // Moved to Optional Auth Group for Open Access Support
+        // $group->get('/channels', [\App\Controllers\ChannelController::class, 'index']);
+        // $group->get('/channels/featured', [\App\Controllers\ChannelController::class, 'getFeatured']);
+        // $group->get('/channels/new', [\App\Controllers\ChannelController::class, 'getNew']);
+        // $group->get('/channels/{uuid}', [\App\Controllers\ChannelController::class, 'show']);
+        // $group->get('/channels/{uuid}/ratings', [\App\Controllers\ChannelController::class, 'getRatings']);
+        // $group->get('/channels/{uuid}/comments', [\App\Controllers\ChannelController::class, 'getComments']);
+        // $group->get('/channels/related/{uuid}', [\App\Controllers\ChannelController::class, 'getRelated']);
         
-        $group->post('/channels/{uuid}/heartbeat', [\App\Controllers\ChannelController::class, 'heartbeat']);
-        $group->post('/channels/{uuid}/view', [\App\Controllers\ChannelController::class, 'incrementView']);
-        $group->post('/channels/{uuid}/report', [\App\Controllers\ChannelController::class, 'report']);
+        // $group->post('/channels/{uuid}/heartbeat', [\App\Controllers\ChannelController::class, 'heartbeat']);
+        // $group->post('/channels/{uuid}/view', [\App\Controllers\ChannelController::class, 'incrementView']);
+        // $group->post('/channels/{uuid}/report', [\App\Controllers\ChannelController::class, 'report']);
 
         // Payments
         $group->post('/payments/create-order', [\App\Controllers\Api\PaymentController::class, 'createOrder']);
