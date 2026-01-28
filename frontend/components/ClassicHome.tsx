@@ -39,6 +39,7 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
 
   // Filtering State
   const [showTopTrending, setShowTopTrending] = useState(true);
+  const [isOpenAccess, setIsOpenAccess] = useState(false);
 
   useEffect(() => {
       const fetchSettings = async () => {
@@ -56,6 +57,9 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
                   // Ensure it is array (Controller returns array)
                   const platformsArray = Array.isArray(platforms) ? platforms : (typeof platforms === 'string' ? platforms.split(',') : []);
                   setShowTopTrending(platformsArray.includes('tv'));
+
+                  // Open Access Logic
+                  setIsOpenAccess(!!response.data.data.is_open_access);
               }
           } catch (err) {
               // fallback
@@ -455,11 +459,13 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
                     </div>
                  </div>
 
-                 <div className="flex items-center gap-2">
-                     <ClassicBackButton />
-                     <ClassicMenuButton onClick={() => setIsMenuOpen(true)} />
-                 </div>
-             </div>
+                  {!isOpenAccess && (
+                      <div className="flex items-center gap-2">
+                          <ClassicBackButton />
+                          <ClassicMenuButton onClick={() => setIsMenuOpen(true)} />
+                      </div>
+                  )}
+              </div>
 
              {/* Filters - TV Friendly Cycle Button */}
              <div className="flex gap-2">

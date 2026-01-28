@@ -13,35 +13,40 @@ class CustomerController
 {
     public function index(Request $request, Response $response): Response
     {
-        $params = $request->getQueryParams();
-        $perPage = $params['per_page'] ?? 20;
-        
-        $query = Customer::with('plan')->where('status', '!=', 'deleted');
-        
-        if (isset($params['status']) && $params['status'] !== 'all') {
-            $query->where('status', $params['status']);
+        try {
+            $params = $request->getQueryParams();
+            $perPage = $params['per_page'] ?? 20;
+            
+            $query = Customer::with('plan')->where('status', '!=', 'deleted');
+            
+            if (isset($params['status']) && $params['status'] !== 'all' && $params['status'] !== '') {
+                $query->where('status', $params['status']);
+            }
+
+            if (isset($params['role']) && $params['role'] !== '') {
+                $query->where('role', $params['role']);
+            }
+
+            if (isset($params['search'])) {
+                $query->where(function($q) use ($params) {
+                    $q->where('name', 'LIKE', '%' . $params['search'] . '%')
+                      ->orWhere('phone', 'LIKE', '%' . $params['search'] . '%');
+                });
+            }
+
+            $sortBy = $params['sort_by'] ?? 'id';
+            $sortOrder = $params['sort_order'] ?? 'desc';
+            
+            $allowedSorts = ['id', 'name', 'created_at', 'status', 'phone'];
+            if (!in_array($sortBy, $allowedSorts)) $sortBy = 'id';
+            if (!in_array(strtolower($sortOrder), ['asc', 'desc'])) $sortOrder = 'desc';
+
+            $customers = $query->orderBy($sortBy, $sortOrder)->paginate($perPage)->toArray();
+            return ResponseFormatter::success($response, $customers);
+        } catch (\Throwable $e) {
+            error_log("CustomerController::index Error: " . $e->getMessage());
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
         }
-
-        if (isset($params['role']) && $params['role'] !== '') {
-            $query->where('role', $params['role']);
-        }
-
-        if (isset($params['search'])) {
-            $query->where(function($q) use ($params) {
-                $q->where('name', 'LIKE', '%' . $params['search'] . '%')
-                  ->orWhere('phone', 'LIKE', '%' . $params['search'] . '%');
-            });
-        }
-
-        $sortBy = $params['sort_by'] ?? 'id';
-        $sortOrder = $params['sort_order'] ?? 'desc';
-        
-        $allowedSorts = ['id', 'name', 'created_at', 'status'];
-        if (!in_array($sortBy, $allowedSorts)) $sortBy = 'id';
-        if (!in_array(strtolower($sortOrder), ['asc', 'desc'])) $sortOrder = 'desc';
-
-        $customers = $query->orderBy($sortBy, $sortOrder)->paginate($perPage)->toArray();
-        return ResponseFormatter::success($response, $customers);
     }
 
     public function getStats(Request $request, Response $response): Response

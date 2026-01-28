@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.25.0)
+# Nellai IPTV - Backend API (v1.27.0)
 
-**Version 1.24.1** | RESTful API built with Slim PHP Framework
+**Version 1.27.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -152,7 +152,11 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
-## Latest Updates (v1.25.0)
+## Latest Updates (v1.27.0)
+- **Enhanced Logging**: Integrated detailed exception tracing in `CustomerController` for faster diagnostics.
+- **Collation Maintenance**: Optimized database interaction strategy for UNION operations in the unified transaction engine.
+
+## Latest Updates (v1.26.0)
 - **Open Access Support**: Logic to bypass subscription checks for unauthenticated requests when enabled.
 - **Unified Reporting**: New administrative logs combining Gateway payments and Wallet transactions.
 - **Settings Stability**: Fixed type-strictness bug when reading boolean settings from database.

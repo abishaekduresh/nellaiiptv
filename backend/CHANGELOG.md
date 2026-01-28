@@ -2,14 +2,15 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
-## [1.26.0] - 2026-01-28
+## [1.27.0] - 2026-01-28
 
 ### Added
-- **Open Access Bypass**: Integrated `is_open_access` check into `JwtMiddleware` and `AuthService` to bypass plans/platform/device-limit requirements globally.
-- **Boolean Sanitization**: Added `filter_var` sanitization for `is_featured`, `is_premium`, `is_ad_enabled`, and `is_open_access` in admin controllers to fix toggle persistence (Off state).
+- **Detiled Error Logging**: Wrapped `CustomerController::index` in a try-catch block with `error_log` output for precise failure diagnostics.
 
-### Fixed
-- **Middleware Safety**: Ensured cross-platform access for Open Access users by skipping platform-restriction checks in `AuthService`.
+### Improved
+- **Maintenance**: Investigated and documented database collation requirements for `UNION` operations in `AdminTransactionController::getUnifiedLogs`.
+
+## [1.26.0] - 2026-01-28
 
 ## [1.25.0] - 2026-01-28
 
