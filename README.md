@@ -6,34 +6,37 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `frontend` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.35.1
-- **Key Features**: Reseller Management, Transaction Filtering, Role-Based UI, SEO Landing Page.
+- **Version**: 1.37.0
+- **Key Features**: Open Access Mode, Reseller Management, Transaction Filtering, SEO Landing Page, Disclaimer UI logic.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.24.1
-- **Key Features**: Reseller System, Device Limits, Transaction Search, Payment Gateway Integration.
+- **Version**: 1.26.0
+- **Key Features**: Auth Bypass Logic, Unified Admin Logs, Reseller System, Device Limits, Boolean Sanitization.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
 - **Version**: 1.6.1+10
 - **Key Features**: MP4 Fallback, Clickable Ads, Retry Countdown, Android TV Compliance.
 
-## Recent Updates (v1.6.1+10 App / v1.35.1 Frontend / v1.24.1 Backend)
-
-### Backend
-- **Reseller Management**: Role-based customer system with 'customer' and 'reseller' types.
-- **Device Limits**: Resellers fixed at 1 device; customers use plan-defined limits.
-- **Subscription Bypass**: Resellers no longer require active subscription plans.
-- **Transaction Filtering**: Enhanced admin API with search and filter capabilities.
-- **Payment Flow Fix**: Resolved blocking issue for subscription purchases.
+## Recent Updates (v1.6.1+10 App / v1.37.0 Frontend / v1.26.0 Backend)
 
 ### Frontend
-- **Admin Panel**: Added reseller creation and management interface.
-- **Role Display**: Visual badges (purple/blue) across customer lists and profiles.
-- **Transaction Search**: Advanced filtering by status, gateway, and search terms.
-- **Profile Customization**: Different layouts for resellers vs customers.
-- **Enhanced UX**: Role filtering and sortable customer tables.
+- **Open Access**: Guests can watch channels without login if enabled in backend.
+- **Disclaimer**: Resolved z-index collision with playback error screens.
+- **UX**: Automatic redirection from landing page to channels for guests.
+- **Fix**: Resolved double-header UI bug on mobile reseller pages.
+
+### Backend
+- **Subscription Bypass**: Robust support for Open Access mode in `JwtMiddleware` and `AuthService`.
+- **Admin Tools**: Unified transaction report for Gateway and Wallet logs.
+- **Sanitization**: Fixed toggle save issues for Featured, Premium, and Open Access settings.
+- **Fix**: Relaxed database setting value type checking.
+
+## Recent Updates (v1.35.1 Frontend / v1.24.1 Backend)
+- **Reseller Stats**: Fixed database migrations for customer ownership tracking.
+- **Wallet Integration**: Consolidated wallet card and history in reseller dashboard.
+- **Timezone**: System-wide IST synchronization for backend and frontend expiry calculations.
 
 ## Recent Updates (v1.33.0 Frontend / v1.22.0 Backend)
 

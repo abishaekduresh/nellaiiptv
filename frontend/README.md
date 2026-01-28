@@ -1,17 +1,14 @@
-# Nellai IPTV - Frontend v1.35.1
+# Nellai IPTV - Frontend v1.36.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.35.1)**
-- **Reseller Dashboard**: Optimized UI with integrated Wallet Card and removal of redundant stats.
-- **Timezone Support**: Fixed date calculation issues in "Assign Plan" modal.
-- **Navbar**: Improved layout by removing bottom margin.
-- **Reseller Management**:
-    - **Admin Panel**: Added role selection (Customer/Reseller) to customer creation/editing forms.
-    - **Visual Indicators**: Role badges throughout the UI (purple for Resellers, blue for Customers).
-    - **Profile Customization**: Profile page now displays different layouts for resellers vs customers.
+### **Latest Updates (v1.36.0)**
+- **Open Access Mode**: Unauthenticated guests can now watch channels directly if enabled in settings.
+- **Auto-Redirection**: Intelligent routing from home to channels list for guest users in Open Access mode.
+- **Mobile UI Fix**: Resolved double-header issue on reseller dashboard pages for mobile devices.
+- **Reseller Dashboard (v1.35.1)**: Integrated Wallet Card and optimized timezone-aware plan assignments.
 - **Transaction Management**:
     - **Advanced Filtering**: Search and filter admin transactions by status, gateway, and search term.
     - **Improved UX**: Added dedicated transaction layout for consistency.

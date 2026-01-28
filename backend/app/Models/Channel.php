@@ -12,6 +12,12 @@ class Channel extends Model
         'category_id', 'state_id', 'language_id', 'district_id', 'thumbnail_path', 'logo_path',
         'is_featured', 'expiry_at', 'status', 'created_at', 'is_premium', 'allowed_platforms'
     ];
+
+    protected $casts = [
+        'is_featured' => 'boolean',
+        'is_premium' => 'boolean',
+        'is_ad_enabled' => 'boolean',
+    ];
     
     protected $hidden = ['thumbnail_path', 'logo_path'];
     protected $appends = ['thumbnail_url', 'logo_url', 'viewers_count_formatted', 'average_rating'];

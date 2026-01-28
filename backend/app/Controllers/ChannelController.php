@@ -28,8 +28,9 @@ class ChannelController
         $filters['platform'] = strtolower($platform);
 
         $user = $request->getAttribute('user');
-        $isOpenAccess = Setting::get('is_open_access', 0) == 1;
-
+        $isOpenAccessVal = Setting::get('is_open_access', 0);
+        $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
+        
         // Enforce Auth if not Open Access
         if (!$user && !$isOpenAccess) {
              return ResponseFormatter::error($response, 'Unauthorized', 401);
@@ -59,28 +60,27 @@ class ChannelController
     public function getFeatured(Request $request, Response $response): Response
     {
         $limit = $request->getQueryParams()['limit'] ?? 20;
-        // Platform enforced by middleware
         $platform = $request->getHeaderLine('X-Client-Platform');
         
         $user = $request->getAttribute('user');
-        $isOpenAccess = Setting::get('is_open_access', 0) == 1;
+        $isOpenAccessVal = Setting::get('is_open_access', 0);
+        $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
 
         if (!$user && !$isOpenAccess) {
              return ResponseFormatter::error($response, 'Unauthorized', 401);
         }
 
-        $channels = $this->channelService->getFeatured((int)$limit, strtolower($platform));
-        // Note: getFeatured in service doesn't currently accept allowPremium flag, 
-        // it calls processChannelOutput internally without it? 
-        // Checking Service: getFeatured DOES call processChannelOutput($channel). 
-        // It uses default false for allowPremium. 
-        // I should update Service or just iterate here? 
-        // Service `getFeatured` implementation loops and calls `processChannelOutput`. 
-        // But `processChannelOutput` second arg is `$allowPremium` default false.
-        // `getFeatured` implementation in Service does NOT pass the second arg.
-        // So featured channels are ALWAYS redacted if premium? 
-        // I will fix this by re-processing or assuming featured ones are free?
-        // Actually, let's just return what service returns for now, ensuring access control.
+        $allowPremium = $isOpenAccess;
+        if ($user) {
+             $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
+             if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
+                 if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
+                     $allowPremium = true;
+                 }
+             }
+        }
+
+        $channels = $this->channelService->getFeatured((int)$limit, strtolower($platform), $allowPremium);
         return ResponseFormatter::success($response, $channels, 'Featured channels retrieved successfully');
     }
 
@@ -95,8 +95,9 @@ class ChannelController
             $platform = !empty($platform) ? strtolower($platform) : 'web';
 
             $user = $request->getAttribute('user');
-            $isOpenAccess = Setting::get('is_open_access', 0) == 1;
-
+            $isOpenAccessVal = Setting::get('is_open_access', 0);
+            $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
+            
             if (!$user && !$isOpenAccess) {
                 return ResponseFormatter::error($response, 'Unauthorized', 401);
             }
@@ -236,9 +237,7 @@ class ChannelController
     public function getRelated(Request $request, Response $response, string $uuid): Response
     {
         try {
-            // Platform enforced by middleware
             $platform = $request->getHeaderLine('X-Client-Platform');
-
             $user = $request->getAttribute('user');
             $isOpenAccess = Setting::get('is_open_access', 0) == 1;
 
@@ -246,7 +245,17 @@ class ChannelController
                 return ResponseFormatter::error($response, 'Unauthorized', 401);
             }
 
-            $channels = $this->channelService->getRelated($uuid, strtolower($platform));
+            $allowPremium = $isOpenAccess;
+            if ($user) {
+                 $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
+                 if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
+                     if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
+                         $allowPremium = true;
+                     }
+                 }
+            }
+
+            $channels = $this->channelService->getRelated($uuid, strtolower($platform), $allowPremium);
             return ResponseFormatter::success($response, $channels, 'Related channels retrieved successfully');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 404);
@@ -255,9 +264,7 @@ class ChannelController
 
     public function getNew(Request $request, Response $response): Response
     {
-        // Platform enforced by middleware
         $platform = $request->getHeaderLine('X-Client-Platform');
-
         $user = $request->getAttribute('user');
         $isOpenAccess = Setting::get('is_open_access', 0) == 1;
 
@@ -265,7 +272,17 @@ class ChannelController
                 return ResponseFormatter::error($response, 'Unauthorized', 401);
         }
 
-        $channels = $this->channelService->getNew(strtolower($platform));
+        $allowPremium = $isOpenAccess;
+        if ($user) {
+             $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
+             if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
+                 if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
+                     $allowPremium = true;
+                 }
+             }
+        }
+
+        $channels = $this->channelService->getNew(strtolower($platform), $allowPremium);
         return ResponseFormatter::success($response, $channels, 'New channels retrieved successfully');
     }
 

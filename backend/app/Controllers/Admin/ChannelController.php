@@ -56,6 +56,11 @@ class ChannelController
         $data = $request->getParsedBody() ?? [];
         $uploadedFiles = $request->getUploadedFiles();
 
+        // Handle Boolean fields from FormData
+        $data['is_featured'] = filter_var($data['is_featured'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $data['is_premium'] = filter_var($data['is_premium'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $data['is_ad_enabled'] = filter_var($data['is_ad_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
         // Handle File Uploads
         if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
             $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails');
@@ -109,6 +114,10 @@ class ChannelController
         $data = $request->getParsedBody() ?? [];
         $uploadedFiles = $request->getUploadedFiles();
 
+        // Handle Boolean fields from FormData
+        if (isset($data['is_featured'])) $data['is_featured'] = filter_var($data['is_featured'], FILTER_VALIDATE_BOOLEAN);
+        if (isset($data['is_premium'])) $data['is_premium'] = filter_var($data['is_premium'], FILTER_VALIDATE_BOOLEAN);
+        if (isset($data['is_ad_enabled'])) $data['is_ad_enabled'] = filter_var($data['is_ad_enabled'], FILTER_VALIDATE_BOOLEAN);
 
         unset($data['thumbnail_url']); // Frontend might send this
         unset($data['logo_url']);      // Frontend might send this
@@ -138,6 +147,8 @@ class ChannelController
 
             $channel = $this->channelService->update($uuid, $data);
 
+            error_log("DEBUG: Channel Updated Successfully. New State: is_featured=" . ($channel->is_featured ? 'true' : 'false') . ", is_premium=" . ($channel->is_premium ? 'true' : 'false'));
+
             // Cleanup Old Files if replaced
             if (isset($data['thumbnail_path']) && $oldThumbnail && $oldThumbnail !== $data['thumbnail_path']) {
                 $this->deleteFile($oldThumbnail);
@@ -148,6 +159,7 @@ class ChannelController
 
             return ResponseFormatter::success($response, $channel, 'Channel updated successfully');
         } catch (\Throwable $e) {
+            error_log("DEBUG: Update Failed: " . $e->getMessage());
             return ResponseFormatter::error($response, $e->getMessage(), 500);
         }
     }

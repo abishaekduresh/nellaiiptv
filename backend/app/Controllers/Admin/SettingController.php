@@ -47,7 +47,14 @@ class SettingController
                 throw new Exception('Value is required');
             }
 
-            Setting::set($key, $data['value']);
+            $value = $data['value'];
+            
+            // Handle boolean settings that might come as strings from FormData/JSON
+            if ($key === 'is_open_access' || $key === 'maintenance_mode') {
+                $value = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? '1' : '0';
+            }
+
+            Setting::set($key, $value);
             $setting = Setting::where('setting_key', $key)->first();
             
             return ResponseFormatter::success($response, $setting, 'Setting updated');

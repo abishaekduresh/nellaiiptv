@@ -60,7 +60,13 @@ export default function ChannelsPage() {
     try {
         setLoading(true);
         const settingsRes = await api.get('/settings/public');
-        const isOpenAccess = settingsRes.data.status && settingsRes.data.data.is_open_access;
+        
+        const rawIsOpenAccess = settingsRes.data.data.is_open_access;
+        const isOpenAccess = settingsRes.data.status && (
+            rawIsOpenAccess === true || 
+            rawIsOpenAccess === 1 || 
+            rawIsOpenAccess === '1'
+        );
         
         // Auth Check Logic
         if (!isOpenAccess) {
