@@ -31,7 +31,11 @@ class RazorpayDriver implements PaymentDriverInterface
             'receipt'         => (string) $transaction->uuid,
             'amount'          => (int) ($transaction->amount * 100), // Razorpay expects paise
             'currency'        => $transaction->currency,
-            'payment_capture' => 1 // Auto capture
+            'payment_capture' => 1, // Auto capture
+            'notes'           => [
+                'transaction_uuid' => $transaction->uuid,
+                'type' => 'plan_subscription'
+            ]
         ];
 
         $razorpayOrder = $this->api->order->create($orderData);
@@ -72,7 +76,11 @@ class RazorpayDriver implements PaymentDriverInterface
             'receipt'         => 'W-' . substr($customer->uuid, -12) . '-' . time(),
             'amount'          => (int) ($amount * 100), // Razorpay expects paise
             'currency'        => 'INR',
-            'payment_capture' => 1
+            'payment_capture' => 1,
+            'notes'           => [
+                'customer_uuid' => $customer->uuid,
+                'type' => 'wallet_topup'
+            ]
         ];
 
         $razorpayOrder = $this->api->order->create($orderData);
@@ -103,6 +111,19 @@ class RazorpayDriver implements PaymentDriverInterface
         }
         try {
             $this->api->utility->verifyPaymentSignature($attributes);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    public function verifyWebhookSignature($payload, $signature, $secret): bool
+    {
+        if (!$this->api) {
+            throw new \Exception("Razorpay keys not configured");
+        }
+        try {
+            $this->api->utility->verifyWebhookSignature($payload, $signature, $secret);
             return true;
         } catch (\Exception $e) {
             return false;
