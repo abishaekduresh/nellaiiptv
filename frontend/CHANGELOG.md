@@ -2,15 +2,16 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
-## [1.37.0] - 2026-01-28
+## [1.38.0] - 2026-01-28
 
 ### Added
-- **Open Access Mode**: Full implementation including `JwtMiddleware` bypass logic on backend (v1.26.0).
-- **Auto Redirect**: Home page (`/`) automatically redirects unauthenticated users to `/channels` when Open Access is enabled.
+- **Kiosk Mode**: Automatically hides "Back" and "Menu" navigation buttons in `ClassicHome.tsx` when `is_open_access` is enabled (evaluated from public settings).
 
-### Fixed
-- **Disclaimer Popup**: Increased `z-index` to `9999` in `DisclaimerModal.tsx` to ensure it stays in front of player error overlays and report modals.
-- **Auth Evaluation**: Standardized `is_open_access` boolean evaluation across `ChannelsPage` and `ChannelPage`.
+### Improved
+- **Disclaimer Visibility**: Boosted z-index and optimized rendering logic for `DisclaimerModal` to prevent Clipping/Overlapping with playback error screens.
+- **Open Access Logic**: Refined state initialization for `isOpenAccess` across all player components.
+
+## [1.37.0] - 2026-01-28
 
 ## [1.36.0] - 2026-01-28
 

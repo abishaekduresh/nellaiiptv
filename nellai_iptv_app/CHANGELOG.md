@@ -1,3 +1,9 @@
+## [1.6.1+11] - 2026-01-28
+
+### Added
+- **Maintenance**: Version synchronization with Frontend v1.38.0 and Backend v1.27.0.
+- **Improved**: System stability and API response handling in alignment with recent backend logging improvements.
+
 ## [1.6.1+10] - 2026-01-27
 
 ### Added

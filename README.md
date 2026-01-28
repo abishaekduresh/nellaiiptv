@@ -6,32 +6,32 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `frontend` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.37.0
-- **Key Features**: Open Access Mode, Reseller Management, Transaction Filtering, SEO Landing Page, Disclaimer UI logic.
+- **Version**: 1.38.0
+- **Key Features**: Kiosk-style Open Access, Reseller Management, Transaction Filtering, SEO Landing Page, Disclaimer UI logic.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.26.0
+- **Version**: 1.27.0
 - **Key Features**: Auth Bypass Logic, Unified Admin Logs, Reseller System, Device Limits, Boolean Sanitization.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.6.1+10
+- **Version**: 1.6.1+11
 - **Key Features**: MP4 Fallback, Clickable Ads, Retry Countdown, Android TV Compliance.
 
-## Recent Updates (v1.6.1+10 App / v1.37.0 Frontend / v1.26.0 Backend)
+## Recent Updates (v1.6.1+11 App / v1.38.0 Frontend / v1.27.0 Backend)
 
 ### Frontend
+- **Kiosk Mode**: Automatically hides "Back" and "Menu" buttons in Classic Mode when Open Access is active.
+- **Disclaimer**: Enhanced visibility and z-index management for cross-component overlays.
 - **Open Access**: Guests can watch channels without login if enabled in backend.
-- **Disclaimer**: Resolved z-index collision with playback error screens.
-- **UX**: Automatic redirection from landing page to channels for guests.
-- **Fix**: Resolved double-header UI bug on mobile reseller pages.
 
 ### Backend
+- **Error Tracking**: Implemented detailed try-catch logging for customer management debugging.
 - **Subscription Bypass**: Robust support for Open Access mode in `JwtMiddleware` and `AuthService`.
-- **Admin Tools**: Unified transaction report for Gateway and Wallet logs.
 - **Sanitization**: Fixed toggle save issues for Featured, Premium, and Open Access settings.
-- **Fix**: Relaxed database setting value type checking.
+
+## Recent Updates (v1.6.1+10 App / v1.37.0 Frontend / v1.26.0 Backend)
 
 ## Recent Updates (v1.35.1 Frontend / v1.24.1 Backend)
 - **Reseller Stats**: Fixed database migrations for customer ownership tracking.

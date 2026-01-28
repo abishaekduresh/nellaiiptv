@@ -1,16 +1,15 @@
-## [1.6.1+10] - App | [1.37.0] - Frontend | [1.26.0] - Backend - 2026-01-28
+## [1.6.1+11] - App | [1.38.0] - Frontend | [1.27.0] - Backend - 2026-01-28
 
 ### Frontend (Next.js)
-- **Feature**: **Open Access Mode** - Guests can now watch channels without login if enabled in backend.
-- **UX**: Auto-redirect from Landing Page to Channels List for guests in Open Access mode.
-- **Fix**: **Disclaimer Popup** - Boosted z-index to 9999 to ensure visibility on top of playback errors.
-- **Fix**: Resolved mobile layout issues (double headers) in Reseller Dashboard.
+- **Feature**: **Kiosk Mode** - Automatically hides "Back" and "Menu" navigation buttons in Classic Mode when `is_open_access` is enabled.
+- **Improved**: Logic for disclaimer visibility and z-index depth to prevent overlay clipping.
+- **Improved**: Initial state evaluation for Open Access settings in player components.
 
 ### Backend (PHP)
-- **Feature**: Logic to support "Open Access" mode, bypassing subscription checks in `JwtMiddleware` and `AuthService`.
-- **Feature**: Unified Admin Transaction Report combining Gateway payments and Wallet logs.
-- **Fix**: **Boolean Sanitization** - Implemented robust filtering for `is_featured`, `is_premium`, `is_ad_enabled`, and `is_open_access` toggles in admin controllers.
-- **Fix**: Relaxed type checking for boolean-like settings from database.
+- **Logging**: Enhanced error reporting in `CustomerController` with detailed exception tracing for debugging customer list failures.
+- **Maintenance**: Addressed database collation troubleshooting for unified transaction reporting queries.
+
+## [1.6.1+10] - App | [1.37.0] - Frontend | [1.26.0] - Backend - 2026-01-28
 
 ## [1.6.1+10] - App | [1.36.0] - Frontend | [1.25.0] - Backend - 2026-01-28
 
