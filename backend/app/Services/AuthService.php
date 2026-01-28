@@ -91,9 +91,12 @@ class AuthService
             throw new Exception('Account is not active');
         }
 
-        // Subscription Checks (skip for resellers)
+        // Subscription Checks (skip for resellers and in Open Access mode)
+        $isOpenAccessVal = \App\Models\Setting::get('is_open_access', 0);
+        $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
+
         $isReseller = ($customer->role === 'reseller');
-        if (!$isReseller) {
+        if (!$isReseller && !$isOpenAccess) {
             $plan = $customer->plan;
             
             // 1. Expiry Check
@@ -110,16 +113,18 @@ class AuthService
                         }
                     }
                  } catch (\Exception $e) {
+                     if ($e->getCode() === 403) throw $e;
                      error_log("Date Error in AuthService: " . $e->getMessage());
                  }
             }
         } else {
-            $plan = null; // Resellers don't use subscription plans
+            $plan = ($isReseller) ? null : $customer->plan; // Resellers don't use subscription plans
         }
         
         // 2. Platform Access Check: Ensure the user's plan permits access from the current device type
+        // Skip for Open Access
         $currentPlatform = $deviceInfo['platform'] ?? 'web';
-        if ($plan && !empty($plan->platform_access)) {
+        if ($plan && !empty($plan->platform_access) && !$isOpenAccess) {
             $allowedPlatforms = $plan->platform_access;
             if (!in_array($currentPlatform, $allowedPlatforms)) {
                 throw new Exception("Access denied on {$currentPlatform} platform. Upgrade plan.", 403);

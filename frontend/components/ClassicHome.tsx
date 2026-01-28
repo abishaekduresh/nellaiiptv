@@ -613,7 +613,7 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
         {!!channel.is_premium && (
           <div className="absolute top-2 left-2 flex items-center gap-1 bg-yellow-500 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow-lg z-10">
             <Crown size={10} fill="currentColor" strokeWidth={2.5} />
-            <span>PREMIUM</span>
+            {/* <span>PREMIUM</span> */}
           </div>
         )}
 

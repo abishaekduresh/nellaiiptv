@@ -27,8 +27,13 @@ export default function ChannelPage() {
     try {
         setLoading(true);
         // 1. Fetch Settings First
-        const settingsRes = await api.get('/settings/public');
-        const isOpenAccess = settingsRes.data.status && settingsRes.data.data.is_open_access;
+        const settingsRes = await api.get('/settings/public'); 
+        const rawIsOpenAccess = settingsRes.data.data.is_open_access;
+        const isOpenAccess = settingsRes.data.status && (
+            rawIsOpenAccess === true || 
+            rawIsOpenAccess === 1 || 
+            rawIsOpenAccess === '1'
+        );
         
         // 2. Auth Check Logic (Only if NOT Open Access)
         if (!isOpenAccess) {

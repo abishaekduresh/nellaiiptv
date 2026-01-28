@@ -111,7 +111,7 @@ class ChannelService
         return $channel;
     }
 
-    public function getAll(array $filters = []): array
+    public function getAll(array $filters = [], bool $allowPremium = false): array
     {
         $query = Channel::query()
             ->select('channels.*')
@@ -209,18 +209,18 @@ class ChannelService
         // Handle pagination structure or direct array
         if (isset($results['data'])) {
             foreach ($results['data'] as &$item) {
-                $item = $this->processChannelOutput($item);
+                $item = $this->processChannelOutput($item, $allowPremium);
             }
         } else {
             foreach ($results as &$item) {
-                $item = $this->processChannelOutput($item);
+                $item = $this->processChannelOutput($item, $allowPremium);
             }
         }
 
         return $results;
     }
 
-    public function getFeatured(int $limit = 20, string $platform = 'web'): array
+    public function getFeatured(int $limit = 20, string $platform = 'web', bool $allowPremium = false): array
     {
         $channels = Channel::where('status', 'active')
             ->where('is_featured', 1)
@@ -233,7 +233,7 @@ class ChannelService
             ->toArray();
 
         foreach ($channels as &$channel) {
-            $channel = $this->processChannelOutput($channel);
+            $channel = $this->processChannelOutput($channel, $allowPremium);
         }
 
         return $channels;
@@ -327,7 +327,7 @@ class ChannelService
             ->toArray();
     }
 
-    public function getRelated(string $uuid, string $platform = 'web'): array
+    public function getRelated(string $uuid, string $platform = 'web', bool $allowPremium = false): array
     {
         $channel = $this->getOne($uuid);
         
@@ -342,13 +342,13 @@ class ChannelService
             ->toArray();
 
         foreach ($channels as &$item) {
-            $item = $this->processChannelOutput($item);
+            $item = $this->processChannelOutput($item, $allowPremium);
         }
 
         return $channels;
     }
 
-    public function getNew(string $platform = 'web'): array
+    public function getNew(string $platform = 'web', bool $allowPremium = false): array
     {
         $channels = Channel::where('status', 'active')
             ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
@@ -360,7 +360,7 @@ class ChannelService
             ->toArray();
 
         foreach ($channels as &$item) {
-            $item = $this->processChannelOutput($item);
+            $item = $this->processChannelOutput($item, $allowPremium);
         }
 
         return $channels;

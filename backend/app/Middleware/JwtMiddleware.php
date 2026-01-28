@@ -61,10 +61,14 @@ class JwtMiddleware implements MiddlewareInterface
                         }
                     }
 
+                    $isOpenAccessVal = \App\Models\Setting::get('is_open_access', 0);
+                    $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
+
                     // POLICY: Redirect to Plans if plan is missing AND NOT accessing management/profile
                     // EXCEPTION: Resellers don't need a subscription plan
+                    // EXCEPTION: Open Access mode bypasses plan requirement
                     $isReseller = ($customer->role === 'reseller');
-                    if (!$customer->plan && !$isManagementPath && !$isReseller) {
+                    if (!$customer->plan && !$isManagementPath && !$isReseller && !$isOpenAccess) {
                          return ResponseFormatter::error(new SlimResponse(), 'An active subscription plan is required to access this feature.', 403, ['error' => 'subscription_required']);
                     }
 
@@ -72,7 +76,10 @@ class JwtMiddleware implements MiddlewareInterface
                     // Resellers: Always 1 device
                     // Customers with plan: Use plan's device_limit
                     // Customers without plan: Default to 1
-                    if ($isReseller) {
+                    // EXCEPTION: Open Access mode bypasses device limits
+                    if ($isOpenAccess) {
+                        $deviceLimit = 999; // Effectively unlimited in Open Access
+                    } elseif ($isReseller) {
                         $deviceLimit = 1;
                     } else {
                         $deviceLimit = $customer->plan ? $customer->plan->device_limit : 1;

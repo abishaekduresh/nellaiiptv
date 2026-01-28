@@ -55,6 +55,9 @@ class PublicSettingController
         
         $fallbackMp4Url = Setting::get('fallback_404_mp4_url', '');
 
+        $isOpenAccessVal = Setting::get('is_open_access', '0');
+        $isOpenAccess = ($isOpenAccessVal == '1' || $isOpenAccessVal == 1 || $isOpenAccessVal === true);
+
         return ResponseFormatter::success($response, [
             'logo_url' => $logoUrl,
             'app_logo_png_url' => $pngLogoUrl,
@@ -63,7 +66,7 @@ class PublicSettingController
             'maintenance_title' => $maintenanceTitle,
             'maintenance_message' => $maintenanceMessage,
             'top_trending_platforms' => $trendingPlatforms,
-            'is_open_access' => Setting::get('is_open_access', '0') == '1',
+            'is_open_access' => $isOpenAccess,
         ]);
     }
 }
