@@ -6,13 +6,22 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     
-    <!-- TV Support (Optional but good for compatibility) -->
+    <!-- TV Support & Hardware Compatibility -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     
-    <!-- Implicitly required by permissions but should be optional -->
+    <!-- Explicitly mark mobile-only or specific hardware as optional to avoid Play Store filtering -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
+    <uses-feature android:name="android.hardware.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    
+    <!-- Internet Hardware (Required for TV streaming, but marked optional to support different connection types) -->
     <uses-feature android:name="android.hardware.wifi" android:required="false" />
-    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.ethernet" android:required="false" />
+    
+    <!-- Optional Camera for apps that might use it but it shouldn't be required on TVs -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
