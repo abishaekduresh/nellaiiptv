@@ -63,6 +63,7 @@ class PublicSettingController
             'maintenance_title' => $maintenanceTitle,
             'maintenance_message' => $maintenanceMessage,
             'top_trending_platforms' => $trendingPlatforms,
+            'is_open_access' => Setting::get('is_open_access', '0') == '1',
         ]);
     }
 }

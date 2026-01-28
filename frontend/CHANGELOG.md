@@ -2,6 +2,14 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.36.0] - 2026-01-28
+
+### Added
+- **Open Access Mode**: Implemented support for `is_open_access` setting.
+- **Auto Redirect**: Home page (`/`) automatically redirects unauthenticated users to `/channels` when Open Access is enabled.
+- **Subscription Bypass**: Channel List and Player pages now bypass subscription checks for guests when Open Access is active.
+- **Mobile UI**: Removed double "Admin Panel" headers on mobile Reseller pages.
+
 ## [1.35.1] - 2026-01-28
 
 ### Added

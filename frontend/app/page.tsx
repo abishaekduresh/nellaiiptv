@@ -5,10 +5,21 @@ import { Play, Shield, Tv, Zap, Globe, Heart, Star, Users } from 'lucide-react';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
+import { useEffect } from 'react';
+import api from '@/lib/api';
 
 export default function Home() {
   const router = useRouter();
   const { user } = useAuthStore();
+
+  /* Redirect if Open Access is Enabled */
+  useEffect(() => {
+      api.get('/settings/public').then(res => {
+          if (res.data.status && res.data.data.is_open_access && !user) {
+              router.push('/channels');
+          }
+      }).catch(() => {});
+  }, [user, router]);
 
   const { focusProps: watchFocus, isFocused: isWatchFocused } = useTVFocus({
     onEnter: () => router.push('/channels'),
