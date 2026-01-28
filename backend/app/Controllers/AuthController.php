@@ -54,9 +54,10 @@ class AuthController
             return ResponseFormatter::error($response, 'Validation failed', 400, $errors);
         }
 
-        // Extract device info from headers or body
+        // Extract cross-platform identification headers
         $ipAddress = $request->getAttribute('ip_address') ?? $_SERVER['REMOTE_ADDR'] ?? null;
         $deviceInfo = [
+            'device_id' => $request->getHeaderLine('X-Device-Id') ?: null,
             'device_name' => $data['device_name'] ?? $request->getHeaderLine('User-Agent'),
             'user_agent' => $request->getHeaderLine('User-Agent'),
             'platform' => $request->getHeaderLine('X-Client-Platform') ?: 'web',

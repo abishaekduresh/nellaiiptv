@@ -12,7 +12,22 @@ import { useTVFocus } from '@/hooks/useTVFocus';
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const { token, setAuth, user } = useAuthStore((state) => ({ 
+    token: state.token, 
+    setAuth: state.setAuth,
+    user: state.user 
+  }));
+
+  useEffect(() => {
+    if (token && user) {
+      // Redirect based on user role
+      if (user.role === 'reseller') {
+        router.push('/reseller');
+      } else {
+        router.push('/');
+      }
+    }
+  }, [token, user, router]);
 
   useEffect(() => {
     const error = searchParams.get('error');
@@ -42,18 +57,41 @@ function LoginForm() {
     setLoading(true);
 
     try {
+      // Basic platform detection helper:
+      // Identifies the client environment (Web desktop, Mobile, or TV)
+      // to enforce platform-specific subscription rules.
+      const getPlatform = () => {
+          if (typeof window === 'undefined') return 'web';
+          const ua = window.navigator.userAgent.toLowerCase();
+          if (ua.includes('smart-tv') || ua.includes('tizen') || ua.includes('webos') || ua.includes('android tv')) return 'tv';
+          if (/android|iphone|ipad|ipod/.test(ua)) return 'mobile';
+          return 'web';
+      };
+
       const response = await api.post('/customers/login', {
         phone: formData.phone,
         password: formData.password,
+      }, {
+          headers: {
+              'X-Client-Platform': getPlatform()
+          }
       });
 
       if (response.data.status) {
         const { token, user } = response.data.data;
         setAuth(token, user, false);
         
-        // Handle redirection
-        const redirectPath = searchParams.get('redirect') || '/';
-        router.push(redirectPath);
+        // Check if user is reseller and redirect to reseller panel
+        if (user?.role === 'reseller') {
+          // Set admin flag for resellers to access admin layout
+          setAuth(token, user, true);
+          localStorage.setItem('admin_token', token);
+          router.push('/reseller');
+        } else {
+          // Handle regular customer redirection
+          const redirectPath = searchParams.get('redirect') || '/';
+          router.push(redirectPath);
+        }
       } else {
         toast.error(response.data.message || 'Login failed');
       }

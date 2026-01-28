@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Users, UserCheck, UserX, Crown, Eye } from 'lucide-react';
+import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Users, UserCheck, UserX, Crown, Eye, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import { Customer } from '@/types';
 import Modal from '@/components/ui/Modal';
 import CustomerForm from '@/components/admin/CustomerForm';
 import CustomerOverviewModal from '@/components/admin/CustomerOverviewModal';
+import AdminTopupModal from '@/components/admin/AdminTopupModal';
 
 
 export default function CustomersPage() {
@@ -17,6 +18,7 @@ export default function CustomersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
   
   // Sorting State
   const [sortBy, setSortBy] = useState('id');
@@ -25,6 +27,7 @@ export default function CustomersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [viewCustomerUuid, setViewCustomerUuid] = useState<string | null>(null);
+  const [topupCustomer, setTopupCustomer] = useState<{uuid: string, name: string, wallet_balance: number} | null>(null);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, blocked: 0, premium: 0 });
 
   const fetchStats = async () => {
@@ -45,6 +48,7 @@ export default function CustomersPage() {
           per_page: 20,
           search: search || undefined,
           status: statusFilter || undefined,
+          role: roleFilter || undefined,
           sort_by: sortBy,
           sort_order: sortOrder,
         },
@@ -65,11 +69,11 @@ export default function CustomersPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, sortBy, sortOrder]);
+  }, [search, statusFilter, roleFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchCustomers();
-  }, [page, search, statusFilter, sortBy, sortOrder]);
+  }, [page, search, statusFilter, roleFilter, sortBy, sortOrder]);
 
   const handleStatusUpdate = async (uuid: string, newStatus: string) => {
     try {
@@ -113,6 +117,14 @@ export default function CustomersPage() {
 
   const handleView = (uuid: string) => {
     setViewCustomerUuid(uuid);
+  };
+
+  const handleTopup = (customer: Customer) => {
+      setTopupCustomer({
+          uuid: customer.uuid,
+          name: customer.name,
+          wallet_balance: (customer as any).wallet_balance || 0
+      });
   };
 
   const handleSort = (column: string) => {
@@ -229,6 +241,16 @@ export default function CustomersPage() {
                     <option value="blocked">Blocked</option>
                     <option value="inactive">Inactive</option>
                 </select>
+
+                <select
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                    className="bg-background border border-gray-800 text-text-secondary rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
+                >
+                    <option value="">All Roles</option>
+                    <option value="customer">Customer</option>
+                    <option value="reseller">Reseller</option>
+                </select>
             </div>
         </div>
       </div>
@@ -263,6 +285,7 @@ export default function CustomersPage() {
                         Joined Date {getSortIcon('created_at')}
                     </div>
                 </th>
+                <th className="px-6 py-4">Role</th>
                 <th 
                     className="px-6 py-4 cursor-pointer hover:bg-white/5 transition-colors"
                     onClick={() => handleSort('status')}
@@ -277,11 +300,11 @@ export default function CustomersPage() {
             <tbody className="divide-y divide-gray-800">
               {loading ? (
                 <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-text-secondary">Loading...</td>
+                    <td colSpan={6} className="px-6 py-8 text-center text-text-secondary">Loading...</td>
                 </tr>
               ) : customers.length === 0 ? (
                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-text-secondary">No customers found</td>
+                    <td colSpan={6} className="px-6 py-8 text-center text-text-secondary">No customers found</td>
                 </tr>
               ) : (
                 customers.map((customer) => (
@@ -295,6 +318,17 @@ export default function CustomersPage() {
                     </td>
                     <td className="px-6 py-4 text-text-secondary">
                         {new Date(customer.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          (customer as any).role === 'reseller'
+                            ? 'bg-purple-500/20 text-purple-400'
+                            : 'bg-blue-500/20 text-blue-400'
+                        }`}
+                      >
+                        {(customer as any).role === 'reseller' ? 'Reseller' : 'Customer'}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -318,6 +352,16 @@ export default function CustomersPage() {
                         >
                             <Eye size={16} />
                         </button>
+
+                        {(customer as any).role === 'reseller' && (
+                            <button
+                                onClick={() => handleTopup(customer)}
+                                className="bg-green-500/10 hover:bg-green-500/20 text-green-400 p-2 rounded transition-colors"
+                                title="Topup Wallet"
+                            >
+                                <Wallet size={16} />
+                            </button>
+                        )}
 
                         <button
                             onClick={() => handleEdit(customer.uuid)}
@@ -398,6 +442,17 @@ export default function CustomersPage() {
             onCancel={() => setIsModalOpen(false)}
         />
     </Modal>
+
+    {topupCustomer && (
+        <AdminTopupModal
+            customer={topupCustomer}
+            onClose={() => setTopupCustomer(null)}
+            onSuccess={() => {
+                setTopupCustomer(null);
+                fetchCustomers();
+            }}
+        />
+    )}
     </div>
   );
 }

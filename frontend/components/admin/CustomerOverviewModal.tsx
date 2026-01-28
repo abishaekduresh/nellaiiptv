@@ -14,6 +14,7 @@ interface CustomerOverviewModalProps {
 
 export default function CustomerOverviewModal({ uuid, isOpen, onClose }: CustomerOverviewModalProps) {
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [walletTransactions, setWalletTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +24,13 @@ export default function CustomerOverviewModal({ uuid, isOpen, onClose }: Custome
         try {
           const res = await adminApi.get(`/admin/customers/${uuid}`);
           setCustomer(res.data.data);
+          
+          if ((res.data.data as any).role === 'reseller') {
+              const txRes = await adminApi.get(`/admin/customers/${uuid}/wallet/transactions`);
+              setWalletTransactions(txRes.data.data.data || txRes.data.data);
+          } else {
+              setWalletTransactions([]);
+          }
         } catch (error: any) {
           console.error(error);
           toast.error('Failed to load customer details');
@@ -109,19 +117,19 @@ export default function CustomerOverviewModal({ uuid, isOpen, onClose }: Custome
                         <CreditCard size={18} className="text-slate-500 mt-0.5" />
                         <div>
                             <p className="text-xs text-slate-500">Plan</p>
-                            <p className="text-white font-medium">{customer.plan?.name || 'Free Plan'}</p>
+                            <p className="text-white font-medium">{customer.plan?.name || 'No Active Subscription'}</p>
                         </div>
                     </div>
                     <div className="flex items-start gap-3">
-                         <div className={`w-4 h-4 rounded-full mt-1 ${customer.status === 'active' ? 'bg-green-500' : 'bg-red-500'}`} />
+                         <div className={`w-4 h-4 rounded-full mt-1 ${((customer as any).status === 'active' && customer.plan) ? 'bg-green-500' : 'bg-red-500'}`} />
                         <div>
-                            <p className="text-xs text-slate-500">Account Status</p>
-                            <p className={`font-medium ${customer.status === 'active' ? 'text-green-400' : 'text-red-400'}`}>
-                                {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
+                            <p className="text-xs text-slate-500">Subscription Status</p>
+                            <p className={`font-medium ${((customer as any).status === 'active' && customer.plan) ? 'text-green-400' : 'text-red-400'}`}>
+                                {((customer as any).status === 'active' && customer.plan) ? 'Active' : 'No Active Subscription'}
                             </p>
                         </div>
                     </div>
-                    {customer.subscription_expires_at && (
+                    {(customer.plan && customer.subscription_expires_at) && (
                          <div className="flex items-start gap-3">
                             <Clock size={18} className="text-slate-500 mt-0.5" />
                             <div>
@@ -148,7 +156,50 @@ export default function CustomerOverviewModal({ uuid, isOpen, onClose }: Custome
                     )}
                    </div>
                 </div>
-              </div>
+                </div>
+
+              
+              {/* Wallet History (Resellers Only) */}
+              {(customer as any).role === 'reseller' && (
+                  <div className="bg-slate-800/50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider">Wallet History</h3>
+                          <span className="text-green-400 font-bold">Balance: ₹{(customer as any).wallet_balance}</span>
+                      </div>
+                      
+                      {walletTransactions.length > 0 ? (
+                          <div className="overflow-x-auto">
+                              <table className="w-full text-left text-xs">
+                                  <thead className="text-slate-500 border-b border-slate-700">
+                                      <tr>
+                                          <th className="pb-2">Date</th>
+                                          <th className="pb-2">Desc</th>
+                                          <th className="pb-2 text-right">Amount</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-700">
+                                      {walletTransactions.map((tx: any) => (
+                                          <tr key={tx.id}>
+                                              <td className="py-2 text-slate-400">
+                                                  {new Date(tx.created_at).toLocaleDateString()}
+                                              </td>
+                                              <td className="py-2 text-white truncate max-w-[150px]" title={tx.description}>
+                                                  {tx.description}
+                                              </td>
+                                              <td className={`py-2 text-right font-medium ${tx.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
+                                                  {tx.type === 'credit' ? '+' : '-'}₹{Number(tx.amount).toFixed(2)}
+                                              </td>
+                                          </tr>
+                                      ))}
+                                  </tbody>
+                              </table>
+                          </div>
+                      ) : (
+                          <p className="text-slate-500 text-sm italic">No wallet transactions found</p>
+                      )}
+                  </div>
+              )}
+
             </div>
           ) : (
             <div className="text-center text-slate-400 py-12">Customer not found</div>

@@ -1,3 +1,4 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -10,6 +11,9 @@ import '../models/public_settings.dart';
 class ApiService {
   late Dio _dio;
   late String _currentHost;
+  final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
+  String? _cachedDeviceId;
+  String? _cachedPlatform;
 
   ApiService() {
     String baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:8000/api';
@@ -38,8 +42,9 @@ class ApiService {
 
     _dio = Dio(options);
     _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) {
-        options.headers['X-Client-Platform'] = _getPlatform();
+      onRequest: (options, handler) async {
+        options.headers['X-Client-Platform'] = await _getPlatform();
+        options.headers['X-Device-Id'] = await _getDeviceId();
         return handler.next(options);
       },
       onError: (DioException e, handler) {
@@ -49,15 +54,47 @@ class ApiService {
     ));
   }
 
-  String _getPlatform() {
-    if (kIsWeb) return 'web';
-    if (defaultTargetPlatform == TargetPlatform.android) return 'android'; // Could differentiate TV here if we had a check
-    if (defaultTargetPlatform == TargetPlatform.iOS) return 'ios';
-    return 'unknown';
+  // Platform Detection: Distinguishes between Mobile and TV (Leanback)
+  Future<String> _getPlatform() async {
+    if (_cachedPlatform != null) return _cachedPlatform!;
+    
+    if (kIsWeb) {
+      _cachedPlatform = 'web';
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
+      // Industry Standard: Check for Leanback feature to identify Android TV devices
+      bool isTV = androidInfo.systemFeatures.contains('android.software.leanback') || 
+                  androidInfo.host.toLowerCase().contains('tv') ||
+                  androidInfo.model.toLowerCase().contains('tv');
+      _cachedPlatform = isTV ? 'tv' : 'mobile';
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      _cachedPlatform = 'mobile';
+    } else {
+      _cachedPlatform = 'unknown';
+    }
+    return _cachedPlatform!;
   }
 
-  // TODO: Add TV detection logic later using device_info_plus if strictly needed for 'tv' platform header
+  // Persistent Device Identification: Retrieves hardware IDs (Android ID or IdentifierForVendor)
+  // to ensure one physical device only ever consumes one subscription slot.
+  Future<String> _getDeviceId() async {
+    if (_cachedDeviceId != null) return _cachedDeviceId!;
 
+    try {
+      if (kIsWeb) {
+        _cachedDeviceId = 'web-session'; // Basic fallback for web if needed
+      } else if (defaultTargetPlatform == TargetPlatform.android) {
+        AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
+        _cachedDeviceId = androidInfo.id; // Persistent Android ID
+      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+        IosDeviceInfo iosInfo = await _deviceInfo.iosInfo;
+        _cachedDeviceId = iosInfo.identifierForVendor; // Persistent iOS ID
+      }
+    } catch (e) {
+      _cachedDeviceId = 'unknown-device';
+    }
+    return _cachedDeviceId ?? 'unknown-device';
+  }
   Future<List<Channel>> getChannels({int limit = -1}) async {
     final response = await _dio.get('/channels', queryParameters: {'limit': limit});
     

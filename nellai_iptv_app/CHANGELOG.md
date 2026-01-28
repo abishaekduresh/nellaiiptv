@@ -1,3 +1,13 @@
+## [1.6.1+10] - 2026-01-27
+
+### Added
+- **API Optimization**: Synchronized with Backend v1.22.0 for improved session and plan reliability.
+
+## [1.6.0+9] - 2026-01-27
+
+### Added
+- **Global Sync**: Coordinated release with Frontend v1.32.0 and Backend v1.21.0.
+
 ## [1.5.3+8] - 2026-01-26
 
 ### Added

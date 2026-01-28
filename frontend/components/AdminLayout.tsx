@@ -14,23 +14,58 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     setMounted(true);
-    const token = localStorage.getItem('admin_token');
+    const token = localStorage.getItem('admin_token') || useAuthStore.getState().token;
+    if (token && !localStorage.getItem('admin_token')) {
+        localStorage.setItem('admin_token', token);
+    }
+    if (token && !localStorage.getItem('admin_token')) {
+        localStorage.setItem('admin_token', token);
+    }
     
     if (!token) {
-        router.push('/admin');
+        if (window.location.pathname.startsWith('/reseller')) {
+            router.push('/login');
+        } else {
+             router.push('/admin');
+        }
     } else if (!user) {
         // Hydrate store if we have an admin token but no user state (e.g. refresh)
+        // Check if this is a reseller (customer) or admin (user)
+        const authStorage = localStorage.getItem('auth-storage');
+        let isReseller = false;
+        
+        if (window.location.pathname.startsWith('/reseller')) {
+            isReseller = true;
+        } else if (authStorage) {
+            try {
+                const parsed = JSON.parse(authStorage);
+                isReseller = parsed?.state?.user?.role === 'reseller';
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+        
         import('@/lib/adminApi').then(({ default: adminApi }) => {
-            adminApi.get('/admin/profile')
+            // Resellers use customer profile, admins use admin profile
+            const profileEndpoint = isReseller ? '/customers/profile' : '/admin/profile';
+            
+            adminApi.get(profileEndpoint)
                 .then(res => {
                     if (res.data && res.data.data) {
                         useAuthStore.getState().setAuth(token, res.data.data, true);
                     }
                 })
-                .catch(() => {
-                    // Token likely invalid
-                    localStorage.removeItem('admin_token');
-                    router.push('/admin');
+                .catch((err) => {
+                    console.error("AdminLayout profile fetch error", err);
+                    // Only invalid token (401) should trigger logout/redirect
+                    if (err.response && err.response.status === 401) {
+                         localStorage.removeItem('admin_token');
+                         if (window.location.pathname.startsWith('/reseller')) {
+                             router.push('/login');
+                         } else {
+                             router.push('/admin');
+                         }
+                    }
                 });
         });
     }
@@ -53,7 +88,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <h1 className="ml-4 font-bold text-lg">Admin Panel</h1>
       </div>
 
-      <main className="md:ml-64 p-4 md:p-8">
+      <main className="md:ml-64 p-2 md:p-4">
         {children}
       </main>
     </div>

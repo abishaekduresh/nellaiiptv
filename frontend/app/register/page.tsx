@@ -11,9 +11,15 @@ import { useTVFocus } from '@/hooks/useTVFocus';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const { token, setAuth } = useAuthStore((state) => ({ token: state.token, setAuth: state.setAuth }));
   const [captcha, setCaptcha] = useState({ num1: 0, num2: 0, answer: 0 });
   const [userCaptcha, setUserCaptcha] = useState('');
+
+  useEffect(() => {
+    if (token) {
+      router.push('/');
+    }
+  }, [token, router]);
 
   const { focusProps, isFocused } = useTVFocus({
       className: "w-full bg-primary hover:bg-cyan-600 text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center mt-6 disabled:opacity-50 disabled:cursor-not-allowed",

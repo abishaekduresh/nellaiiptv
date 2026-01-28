@@ -2,6 +2,60 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.24.1] - 2026-01-28
+
+### Fixed
+- **Timezone**: Set default system timezone to `Asia/Kolkata` (IST) to fix date discrepancies.
+- **Reseller Stats**: Resolved missing column error (`created_by_id`) with database migration.
+- **Slim Application Error**: Fixed autoload issue causing 500 errors on dashboard stats API.
+
+### Added
+- **API**: `GET /reseller/dashboard/stats` endpoint now operational.
+
+## [1.24.0] - 2026-01-28
+
+### Added
+- Customer creation tracking system with `created_by_type` and `created_by_id` fields
+- Database migration: `add_customer_creation_tracking.sql` for ownership tracking
+- Ownership indicator in reseller customer search (`is_owned_by_reseller` flag)
+- Password requirement for reseller customer creation endpoint
+
+### Changed
+- ResellerCustomerController: List endpoint now filters customers by reseller ownership
+- ResellerCustomerController: Search endpoint returns all customers with ownership flag
+- AdminCustomerController: Tracks admin user ID when creating customers
+- AuthService: Sets `created_by_type='self'` for self-registrations
+
+### Fixed
+- Reseller customer filtering now properly shows only owned customers in list view
+
+## [1.23.0] - 2026-01-27
+
+### Added
+- **Reseller Management**: Added `role` field to Customer model to distinguish between 'customer' and 'reseller' accounts.
+- **Reseller Rules**: Resellers now have a fixed device limit of 1 and bypass all subscription requirements.
+- **Transaction Filtering**: Added search and filter capabilities (by status, gateway) to `/admin/transactions` endpoint.
+- **Role-Based Access**: Updated `JwtMiddleware` to exempt resellers from subscription validation.
+
+### Changed
+- **Customer API**: `CustomerController` now handles `role` field in create and update operations.
+- **Auth Service**: Updated `AuthService` to include `role` in user data returned during login and token generation.
+- **Device Limits**: Modified device limit logic to always enforce 1 device for resellers regardless of plan settings.
+
+### Fixed
+- **Subscription Purchase**: Resolved Catch-22 where users without a plan couldn't purchase one; added `/api/payments` to whitelist in `JwtMiddleware`.
+- **Payment Flow**: Updated middleware to allow payment requests even when device limit is reached.
+
+## [1.22.0] - 2026-01-27
+
+### Fixed
+- **Route Conflict**: Resolved critical 500 Slim Application Error on `/api/plans` by fixing route shadowing in `api.php`. Moved public/static routes before protected/variable routes to ensure correct FastRoute registration.
+- **Settings API**: Fixed undefined variable `$fallbackMp4Url` in `PublicSettingController.php`.
+
+### Improved
+- **Security Middleware**: Updated `OptionalAuthMiddleware.php` to catch all `Throwable` types during JWT decoding, preventing 500 crashes on malformed tokens.
+- **Infrastructure**: Guaranteed existence of `logs` directory for filesystem-based logging stability.
+
 ## [1.21.0] - 2026-01-26
 
 ### Added

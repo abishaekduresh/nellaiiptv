@@ -39,7 +39,7 @@ class OptionalAuthMiddleware implements MiddlewareInterface
                      $request = $request->withAttribute('user', $decoded);
                 }
 
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 // Token invalid or expired.
                 // Ignore and proceed as guest.
             }

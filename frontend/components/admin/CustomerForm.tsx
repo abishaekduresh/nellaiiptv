@@ -13,6 +13,7 @@ const customerSchema = z.object({
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   phone: z.coerce.number().min(10, 'Phone number must be at least 10 digits'),
   password: z.string().min(6, 'Password must be at least 6 characters').optional().or(z.literal('')),
+  role: z.enum(['customer', 'reseller']).default('customer'),
   status: z.enum(['active', 'blocked', 'inactive']).default('active'),
   plan_uuid: z.string().optional().nullable(),
   subscription_expires_at: z.string().optional().nullable(),
@@ -54,6 +55,7 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
     resolver: zodResolver(customerSchema),
     defaultValues: {
       status: 'active',
+      role: 'customer',
     },
   });
 
@@ -71,6 +73,7 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
       setValue('name', customer.name);
       setValue('email', customer.email || '');
       setValue('phone', customer.phone);
+      setValue('role', customer.role || 'customer');
       setValue('status', customer.status);
       setValue('plan_uuid', customer.plan?.uuid || '');
       setValue('subscription_expires_at', customer.subscription_expires_at ? customer.subscription_expires_at.substring(0, 16) : '');
@@ -159,6 +162,19 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
           placeholder={customerUuid ? "Enter to change password" : "Enter password"}
         />
         {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
+      </div>
+
+      {/* Role */}
+      <div>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Role</label>
+        <select
+          {...register('role')}
+          className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+        >
+          <option value="customer">Customer</option>
+          <option value="reseller">Reseller</option>
+        </select>
+        {errors.role && <p className="text-red-400 text-xs mt-1">{errors.role.message}</p>}
       </div>
 
       {/* Status */}

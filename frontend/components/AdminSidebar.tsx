@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen, CreditCard } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 const menuItems = [
@@ -22,6 +22,11 @@ const menuItems = [
     href: '/admin/customers', // Assuming this route might exist or will be added later
   },
   {
+    title: 'Transactions',
+    icon: CreditCard,
+    href: '/admin/transactions',
+  },
+  {
     title: 'API Keys',
     icon: Shield,
     href: '/admin/api-keys',
@@ -33,7 +38,7 @@ const menuItems = [
   },
   {
     title: 'Plans',
-    icon: Settings, // Or CreditCard if available, using Settings for now as I don't import CreditCard
+    icon: Settings,
     href: '/admin/plans',
   },
   {
@@ -51,11 +56,31 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
 
   const handleLogout = () => {
     logout();
     router.push('/admin');
+  };
+
+  // Filter menu items based on user role
+  const filteredMenuItems = menuItems.filter(item => {
+    // For resellers, show only Dashboard, Plans, and Customers
+    if (user?.role === 'reseller') {
+      return ['Dashboard', 'Plans', 'Customers'].includes(item.title);
+    }
+    // For admins, show everything
+    return true;
+  });
+
+  // Update menu item hrefs for resellers
+  const getMenuItemHref = (item: typeof menuItems[0]) => {
+    if (user?.role === 'reseller') {
+      if (item.title === 'Dashboard') return '/reseller';
+      if (item.title === 'Customers') return '/reseller/customers';
+      if (item.title === 'Plans') return '/reseller/plans';
+    }
+    return item.href;
   };
 
   return (
@@ -76,20 +101,24 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         <div className="p-6 border-b border-gray-800 flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold text-primary">Nellai IPTV</h1>
-            <p className="text-xs text-text-secondary mt-1">Admin Panel</p>
+            <p className="text-xs text-text-secondary mt-1">
+              {user?.role === 'reseller' ? 'Reseller Panel' : 'Admin Panel'}
+            </p>
           </div>
           {/* Close button for mobile can be added here if needed, but overlay click works too */}
         </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {menuItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+        {filteredMenuItems.map((item) => {
+          const href = getMenuItemHref(item);
+          // Exact match for active state to prevent multiple highlights
+          const isActive = pathname === href || (href !== '/admin/dashboard' && href !== '/reseller' && pathname.startsWith(href));
           const Icon = item.icon;
           
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={href}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                 isActive
                   ? 'bg-primary/20 text-primary'

@@ -10,10 +10,12 @@ class CustomerSession extends Model
     
     protected $fillable = [
         'customer_id',
+        'device_id',
         'session_token',
         'device_name',
         'platform',
         'ip_address',
+        'browser_info',
         'created_at',
         'last_active'
     ];

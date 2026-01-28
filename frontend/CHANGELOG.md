@@ -2,6 +2,65 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.35.1] - 2026-01-28
+
+### Added
+- **Reseller Dashboard**: Integrated wallet balance/add funds card into the top stats grid.
+
+### Changed
+- **Reseller UI**: Consolidated wallet history to full width in reseller dashboard.
+- **Navbar**: Removed bottom margin for cleaner layout on reseller pages.
+- **Assign Plan Modal**: Optimized date calculation to respect local user timezone and simplified UI (removed manual date input).
+
+### Removed
+- **Reseller Dashboard**: "Active Subscriptions" card removed to prioritize wallet actions.
+
+## [1.35.0] - 2026-01-28
+
+### Added
+- Reseller dashboard page at `/reseller` with stats, quick actions, and recent customers
+- Reseller plans page at `/reseller/plans` showing retail vs reseller pricing with profit margins
+- Customer ownership badges in reseller search results ("Your Customer" / "Other")
+- Phone number validation - numeric input only for customer search
+- Channel access for resellers without subscription requirement
+
+### Changed
+- Sidebar menu for resellers: Shows Dashboard, Plans, and Customers only
+- Navbar: Displays "Reseller" button instead of "Plans" for reseller users
+- AdminLayout: Uses `/customers/profile` endpoint for reseller authentication
+- Plans page: Changed API endpoint from `/admin/plans` to public `/plans`
+- Main content padding reduced from `md:p-8` to `md:p-6`
+- Password field now required for reseller customer creation
+
+### Fixed
+- Reseller logout issue when clicking Plans menu (API endpoint fix)
+- Sidebar active state highlighting multiple items simultaneously
+- Channels page and individual channel pages now accessible to resellers
+
+## [1.34.0] - 2026-01-27
+
+### Added
+- **Reseller Management UI**: Added role selection dropdown to `CustomerForm` for creating/editing customers and resellers.
+- **Role Display**: Added role badge to admin customers table showing "Reseller" (purple) or "Customer" (blue).
+- **Role Filtering**: Added role filter dropdown to customers page for filtering by customer type.
+- **Profile Role Display**: Added role badge to user profile page showing account type.
+- **Transaction Search**: Added search and filter controls (by status, gateway, search term) to admin transactions page.
+- **Transaction Layout**: Created dedicated `layout.tsx` for admin transactions page with consistent AdminLayout.
+
+### Changed
+- **Profile UI**: Adjusted "Subscription Details" section to show "Account Details" for resellers with device limit and no-subscription-required status.
+- **Customer Table**: Extended table to include Role column with sortable display.
+- **Transaction API**: Updated `fetchTransactions` to support filtering parameters.
+
+## [1.33.0] - 2026-01-27
+
+### Added
+- **Authentication Guards**: Implemented automatic redirects for `/register` and `/login` pages; authenticated users are now redirected to the home page (`/`) to prevent duplicate entry attempts.
+
+### Improved
+- **Home UX**: Conditionally hid guest-specific UI elements (Hero "Create Account" button and "Ready to start watching?" CTA section) for logged-in users to provide a cleaner dashboard feel.
+- **State Integration**: Optimized `useAuthStore` usage in guarded components.
+
 ## [1.32.0] - 2026-01-27
 
 ### Added

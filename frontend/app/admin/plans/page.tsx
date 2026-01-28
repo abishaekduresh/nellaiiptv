@@ -95,12 +95,34 @@ export default function PlansPage() {
                     </button>
                 </div>
 
-              <div className="mb-4">
-                <h3 className="text-xl font-bold text-white">{plan.name}</h3>
-                <div className="text-2xl font-bold text-primary mt-2">${plan.price} <span className="text-sm text-text-secondary font-normal">/ {plan.duration} days</span></div>
+              <div className="mb-4 text-left">
+                <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+                    {plan.is_popular && (
+                        <span className="bg-primary/20 text-primary text-[10px] font-bold uppercase px-2 py-0.5 rounded border border-primary/30">Popular</span>
+                    )}
+                </div>
+                <div className="space-y-1 mt-2">
+                    <div className="flex justify-between items-baseline">
+                        <span className="text-sm text-text-secondary font-normal">Retail Price</span>
+                        <span className="text-xl font-bold text-white">₹{plan.price}</span>
+                    </div>
+                    <div className="flex justify-between items-baseline">
+                        <span className="text-sm text-text-secondary font-normal">Reseller Price</span>
+                        <span className="text-xl font-bold text-primary">₹{plan.reseller_price || '0'}</span>
+                    </div>
+                    <div className="flex justify-between items-baseline pt-1 border-t border-gray-800">
+                        <span className="text-sm text-text-secondary font-normal">Margin</span>
+                        <span className="text-lg font-bold text-green-400">₹{(parseFloat(plan.price.toString()) - parseFloat((plan.reseller_price || '0').toString())).toFixed(2)}</span>
+                    </div>
+                </div>
               </div>
               
               <div className="space-y-2 text-sm text-text-secondary mb-4">
+                  <div className="flex justify-between">
+                      <span>Duration</span>
+                      <span className="text-white">{plan.duration} Days</span>
+                  </div>
                   <div className="flex justify-between">
                       <span>Devices</span>
                       <span className="text-white">{plan.device_limit}</span>
@@ -109,8 +131,19 @@ export default function PlansPage() {
                       <span>Status</span>
                       <span className={plan.status === 'active' ? 'text-green-400' : 'text-gray-400'}>{plan.status}</span>
                   </div>
-                  {plan.description && (
-                      <p className="border-t border-gray-800 pt-2 mt-2">{plan.description}</p>
+                  <div className="flex justify-between">
+                      <span>Visible To</span>
+                      <span className={`capitalize ${
+                          plan.show_to === 'reseller' ? 'text-blue-400' : 
+                          plan.show_to === 'customer' ? 'text-yellow-400' : 
+                          'text-white'
+                      }`}>{plan.show_to || 'Both'}</span>
+                  </div>
+                  {(plan.features && plan.features.length > 0) && (
+                      <div className="border-t border-gray-800 pt-2 mt-2">
+                          <span className="text-xs uppercase font-bold text-slate-500">Features Preview</span>
+                          <p className="line-clamp-2 text-xs mt-1 italic">{plan.features.join(', ')}</p>
+                      </div>
                   )}
               </div>
 

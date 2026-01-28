@@ -4,9 +4,11 @@ import Link from 'next/link';
 import { Play, Shield, Tv, Zap, Globe, Heart, Star, Users } from 'lucide-react';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function Home() {
   const router = useRouter();
+  const { user } = useAuthStore();
 
   const { focusProps: watchFocus, isFocused: isWatchFocused } = useTVFocus({
     onEnter: () => router.push('/channels'),
@@ -57,12 +59,14 @@ export default function Home() {
               <Play size={22} fill="currentColor" className="group-hover:scale-110 transition-transform" />
               Watch Now
             </button>
-            <button 
-              {...registerFocus}
-              className={`${registerFocus.className} ${isRegisterFocused ? 'ring-4 ring-white bg-slate-800 scale-105' : ''}`}
-            >
-              Create Account
-            </button>
+            {!user && (
+              <button 
+                {...registerFocus}
+                className={`${registerFocus.className} ${isRegisterFocused ? 'ring-4 ring-white bg-slate-800 scale-105' : ''}`}
+              >
+                Create Account
+              </button>
+            )}
           </div>
           
           <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-slate-500 opacity-60">
@@ -159,21 +163,23 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary/5">
-        <div className="container-custom text-center">
-            <h2 className="text-3xl md:text-5xl font-black mb-8 leading-tight">
-               Ready to start watching?
-            </h2>
-            <button 
-              {...trialFocus}
-              className={`${trialFocus.className} ${isTrialFocused ? 'ring-4 ring-white shadow-primary/60 scale-105 -translate-y-1' : ''}`}
-            >
-              Start Free Trial
-              <Zap size={24} fill="currentColor" />
-            </button>
-            <p className="mt-6 text-slate-500 text-sm">No credit card required for initial access</p>
-        </div>
-      </section>
+      {!user && (
+        <section className="py-20 bg-primary/5">
+          <div className="container-custom text-center">
+              <h2 className="text-3xl md:text-5xl font-black mb-8 leading-tight">
+                 Ready to start watching?
+              </h2>
+              <button 
+                {...trialFocus}
+                className={`${trialFocus.className} ${isTrialFocused ? 'ring-4 ring-white shadow-primary/60 scale-105 -translate-y-1' : ''}`}
+              >
+                Start Free Trial
+                <Zap size={24} fill="currentColor" />
+              </button>
+              <p className="mt-6 text-slate-500 text-sm">No credit card required for initial access</p>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

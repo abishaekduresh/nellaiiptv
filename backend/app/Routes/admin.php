@@ -30,6 +30,8 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'show']);
         $group->put('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'update']);
         $group->delete('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'delete']);
+        $group->post('/customers/{uuid}/wallet/topup', [\App\Controllers\Admin\AdminWalletController::class, 'topupWallet']);
+        $group->get('/customers/{uuid}/wallet/transactions', [\App\Controllers\Admin\AdminWalletController::class, 'getWalletTransactions']);
         
         // Settings Management
         $group->get('/settings', [\App\Controllers\Admin\SettingController::class, 'index']);
@@ -43,6 +45,10 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'show']);
         $group->put('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'update']);
         $group->delete('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'delete']);
+        
+        // Transactions
+        $group->get('/transactions', [\App\Controllers\Admin\AdminTransactionController::class, 'index']);
+        $group->get('/transactions/unified', [\App\Controllers\Admin\AdminTransactionController::class, 'getUnifiedLogs']);
 
         // API Keys Management
         $group->get('/api-keys', [\App\Controllers\Admin\ApiKeyController::class, 'index']);

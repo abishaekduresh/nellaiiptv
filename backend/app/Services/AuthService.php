@@ -18,7 +18,7 @@ class AuthService
     {
         $this->activityLogger = $activityLogger;
         $this->emailService = $emailService;
-        $this->jwtSecret = $_ENV['API_SECRET'];
+        $this->jwtSecret = $_ENV['JWT_SECRET'] ?? '';
     }
 
     // ... (keep existing methods until forgotPassword) ...
@@ -70,6 +70,8 @@ class AuthService
         $customer->email = $data['email'] ?? null;
         $customer->phone = $data['phone'];
         $customer->password = password_hash($data['password'], PASSWORD_BCRYPT);
+        $customer->role = 'customer'; // Default role
+        $customer->created_by_type = 'self'; // Self-registration
         $customer->status = 'active';
         $customer->created_at = date('Y-m-d H:i:s');
         $customer->save();
@@ -89,36 +91,33 @@ class AuthService
             throw new Exception('Account is not active');
         }
 
-        // Subscription Checks
-        $plan = $customer->plan;
-        
-        // 1. Expiry Check
-        // Ensure strictly that it is a valid date object before calling methods
-        if (!empty($customer->subscription_expires_at)) {
-             try {
-                // If cast to Carbon/DateTime
-                if ($customer->subscription_expires_at instanceof \DateTimeInterface) {
-                    if ($customer->subscription_expires_at < new \DateTime()) {
-                        throw new Exception('Subscription expired', 403);
+        // Subscription Checks (skip for resellers)
+        $isReseller = ($customer->role === 'reseller');
+        if (!$isReseller) {
+            $plan = $customer->plan;
+            
+            // 1. Expiry Check
+            if ($plan && !empty($customer->subscription_expires_at)) {
+                 try {
+                    if ($customer->subscription_expires_at instanceof \DateTimeInterface) {
+                        if ($customer->subscription_expires_at < new \DateTime()) {
+                            throw new Exception('Subscription expired', 403);
+                        }
+                    } elseif (is_string($customer->subscription_expires_at)) {
+                        $expiry = new \DateTime($customer->subscription_expires_at);
+                        if ($expiry < new \DateTime()) {
+                            throw new Exception('Subscription expired', 403);
+                        }
                     }
-                } 
-                // Fallback if not cast (string)
-                elseif (is_string($customer->subscription_expires_at)) {
-                    $expiry = new \DateTime($customer->subscription_expires_at);
-                    if ($expiry < new \DateTime()) {
-                        throw new Exception('Subscription expired', 403);
-                    }
-                }
-             } catch (\Exception $e) {
-                 // If date parsing fails, ignore/allow or block?
-                 // If invalid date string, safest is to Log and Block or Log and Allow.
-                 // Given it's subscription, let's Block if clearly expired, otherwise maybe data error.
-                 // For now, let's just swallow exception if it's purely a format error to prevent 500.
-                 error_log("Date Error in AuthService: " . $e->getMessage());
-             }
+                 } catch (\Exception $e) {
+                     error_log("Date Error in AuthService: " . $e->getMessage());
+                 }
+            }
+        } else {
+            $plan = null; // Resellers don't use subscription plans
         }
         
-        // 2. Platform Access Check
+        // 2. Platform Access Check: Ensure the user's plan permits access from the current device type
         $currentPlatform = $deviceInfo['platform'] ?? 'web';
         if ($plan && !empty($plan->platform_access)) {
             $allowedPlatforms = $plan->platform_access;
@@ -127,18 +126,40 @@ class AuthService
             }
         }
 
-        // Check active sessions using ID
-        $activeSessions = \App\Models\CustomerSession::where('customer_id', $customer->id)->count();
-        $deviceLimit = $plan ? $plan->device_limit : 1; // Default to 1 if no plan
+        // 3. Industry-Standard Device Limit System: Only count unique devices (slots)
+        $deviceId = $deviceInfo['device_id'] ?? null;
+        // Resellers always have device limit of 1
+        $deviceLimit = ($customer->role === 'reseller') ? 1 : ($plan ? $plan->device_limit : 1);
 
-        if ($activeSessions >= $deviceLimit) {
-             // Generate restricted token
-            return $this->generateRestrictedToken($customer);
+        // Slot Reuse: Check if this specific physical device already has an active session slot
+        $existingSession = null;
+        if ($deviceId) {
+            $existingSession = \App\Models\CustomerSession::where('customer_id', $customer->id)
+                ->where('device_id', $deviceId)
+                ->first();
+        }
+
+        // If it's a new device (new slot), verify available device limit
+        if (!$existingSession) {
+            // STRICT ENFORCEMENT: Count ALL active sessions for this customer.
+            // This prevents bypasses from legacy sessions or those without valid device IDs.
+            $activeDevicesCount = \App\Models\CustomerSession::where('customer_id', $customer->id)->count();
+
+            if ($activeDevicesCount >= $deviceLimit) {
+                // Device limit reached: Return a restricted token for device management (revocation)
+                return [
+                    'status' => false,
+                    'message' => 'Device limit reached. Please manage your devices.',
+                    'error' => 'device_limit_reached',
+                    'temp_token' => $this->generateRestrictedToken($customer)['token']
+                ];
+            }
         }
 
         $this->activityLogger->log($customer->id, 'LOGIN', 'User logged in successfully', $deviceInfo);
 
-        return $this->generateTokens($customer, $deviceInfo);
+        // Pass existing session token if reusing a slot to keep state consistent
+        return $this->generateTokens($customer, $deviceInfo, $existingSession ? $existingSession->session_token : null);
     }
 
     public function refreshToken(object $user): array
@@ -173,14 +194,25 @@ class AuthService
             
             // Create session using ID
             $session = new \App\Models\CustomerSession();
-            $session->customer_id = $customer->id; // Changed from uuid
+            $session->customer_id = $customer->id;
+            $session->device_id = $deviceInfo['device_id'] ?? null;
             $session->session_token = $jti;
             $session->device_name = $deviceInfo['device_name'] ?? 'Unknown Device';
             $session->platform = $deviceInfo['platform'] ?? 'web';
             $session->ip_address = $deviceInfo['ip_address'] ?? null;
+            $session->browser_info = $deviceInfo['user_agent'] ?? null;
             $session->created_at = date('Y-m-d H:i:s');
             $session->last_active = date('Y-m-d H:i:s');
             $session->save();
+        } else {
+            // Update existing session
+            $session = \App\Models\CustomerSession::where('session_token', $jti)->first();
+            if ($session) {
+                $session->last_active = date('Y-m-d H:i:s');
+                $session->device_name = $deviceInfo['device_name'] ?? $session->device_name;
+                $session->ip_address = $deviceInfo['ip_address'] ?? $session->ip_address;
+                $session->save();
+            }
         }
 
         $payload = [
@@ -201,6 +233,7 @@ class AuthService
                 'name' => $customer->name,
                 'phone' => $customer->phone,
                 'email' => $customer->email,
+                'role' => $customer->role,
                 'status' => $customer->status,
                 'subscription_plan_id' => $customer->subscription_plan_id,
                 'subscription_expires_at' => $customer->subscription_expires_at,
@@ -219,7 +252,7 @@ class AuthService
             'sub' => $customer->uuid,
             'iat' => $issuedAt,
             'exp' => $expirationTime,
-            'scopes' => ['restricted'] // Flag to indicate restricted access
+            'scopes' => ['manage_devices'] // Standardized scope
         ];
 
         $token = JWT::encode($payload, $_ENV['JWT_SECRET'], 'HS256');
@@ -233,6 +266,7 @@ class AuthService
                 'name' => $customer->name,
                 'phone' => $customer->phone,
                 'email' => $customer->email,
+                'role' => $customer->role,
                 'status' => $customer->status,
                 'subscription_plan_id' => $customer->subscription_plan_id,
                 'plan' => $customer->plan,
@@ -269,9 +303,9 @@ class AuthService
 
             if ($attemptAutoLogin) {
                 $activeSessions = \App\Models\CustomerSession::where('customer_id', $customer->id)->count();
-                // Fetch customer's plan limit
+                // Fetch customer's plan limit (resellers always have limit of 1)
                 $customer->load('plan');
-                $deviceLimit = $customer->plan ? $customer->plan->device_limit : 1;
+                $deviceLimit = ($customer->role === 'reseller') ? 1 : ($customer->plan ? $customer->plan->device_limit : 1);
 
                 if ($activeSessions < $deviceLimit) {
                     $tokens = $this->generateTokens($customer, $deviceInfo);

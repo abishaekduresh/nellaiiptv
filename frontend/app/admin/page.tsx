@@ -31,7 +31,13 @@ export default function AdminLoginPage() {
       const { access_token, user } = res.data.data;
       localStorage.setItem('admin_token', access_token);
       setAuth(access_token, user, true);
-      router.push('/admin/dashboard');
+      
+      // Redirect based on role
+      if (user?.role === 'reseller') {
+        router.push('/reseller');
+      } else {
+        router.push('/admin/dashboard');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
     } finally {

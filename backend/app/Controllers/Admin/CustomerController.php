@@ -22,6 +22,10 @@ class CustomerController
             $query->where('status', $params['status']);
         }
 
+        if (isset($params['role']) && $params['role'] !== '') {
+            $query->where('role', $params['role']);
+        }
+
         if (isset($params['search'])) {
             $query->where(function($q) use ($params) {
                 $q->where('name', 'LIKE', '%' . $params['search'] . '%')
@@ -93,6 +97,17 @@ class CustomerController
             $customer->name = $data['name'];
             $customer->phone = $data['phone'];
             $customer->email = $data['email'] ?? null;
+            $customer->role = $data['role'] ?? 'customer';
+            $customer->created_by_type = 'admin'; // Created by admin
+            // Get admin user ID from request attribute (set by JWT middleware)
+            $adminUser = $request->getAttribute('user');
+            if ($adminUser) {
+                // Find the actual User record to get the database ID
+                $user = \App\Models\User::where('uuid', $adminUser->sub)->first();
+                if ($user) {
+                    $customer->created_by_id = $user->id;
+                }
+            }
             $customer->status = $data['status'] ?? 'active';
             $customer->created_at = date('Y-m-d H:i:s');
             
@@ -140,6 +155,7 @@ class CustomerController
             if (isset($data['name'])) $customer->name = $data['name'];
             if (isset($data['email'])) $customer->email = $data['email'];
             if (isset($data['phone'])) $customer->phone = $data['phone'];
+            if (isset($data['role'])) $customer->role = $data['role'];
             
             if (isset($data['status'])) {
                 $status = $data['status'];

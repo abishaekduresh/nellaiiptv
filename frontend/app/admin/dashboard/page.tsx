@@ -21,6 +21,20 @@ export default function AdminDashboard() {
       return;
     }
 
+    // Check if user is reseller and redirect to reseller panel
+    const userStr = localStorage.getItem('auth-storage');
+    if (userStr) {
+      try {
+        const authData = JSON.parse(userStr);
+        if (authData?.state?.user?.role === 'reseller') {
+          router.push('/reseller');
+          return;
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+    }
+
     const fetchData = async () => {
         try {
             const [channelsRes, customersRes, statsRes] = await Promise.all([
