@@ -22,6 +22,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     
     // Webhooks
     $group->post('/webhooks/resend', [\App\Controllers\WebhookController::class, 'handleResend']);
+    $group->post('/webhooks/razorpay', [\App\Controllers\WebhookController::class, 'handleRazorpay']);
     
     // Public Routes with Optional Auth
     $group->group('', function (RouteCollectorProxy $group) {

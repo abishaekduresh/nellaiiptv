@@ -185,6 +185,88 @@ const apiData: Category[] = [
                 "data": [{ "name": "Customer Name", "phone": "1234567890" }] 
             } 
         }
+      },
+      {
+        method: "GET",
+        path: "/admin/transactions",
+        title: "Unified Transaction Report",
+        description: "Get a unified list of gateway payments and wallet transactions.",
+        admin: true,
+        protected: true,
+        queryParams: {
+            "search": "phone or email",
+            "gateway": "razorpay",
+            "status": "success",
+            "page": 1
+        },
+        response: { 
+            "status": true, 
+            "data": { 
+                "data": [{ 
+                    "type": "gateway",
+                    "amount": 499.00,
+                    "customer": { "name": "John", "phone": "..." },
+                    "status": "success"
+                }] 
+            } 
+        }
+      }
+    ]
+  },
+  {
+    name: "Reseller Tools",
+    endpoints: [
+      {
+        method: "GET",
+        path: "/reseller/stats",
+        title: "Dashboard Statistics",
+        protected: true,
+        response: {
+          "status": true,
+          "data": {
+            "total_customers": 150,
+            "active_subscriptions": 120,
+            "wallet_balance": 5000.00
+          }
+        }
+      },
+      {
+        method: "GET",
+        path: "/reseller/wallet/balance",
+        title: "Get Wallet Balance",
+        protected: true,
+        response: { "status": true, "data": { "balance": "1500.00", "currency": "INR" } }
+      },
+      {
+        method: "POST",
+        path: "/reseller/wallet/add-funds",
+        title: "Initiate Wallet Topup",
+        protected: true,
+        payload: { "amount": 1000 },
+        response: { 
+            "status": true, 
+            "data": { "gateway_order_id": "order_...", "amount": 1000 } 
+        }
+      }
+    ]
+  },
+  {
+    name: "Webhooks",
+    endpoints: [
+      {
+        method: "POST",
+        path: "/webhooks/razorpay",
+        title: "Razorpay Webhook",
+        description: "Real-time payment and order notifications.",
+        headers: { "X-Razorpay-Signature": "..." },
+        response: { "status": true, "message": "Webhook processed" }
+      },
+      {
+        method: "POST",
+        path: "/webhooks/resend",
+        title: "Resend Webhook",
+        description: "Email delivery status notifications.",
+        response: { "status": true, "message": "Updated status to delivered" }
       }
     ]
   },
