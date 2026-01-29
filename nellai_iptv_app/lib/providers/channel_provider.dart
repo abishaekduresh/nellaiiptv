@@ -112,12 +112,22 @@ class ChannelProvider with ChangeNotifier {
     // Categories present in channels
     final channelCatIds = _channels.map((c) => c.category?.uuid).toSet();
     _availableCategories = _allCategories.where((c) => channelCatIds.contains(c.uuid)).toList();
-    _availableCategories.sort((a, b) => a.name.compareTo(b.name));
+    _availableCategories.sort((a, b) {
+      if (a.orderNumber != b.orderNumber) {
+        return a.orderNumber.compareTo(b.orderNumber); // Sort by Order Number ASC
+      }
+      return a.name.compareTo(b.name); // Fallback to Alphabetical
+    });
 
     // Languages present in channels
     final channelLangIds = _channels.map((c) => c.language?.uuid).toSet();
     _availableLanguages = _allLanguages.where((l) => channelLangIds.contains(l.uuid)).toList();
-    _availableLanguages.sort((a, b) => a.name.compareTo(b.name));
+    _availableLanguages.sort((a, b) {
+       if (a.orderNumber != b.orderNumber) {
+         return a.orderNumber.compareTo(b.orderNumber); // Sort by Order Number ASC
+       }
+       return a.name.compareTo(b.name);
+    });
   }
 
   void selectCategory(Category? category) {

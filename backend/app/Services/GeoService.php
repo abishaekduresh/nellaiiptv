@@ -21,11 +21,11 @@ class GeoService
 
     public function getLanguages(): array
     {
-        return Language::all()->toArray();
+        return Language::orderBy('order_number', 'ASC')->get()->toArray();
     }
 
     public function getCategories(): array
     {
-        return Category::all()->toArray();
+        return Category::orderBy('order_number', 'ASC')->get()->toArray();
     }
 }

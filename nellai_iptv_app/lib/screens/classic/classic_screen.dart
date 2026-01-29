@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io'; // Import for exit(0)
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -41,8 +43,18 @@ class _ClassicScreenState extends State<ClassicScreen> {
   // STB Persisted State
   String? _lastStbCategory; // Remembers the last browsed category in STB Menu
   
+  // Search State
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  
   // Settings
   PublicSettings? _settings;
+
+  // Number Navigation State
+  String _numberBuffer = "";
+  Timer? _numberTimer;
+  final FocusNode _rootFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -108,7 +120,52 @@ class _ClassicScreenState extends State<ClassicScreen> {
   @override
   void dispose() {
     _adTimer?.cancel();
+    _numberTimer?.cancel();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _rootFocusNode.dispose();
     super.dispose();
+  }
+
+  void _handleNumberInput(String digit) {
+    _numberTimer?.cancel();
+    setState(() {
+      _numberBuffer += digit;
+    });
+
+    _numberTimer = Timer(const Duration(milliseconds: 1500), () {
+      _navigateToChannelByNumber();
+    });
+  }
+
+  void _navigateToChannelByNumber() {
+    if (_numberBuffer.isEmpty) return;
+
+    final provider = context.read<ChannelProvider>();
+    final targetNumber = int.tryParse(_numberBuffer);
+    
+    if (targetNumber != null) {
+      final channel = provider.channels.firstWhere(
+        (c) => c.channelNumber == targetNumber,
+        orElse: () => provider.channels.firstWhere(
+          (c) => c.channelNumber.toString().startsWith(_numberBuffer),
+          orElse: () => provider.channels.first, // or null
+        ),
+      );
+
+      // Actually, let's be strict if the user typed a full number.
+      final exactChannel = provider.channels.where((c) => c.channelNumber == targetNumber).toList();
+      
+      if (exactChannel.isNotEmpty && mounted) {
+        setState(() {
+          _selectedChannel = exactChannel.first;
+        });
+      }
+    }
+
+    setState(() {
+      _numberBuffer = "";
+    });
   }
 
   @override
@@ -166,8 +223,31 @@ class _ClassicScreenState extends State<ClassicScreen> {
             );
           }
           
-          return Row(
-            children: [
+          return Focus(
+            autofocus: true,
+            focusNode: _rootFocusNode,
+            onKeyEvent: (node, event) {
+              if (event is KeyDownEvent) {
+                final logicKey = event.logicalKey;
+                // Check for 0-9 keys
+                if (logicKey.keyId >= LogicalKeyboardKey.digit0.keyId && 
+                    logicKey.keyId <= LogicalKeyboardKey.digit9.keyId) {
+                  final digit = logicKey.keyLabel;
+                  _handleNumberInput(digit);
+                  return KeyEventResult.handled;
+                }
+                // Also check for Numpad 0-9
+                if (logicKey.keyId >= LogicalKeyboardKey.numpad0.keyId && 
+                    logicKey.keyId <= LogicalKeyboardKey.numpad9.keyId) {
+                  final digit = logicKey.keyLabel.replaceAll('Numpad ', '');
+                  _handleNumberInput(digit);
+                  return KeyEventResult.handled;
+                }
+              }
+              return KeyEventResult.ignored;
+            },
+            child: Row(
+              children: [
               // Left Panel (Player + Info + Ads)
           Expanded(
             flex: 5,
@@ -221,6 +301,29 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                 });
                               },
                            ),
+
+                        // Visual Number Input Overlay
+                        if (_numberBuffer.isNotEmpty)
+                          Positioned(
+                            top: 20,
+                            right: 20,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: Text(
+                                _numberBuffer,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ).animate().scale(duration: 200.ms, curve: Curves.easeOut),
+                          ),
                       ],
                     ),
                   ),
@@ -387,38 +490,49 @@ class _ClassicScreenState extends State<ClassicScreen> {
               children: [
                    Consumer<ChannelProvider>(
                      builder: (context, provider, _) {
-                       // Always Show Logo and App Name layout
-                       Widget titleWidget = Row(
-                             children: [
-                               if (_settings != null && _settings!.logoUrl != null && _settings!.logoUrl!.isNotEmpty)
-                                 Padding(
-                                   padding: const EdgeInsets.only(right: 12.0),
-                                   child: ClipRRect(
-                                     borderRadius: BorderRadius.circular(8),
-                                     child: Image.network(
-                                       _settings!.logoUrl!,
-                                       height: 48, 
-                                       width: 48,
-                                       fit: BoxFit.cover,
-                                       errorBuilder: (_,__,___) => const SizedBox(),
-                                     ),
-                                   ),
-                                 ),
-                               Column(
-                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                 children: [
-                                   Text(
-                                     _settings?.appName ?? dotenv.env['APP_TITLE'] ?? "Nellai IPTV",
-                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)
-                                   ),
-                                   const Text(
-                                     "CLASSIC MODE",
-                                     style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.0)
-                                   ),
-                                 ],
-                               ),
-                             ],
-                           );
+                        // Always Show Logo and App Name layout
+                        Widget titleWidget = Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 12.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: (_settings != null && _settings!.logoUrl != null && _settings!.logoUrl!.isNotEmpty)
+                                      ? Image.network(
+                                          _settings!.logoUrl!,
+                                          height: 42, 
+                                          width: 42,
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (_,__,___) => Image.asset(
+                                            'assets/img/logo.png',
+                                            height: 42,
+                                            width: 42,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        )
+                                      : Image.asset(
+                                          'assets/img/logo.png',
+                                          height: 42,
+                                          width: 42,
+                                          fit: BoxFit.contain,
+                                        ),
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _settings?.appName ?? dotenv.env['APP_TITLE'] ?? "Nellai IPTV",
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)
+                                    ),
+                                    const Text(
+                                      "CLASSIC",
+                                      style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1.2)
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1, end: 0);
 
                        return Container(
                         padding: const EdgeInsets.all(12),
@@ -431,9 +545,96 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                Row(
                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                  children: [
-                                   titleWidget,
+                                   // Title or Search Bar
+                                   Expanded(
+                                     child: _isSearching 
+                                     ? Padding(
+                                         padding: const EdgeInsets.only(right: 16.0),
+                                         child: TextField(
+                                           controller: _searchController,
+                                           focusNode: _searchFocusNode,
+                                           style: const TextStyle(color: Colors.white),
+                                           decoration: InputDecoration(
+                                             hintText: "Search channels...",
+                                             hintStyle: const TextStyle(color: Colors.white54),
+                                             border: OutlineInputBorder(
+                                               borderRadius: BorderRadius.circular(8),
+                                               borderSide: const BorderSide(color: Color(0xFF06B6D4)),
+                                             ),
+                                             enabledBorder: OutlineInputBorder(
+                                               borderRadius: BorderRadius.circular(8),
+                                               borderSide: const BorderSide(color: Colors.white24),
+                                             ),
+                                             focusedBorder: OutlineInputBorder(
+                                               borderRadius: BorderRadius.circular(8),
+                                               borderSide: const BorderSide(color: Color(0xFF06B6D4)),
+                                             ),
+                                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                                             prefixIcon: const Icon(Icons.search, color: Color(0xFF06B6D4)),
+                                             suffixIcon: IconButton(
+                                               icon: const Icon(Icons.close, color: Colors.white54),
+                                               onPressed: () {
+                                                 _searchController.clear();
+                                                 setState(() {
+                                                   _isSearching = false;
+                                                 });
+                                                 provider.search(''); // Clear filter
+                                               },
+                                             ),
+                                           ),
+                                           onChanged: (value) => provider.search(value),
+                                         ),
+                                       )
+                                     : titleWidget,
+                                   ),
+
                                    Row(
                                      children: [
+                                       // Search Trigger Button (Only show if not searching)
+                                       if (!_isSearching) ...[
+                                          Builder(
+                                            builder: (context) {
+                                              final searchBtnFocus = FocusNode();
+                                              return InkWell(
+                                                focusNode: searchBtnFocus,
+                                                onTap: () {
+                                                  setState(() {
+                                                    _isSearching = true;
+                                                    // Global search: Reset other filters
+                                                    provider.selectCategory(null);
+                                                    provider.selectLanguage(null);
+                                                  });
+                                                  // Request focus after rebuild
+                                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                    _searchFocusNode.requestFocus();
+                                                  });
+                                                },
+                                                borderRadius: BorderRadius.circular(4),
+                                                child: AnimatedBuilder(
+                                                  animation: searchBtnFocus,
+                                                  builder: (context, _) {
+                                                    return Container(
+                                                      height: 30,
+                                                      width: 30,
+                                                      decoration: BoxDecoration(
+                                                        color: searchBtnFocus.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
+                                                        border: Border.all(color: Colors.white24),
+                                                        borderRadius: BorderRadius.circular(4),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.search,
+                                                        size: 18,
+                                                        color: searchBtnFocus.hasFocus ? Colors.white : Colors.white70,
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              );
+                                            }
+                                          ),
+                                          const SizedBox(width: 8),
+                                       ],
+
                                        // Refresh Button
                                        Builder(
                                          builder: (context) {
@@ -632,13 +833,14 @@ class _ClassicScreenState extends State<ClassicScreen> {
                           );
                         },
                      ),
-                   ),
-                ],
-              ),
-            ),
-          ],
-        );
-        },
+                    ),
+                 ],
+               ),
+             ),
+           ],
+         ),
+       );
+       },
       ),
       ),
     );
@@ -792,11 +994,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                   imageUrl: displayImage, 
                                   fit: BoxFit.contain, 
                                   alignment: Alignment.center,
-                                  placeholder: (context, url) => Center(
-                                    child: Container(
-                                      width: 32, height: 32,
-                                      decoration: const BoxDecoration(color: Colors.white10, shape: BoxShape.circle),
-                                    ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1.5.seconds, color: Colors.white24),
+                                  placeholder: (context, url) => const Center(
+                                    child: CupertinoActivityIndicator(color: Colors.white54, radius: 12),
                                   ),
                                   errorWidget: (context, url, error) => const Icon(Icons.tv, color: Colors.white24),
                                 ),
@@ -879,35 +1078,8 @@ class SkeletonChannelCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.white10),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Center(
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: Colors.white10,
-                  shape: BoxShape.circle,
-                ),
-              ).animate(onPlay: (c) => c.repeat())
-               .shimmer(duration: 1.5.seconds, color: Colors.white24),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Container(
-              height: 12,
-              width: 60,
-              decoration: BoxDecoration(
-                 color: Colors.white10,
-                 borderRadius: BorderRadius.circular(4)
-              ),
-            ).animate(onPlay: (c) => c.repeat())
-             .shimmer(duration: 1.5.seconds, color: Colors.white24, delay: 200.ms),
-          ),
-        ],
+      child: const Center(
+        child: CupertinoActivityIndicator(color: Colors.white24, radius: 12),
       ),
     );
   }

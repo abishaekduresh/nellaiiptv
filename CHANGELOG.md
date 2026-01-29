@@ -1,3 +1,19 @@
+## [1.7.0+14] - App | [1.39.0] - Frontend | [1.28.0] - Backend - 2026-01-30
+
+### App (Flutter)
+- **Feature**: **Number Key Navigation** - Direct channel switching using numeric keypad with visual overlay.
+- **Feature**: **Backend Health Check** - Mandatory availability check on startup with blocking error UI.
+- **Improvement**: **UI Animations** - Added `flutter_animate` for polished error screens and overlays.
+- **Improvement**: **UI Polish** - Switched card loaders to Cupertino-style ticks and removed shimmers.
+- **Fix**: **Priority Sorting** - Respects `order_number` for Categories/Languages.
+
+### Backend (PHP)
+- **Feature**: **Priority Sorting** - Added `order_number` field to Categories and Languages.
+- **Improvement**: **Ordered APIs** - Geo metadata sorted by priority by default.
+
+### Frontend (Next.js)
+- **Improvement**: **Dynamic Sorting** - Integrated `order_number` for backend-aligned sorting.
+
 ## [1.6.2+13] - App | [1.38.0] - Frontend | [1.27.0] - Backend - 2026-01-29
 
 ### App (Flutter)

@@ -97,6 +97,7 @@ export interface Language {
   uuid: string;
   name: string;
   code: string;
+  order_number?: number;
 }
 
 export interface Category {
@@ -104,6 +105,7 @@ export interface Category {
   uuid: string;
   name: string;
   slug: string;
+  order_number?: number;
 }
 
 export interface Comment {
