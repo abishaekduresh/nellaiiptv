@@ -1,3 +1,9 @@
+## [1.6.2+12] - App | [1.38.0] - Frontend | [1.27.0] - Backend - 2026-01-29
+
+### App (Flutter)
+- **Feature**: **Force Update Enforcement** - Strict logic to close the app if a mandatory update is declined.
+- **Fix**: **Android TV Build** - Resolved resource linking errors by adding missing `tv_banner`.
+
 ## [1.6.1+11] - App | [1.38.0] - Frontend | [1.27.0] - Backend - 2026-01-28
 
 ### Frontend (Next.js)

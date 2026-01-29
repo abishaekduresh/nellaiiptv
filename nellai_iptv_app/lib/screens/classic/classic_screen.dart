@@ -310,49 +310,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
                       const SizedBox(width: 4),
 
                       // Right Side: Stats Box
-                        Container(
-                        margin: const EdgeInsets.fromLTRB(12, 8, 8, 8), // Reduced vertical margin
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), // Slightly reduced padding
-                        decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.white10),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Viewers
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.remove_red_eye, color: Color(0xFF10B981), size: 12),
-                                const SizedBox(height: 1),
-                                Text(
-                                  _selectedChannel!.viewersCountFormatted ?? '0', 
-                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)
-                                ),
-                                const Text("VIEWS", style: TextStyle(color: Colors.white38, fontSize: 7)),
-                              ],
-                            ),
-                            const SizedBox(width: 10),
-                            Container(width: 1, height: 16, color: Colors.white10),
-                            const SizedBox(width: 10),
-                            // Rating
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.star, color: Colors.amber, size: 12),
-                                const SizedBox(height: 1),
-                                Text(
-                                  _selectedChannel!.averageRating?.toString() ?? '-', 
-                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)
-                                ),
-                                const Text("RATING", style: TextStyle(color: Colors.white38, fontSize: 7)),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Right Side: Stats Box (REMOVED)
+
                     ],
                   ) : const SizedBox(),
                 ),
@@ -442,41 +401,76 @@ class _ClassicScreenState extends State<ClassicScreen> {
                         child: Column(
                            crossAxisAlignment: CrossAxisAlignment.start,
                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  titleWidget,
-                                  // Toggle Button to switch Group Mode (Categories / Languages)
-                                   GestureDetector(
-                                      onTap: () {
-                                         setState(() {
-                                            _groupBy = _groupBy == 'Categories' ? 'Languages' : 'Categories';
-                                            provider.selectCategory(null); // Reset filters
-                                         });
-                                      },
-                                     child: Container(
-                                       height: 30,
-                                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                                       decoration: BoxDecoration(
-                                          color: const Color(0xFF1E293B),
-                                          border: Border.all(color: Colors.white24), 
-                                          borderRadius: BorderRadius.circular(4)
-                                       ),
-                                       alignment: Alignment.center,
-                                       child: Row(
-                                          children: [
-                                             Text(
-                                                "Group by: $_groupBy",
-                                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                               Row(
+                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                 children: [
+                                   titleWidget,
+                                   Row(
+                                     children: [
+                                       // Refresh Button
+                                       Builder(
+                                         builder: (context) {
+                                           final refreshFocus = FocusNode();
+                                           return InkWell(
+                                             focusNode: refreshFocus,
+                                             onTap: () => provider.fetchChannels(),
+                                             borderRadius: BorderRadius.circular(4),
+                                             child: AnimatedBuilder(
+                                               animation: refreshFocus,
+                                               builder: (context, _) {
+                                                 return Container(
+                                                   height: 30,
+                                                   width: 30, // Square button
+                                                   decoration: BoxDecoration(
+                                                     color: refreshFocus.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
+                                                     border: Border.all(color: Colors.white24),
+                                                     borderRadius: BorderRadius.circular(4),
+                                                   ),
+                                                   child: Icon(
+                                                     Icons.refresh,
+                                                     size: 18,
+                                                     color: refreshFocus.hasFocus ? Colors.white : Colors.white70,
+                                                   ),
+                                                 );
+                                               },
                                              ),
-                                             const SizedBox(width: 4),
-                                             const Icon(Icons.swap_horiz, color: Colors.white54, size: 16),
-                                          ],
+                                           );
+                                         }
                                        ),
-                                     ),
+                                       const SizedBox(width: 8),
+                                       // Toggle Button to switch Group Mode (Categories / Languages)
+                                       GestureDetector(
+                                          onTap: () {
+                                             setState(() {
+                                                _groupBy = _groupBy == 'Categories' ? 'Languages' : 'Categories';
+                                                provider.selectCategory(null); // Reset filters
+                                             });
+                                          },
+                                         child: Container(
+                                           height: 30,
+                                           padding: const EdgeInsets.symmetric(horizontal: 12),
+                                           decoration: BoxDecoration(
+                                              color: const Color(0xFF1E293B),
+                                              border: Border.all(color: Colors.white24), 
+                                              borderRadius: BorderRadius.circular(4)
+                                           ),
+                                           alignment: Alignment.center,
+                                           child: Row(
+                                              children: [
+                                                 Text(
+                                                    "Group by: $_groupBy",
+                                                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                                 ),
+                                                 const SizedBox(width: 4),
+                                                 const Icon(Icons.swap_horiz, color: Colors.white54, size: 16),
+                                              ],
+                                           ),
+                                         ),
+                                       ),
+                                     ],
                                    ),
-                                ],
-                              ),
+                                 ],
+                               ),
                              const SizedBox(height: 12),
                              
                              // Horizontal Filter List

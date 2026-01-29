@@ -45,10 +45,35 @@ class ApiService {
       onRequest: (options, handler) async {
         options.headers['X-Client-Platform'] = await _getPlatform();
         options.headers['X-Device-Id'] = await _getDeviceId();
+        
+        debugPrint('--- API Request ---');
+        debugPrint('Method: ${options.method}');
+        debugPrint('URL: ${options.baseUrl}${options.path}');
+        debugPrint('Headers: ${options.headers}');
+        if (options.data != null) {
+          debugPrint('Body: ${options.data}');
+        }
+        debugPrint('-------------------');
+        
         return handler.next(options);
       },
+      onResponse: (response, handler) {
+        debugPrint('--- API Response ---');
+        debugPrint('Status: ${response.statusCode}');
+        debugPrint('URL: ${response.requestOptions.baseUrl}${response.requestOptions.path}');
+        debugPrint('Data: ${response.data}');
+        debugPrint('--------------------');
+        return handler.next(response);
+      },
       onError: (DioException e, handler) {
-        print("API Error: ${e.message}");
+        debugPrint('--- API Error ---');
+        debugPrint('Message: ${e.message}');
+        debugPrint('URL: ${e.requestOptions.baseUrl}${e.requestOptions.path}');
+        if (e.response != null) {
+           debugPrint('Status: ${e.response?.statusCode}');
+           debugPrint('Data: ${e.response?.data}');
+        }
+        debugPrint('-----------------');
         return handler.next(e);
       },
     ));
@@ -66,9 +91,9 @@ class ApiService {
       bool isTV = androidInfo.systemFeatures.contains('android.software.leanback') || 
                   androidInfo.host.toLowerCase().contains('tv') ||
                   androidInfo.model.toLowerCase().contains('tv');
-      _cachedPlatform = isTV ? 'tv' : 'mobile';
+      _cachedPlatform = isTV ? 'tv' : 'android'; // Changed 'mobile' to 'android'
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      _cachedPlatform = 'mobile';
+      _cachedPlatform = 'ios'; // Changed 'mobile' to 'ios'
     } else {
       _cachedPlatform = 'unknown';
     }
