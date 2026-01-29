@@ -1,3 +1,13 @@
+## [1.6.2+13] - 2026-01-29
+
+### Added
+- **TV Navigation**: Enhanced D-Pad support for STB Overlay ("Enter" key capture) and Embedded Player controls (PiP/Retry buttons).
+- **UI**: Added View Count and Star Rating display to the Classic Screen channel details banner.
+- **Layout**: Dynamic Ad Banner layout that maximizes player height when no ads are loaded.
+
+### Changed
+- **UX**: "Refresh" button now triggers a full content sync (Settings + Channels + Ads) instead of just channels.
+
 ## [1.6.2+12] - 2026-01-29
 
 ### Added

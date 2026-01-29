@@ -310,44 +310,71 @@ class _ClassicScreenState extends State<ClassicScreen> {
                       const SizedBox(width: 4),
 
                       // Right Side: Stats Box
-                      // Right Side: Stats Box (REMOVED)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.black26,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // View Count
+                            Icon(Icons.remove_red_eye, color: const Color(0xFF0EA5E9), size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              _selectedChannel!.viewersCountFormatted ?? "0",
+                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                            
+                            // Separator
+                            const SizedBox(width: 12),
+                            Container(width: 1, height: 12, color: Colors.white24),
+                            const SizedBox(width: 12),
 
+                            // Rating
+                            Icon(Icons.star, color: const Color(0xFFFBBF24), size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              _selectedChannel!.averageRating?.toStringAsFixed(1) ?? "0.0",
+                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ) : const SizedBox(),
                 ),
                 
-                // Ad Banner - Shown if ads exist OR if loading
-                if (!_isFullScreen)
-                  _isLoadingAds 
-                    ? const SkeletonAdBanner()
-                    : _ads.isNotEmpty 
-                        ? Material(
-                            color: Colors.black,
-                            child: InkWell(
-                              onTap: () async {
-                                 final url = _ads[_currentAdIndex].linkUrl;
-                                 if (url != null && url.isNotEmpty) {
-                                     final uri = Uri.parse(url);
-                                     if (await canLaunchUrl(uri)) {
-                                         await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                     }
-                                 }
-                              },
-                              focusColor: const Color(0xFF06B6D4).withOpacity(0.4), // Cyan highlight on focus
-                              splashColor: const Color(0xFF06B6D4).withOpacity(0.2),
-                              child: SizedBox(
-                                height: 100,
-                                width: double.infinity,
-                                child: CachedNetworkImage(
-                                  imageUrl: _ads[_currentAdIndex].imageUrl,
-                                  fit: BoxFit.fill,
-                                  placeholder: (context, url) => const SkeletonAdBanner(),
-                                  errorWidget: (context, url, error) => const SizedBox(), 
-                                ),
-                              ),
-                            ),
-                          ).animate(key: ValueKey(_currentAdIndex)).fadeIn()
-                        : const SizedBox(),
+                // Ad Banner - Shown only if ads exist
+                if (!_isFullScreen && _ads.isNotEmpty)
+                  Material(
+                    color: Colors.black,
+                    child: InkWell(
+                      onTap: () async {
+                         final url = _ads[_currentAdIndex].linkUrl;
+                         if (url != null && url.isNotEmpty) {
+                             final uri = Uri.parse(url);
+                             if (await canLaunchUrl(uri)) {
+                                 await launchUrl(uri, mode: LaunchMode.externalApplication);
+                             }
+                         }
+                      },
+                      focusColor: const Color(0xFF06B6D4).withOpacity(0.4), // Cyan highlight on focus
+                      splashColor: const Color(0xFF06B6D4).withOpacity(0.2),
+                      child: SizedBox(
+                        height: 100,
+                        width: double.infinity,
+                        child: CachedNetworkImage(
+                          imageUrl: _ads[_currentAdIndex].imageUrl,
+                          fit: BoxFit.fill,
+                          placeholder: (context, url) => const SkeletonAdBanner(),
+                          errorWidget: (context, url, error) => const SizedBox(), 
+                        ),
+                      ),
+                    ),
+                  ).animate(key: ValueKey(_currentAdIndex)).fadeIn(),
               ],
             ),
           ),
@@ -439,33 +466,50 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                        ),
                                        const SizedBox(width: 8),
                                        // Toggle Button to switch Group Mode (Categories / Languages)
-                                       GestureDetector(
-                                          onTap: () {
-                                             setState(() {
-                                                _groupBy = _groupBy == 'Categories' ? 'Languages' : 'Categories';
-                                                provider.selectCategory(null); // Reset filters
-                                             });
-                                          },
-                                         child: Container(
-                                           height: 30,
-                                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                                           decoration: BoxDecoration(
-                                              color: const Color(0xFF1E293B),
-                                              border: Border.all(color: Colors.white24), 
-                                              borderRadius: BorderRadius.circular(4)
-                                           ),
-                                           alignment: Alignment.center,
-                                           child: Row(
-                                              children: [
-                                                 Text(
-                                                    "Group by: $_groupBy",
-                                                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                                 ),
-                                                 const SizedBox(width: 4),
-                                                 const Icon(Icons.swap_horiz, color: Colors.white54, size: 16),
-                                              ],
-                                           ),
-                                         ),
+                                       Builder(
+                                         builder: (context) {
+                                           final groupFocus = FocusNode();
+                                           return InkWell(
+                                              focusNode: groupFocus,
+                                              onTap: () {
+                                                 setState(() {
+                                                    _groupBy = _groupBy == 'Categories' ? 'Languages' : 'Categories';
+                                                    provider.selectCategory(null); // Reset filters
+                                                 });
+                                              },
+                                              borderRadius: BorderRadius.circular(4),
+                                              child: AnimatedBuilder(
+                                                animation: groupFocus,
+                                                builder: (context, _) {
+                                                  return Container(
+                                                   height: 30,
+                                                   padding: const EdgeInsets.symmetric(horizontal: 12),
+                                                   decoration: BoxDecoration(
+                                                      color: const Color(0xFF1E293B),
+                                                      border: groupFocus.hasFocus 
+                                                          ? Border.all(color: const Color(0xFF06B6D4), width: 2)
+                                                          : Border.all(color: Colors.white24), 
+                                                      borderRadius: BorderRadius.circular(4),
+                                                      boxShadow: groupFocus.hasFocus ? [
+                                                         BoxShadow(color: const Color(0xFF06B6D4).withOpacity(0.4), blurRadius: 6)
+                                                      ] : [],
+                                                   ),
+                                                   alignment: Alignment.center,
+                                                   child: Row(
+                                                      children: [
+                                                         Text(
+                                                            "Group by: $_groupBy",
+                                                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                                         ),
+                                                         const SizedBox(width: 4),
+                                                         const Icon(Icons.swap_horiz, color: Colors.white54, size: 16),
+                                                      ],
+                                                   ),
+                                                  );
+                                                }
+                                              ),
+                                           );
+                                         }
                                        ),
                                      ],
                                    ),
@@ -601,25 +645,41 @@ class _ClassicScreenState extends State<ClassicScreen> {
   }
 
   Widget _buildCategoryChip(String label, bool isSelected, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0), 
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFF334155),
+    return Builder(
+      builder: (context) {
+        final focusNode = FocusNode();
+        return InkWell(
+          focusNode: focusNode,
+          onTap: onTap,
           borderRadius: BorderRadius.circular(4),
-          border: isSelected ? null : Border.all(color: Colors.white10),
-        ),
-        child: Text(
-          label, 
-          style: TextStyle(
-            color: Colors.white, 
-            fontSize: 12, 
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
-          )
-        ),
-      ),
+          child: AnimatedBuilder(
+            animation: focusNode,
+            builder: (context, child) {
+              final isFocused = focusNode.hasFocus;
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0), 
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFF0EA5E9) : (isFocused ? const Color(0xFF334155).withOpacity(0.8) : const Color(0xFF334155)),
+                  borderRadius: BorderRadius.circular(4),
+                  border: isFocused ? Border.all(color: const Color(0xFF06B6D4), width: 2) : (isSelected ? null : Border.all(color: Colors.white10)),
+                  boxShadow: isFocused ? [
+                    BoxShadow(color: const Color(0xFF06B6D4).withOpacity(0.4), blurRadius: 8, spreadRadius: 1)
+                  ] : [],
+                ),
+                child: Text(
+                  label, 
+                  style: TextStyle(
+                    color: Colors.white, 
+                    fontSize: 12, 
+                    fontWeight: (isSelected || isFocused) ? FontWeight.bold : FontWeight.normal
+                  )
+                ),
+              );
+            },
+          ),
+        );
+      }
     );
   }
 
