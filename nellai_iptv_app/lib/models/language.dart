@@ -3,12 +3,14 @@ class Language {
   final String uuid;
   final String name;
   final String code;
+  final int orderNumber;
 
   Language({
     required this.id,
     required this.uuid,
     required this.name,
     required this.code,
+    this.orderNumber = 0,
   });
 
   factory Language.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class Language {
       uuid: json['uuid'] ?? '',
       name: json['name'] ?? '',
       code: json['code'] ?? '',
+      orderNumber: json['order_number'] ?? 0,
     );
   }
 

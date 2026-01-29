@@ -9,6 +9,7 @@ import '../core/api_service.dart';
 import 'package:flutter_animate/flutter_animate.dart'; // Animation support
 import 'package:in_app_update/in_app_update.dart'; // Import InAppUpdate
 import 'classic/classic_screen.dart'; // Import ClassicScreen
+import 'common_error_screen.dart'; // Import CommonErrorScreen
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -71,9 +72,31 @@ class _SplashScreenState extends State<SplashScreen> {
       debugPrint("InAppUpdate Error: $e");
     } finally {
       if (shouldNavigate) {
-        // Ensure we waited at least 3 seconds
+        // Check Backend Health
+        bool isHealthy = await ApiService().checkHealth();
+        
+        // Ensure we waited at least 3 seconds (Splash minimum duration)
         await minSplashTime;
-        _navigateToClassic();
+
+        if (isHealthy) {
+          _navigateToClassic();
+        } else {
+             if (mounted) {
+               Navigator.of(context).pushReplacement(
+                 MaterialPageRoute(builder: (_) => CommonErrorScreen(
+                   title: "Service Unavailable", 
+                   message: "Could not connect to the server. Please check your internet connection or try again later.",
+                   isNetworkError: true,
+                   onRetry: () {
+                     // Restart Splash to retry everything
+                     Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const SplashScreen())
+                     );
+                   }
+                 )),
+               );
+             }
+        }
       }
     }
   }

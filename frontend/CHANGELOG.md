@@ -2,6 +2,11 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.39.0] - 2026-01-30
+
+### Improved
+- **Dynamic Sorting**: Integrated `order_number` support in `ClassicHome` to synchronize category/language ordering with the mobile app and backend.
+
 ## [1.38.0] - 2026-01-28
 
 ### Added

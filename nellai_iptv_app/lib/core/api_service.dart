@@ -227,4 +227,15 @@ class ApiService {
       return null;
     }
   }
+  Future<bool> checkHealth() async {
+    try {
+      final response = await _dio.get('/health', options: Options(headers: {
+        'Accept': 'application/json',
+      }));
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Health check failed: $e');
+      return false;
+    }
+  }
 }

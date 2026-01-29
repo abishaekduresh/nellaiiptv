@@ -1,3 +1,19 @@
+## [1.7.0+14] - 2026-01-30
+
+### Added
+- **Number Key Navigation**: Direct channel switching using the remote control numeric keypad (0-9) with multi-digit support (1.5s buffer).
+- **Visual Input Overlay**: Large animated indicator in the top-right corner to show typed channel numbers.
+- **Backend Health Check**: Mandatory system availability check on startup with retry logic and full-screen blocking error UI.
+- **UI Animations**: Integrated `flutter_animate` for smoother transitions and polished error screen feedback.
+
+### Changed
+- **UI Polish**: Updated channel card thumbnail loader to `CupertinoActivityIndicator` for a premium tick-spinner look.
+- **UI Polish**: Removed skeleton shimmers from channel cards for a cleaner loading experience.
+- **Branding**: Classic Screen header now dynamically loads the backend logo with a local asset fallback.
+
+### Fixed
+- **Sorting**: Channels, Categories, and Languages now respect the `order_number` priority set in the backend.
+
 ## [1.6.2+13] - 2026-01-29
 
 ### Added

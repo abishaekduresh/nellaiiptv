@@ -228,23 +228,29 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
   // Process groups
   const groups = getGroupedData();
   
-  // Sorting Priority Logic (Same as OTT)
-  const languageOrder = ['Tamil', 'Malayalam', 'Telugu', 'English', 'Others'];
-  const categoryOrder = ['Entertainment', 'Movies', 'Music', 'Kids', 'News', 'Sports', 'Others'];
-
+  // Sorting Priority Logic (Backend Driven)
   const getPriority = useCallback((key: string, type: 'language' | 'category') => {
-      const order = type === 'language' ? languageOrder : categoryOrder;
-      const index = order.findIndex(o => o.toLowerCase() === key.toLowerCase());
-      return index !== -1 ? index : 999;
-  }, []);
+      // Find a channel in this group to get the metadata
+      const groupChannels = groups[key];
+      if (!groupChannels || groupChannels.length === 0) return 999;
+      
+      const firstChannel = groupChannels[0];
+      if (type === 'language') {
+          return firstChannel.language?.order_number || 999;
+      } else {
+          return firstChannel.category?.order_number || 999;
+      }
+  }, [groups]);
 
   const getSortedKeys = useCallback(() => {
       const keys = Object.keys(groups);
       return keys.sort((a, b) => {
           if (groupBy === 'all') return 0;
           const type = groupBy === 'category' ? 'category' : 'language';
+          
           const pA = getPriority(a, type);
           const pB = getPriority(b, type);
+          
           if (pA !== pB) return pA - pB;
           return a.localeCompare(b);
       });

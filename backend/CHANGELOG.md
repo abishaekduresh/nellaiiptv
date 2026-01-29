@@ -2,6 +2,15 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.28.0] - 2026-01-30
+
+### Added
+- **Priority Sorting**: Added `order_number` support to `Category` and `Language` models for custom dashboard ordering.
+- **Health Check API**: Verified and optimized `/api/health` endpoint for mobile app startup diagnostics.
+
+### Changed
+- **API Responses**: `GeoController` now returns categories and languages ordered by `order_number` (ASC) by default.
+
 ## [1.27.0] - 2026-01-28
 
 ### Added
