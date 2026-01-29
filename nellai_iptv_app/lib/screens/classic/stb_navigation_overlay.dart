@@ -287,42 +287,56 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> with Single
     required bool isSelected,
     required VoidCallback onSelect,
   }) {
-    return Focus(
-      autofocus: isSelected,
-      onFocusChange: (focused) {
-        if (focused) {
-          onSelect(); // Auto-select category on focus
-          _resetAutoHideTimer();
+    return Builder(
+      builder: (context) {
+        final focusNode = FocusNode();
+        if (isSelected && !focusNode.hasFocus && !focusNode.hasPrimaryFocus) {
+           // We can't easily auto-request focus here without a loop, 
+           // but we can rely on the parent or initial focus request.
         }
-      },
-      child: Builder(
-        builder: (context) {
-          final isFocused = Focus.of(context).hasFocus;
-          return InkWell(
-            onTap: onSelect,
-            borderRadius: BorderRadius.circular(8),
-            child: AnimatedContainer(
-              duration: 200.ms,
-              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-              decoration: BoxDecoration(
-                // Highlight if focused or selected
-                color: isFocused ? const Color(0xFF0EA5E9) : (isSelected ? const Color(0xFF1E293B) : Colors.transparent),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: isFocused ? Colors.white : (isSelected ? const Color(0xFF0EA5E9) : Colors.white60),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  letterSpacing: 0.5,
+
+        return InkWell(
+          focusNode: focusNode,
+          onTap: onSelect,
+          autofocus: isSelected, // Try to grab focus if selected
+          onFocusChange: (focused) {
+            if (focused) {
+              onSelect();
+              _resetAutoHideTimer();
+            }
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: AnimatedBuilder(
+            animation: focusNode,
+            builder: (context, child) {
+              final isFocused = focusNode.hasFocus;
+              return AnimatedContainer(
+                duration: 200.ms,
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                decoration: BoxDecoration(
+                  // Highlight if focused or selected
+                  color: isFocused ? const Color(0xFF0EA5E9) : (isSelected ? const Color(0xFF1E293B) : Colors.transparent),
+                  borderRadius: BorderRadius.circular(8),
+                  border: isFocused ? Border.all(color: Colors.white, width: 2) : Border.all(color: Colors.transparent, width: 2),
+                  boxShadow: isFocused ? [
+                    BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.5), blurRadius: 8, spreadRadius: 1)
+                  ] : [],
                 ),
-              ),
-            ),
-          );
-        },
-      ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: isFocused ? Colors.white : (isSelected ? const Color(0xFF0EA5E9) : Colors.white60),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -332,62 +346,85 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> with Single
     required bool isCurrent,
     required VoidCallback onTap,
   }) {
-    return Focus(
-      child: Builder(
-        builder: (context) {
-          final isFocused = Focus.of(context).hasFocus;
-          if (isFocused) _resetAutoHideTimer(); // Reset timer if channel gains focus
-          
-          return AnimatedContainer(
-            duration: 200.ms,
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              // Slight background highlight on focus
-              color: isFocused ? const Color(0xFF0EA5E9).withOpacity(0.2) : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
-              // Border highlight on focus or if currently playing
-              border: Border.all(
-                color: isFocused ? const Color(0xFF0EA5E9) : (isCurrent ? Colors.white24 : Colors.transparent),
-                width: 1,
-              ),
-            ),
-            child: ListTile(
-              onTap: onTap,
-              dense: true,
-              leading: Container(
-                width: 40, height: 40,
+    return Builder(
+      builder: (context) {
+        final focusNode = FocusNode();
+        return InkWell(
+          focusNode: focusNode,
+          onTap: onTap,
+          onFocusChange: (focused) {
+            if (focused) _resetAutoHideTimer();
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: AnimatedBuilder(
+            animation: focusNode,
+            builder: (context, child) {
+              final isFocused = focusNode.hasFocus;
+              return AnimatedContainer(
+                duration: 200.ms,
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white10,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: CachedNetworkImage(
-                    imageUrl: channel.logoUrl ?? '',
-                    fit: BoxFit.contain,
-                    errorWidget: (_, __, ___) => const Icon(Icons.tv, color: Colors.white24, size: 20),
+                  // Slight background highlight on focus
+                  color: isFocused ? const Color(0xFF0EA5E9).withOpacity(0.2) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  // Border highlight on focus or if currently playing
+                  border: Border.all(
+                    color: isFocused ? const Color(0xFF0EA5E9) : (isCurrent ? Colors.white24 : Colors.transparent),
+                    width: isFocused ? 2 : 1,
                   ),
+                  boxShadow: isFocused ? [
+                     BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.3), blurRadius: 4)
+                  ] : [],
                 ),
-              ),
-              title: Text(
-                channel.name,
-                style: TextStyle(
-                  color: isCurrent ? const Color(0xFF0EA5E9) : Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40, height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: CachedNetworkImage(
+                          imageUrl: channel.logoUrl ?? '',
+                          fit: BoxFit.contain,
+                          errorWidget: (_, __, ___) => const Icon(Icons.tv, color: Colors.white24, size: 20),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            channel.name,
+                            style: TextStyle(
+                              color: isCurrent ? const Color(0xFF0EA5E9) : Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            "CH ${channel.channelNumber ?? '-'}",
+                            style: const TextStyle(color: Colors.white38, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (isCurrent)
+                      const Icon(Icons.play_circle_fill, color: Color(0xFF0EA5E9), size: 18),
+                  ],
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text(
-                "CH ${channel.channelNumber ?? '-'}",
-                style: const TextStyle(color: Colors.white38, fontSize: 11),
-              ),
-              trailing: isCurrent ? const Icon(Icons.play_circle_fill, color: Color(0xFF0EA5E9), size: 18) : null,
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

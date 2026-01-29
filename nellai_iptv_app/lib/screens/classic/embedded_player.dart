@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import for LogicalKeyboardKey
 import 'package:flutter_animate/flutter_animate.dart'; // Import flutter_animate
 import 'package:flutter/foundation.dart'; // for kIsWeb
 import 'package:media_kit/media_kit.dart'; // MediaKit Core
@@ -425,7 +426,17 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
-    return GestureOverlay(
+    return Focus(
+      autofocus: true,
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent && 
+           (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter)) {
+            _toggleControls();
+            return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
+      child: GestureOverlay(
       onTap: _toggleControls,
       onToggleMute: widget.onDoubleTap ?? () => _toggleMute(),
       child: Container(
@@ -590,26 +601,49 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                       children: [
                         // PiP Button - Show ONLY if Fullscreen
                         if (widget.isFullScreen)
-                        IconButton(
-                          icon: const Icon(Icons.picture_in_picture_alt, color: Colors.white, size: 28),
-                          onPressed: () async {
-                            _startHideTimer(); // Reset timer
-                            try {
-                               final isPipAvailable = await SimplePip.isPipAvailable;
-                               if (isPipAvailable) {
-                                 // Optimistically set mode to prevent auto-pause race condition
-                                 setState(() { _isPipMode = true; });
-                                 await _simplePip.enterPipMode(aspectRatio: (16, 9));
-                               } else {
-                                 ToastService().show("PiP not supported on this device", type: ToastType.warning);
-                               }
-                            } catch (e) {
-                               // Revert state if failed
-                               setState(() { _isPipMode = false; });
-                               ToastService().show("PiP Failed: $e", type: ToastType.error);
+                          Builder(
+                            builder: (context) {
+                              final pipFocus = FocusNode();
+                              return InkWell(
+                                focusNode: pipFocus,
+                                onTap: () async {
+                                  _startHideTimer(); // Reset timer
+                                  try {
+                                     final isPipAvailable = await SimplePip.isPipAvailable;
+                                     if (isPipAvailable) {
+                                       // Optimistically set mode to prevent auto-pause race condition
+                                       setState(() { _isPipMode = true; });
+                                       await _simplePip.enterPipMode(aspectRatio: (16, 9));
+                                     } else {
+                                       ToastService().show("PiP not supported on this device", type: ToastType.warning);
+                                     }
+                                  } catch (e) {
+                                     // Revert state if failed
+                                     setState(() { _isPipMode = false; });
+                                     ToastService().show("PiP Failed: $e", type: ToastType.error);
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(20),
+                                child: AnimatedBuilder(
+                                  animation: pipFocus,
+                                  builder: (context, child) {
+                                    return Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: pipFocus.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.transparent,
+                                        border: pipFocus.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                        boxShadow: pipFocus.hasFocus ? [
+                                          BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.5), blurRadius: 8, spreadRadius: 2)
+                                        ] : [],
+                                      ),
+                                      child: const Icon(Icons.picture_in_picture_alt, color: Colors.white, size: 28),
+                                    );
+                                  },
+                                ),
+                              );
                             }
-                          },
-                        ),
+                          ),
                       ],
                     ),
                   ),
@@ -617,6 +651,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
               ),
         ],
         ),
+      ),
       ),
     );
   }

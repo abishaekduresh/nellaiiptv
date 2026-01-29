@@ -1,3 +1,11 @@
+## [1.6.2+13] - App | [1.38.0] - Frontend | [1.27.0] - Backend - 2026-01-29
+
+### App (Flutter)
+- **Feature**: **TV Navigation** - Enhanced D-Pad support for STB Overlay ("Enter" key capture) and Embedded Player controls.
+- **Feature**: **Classic Mode UI** - Added View Count and Star Rating stats to channel details banner.
+- **Improvement**: **Dynamic Layout** - Player optimizes vertical space when ads are not loaded.
+- **Improvement**: **Refresh Logic** - "Refresh" button now triggers a full application state sync (Settings + Data).
+
 ## [1.6.2+12] - App | [1.38.0] - Frontend | [1.27.0] - Backend - 2026-01-29
 
 ### App (Flutter)

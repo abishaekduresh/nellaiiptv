@@ -11,6 +11,13 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version 1.6.2+13 Highlights
+
+- **Enhanced TV Navigation**: Full D-Pad "Select" key support for STB Overlay and Embedded Player controls.
+- **Dynamic Layouts**: Player maximizes screen usage when ads are absent.
+- **Full Refresh Sync**: One-click refresh for all app content (Ads, Settings, Channels).
+- **Rich Metadata**: Channel details now display live view counts and star ratings.
+
 ## Version 1.6.2+12 Highlights
 
 - **Force Update**: Strict enforcement ensuring users are on the latest version by exiting if updates are denied.
