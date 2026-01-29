@@ -48,6 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkForUpdate() async {
     // Wait for a minimum splash duration regardless of update check speed
     final minSplashTime = Future.delayed(const Duration(seconds: 3));
+    bool shouldNavigate = true;
 
     try {
       if (!kIsWeb && kReleaseMode) { // In-App Update is Android only & Release only
@@ -55,15 +56,25 @@ class _SplashScreenState extends State<SplashScreen> {
         if (info.updateAvailability == UpdateAvailability.updateAvailable &&
             info.immediateUpdateAllowed) {
             
-            await InAppUpdate.performImmediateUpdate();
+            final result = await InAppUpdate.performImmediateUpdate();
+            if (result == AppUpdateResult.userDeniedUpdate) {
+              shouldNavigate = false;
+              SystemNavigator.pop();
+            } else if (result == AppUpdateResult.inAppUpdateFailed) {
+              // Decide policy: Allow access on failure or retry?
+              // Currently allowing access to avoid blocking on network errors during update
+              debugPrint("Update failed, proceeding to app");
+            }
         }
       }
     } catch (e) {
       debugPrint("InAppUpdate Error: $e");
     } finally {
-      // Ensure we waited at least 3 seconds
-      await minSplashTime;
-      _navigateToClassic();
+      if (shouldNavigate) {
+        // Ensure we waited at least 3 seconds
+        await minSplashTime;
+        _navigateToClassic();
+      }
     }
   }
 

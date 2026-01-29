@@ -1,3 +1,9 @@
+## [1.6.2+12] - 2026-01-29
+
+### Added
+- **Force Update**: Implemented strict update enforcement. The app now exits if a mandatory Play Store update is declined by the user.
+- **TV Banner**: Added missing `tv_banner` resource to fix Android TV build failures.
+
 ## [1.6.1+11] - 2026-01-28
 
 ### Added

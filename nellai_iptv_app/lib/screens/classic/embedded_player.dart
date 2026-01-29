@@ -573,56 +573,8 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
               ),
             ),
 
-            // 7. Viewer Count & Rating (Top Left)
-            if (_channel != null && 
-                !_isPipMode && 
-                !_isPremiumContent &&
-                !_fallbackUsed &&
-                ((_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty) || 
-                 (_channel!.averageRating != null && _channel!.averageRating! > 0)))
-              Positioned(
-                top: 25,
-                left: 20,
-                child: AnimatedOpacity(
-                  opacity: 1.0, // Always visible
-                  duration: const Duration(milliseconds: 300),
-                  child: IgnorePointer(
-                    ignoring: false, // Don't ignore pointers
-                    child: SafeArea(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2), // Reduced padding
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.4), // Slightly more transparent
-                          borderRadius: BorderRadius.circular(16), // Smaller radius
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty) ...[
-                              const Icon(Icons.remove_red_eye_outlined, color: Colors.white70, size: 12), // Smaller Icon
-                              const SizedBox(width: 4),
-                              Text(
-                                _channel!.viewersCountFormatted!,
-                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), // Smaller Text
-                              ),
-                            ],
-                            if (_channel!.averageRating != null && _channel!.averageRating! > 0) ...[
-                              if (_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty)
-                                const SizedBox(width: 8), // Reduced gap
-                              const Icon(Icons.star, color: Color(0xFFFCD34D), size: 12), // Smaller Icon
-                              const SizedBox(width: 3),
-                              Text(
-                                _channel!.averageRating!.toStringAsFixed(1),
-                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), // Smaller Text
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+             // 7. Viewer Count & Rating (REMOVED)
+
 
              // 8. Cast & PiP Buttons (Top Right)
             if (!kIsWeb && !_isPipMode && !_isPremiumContent) 

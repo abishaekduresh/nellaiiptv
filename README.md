@@ -16,8 +16,14 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.6.1+11
-- **Key Features**: MP4 Fallback, Clickable Ads, Retry Countdown, Android TV Compliance.
+- **Version**: 1.6.2+12
+- **Key Features**: Force Update Enforcement, MP4 Fallback, Clickable Ads, Android TV Compliance.
+
+## Recent Updates (v1.6.2+12 App / v1.38.0 Frontend / v1.27.0 Backend)
+
+### App (Flutter)
+- **Feature**: **Force Update** - Strict version enforcement logic.
+- **Fix**: **Build Stability** - Fixed Android TV resource errors.
 
 ## Recent Updates (v1.6.1+11 App / v1.38.0 Frontend / v1.27.0 Backend)
 
