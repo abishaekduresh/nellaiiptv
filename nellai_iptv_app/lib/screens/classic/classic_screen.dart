@@ -15,6 +15,7 @@ import '../../core/api_service.dart';
 import '../../models/public_settings.dart';
 import 'embedded_player.dart';
 import 'stb_navigation_overlay.dart';
+import '../../core/audio_manager.dart';
 
 class ClassicScreen extends StatefulWidget {
   const ClassicScreen({super.key});
@@ -124,6 +125,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     _rootFocusNode.dispose();
+    AudioManager().restoreOriginalVolume(); // Restore volume when leaving the screen
     super.dispose();
   }
 
@@ -268,6 +270,9 @@ class _ClassicScreenState extends State<ClassicScreen> {
                             hideControls: _showChannelOverlay,
                             onDoubleTap: () => setState(() => _isFullScreen = !_isFullScreen),
                             onTap: () {
+                              // On TV, prioritize controls visibility
+                              // If controls are hidden, they will show via internal onTap in EmbeddedPlayer
+                              // This secondary handler (widget.onTap) toggles the channel list overlay
                               if (_isFullScreen) {
                                 setState(() => _showChannelOverlay = !_showChannelOverlay);
                               }

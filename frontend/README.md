@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.38.0
+# Nellai IPTV - Frontend v1.39.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.38.0)**
+### **Latest Updates (v1.39.0)**
+- **Dynamic Priority Sorting**: Synchronized category and language ordering with the backend `order_number` field.
+
+### **Previous Updates (v1.38.0)**
 - **Kiosk Mode**: Dedicated distraction-free viewing experience by hiding navigation controls when Open Access is active.
 - **Disclaimer Overlay**: Fine-tuned z-index management for reliable display of system messages.
 

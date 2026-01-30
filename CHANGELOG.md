@@ -1,3 +1,11 @@
+## [1.7.1+15] - App | [1.39.0] - Frontend | [1.28.0] - Backend - 2026-01-30
+
+### App (Flutter)
+- **Feature**: **Full-Screen TV Toggle** - Added a dedicated button for easier fullscreen access on TV remotes.
+- **Improvement**: **System UI Logic** - Optimized immersive mode to hide status/nav bars more reliably.
+- **Fix**: **Volume Persistence** - Prevented system volume from resetting to 100% on channel switch.
+- **Fix**: **Mute State** - Integrated mute toggle with global manager for persistence across channels.
+
 ## [1.7.0+14] - App | [1.39.0] - Frontend | [1.28.0] - Backend - 2026-01-30
 
 ### App (Flutter)
