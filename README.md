@@ -6,18 +6,33 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `frontend` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.39.0
+- **Version**: 1.40.0
 - **Key Features**: Dynamic Priority Sorting, Kiosk-style Open Access, Reseller Management, Transaction Filtering, SEO Landing Page.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.28.0
+- **Version**: 1.29.0
 - **Key Features**: Priority Sorting (order_number), Health Check API, Auth Bypass Logic, Unified Admin Logs, Reseller System.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.7.1+15
+- **Version**: 1.8.0+16
 - **Key Features**: Full-Screen TV Toggle, Global Volume Persistence, Number Key Navigation (0-9), Backend Health Check.
+
+## Recent Updates (v1.8.0+16 App / v1.40.0 Frontend / v1.29.0 Backend)
+
+### App (Flutter)
+- **Optimization**: **TV Navigation** - Hybrid Grid rendering for smooth STB scrolling.
+- **Optimization**: **Video Player** - Zero-latency initialization and custom STB buffering.
+- **Fix**: **Black Screen** - Resolved instance synchronization during channel switching.
+
+### Frontend
+- **Optimization**: **Device Profiles** - Tier-aware HLS buffering for high-end PCs and low-end TVs.
+- **UI UX**: Increased player priority with larger viewports and Home-linked logo.
+- **Ads**: Full-width grid banners replace individual item ads for cleaner UX.
+
+### Backend
+- **Feature**: **Status filtering** for Geo-metadata (Categories/Languages).
 
 ## Recent Updates (v1.7.1+15 App / v1.39.0 Frontend / v1.28.0 Backend)
 

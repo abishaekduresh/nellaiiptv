@@ -2,6 +2,14 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.29.0] - 2026-01-30
+
+### Added
+- **Filtering**: Supported `status` parameter in `getCategories` and `getLanguages` APIs (defaults to 'active').
+
+### Optimization
+- **Sorting**: Unified `order_number` sorting across all Geo metadata services.
+
 ## [1.28.0] - 2026-01-30
 
 ### Added

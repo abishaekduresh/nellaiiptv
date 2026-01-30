@@ -82,8 +82,17 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     super.initState();
     WidgetsBinding.instance.addObserver(this); 
     
-    // Initialize MediaKit Player
+    // Initialize MediaKit Player with TV/Mobile optimizations
     _player = Player();
+    
+    // 🚀 Performance Tweaks (libmpv properties)
+    if (!kIsWeb) {
+      _player.setProperty('cache-pause', 'no');
+      _player.setProperty('demuxer-max-bytes', '10485760'); // 10MB buffer
+      _player.setProperty('demuxer-max-back-bytes', '0'); // Save RAM on weak TVs
+      _player.setProperty('stream-buffer-size', '131072'); // 128KB
+    }
+    
     _controller = VideoController(_player);
 
     // Listen for Player Errors
@@ -289,45 +298,49 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
         widget.onChannelLoaded?.call(channel);
       }
     }).catchError((e) {
-       if (widget.initialChannel == null) _handleError(e);
+       if (widget.initialChannel == null) {
+          if (e is DioException) {
+             _handleDioError(e);
+          } else {
+             _handleError(e);
+          }
+       }
        debugPrint("Background Channel Update Error: $e");
     });
   }
 
   void _handleError(dynamic e) {
-      String msg = "Failed to load channel";
-      if (e is DioException) {
-         if (e.response != null) {
-           msg = "API Error: ${e.response?.data['message'] ?? e.response?.statusMessage}";
-         } else {
-           msg = "Connection Failed. Check URL or Network.";
-         }
-      } else {
-         msg = e.toString();
-      }
-      if (mounted) _showError(msg);
+    String msg = "Failed to load channel";
+    msg = e.toString();
+    if (mounted) _showError(msg);
+  }
+
+  void _handleDioError(DioException dio_exception) {
+    String msg = "Failed to load channel";
+    if (dio_exception.response != null) {
+      msg = "API Error: ${dio_exception.response?.data['message'] ?? dio_exception.response?.statusMessage}";
+    } else {
+      msg = "Connection Failed. Check URL or Network.";
+    }
+    if (mounted) _showError(msg);
   }
 
   Future<void> _initVideoPlayer(String url) async {
-    // Optimization: Fast fail for invalid streams before player loads
-    if (!_fallbackUsed && !_isPremiumContent && !kIsWeb) {
-       try {
-         final dio = Dio(BaseOptions(
-           connectTimeout: const Duration(seconds: 2),
-           receiveTimeout: const Duration(seconds: 2),
-           validateStatus: (status) => status != null && status < 400,
-         ));
-         await dio.head(url);
-       } catch (e) {
-         if (mounted) {
-           _handlePlaybackError("Pre-flight Check Failed");
-           return;
-         }
-       }
-    }
-
     try {
-      // Don't await the open entirely to keep the UI thread responsive
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+          _hasError = false;
+        });
+      }
+
+      // 🛑 CRITICAL: Stop previous playback and clear state to prevent black screen or buffer overlap
+      await _player.stop();
+      
+      // Optimization: Using faster buffering strategy if supported
+      // Note: In some MediaKit versions, we can set properties via player.set
+      
+      // Open the new stream
       await _player.open(Media(url), play: true);
       
       if (mounted) {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Channel } from '@/types';
+import Link from 'next/link';
 import VideoPlayer from './VideoPlayer';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu, ArrowLeft } from 'lucide-react';
@@ -286,18 +287,44 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
       if (groupBy === 'all') return null;
       return (
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-2">
-              {groupKeys.map(key => (
-                  <button
-                      key={key}
-                      onClick={() => setActiveGroup(key)}
-                      className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${effectiveActiveGroup === key ? 'bg-primary text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
-                  >
-                      {key}
-                  </button>
+              {groupKeys.map((key, idx) => (
+                  <FilterTabItem 
+                    key={key} 
+                    label={key} 
+                    index={idx}
+                    isSelected={effectiveActiveGroup === key} 
+                    onSelect={() => setActiveGroup(key)} 
+                  />
               ))}
           </div>
       );
   };
+
+function FilterTabItem({ label, index, isSelected, onSelect }: { label: string; index: number; isSelected: boolean; onSelect: () => void }) {
+    const { focusProps, isFocused } = useTVFocus({
+        onEnter: onSelect,
+        className: `px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border`,
+        focusClassName: "bg-primary text-white scale-105 ring-2 ring-white z-10"
+    });
+
+    return (
+        <button
+            {...focusProps}
+            id={`filter-tab-${index}`}
+            className={`
+                ${focusProps.className}
+                ${isSelected 
+                    ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
+                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-white'
+                }
+                ${isFocused ? 'bg-primary text-white border-white' : ''}
+            `}
+        >
+            {label}
+        </button>
+    );
+}
+
 
   // Navigation for Player Overlay
   const gotoNextGroup = useCallback(() => {
@@ -443,8 +470,8 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
                 </div>
            </div>
 
-           {/* Channel Discussion - Replaces Ad Banner */}
-           <div className="w-full h-auto lg:h-[250px] shrink-0 overflow-hidden mb-1 lg:mb-0">
+           {/* Channel Discussion - Decreased height to favor player */}
+           <div className="w-full h-auto lg:h-[180px] shrink-0 overflow-hidden mb-1 lg:mb-0">
                 <ChannelComments channelUuid={selectedChannel.uuid} />
            </div>
 
@@ -457,8 +484,10 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
              {/* Header with Branding & Switch */}
              <div className="flex justify-between items-center">
                  <div className="flex items-center gap-2 lg:gap-3">
-                    {/* Branding Logo - Increased Size */}
-                    <img src={logoUrl} alt="Logo" className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg object-contain bg-black" />
+                    {/* Branding Logo - Link to Home */}
+                    <Link href="/">
+                        <img src={logoUrl} alt="Logo" className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg object-contain bg-black cursor-pointer hover:scale-105 transition-transform" />
+                    </Link>
                     <div>
                         <h2 className="font-bold text-white text-sm lg:text-base leading-tight">Nellai IPTV</h2>
                         <span className="text-[10px] text-primary font-bold tracking-wide uppercase">Classic Mode</span>
@@ -528,7 +557,6 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
                  </h3>
                  <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                   {displayChannels.reduce((acc: React.ReactNode[], channel, index) => {
-                      // Add Channel
                       acc.push(
                         <ChannelListItem 
                           key={channel.uuid} 
@@ -538,13 +566,13 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
                           onSelect={() => handleChannelClick(channel, 'main')}
                         />
                       );
-
-                      // Insert Ad every 24 items (LCM of 3 and 4) to ensure no gaps in grid on both Mobile (3 cols) and Desktop (4 cols)
-                      if ((index + 1) % 24 === 0 && index !== displayChannels.length - 1) {
+                      
+                      // Add an ad every 12 items (3 rows on lg:grid-cols-4)
+                      if ((index + 1) % 16 === 0) {
                           acc.push(
-                              <div key={`inline-ad-${index}`} className="col-span-3 sm:col-span-3 lg:col-span-4 py-2">
-                                  <div className="w-full h-auto min-h-[50px] lg:min-h-[90px] rounded-xl bg-slate-900/50 border border-slate-800 flex items-center justify-center overflow-hidden">
-                                      <AdBanner type="banner" />
+                              <div key={`ad-${index}`} className="col-span-full py-2">
+                                  <div className="w-full bg-slate-900/50 rounded-xl overflow-hidden border border-slate-800">
+                                      <AdBanner type="banner" className="w-full" />
                                   </div>
                               </div>
                           );

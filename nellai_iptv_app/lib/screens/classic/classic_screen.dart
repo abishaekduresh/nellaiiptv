@@ -87,15 +87,19 @@ class _ClassicScreenState extends State<ClassicScreen> {
 
   Future<void> _loadAds() async {
     setState(() => _isLoadingAds = true);
-    final ads = await _api.getAds();
-    if (mounted && ads.isNotEmpty) {
-      setState(() {
-        _ads = ads;
-        _isLoadingAds = false;
-      });
-      _startAdRotation();
-    } else {
-      setState(() => _isLoadingAds = false);
+    try {
+      final ads = await _api.getAds();
+      if (mounted && ads.isNotEmpty) {
+        setState(() {
+          _ads = ads;
+          _isLoadingAds = false;
+        });
+        _startAdRotation();
+      } else {
+        setState(() => _isLoadingAds = false);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingAds = false);
     }
   }
 
@@ -454,7 +458,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                     ],
                   ) : const SizedBox(),
                 ),
-                
+
                 // Ad Banner - Shown only if ads exist
                 if (!_isFullScreen && _ads.isNotEmpty)
                   Material(
@@ -785,55 +789,18 @@ class _ClassicScreenState extends State<ClassicScreen> {
                           }
 
                           final channels = provider.filteredChannels;
-                          final int itemsPerRow = 3;
-                          final int rowCount = (channels.length / itemsPerRow).ceil();
 
-                          return ListView.separated(
+                          return GridView.builder(
                             padding: const EdgeInsets.all(12),
-                            itemCount: rowCount,
-                            separatorBuilder: (context, index) {
-                               // Insert Ad every 5 rows (indexes 0-4 are the first 5 rows, so after index 4 (5th row) we show ad)
-                               if ((index + 1) % 5 == 0 && _ads.isNotEmpty) {
-                                  final adIndex = ((index + 1) ~/ 5) % _ads.length;
-                                  return Container(
-                                    margin: const EdgeInsets.symmetric(vertical: 10),
-                                    height: 100,
-                                    width: double.infinity,
-                                    color: Colors.black,
-                                    child: CachedNetworkImage(
-                                       imageUrl: _ads[adIndex].imageUrl,
-                                       fit: BoxFit.fill,
-                                       placeholder: (context, url) => const SkeletonAdBanner(),
-                                       errorWidget: (context, url, error) => const SizedBox(), 
-                                    ),
-                                  );
-                               }
-                               return const SizedBox(height: 10);
-                            },
-                            itemBuilder: (context, rowIndex) {
-                               final int startIndex = rowIndex * itemsPerRow;
-                               final int endIndex = (startIndex + itemsPerRow < channels.length) 
-                                   ? startIndex + itemsPerRow 
-                                   : channels.length;
-                               final rowChannels = channels.sublist(startIndex, endIndex);
-
-                               return Row(
-                                 children: [
-                                   for (int i = 0; i < itemsPerRow; i++)
-                                     Expanded(
-                                       child: (i < rowChannels.length) 
-                                         ? Padding(
-                                             // Add spacing: Right padding for all except last item
-                                             padding: EdgeInsets.only(right: (i < itemsPerRow - 1) ? 10.0 : 0),
-                                             child: AspectRatio(
-                                               aspectRatio: 1.1,
-                                               child: _buildChannelCard(rowChannels[i]),
-                                             ),
-                                           )
-                                         : const SizedBox(), // Spacer for unfilled rows
-                                     ),
-                                 ],
-                               );
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              childAspectRatio: 1.1,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                            ),
+                            itemCount: channels.length,
+                            itemBuilder: (context, index) {
+                              return _buildChannelCard(channels[index]);
                             },
                           );
                         },
@@ -858,6 +825,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
         return InkWell(
           focusNode: focusNode,
           onTap: onTap,
+          autofocus: isSelected,
           borderRadius: BorderRadius.circular(4),
           child: AnimatedBuilder(
             animation: focusNode,
@@ -966,6 +934,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
         
         return InkWell(
           focusNode: focusNode,
+          autofocus: isSelected,
           onTap: () => setState(() => _selectedChannel = channel),
           child: AnimatedBuilder(
             animation: focusNode,

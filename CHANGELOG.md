@@ -1,3 +1,21 @@
+## [1.8.0+16] - App | [1.40.0] - Frontend | [1.29.0] - Backend - 2026-01-30
+
+### App (Flutter)
+- **Feature**: **TV Optimization** - Switched to `GridView.builder` for the channel grid to ensure smooth directional navigation on Android TV/STB.
+- **Improvement**: **Video Playback** - Reduced stream loading latency by removing pre-flight Dio checks and added MediaKit performance tweaks (`cache-pause`, `demuxer-max-bytes`) for STB stability.
+- **Fix**: **Black Screen Resolution** - Fixed a synchronization issue by ensuring cleaner player disposal and source loading during channel switches.
+- **Ad Refinement**: Removed inline grid ads to prioritize navigation speed, while maintaining the bottom banner ad.
+
+### Frontend (Next.js)
+- **Optimization**: **Hls.js Engine** - Implemented device-specific buffering profiles (High-Tier vs. Low-Tier TV) to maximize performance and minimize RAM usage on weak hardware.
+- **UI/UX**: Refined Classic Mode layout with increased video player height and optimized comment section spacing.
+- **Navigation**: Branding logo in the sidebar now conveniently links back to the home page.
+- **Ads**: Migrated from individual grid ads to full-width banners every 16 channels for a more premium browsing experience.
+
+### Backend (PHP)
+- **Feature**: **Advanced Filtering** - Added `status` parameter support to Categories and Languages APIs for refined content management.
+- **Optimization**: Standardized priority-first sorting (`order_number`) for all Geo metadata services.
+
 ## [1.7.1+15] - App | [1.39.0] - Frontend | [1.28.0] - Backend - 2026-01-30
 
 ### App (Flutter)

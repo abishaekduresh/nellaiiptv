@@ -1,3 +1,16 @@
+## [1.8.0+16] - 2026-01-30
+
+### Added
+- **TV Optimization**: Hybrid Grid rendering using `GridView.builder` for liquid-smooth directional navigation on STB remotes.
+- **MediaKit Tweaks**: Custom property injection (`cache-pause`, `demuxer-max-bytes`) for optimized playback stability on Android TV.
+
+### Changed
+- **Ad Placement**: Grid-based ads removed to prioritize navigation speed; bottom banner ads retained for clean UX.
+
+### Fixed
+- **Loading Latency**: Removed redundant pre-playback Dio checks, reducing channel switch time by ~2 seconds.
+- **Black Screen**: Standardized `Player.stop()` and state reset timing to prevent visual hangs during channel transitions.
+
 ## [1.7.1+15] - 2026-01-30
 
 ### Added
