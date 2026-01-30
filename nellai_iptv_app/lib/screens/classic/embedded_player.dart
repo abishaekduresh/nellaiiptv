@@ -75,13 +75,28 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   Timer? _viewCountTimer;
   bool _hasIncrementedView = false;
   
+  StreamSubscription? _playerErrorSub;
+  StreamSubscription? _playerLogSub;
+
   // Auto-Retry Logic
   Timer? _retryTimer;
   int _retrySeconds = 20;
 
+  late final FocusNode _focusNode;
+
   @override
   void initState() {
     super.initState();
+    _currentLoadId++;
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      if (mounted) {
+        if (_focusNode.hasFocus) {
+          _toggleControls(show: true);
+        }
+        setState(() {});
+      }
+    });
     WidgetsBinding.instance.addObserver(this); 
     
     // Initialize MediaKit Player
@@ -104,22 +119,23 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     _controller = VideoController(_player);
 
     // Listen for Player Errors
-    _player.stream.error.listen((error) {
+    _playerErrorSub = _player.stream.error.listen((error) {
        // debugPrint("MediaKit Stream Error: $error");
        if (mounted) _handlePlaybackError("Stream Error: $error");
     });
     
     // Listen for Logs (often contains 404s that don't trigger stream.error instantly)
-    _player.stream.log.listen((log) {
-       // Using toString() as 'message' getter is undefined in this version
+    // Disabled to prevent FFI callback crashes on hot restart
+    /*
+    _playerLogSub = _player.stream.log.listen((log) {
        final String msg = log.toString();
        if (msg.contains("404 Not Found") || msg.contains("Connection refused") || msg.contains("Input/output error")) {
-          // debugPrint("MediaKit Log Error: $msg");
           if (mounted && !_hasError && !_fallbackUsed) {
              _handlePlaybackError("Playback Error: $msg");
           }
        }
     });
+    */
 
     // Initialize PiP
     _simplePip = SimplePip(
@@ -137,11 +153,20 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     AudioManager().init();
 
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen(_handleConnectivityChange);
+    
+    _audioSubscription = AudioManager().volumeStream.listen((vol) {
+      if (mounted) {
+        setState(() {});
+        // Also sync player volume if hardware buttons change system volume
+        _player.setVolume(vol <= 0 ? 0 : 100);
+      }
+    });
 
     _initializeApp();
   }
   
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  StreamSubscription<double>? _audioSubscription;
   bool _wasOffline = false;
 
   void _handleConnectivityChange(List<ConnectivityResult> results) {
@@ -200,15 +225,13 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     }
   }
 
-  void _toggleControls() {
+  void _toggleControls({bool? show}) {
     if (_isPremiumContent || widget.hideControls) return; 
     setState(() {
-      _showControls = !_showControls;
+      _showControls = show ?? !_showControls;
     });
     if (_showControls) _startHideTimer();
     else _hideTimer?.cancel();
-    
-    widget.onTap?.call();
   }
 
   void _toggleFullScreen() {
@@ -235,9 +258,12 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     });
   }
 
-  Future<double> _toggleMute() async {
-      await AudioManager().toggleMute();
-      return AudioManager().currentVolume;
+  Future<void> _toggleMute() async {
+    await AudioManager().toggleMute();
+    if (mounted) {
+      final bool isMuted = AudioManager().isMuted;
+      _player.setVolume(isMuted ? 0 : 100);
+    }
   }
   
   Future<void> _fetchSettings() async {
@@ -455,55 +481,89 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _connectivitySubscription?.cancel();
     AudioManager().reapplyAppVolume(); // Ensure current app volume is applied
-    _player.dispose(); // Dispose MediaKit Player
 
-    if (_hasIncrementedView && _channel != null) {
-      // _api.decrementView(_channel!.uuid); 
-    }
     _viewCountTimer?.cancel();
     _retryTimer?.cancel();
+    _audioSubscription?.cancel();
+    _connectivitySubscription?.cancel();
+    
+    // Explicitly cancel player-specific subscriptions first
+    _playerErrorSub?.cancel();
+    _playerLogSub?.cancel();
+
+    // 🛑 Synchronous disposal is safer for hot restarts to prevent post-environment-wipe callbacks
+    _player.dispose();
+
+    _focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Focus(
+      focusNode: _focusNode,
       autofocus: true,
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent) {
-           if (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter) {
-             _toggleControls();
+           final isSelect = event.logicalKey == LogicalKeyboardKey.select || 
+                           event.logicalKey == LogicalKeyboardKey.enter ||
+                           event.logicalKey == LogicalKeyboardKey.numpadEnter;
+
+           if (isSelect) {
+             if (!widget.isFullScreen) {
+               // If embedded, Enter/Select goes to fullscreen
+               widget.onDoubleTap?.call();
+             } else {
+               // If already in fullscreen, Enter/Select toggles controls
+               _toggleControls();
+             }
              return KeyEventResult.handled;
            }
-           // Use a specific key for fullscreen or handle long press if possible
-           // For now, let's allow a dedicated button in the UI which is easier to discover
         }
         return KeyEventResult.ignored;
       },
-      child: GestureOverlay(
-      onTap: _toggleControls,
-      onToggleMute: widget.onDoubleTap ?? () => _toggleMute(),
-      child: Container(
-        color: Colors.black, // Ensure black background
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // 1. Video Surface
-            Container(
-              color: Colors.black, 
-              child: _isPremiumContent 
-                ? const SizedBox() 
-                : SizedBox.expand(
-                    child: Video(
-                      controller: _controller,
-                      controls: NoVideoControls,
-                      alignment: Alignment.center,
-                      fit: widget.isFullScreen ? BoxFit.fill : BoxFit.contain, // Stretched in fullscreen, preserved in embedded
-                    ),
+      child: Builder(
+        builder: (context) {
+          final bool hasFocus = _focusNode.hasFocus;
+          return GestureOverlay(
+            onTap: () {
+              _focusNode.requestFocus();
+              if (!widget.isFullScreen) {
+                _toggleFullScreen();
+              } else {
+                _toggleControls();
+              }
+            },
+            onToggleMute: widget.onDoubleTap ?? () => _toggleMute(),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                border: (!widget.isFullScreen && hasFocus) 
+                    ? Border.all(color: const Color(0xFF0EA5E9), width: 2.5) 
+                    : Border.all(color: Colors.transparent, width: 2.5),
+                boxShadow: (!widget.isFullScreen && hasFocus) ? [
+                  BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)
+                ] : [],
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // 1. Video Surface
+                  Container(
+                    color: Colors.black, 
+                    child: _isPremiumContent 
+                      ? const SizedBox() 
+                      : SizedBox.expand(
+                          child: Video(
+                            controller: _controller,
+                            controls: NoVideoControls,
+                            alignment: Alignment.center,
+                            fit: BoxFit.fill, // Stretched to fill player area in both embedded and fullscreen
+                          ),
+                        ),
                   ),
-            ),
 
           // 2. Web Warning (Bottom)
           if (kIsWeb)
@@ -648,7 +708,38 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                     ignoring: !_showControls,
                     child: Row(
                       children: [
-                        // Fullscreen Toggle Button - CRITICAL FOR TV
+                        // 1. Channel List Button (STB Navigation) - NEW
+                        if (widget.isFullScreen)
+                          Builder(
+                            builder: (context) {
+                              final menuFocus = FocusNode();
+                              return InkWell(
+                                focusNode: menuFocus,
+                                onTap: () {
+                                  _startHideTimer();
+                                  widget.onTap?.call();
+                                },
+                                borderRadius: BorderRadius.circular(20),
+                                child: AnimatedBuilder(
+                                  animation: menuFocus,
+                                  builder: (context, child) {
+                                    return Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: menuFocus.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                        border: menuFocus.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                      ),
+                                      child: const Icon(Icons.menu_open, color: Colors.white, size: 28),
+                                    );
+                                  },
+                                ),
+                              );
+                            }
+                          ),
+                        if (widget.isFullScreen) const SizedBox(width: 12),
+
+                        // 2. Fullscreen Toggle Button - CRITICAL FOR TV
                         Builder(
                           builder: (context) {
                             final fsFocus = FocusNode();
@@ -727,17 +818,55 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                               );
                             }
                           ),
+                        const SizedBox(width: 12),
+
+                        // 4. Mute Button - NEW
+                        Builder(
+                          builder: (context) {
+                            final muteFocus = FocusNode();
+                            return InkWell(
+                              focusNode: muteFocus,
+                               onTap: () async {
+                                _startHideTimer();
+                                await _toggleMute();
+                                if (mounted) setState(() {});
+                              },
+                              borderRadius: BorderRadius.circular(20),
+                              child: AnimatedBuilder(
+                                animation: muteFocus,
+                                builder: (context, child) {
+                                  final isMuted = AudioManager().isMuted;
+                                  return Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: muteFocus.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                      border: muteFocus.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                    ),
+                                    child: Icon(
+                                      isMuted ? Icons.volume_off : Icons.volume_up, 
+                                      color: Colors.white, 
+                                      size: 28
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          }
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
-        ],
+            ],
+          ),
         ),
-      ),
-      ),
-    );
-  }
+      );
+    },
+  ),
+);
+}
 
   Widget _buildPremiumOverlay() {
     return Container(

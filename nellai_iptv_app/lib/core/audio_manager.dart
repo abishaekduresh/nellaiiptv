@@ -21,8 +21,12 @@ class AudioManager {
   // Session Volume Management
   double? _originalVolume; // System volume before app interaction
   double _appSessionVolume = 0.5; // Last volume set by the app
+  bool _isInitialized = false;
 
   Future<void> init() async {
+    if (_isInitialized) return;
+    _isInitialized = true;
+    
     // Get initial volume
     double vol = await _volumeController.getVolume();
     
@@ -36,6 +40,11 @@ class AudioManager {
     // Hide System UI for volume changes
     _volumeController.showSystemUI = false;
 
+    // Remove existing listener if any to avoid duplicate callbacks after hot restart
+    try {
+      _volumeController.removeListener();
+    } catch (_) {}
+
     // Listen for system changes (e.g. hardware buttons)
     _volumeController.addListener((volume) {
       _currentVolume = volume;
@@ -44,7 +53,9 @@ class AudioManager {
       if (_currentVolume > 0) {
         _isMuted = false;
       }
-      _volumeStreamController.add(_currentVolume);
+      if (!_volumeStreamController.isClosed) {
+        _volumeStreamController.add(_currentVolume);
+      }
     });
   }
 
