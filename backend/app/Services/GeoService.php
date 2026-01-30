@@ -19,13 +19,19 @@ class GeoService
         return District::all()->toArray();
     }
 
-    public function getLanguages(): array
+    public function getLanguages(string $status = 'active'): array
     {
-        return Language::orderBy('order_number', 'ASC')->get()->toArray();
+        return Language::where('status', $status)
+            ->orderBy('order_number', 'ASC')
+            ->get()
+            ->toArray();
     }
 
-    public function getCategories(): array
+    public function getCategories(string $status = 'active'): array
     {
-        return Category::orderBy('order_number', 'ASC')->get()->toArray();
+        return Category::where('status', $status)
+            ->orderBy('order_number', 'ASC')
+            ->get()
+            ->toArray();
     }
 }

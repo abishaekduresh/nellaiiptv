@@ -51,8 +51,16 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
         ]);
         
         setStates(statesRes.data.data);
-        setLanguages(languagesRes.data.data);
-        setCategories(categoriesRes.data.data);
+
+        // Sort Languages
+        const langs = languagesRes.data.data;
+        langs.sort((a: any, b: any) => (a.order_number ?? 999) - (b.order_number ?? 999));
+        setLanguages(langs);
+
+        // Sort Categories
+        const cats = categoriesRes.data.data;
+        cats.sort((a: any, b: any) => (a.order_number ?? 999) - (b.order_number ?? 999));
+        setCategories(cats);
 
         // Fetch districts if state is already selected (editing mode)
         if (initialData?.state_id) {

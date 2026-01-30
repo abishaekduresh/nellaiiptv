@@ -30,13 +30,17 @@ class GeoController
 
     public function getLanguages(Request $request, Response $response): Response
     {
-        $languages = $this->geoService->getLanguages();
+        $params = $request->getQueryParams();
+        $status = $params['status'] ?? 'active';
+        $languages = $this->geoService->getLanguages($status);
         return ResponseFormatter::success($response, $languages, 'Languages retrieved successfully');
     }
 
     public function getCategories(Request $request, Response $response): Response
     {
-        $categories = $this->geoService->getCategories();
+        $params = $request->getQueryParams();
+        $status = $params['status'] ?? 'active';
+        $categories = $this->geoService->getCategories($status);
         return ResponseFormatter::success($response, $categories, 'Categories retrieved successfully');
     }
 }

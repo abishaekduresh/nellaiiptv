@@ -2,6 +2,19 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
+## [1.40.0] - 2026-01-30
+
+### Added
+- **Device Profiles**: Smart HLS configuration engine with tier-aware buffering (High-Tier vs. Low-Tier TV).
+- **Navigation**: Home page link integrated into the sidebar branding logo.
+
+### Changed
+- **Ad Experience**: Replaced individual grid ads with high-end full-width banners inserted every 16 channels.
+- **Classic UI**: Enhanced viewport priority with increased video player height and compact comment section.
+
+### Fixed
+- **Stability**: Fixed Hls.js instance cleanup and media detachment to resolve visual hangs during source switches.
+
 ## [1.39.0] - 2026-01-30
 
 ### Improved

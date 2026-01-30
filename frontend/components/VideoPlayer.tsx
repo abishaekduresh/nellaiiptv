@@ -599,31 +599,35 @@ function VideoPlayer({
             abrEwmaFastLive: 5,
             abrEwmaSlowLive: 12,
             // 🚀 START AT SAFE QUALITY (KEY FIX)
-            startLevel: 1, // 480p / 720p depending on ladder
+            startLevel: -1, // Auto-quality start for best compatibility
             // 🎯 Allow quality upgrade
-            abrBandWidthFactor: 0.85,
+            abrBandWidthFactor: 0.9,
             abrBandWidthUpFactor: 0.7,
             // Prevent constant downscale
-            abrMaxWithRealBitrate: true
+            abrMaxWithRealBitrate: true,
+            // 🛡️ LOADING TIMEOUTS (REDUCE HANGING)
+            manifestLoadingTimeOut: 10000,
+            levelLoadingTimeOut: 10000,
+            fragLoadingTimeOut: 20000,
+            manifestLoadingMaxRetry: 3,
+            levelLoadingMaxRetry: 3,
+            fragLoadingMaxRetry: 6,
         };
 
-        /* 📺 ANDROID TV (OLD MODELS SAFE) */
+        /* 📺 TV PROFILES */
         if (profile.isTV) {
-            // 🛑 LOW TIER TV (Old Android / Tizen / WebOS)
             if (profile.tier === 'low') {
+                // 🛑 LOW TIER TV (Old Android / Tizen / WebOS)
                 return {
                     ...base,
-                    startLevel: 0, // Absolute lowest quality start
-                    maxBufferLength: 15, // Reduced buffer overhead
-                    maxMaxBufferLength: 30,
-                    backBufferLength: 5, 
-                    maxBufferSize: 15 * 1000 * 1000, // 15MB limit
-                    
-                    // Very Conservative ABR
-                    abrBandWidthFactor: 0.5, 
-                    abrBandWidthUpFactor: 0.3,
-                    
-                    maxStarvationDelay: 4,
+                    startLevel: 0, 
+                    maxBufferLength: 8, // Very small for limited RAM
+                    maxMaxBufferLength: 15,
+                    backBufferLength: 0, 
+                    maxBufferSize: 8 * 1024 * 1024,
+                    abrBandWidthFactor: 0.6, 
+                    abrBandWidthUpFactor: 0.4,
+                    maxStarvationDelay: 2,
                     maxLoadingDelay: 2
                 };  
             }
@@ -631,11 +635,10 @@ function VideoPlayer({
             // 🚀 HIGH TIER TV (Shield / Fire TV 4K)
             return {
                 ...base,
-                maxBufferLength: 20,
-                maxMaxBufferLength: 40,
-                backBufferLength: 8,
-                // Low RAM protection
-                maxBufferSize: 20 * 1000 * 1000,
+                maxBufferLength: 30, // Increased for smoother playback
+                maxMaxBufferLength: 60,
+                backBufferLength: 10,
+                maxBufferSize: 40 * 1024 * 1024, // 40MB
                 maxStarvationDelay: 6,
                 maxLoadingDelay: 4
             };
@@ -645,10 +648,10 @@ function VideoPlayer({
         if (profile.isMobile) {
             return {
                 ...base,
-                maxBufferLength: 30,
-                maxMaxBufferLength: 60,
+                maxBufferLength: 40,
+                maxMaxBufferLength: 80,
                 backBufferLength: 15,
-                maxBufferSize: 30 * 1000 * 1000
+                maxBufferSize: 60 * 1024 * 1024 // 60MB
             };
         }
 
@@ -658,37 +661,47 @@ function VideoPlayer({
             maxBufferLength: 60,
             maxMaxBufferLength: 120,
             backBufferLength: 30,
-            maxBufferSize: 60 * 1000 * 1000
+            maxBufferSize: 120 * 1024 * 1024 // 120MB
         };
     };
 
-    // Priority: HLS.js (Optimized) > Native (Fallback for iOS/Safari)
-    if (Hls.isSupported()) {
-        const profile = getDeviceProfile();
+        // 🛑 CRITICAL: Shared Video Element Reset for both HLS.js and Native paths
+        video.pause();
+        video.currentTime = 0;
+        video.removeAttribute('src'); 
+        video.load();
         
+        // Ensure critical attributes for mobile/TV
+        video.setAttribute("playsinline", "true");
+        video.setAttribute("webkit-playsinline", "true");
+        video.style.imageRendering = "auto";
+
+        const profile = getDeviceProfile();
+
         // 🚀 LITE MODE REDIRECT (For Low-End TVs)
-        // If the user is on a slow TV, we redirect them to the Zero-Overhead Lite Player
-        // This bypasses the entire React Render Loop for maximum performance.
         if (profile.isTV && profile.tier === 'low' && channelUuid) {
             window.location.href = `/lite?channel=${channelUuid}`;
             return; // Stop execution
         }
 
-        const hlsConfig = buildHlsConfig(profile);
+        if (Hls.isSupported()) {
+            const hlsConfig = buildHlsConfig(profile);
 
-        hls = new Hls({
-             debug: false,
-             ...hlsConfig
-        });
-        hlsRef.current = hls;
+            // Destroy previous instance
+            if (hlsRef.current) {
+                hlsRef.current.detachMedia();
+                hlsRef.current.destroy();
+                hlsRef.current = null;
+            }
 
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        
-        // 🔥 CRITICAL ADDITION
-        video.setAttribute("playsinline", "true");
-        video.setAttribute("webkit-playsinline", "true");
-        video.style.imageRendering = "auto";
+            hls = new Hls({
+                 debug: false,
+                 ...hlsConfig
+            });
+            hlsRef.current = hls;
+
+            hls.attachMedia(video);
+            hls.loadSource(src);
         
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
             const levels = hls?.levels || [];
