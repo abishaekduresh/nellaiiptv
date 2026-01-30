@@ -1,3 +1,14 @@
+## [1.7.1+15] - 2026-01-30
+
+### Added
+- **Full-Screen TV Toggle**: Dedicated focusable button in playback controls for easy entry/exit of full-screen mode on TV remotes.
+- **System UI Management**: Improved logic to hide/restore status and navigation bars using `immersiveSticky` mode for a cleaner TV experience.
+
+### Fixed
+- **Volume Persistence**: Resolved issue where system volume would reset to 100% when switching channels; volume now persists throughout the session.
+- **Mute Persistence**: Mute state is now handled globally, ensuring a channel remains muted even after switching to another one.
+- **UI Interaction**: Refined tap handlers in Classic Mode to prevent overlapping menu layers on TV screens.
+
 ## [1.7.0+14] - 2026-01-30
 
 ### Added

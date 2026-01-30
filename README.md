@@ -16,10 +16,17 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.7.0+14
-- **Key Features**: Number Key Navigation (0-9), Backend Health Check, Animated Feedback (flutter_animate), Dynamic Header Logo.
+- **Version**: 1.7.1+15
+- **Key Features**: Full-Screen TV Toggle, Global Volume Persistence, Number Key Navigation (0-9), Backend Health Check.
 
-## Recent Updates (v1.6.2+13 App / v1.38.0 Frontend / v1.27.0 Backend)
+## Recent Updates (v1.7.1+15 App / v1.39.0 Frontend / v1.28.0 Backend)
+
+### App (Flutter)
+- **Feature**: **Full-Screen TV Toggle** - Dedicated focusable button in playback controls.
+- **Fix**: **Volume Consistency** - Volume and Mute states now persist across channel switches.
+- **Improvement**: **System UI** - Enhanced immersive mode management for TV boxes.
+
+## Recent Updates (v1.7.0+14 App / v1.39.0 Frontend / v1.28.0 Backend)
 
 ### App (Flutter)
 - **Feature**: **TV Focus** - Full D-Pad "Select" support for all interactive player elements.

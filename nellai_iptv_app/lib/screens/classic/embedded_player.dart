@@ -157,6 +157,9 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     if (oldWidget.channelUuid != widget.channelUuid) {
       _loadChannel();
     }
+    if (oldWidget.isFullScreen != widget.isFullScreen) {
+      _updateSystemUI();
+    }
   }
 
   @override
@@ -181,15 +184,29 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   }
 
   void _toggleControls() {
-    if (_isPremiumContent || widget.hideControls) return; // No controls for premium or if hidden by parent
+    if (_isPremiumContent || widget.hideControls) return; 
     setState(() {
       _showControls = !_showControls;
     });
     if (_showControls) _startHideTimer();
     else _hideTimer?.cancel();
     
-    // Call external onTap if provided
     widget.onTap?.call();
+  }
+
+  void _toggleFullScreen() {
+    if (widget.onDoubleTap != null) {
+      widget.onDoubleTap!();
+    }
+  }
+
+  void _updateSystemUI() {
+    if (widget.isFullScreen) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+      // Restore immersive mode but sticky as well for TV
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
   }
 
   void _startHideTimer() {
@@ -202,10 +219,8 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   }
 
   Future<double> _toggleMute() async {
-      double current = _player.state.volume;
-      double newVol = (current > 0) ? 0.0 : 100.0; // MediaKit uses 0-100
-      await _player.setVolume(newVol);
-      return newVol;
+      await AudioManager().toggleMute();
+      return AudioManager().currentVolume;
   }
   
   Future<void> _fetchSettings() async {
@@ -413,8 +428,8 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _connectivitySubscription?.cancel();
+    AudioManager().reapplyAppVolume(); // Ensure current app volume is applied
     _player.dispose(); // Dispose MediaKit Player
-    AudioManager().restoreOriginalVolume();
 
     if (_hasIncrementedView && _channel != null) {
       // _api.decrementView(_channel!.uuid); 
@@ -429,10 +444,13 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     return Focus(
       autofocus: true,
       onKeyEvent: (node, event) {
-        if (event is KeyDownEvent && 
-           (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter)) {
-            _toggleControls();
-            return KeyEventResult.handled;
+        if (event is KeyDownEvent) {
+           if (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter) {
+             _toggleControls();
+             return KeyEventResult.handled;
+           }
+           // Use a specific key for fullscreen or handle long press if possible
+           // For now, let's allow a dedicated button in the UI which is easier to discover
         }
         return KeyEventResult.ignored;
       },
@@ -599,6 +617,40 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                     ignoring: !_showControls,
                     child: Row(
                       children: [
+                        // Fullscreen Toggle Button - CRITICAL FOR TV
+                        Builder(
+                          builder: (context) {
+                            final fsFocus = FocusNode();
+                            return InkWell(
+                              focusNode: fsFocus,
+                              onTap: () {
+                                _startHideTimer();
+                                _toggleFullScreen();
+                              },
+                              borderRadius: BorderRadius.circular(20),
+                              child: AnimatedBuilder(
+                                animation: fsFocus,
+                                builder: (context, child) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: fsFocus.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                      border: fsFocus.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                    ),
+                                    child: Icon(
+                                      widget.isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen, 
+                                      color: Colors.white, 
+                                      size: 28
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          }
+                        ),
+                        const SizedBox(width: 12),
+
                         // PiP Button - Show ONLY if Fullscreen
                         if (widget.isFullScreen)
                           Builder(
@@ -631,7 +683,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: pipFocus.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.transparent,
+                                        color: pipFocus.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
                                         border: pipFocus.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
                                         boxShadow: pipFocus.hasFocus ? [
                                           BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.5), blurRadius: 8, spreadRadius: 2)
