@@ -11,10 +11,10 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
-## Version: 1.8.0+16
-- **Key Features**: Hybrid Grid Rendering (STB), Zero-Latency Video Init, Custom TV Buffering, Number Key Navigation.
-- **TV Optimization**: Liquied-smooth directional scrolling using `GridView.builder` with autofocus logic.
-- **Video Playback**: MediaKit property tuning (`cache-pause`, `demuxer`) for specialized IPTV hardware.
+## Version: 1.8.1+17
+- **Key Features**: Full-Screen Video Stretching, FFI Crash Resilience, Async Load Guards, Hybrid Grid Rendering.
+- **Video Playback**: Implemented dynamic `BoxFit.fill` for fullscreen; resolved critical FFI threading crashes during channel switching.
+- **TV Optimization**: Liquid-smooth directional scrolling and safely re-enabled MediaKit performance tweaks.
 
 ## Version 1.6.2+12 Highlights
 

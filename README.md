@@ -6,23 +6,25 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `frontend` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.40.0
-- **Key Features**: Dynamic Priority Sorting, Kiosk-style Open Access, Reseller Management, Transaction Filtering, SEO Landing Page.
+- **Version**: 1.41.0
+- **Key Features**: Tier-aware HLS Buffering, Dynamic Priority Sorting, Kiosk-style Open Access, Reseller Management.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.29.0
-- **Key Features**: Priority Sorting (order_number), Health Check API, Auth Bypass Logic, Unified Admin Logs, Reseller System.
+- **Version**: 1.30.0
+- **Key Features**: API Status Filtering, Priority Sorting (order_number), Health Check API, Auth Bypass Logic.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.0+16
-- **Key Features**: Full-Screen TV Toggle, Global Volume Persistence, Number Key Navigation (0-9), Backend Health Check.
+- **Version**: 1.8.1+17
+- **Key Features**: Full-Screen Video Stretching, FFI Crash Resilience, Async Load Guards, Number Key Navigation.
 
-## Recent Updates (v1.8.0+16 App / v1.40.0 Frontend / v1.29.0 Backend)
+## Recent Updates (v1.8.1+17 App / v1.41.0 Frontend / v1.30.0 Backend)
 
 ### App (Flutter)
-- **Optimization**: **TV Navigation** - Hybrid Grid rendering for smooth STB scrolling.
+- **Fix**: **FFI Crash Resolution** - Resolved critical SIGABRT by refining player disposal timing.
+- **Feature**: **Video Stretching** - Dynamic `BoxFit.fill` implemented for fullscreen mode.
+- **Robustness**: Added `loadId` async guards to prevent state clashes during rapid channel switching.
 - **Optimization**: **Video Player** - Zero-latency initialization and custom STB buffering.
 - **Fix**: **Black Screen** - Resolved instance synchronization during channel switching.
 

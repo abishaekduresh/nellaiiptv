@@ -68,6 +68,8 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   bool _showControls = false;
   Timer? _hideTimer;
   bool _isPipMode = false;
+  String? _lastOpenedUrl;
+  int _currentLoadId = 0; // Guard against overlapping API returns
 
   // View Count Logic
   Timer? _viewCountTimer;
@@ -82,15 +84,21 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     super.initState();
     WidgetsBinding.instance.addObserver(this); 
     
-    // Initialize MediaKit Player with TV/Mobile optimizations
+    // Initialize MediaKit Player
     _player = Player();
     
-    // 🚀 Performance Tweaks (libmpv properties)
+    // 🚀 Performance Tweaks (Apply once)
     if (!kIsWeb) {
-      _player.setProperty('cache-pause', 'no');
-      _player.setProperty('demuxer-max-bytes', '10485760'); // 10MB buffer
-      _player.setProperty('demuxer-max-back-bytes', '0'); // Save RAM on weak TVs
-      _player.setProperty('stream-buffer-size', '131072'); // 128KB
+      try {
+        // Use dynamic to bypass compilation check if setProperty is not in the base Player interface of this version
+        final dynamic p = _player;
+        p.setProperty('cache-pause', 'no');
+        p.setProperty('demuxer-max-bytes', '10485760'); 
+        p.setProperty('demuxer-max-back-bytes', '0');
+        p.setProperty('stream-buffer-size', '131072');
+      } catch (e) {
+        debugPrint("Failed to set MediaKit properties: $e");
+      }
     }
     
     _controller = VideoController(_player);
@@ -246,7 +254,8 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     }
   }
 
-  Future<void> _loadChannel() async {
+   Future<void> _loadChannel() async {
+    final int loadId = ++_currentLoadId;
     _retryTimer?.cancel(); // Cancel any existing retry loop when starting a new load
     // 1. Reset Error State but keep loading if we don't have initial data
     setState(() { 
@@ -263,17 +272,21 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
       _isPremiumContent = _channel!.isPremium;
       
       if (!_isPremiumContent && _channel!.hlsUrl != null) {
-        _initVideoPlayer(_channel!.hlsUrl!);
-        // Dismiss internal loader immediately, let MediaKit handle buffering UI
-        setState(() => _isLoading = false);
+        await _initVideoPlayer(_channel!.hlsUrl!);
       } else if (_isPremiumContent) {
-        setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
         WakelockPlus.enable();
       }
     }
 
     // 3. Parallel Background Update from API (Stats & Data Freshness)
-    _api.getChannelDetails(widget.channelUuid).then((channel) {
+    _api.getChannelDetails(widget.channelUuid).then((channel) async {
+      if (!mounted || _currentLoadId != loadId) return;
+      
       if (mounted) {
         bool wasPremium = _isPremiumContent;
         setState(() {
@@ -286,12 +299,12 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
         });
 
         if (channel.isPremium) {
-           _player.stop(); // Stop if user was watching cached non-premium URL
+           _player.stop().catchError((e) => debugPrint("Player Stop Error: $e")); 
            _viewCountTimer?.cancel();
            WakelockPlus.enable(); 
         } else if (channel.hlsUrl != null && (widget.initialChannel == null || wasPremium)) {
           // Only init if we haven't already OR if we are switching FROM a premium state
-          _initVideoPlayer(channel.hlsUrl!);
+          await _initVideoPlayer(channel.hlsUrl!);
         }
 
         // Notify parent with fresh data (e.g. ratings)
@@ -326,6 +339,13 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   }
 
   Future<void> _initVideoPlayer(String url) async {
+    if (url == _lastOpenedUrl && !_hasError && _player.state.playing) {
+       // Still playing the same thing, just ensure we show the UI
+       if (mounted && _isLoading) setState(() => _isLoading = false);
+       return;
+    }
+    _lastOpenedUrl = url;
+
     try {
       if (mounted) {
         setState(() {
@@ -334,13 +354,8 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
         });
       }
 
-      // 🛑 CRITICAL: Stop previous playback and clear state to prevent black screen or buffer overlap
-      await _player.stop();
-      
-      // Optimization: Using faster buffering strategy if supported
-      // Note: In some MediaKit versions, we can set properties via player.set
-      
-      // Open the new stream
+      // 🛑 CRITICAL: We don't call stop() explicitly before open()
+      // MediaKit's open() handles the transition internally much more safely for FFI.
       await _player.open(Media(url), play: true);
       
       if (mounted) {
@@ -352,8 +367,8 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
       _startViewCountTimer();
       
     } catch (e) {
-      // debugPrint("Video Init Error: $e");
-      if (mounted) _handlePlaybackError("Playback Failed");
+      debugPrint("Video Init Error: $e");
+      if (mounted) _handlePlaybackError("Playback Failed: $e");
     }
   }
 
@@ -484,7 +499,8 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                     child: Video(
                       controller: _controller,
                       controls: NoVideoControls,
-                      fit: BoxFit.fill,
+                      alignment: Alignment.center,
+                      fit: widget.isFullScreen ? BoxFit.fill : BoxFit.contain, // Stretched in fullscreen, preserved in embedded
                     ),
                   ),
             ),
@@ -511,13 +527,15 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
             builder: (context, snapshot) {
               final isBuffering = snapshot.data ?? false;
               
-              if ((_isLoading || isBuffering) && !_hasError && !_isPremiumContent) {
-                 return Center(
-                   child: Container(
+              if (!_hasError && !_isPremiumContent) {
+                if (_isLoading) {
+                   return Container(
                      color: Colors.black, 
                      child: const Center(child: PulseLoader(color: Color(0xFF06B6D4), size: 60)),
-                   ),
-                 );
+                   );
+                } else if (isBuffering) {
+                   return const Center(child: PulseLoader(color: Color(0xFF06B6D4), size: 60));
+                }
               }
               return const SizedBox();
             },
