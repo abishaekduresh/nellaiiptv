@@ -1,3 +1,14 @@
+## [1.8.1+17] - 2026-01-30
+
+### Added
+- **Video Stretching**: In fullscreen mode, video content now stretches to fill the entire player width/height (`BoxFit.fill`).
+- **FFI Safety Guards**: Implemented `_currentLoadId` tracking to prevent overlapping player initialization calls.
+
+### Fixed
+- **FFI Callback Crash**: Resolved a critical `SIGABRT` crash (Callback invoked after deletion) by removing redundant `player.stop()` calls during initialization.
+- **Asynchronous Sync**: Standardized `await` logic in `_loadChannel` and `_initVideoPlayer` to eliminate race conditions.
+- **Build stability**: Safely re-introduced MediaKit property optimizations using dynamic dispatch to fix compilation errors.
+
 ## [1.8.0+16] - 2026-01-30
 
 ### Added

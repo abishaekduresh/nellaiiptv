@@ -1,13 +1,29 @@
+## [1.8.1+17] - App | [1.41.0] - Frontend | [1.30.0] - Backend - 2026-01-30
+
+### App (Flutter)
+- **Feature**: **Video Stretching** - Added dynamic `BoxFit` logic to stretch video to full viewport width/height in fullscreen mode.
+- **Fix**: **FFI Crash Resolution** - Fixed a critical SIGABRT (FFI Callback invoked after deletion) by refining `player.stop()` timing and adding asynchronous guards.
+- **Fix**: **Initialization Safety** - Introduced `loadId` verification and redundancy checks to prevent race conditions during rapid channel switching.
+- **Optimization**: **MediaKit Tweaks** - Restored performance properties (`demuxer`, `cache`) using a safe dynamic bridge for compatibility.
+
+### Frontend (Next.js)
+- **Optimization**: **Buffer Logic** - Standardized device-specific HLS buffering and loading timeouts for better stability.
+- **UI/UX**: sidebar logo now functions as a "Home" link; refined player viewport height.
+
+### Backend (PHP)
+- **Feature**: **Status Filtering** - Categories and Languages APIs now support `status` parameter (defaults to 'active').
+- **Optimization**: **Sorting** - Standardized `order_number` sorting across all Geo metadata services.
+
 ## [1.8.0+16] - App | [1.40.0] - Frontend | [1.29.0] - Backend - 2026-01-30
 
 ### App (Flutter)
 - **Feature**: **TV Optimization** - Switched to `GridView.builder` for the channel grid to ensure smooth directional navigation on Android TV/STB.
-- **Improvement**: **Video Playback** - Reduced stream loading latency by removing pre-flight Dio checks and added MediaKit performance tweaks (`cache-pause`, `demuxer-max-bytes`) for STB stability.
+- **Improvement**: **Video Playback** - Reduced redundancy in player initialization for faster channel switching.
 - **Fix**: **Black Screen Resolution** - Fixed a synchronization issue by ensuring cleaner player disposal and source loading during channel switches.
 - **Ad Refinement**: Removed inline grid ads to prioritize navigation speed, while maintaining the bottom banner ad.
 
 ### Frontend (Next.js)
-- **Optimization**: **Hls.js Engine** - Implemented device-specific buffering profiles (High-Tier vs. Low-Tier TV) to maximize performance and minimize RAM usage on weak hardware.
+- **Optimization**: **Video Player** - Zero-latency initialization. Implemented device-specific buffering profiles (High-Tier vs. Low-Tier TV) to maximize performance and minimize RAM usage on weak hardware.
 - **UI/UX**: Refined Classic Mode layout with increased video player height and optimized comment section spacing.
 - **Navigation**: Branding logo in the sidebar now conveniently links back to the home page.
 - **Ads**: Migrated from individual grid ads to full-width banners every 16 channels for a more premium browsing experience.
