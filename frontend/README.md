@@ -1,13 +1,17 @@
-# Nellai IPTV - Frontend v1.40.0
+# Nellai IPTV - Frontend v1.42.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.40.0)**
+### **Latest Updates (v1.42.0)**
+- **Maintenance**: Version synchronized with latest App optimizations and backend Geo-filtering updates.
+- **Improved Performance**: Refined HLS buffering profiles for consistent cross-device stability.
+
+### **Previous Updates (v1.41.0)**
 - **Device Profiles**: Tier-aware HLS buffering engine for optimized PC & TV playback.
 - **Unified Branding**: Sidebar logo now functions as a global "Home" navigation link.
-- **Ad Refinement**: Full-width grid banners replace individual channel ads for a cleaner layout.
+- **Ad Refinement**: Full-width grid banners replace individual channel ads.
 
 ### **Previous Updates (v1.38.0)**
 - **Kiosk Mode**: Dedicated distraction-free viewing experience by hiding navigation controls when Open Access is active.

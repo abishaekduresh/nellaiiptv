@@ -1,7 +1,20 @@
+## [1.8.2+18] - 2026-01-30
+
+### Added
+- **Android TV Asset Policy**: Generated and installed high-resolution 320x180 "xhdpi" TV banner and 512x512 full-bleed square icon to resolve Google Play Store rejections.
+- **Easy Navigation Controls**: Added dedicated "Channel List" (Menu) and "Mute/Unmute" buttons to the player's control bar for faster access on STB remotes.
+- **Single-Click Fullscreen**: Single-tapping the player in embedded mode now instantly toggles fullscreen for better mobile/TV UX.
+- **Smart Focus Feedback**: Player controls now automatically reveal themselves when the player gains focus via D-Pad or touch.
+
+### Fixed
+- **Mute Synchronization**: Integrated `AudioManager` with hardware volume listener to ensure the mute icon stays in sync with physical remote/phone buttons.
+- **FFI Stability**: Resolved critical `SIGABRT` crashes during hot restarts by implementing strictly synchronous `_player.dispose()` and disabling high-frequency native log streams.
+- **TV Remote Navigation**: Expanded "Select" key support to capture `LogicalKeyboardKey.select` and `numpadEnter`, ensuring compatibility across diverse STB chipsets.
+
 ## [1.8.1+17] - 2026-01-30
 
 ### Added
-- **Video Stretching**: In fullscreen mode, video content now stretches to fill the entire player width/height (`BoxFit.fill`).
+- **Video Stretching**: Standardized `BoxFit.fill` across all modes (classic grid view and fullscreen) to ensure the video always occupies the full player viewport.
 - **FFI Safety Guards**: Implemented `_currentLoadId` tracking to prevent overlapping player initialization calls.
 
 ### Fixed

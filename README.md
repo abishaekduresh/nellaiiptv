@@ -6,35 +6,32 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `frontend` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.41.0
+- **Version**: 1.42.0
 - **Key Features**: Tier-aware HLS Buffering, Dynamic Priority Sorting, Kiosk-style Open Access, Reseller Management.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.30.0
+- **Version**: 1.31.0
 - **Key Features**: API Status Filtering, Priority Sorting (order_number), Health Check API, Auth Bypass Logic.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.1+17
-- **Key Features**: Full-Screen Video Stretching, FFI Crash Resilience, Async Load Guards, Number Key Navigation.
+- **Version**: 1.8.2+18
+- **Key Features**: Android TV Compliance (Banner/Icon), Easy Navigation (Menu/Mute), FFI Crash Stability, Number Key Navigation.
 
-## Recent Updates (v1.8.1+17 App / v1.41.0 Frontend / v1.30.0 Backend)
+## Recent Updates (v1.8.2+18 App / v1.42.0 Frontend / v1.31.0 Backend)
 
 ### App (Flutter)
-- **Fix**: **FFI Crash Resolution** - Resolved critical SIGABRT by refining player disposal timing.
-- **Feature**: **Video Stretching** - Dynamic `BoxFit.fill` implemented for fullscreen mode.
-- **Robustness**: Added `loadId` async guards to prevent state clashes during rapid channel switching.
-- **Optimization**: **Video Player** - Zero-latency initialization and custom STB buffering.
-- **Fix**: **Black Screen** - Resolved instance synchronization during channel switching.
-
-### Frontend
-- **Optimization**: **Device Profiles** - Tier-aware HLS buffering for high-end PCs and low-end TVs.
-- **UI UX**: Increased player priority with larger viewports and Home-linked logo.
-- **Ads**: Full-width grid banners replace individual item ads for cleaner UX.
+- **Feature**: **Android TV Compliance** - Successfully addressed Play Store rejections by installing high-res 320x180 banners and 512x512 full-bleed icons.
+- **Feature**: **Easy Navigation** - Added dedicated "Channel List" and "Mute" buttons to player controls for deliberate remote-control access.
+- **Fix**: **Mute Sync** - Real-time synchronization with hardware volume buttons.
+- **Fix**: **FFI Crash Stability** - Eliminated `SIGABRT` crashes during hot restarts through synchronous resource disposal.
+- **Improvement**: **Single-Click Fullscreen** - Faster transition into immersive viewing.
 
 ### Backend
-- **Feature**: **Status filtering** for Geo-metadata (Categories/Languages).
+- **Feature**: **Geo Filtering** - Categories and Languages APIs now support `status` parameter (active/inactive).
+
+## Recent Updates (v1.8.1+17 App / v1.41.0 Frontend / v1.30.0 Backend)
 
 ## Recent Updates (v1.7.1+15 App / v1.39.0 Frontend / v1.28.0 Backend)
 

@@ -1,3 +1,18 @@
+## [1.8.2+18] - App | [1.42.0] - Frontend | [1.31.0] - Backend - 2026-01-30
+
+### App (Flutter)
+- **Feature**: **Android TV Compliance** - Generated and installed high-resolution 320x180 "xhdpi" TV banner and 512x512 full-bleed square icon to resolve Play Store rejections.
+- **Feature**: **Easy TV Navigation** - Added dedicated "Channel List" (Menu) and "Mute/Unmute" buttons to player controls.
+- **Improvement**: **Single-Click Fullscreen** - Intuitive tap-to-expand logic for embedded player.
+- **Fix**: **FFI Crash Stability** - Fixed critical `SIGABRT` crashes during hot restarts by silencing high-frequency native log streams.
+- **Fix**: **Mute Sync** - Synchronized UI mute icon with physical hardware/remote volume buttons using a reactive volume listener.
+
+### Frontend (Next.js)
+- **Maintenance**: Version synchronized with latest App optimizations.
+
+### Backend (PHP)
+- **Feature**: **Geo Filtering** - Enhanced Categories and Languages APIs with optional `status` parameter (active/inactive).
+
 ## [1.8.1+17] - App | [1.41.0] - Frontend | [1.30.0] - Backend - 2026-01-30
 
 ### App (Flutter)
