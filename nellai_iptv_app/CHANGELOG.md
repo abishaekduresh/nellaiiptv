@@ -1,3 +1,11 @@
+## [1.8.3+19] - 2026-01-31
+
+### Fixed
+- **TV Search**: Search bar now explicitly activates the on-screen keyboard when the "Select" (DPad Center) button is pressed, solving text input issues on Android TV.
+- **Fullscreen Exit**: Implemented `Escape` and `Back` key listeners in the embedded player to strictly handle fullscreen exit, preventing app closure or unresponsive back actions.
+- **Ad Focus**: Replaced the standard Ad Banner with a `FocusableAdBanner` widget features a visual cyan selection border for clear DPad navigation.
+- **Focus Stability**: Removed aggressive `autofocus` from grid and list items to prevent "focus stealing" bugs during UI updates.
+
 ## [1.8.2+18] - 2026-01-30
 
 ### Added

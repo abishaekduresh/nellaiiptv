@@ -180,10 +180,30 @@ class _ClassicScreenState extends State<ClassicScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        
+        // 1. If in Fullscreen, exit fullscreen first
+        if (_isFullScreen) {
+          setState(() => _isFullScreen = false);
+          return;
+        }
+
+        // 2. If Channel Overlay is shown, hide it
         if (_showChannelOverlay) {
           setState(() => _showChannelOverlay = false);
           return;
         }
+
+        // 3. If searching, exit search mode
+        if (_isSearching) {
+          setState(() {
+            _isSearching = false;
+            _searchController.clear();
+          });
+          context.read<ChannelProvider>().search('');
+          return;
+        }
+
+        // 4. Otherwise show exit confirmation
         final bool shouldExit = await _showExitConfirmation();
         if (shouldExit) {
           if (context.mounted) {
@@ -461,10 +481,9 @@ class _ClassicScreenState extends State<ClassicScreen> {
 
                 // Ad Banner - Shown only if ads exist
                 if (!_isFullScreen && _ads.isNotEmpty)
-                  Material(
-                    color: Colors.black,
-                    child: InkWell(
-                      onTap: () async {
+                  FocusableAdBanner(
+                     ad: _ads[_currentAdIndex],
+                     onTap: () async {
                          final url = _ads[_currentAdIndex].linkUrl;
                          if (url != null && url.isNotEmpty) {
                              final uri = Uri.parse(url);
@@ -472,21 +491,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
                              }
                          }
-                      },
-                      focusColor: const Color(0xFF06B6D4).withOpacity(0.4), // Cyan highlight on focus
-                      splashColor: const Color(0xFF06B6D4).withOpacity(0.2),
-                      child: SizedBox(
-                        height: 100,
-                        width: double.infinity,
-                        child: CachedNetworkImage(
-                          imageUrl: _ads[_currentAdIndex].imageUrl,
-                          fit: BoxFit.fill,
-                          placeholder: (context, url) => const SkeletonAdBanner(),
-                          errorWidget: (context, url, error) => const SizedBox(), 
-                        ),
-                      ),
-                    ),
-                  ).animate(key: ValueKey(_currentAdIndex)).fadeIn(),
+                     },
+                  ),
               ],
             ),
           ),
@@ -498,7 +504,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
             child: Column(
               children: [
                    Consumer<ChannelProvider>(
-                     builder: (context, provider, _) {
+                     builder: (context, provider, _) { 
+// ... (Keeping the rest context, but I need to jump to the class definitions)
                         // Always Show Logo and App Name layout
                         Widget titleWidget = Row(
                               children: [
@@ -559,40 +566,61 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                      child: _isSearching 
                                      ? Padding(
                                          padding: const EdgeInsets.only(right: 16.0),
-                                         child: TextField(
-                                           controller: _searchController,
-                                           focusNode: _searchFocusNode,
-                                           style: const TextStyle(color: Colors.white),
-                                           decoration: InputDecoration(
-                                             hintText: "Search channels...",
-                                             hintStyle: const TextStyle(color: Colors.white54),
-                                             border: OutlineInputBorder(
-                                               borderRadius: BorderRadius.circular(8),
-                                               borderSide: const BorderSide(color: Color(0xFF06B6D4)),
-                                             ),
-                                             enabledBorder: OutlineInputBorder(
-                                               borderRadius: BorderRadius.circular(8),
-                                               borderSide: const BorderSide(color: Colors.white24),
-                                             ),
-                                             focusedBorder: OutlineInputBorder(
-                                               borderRadius: BorderRadius.circular(8),
-                                               borderSide: const BorderSide(color: Color(0xFF06B6D4)),
-                                             ),
-                                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                                             prefixIcon: const Icon(Icons.search, color: Color(0xFF06B6D4)),
-                                             suffixIcon: IconButton(
-                                               icon: const Icon(Icons.close, color: Colors.white54),
-                                               onPressed: () {
-                                                 _searchController.clear();
-                                                 setState(() {
-                                                   _isSearching = false;
-                                                 });
-                                                 provider.search(''); // Clear filter
+                                           child: Actions(
+                                             actions: {
+                                               ActivateIntent: CallbackAction<ActivateIntent>(
+                                                 onInvoke: (intent) {
+                                                   SystemChannels.textInput.invokeMethod('TextInput.show');
+                                                   return null;
+                                                 },
+                                               ),
+                                             },
+                                             child: TextField(
+                                               controller: _searchController,
+                                               focusNode: _searchFocusNode,
+                                               autofocus: true, // Auto focus when searching starts
+                                               textInputAction: TextInputAction.search, // Show search button on keyboard
+                                               style: const TextStyle(color: Colors.white),
+                                               decoration: InputDecoration(
+                                                 hintText: "Search channels...",
+                                                 hintStyle: const TextStyle(color: Colors.white54),
+                                                 border: OutlineInputBorder(
+                                                   borderRadius: BorderRadius.circular(8),
+                                                   borderSide: const BorderSide(color: Color(0xFF06B6D4)),
+                                                 ),
+                                                 enabledBorder: OutlineInputBorder(
+                                                   borderRadius: BorderRadius.circular(8),
+                                                   borderSide: const BorderSide(color: Colors.white24),
+                                                 ),
+                                                 focusedBorder: OutlineInputBorder(
+                                                   borderRadius: BorderRadius.circular(8),
+                                                   borderSide: const BorderSide(color: Color(0xFF06B6D4)),
+                                                 ),
+                                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                                                 prefixIcon: const Icon(Icons.search, color: Color(0xFF06B6D4)),
+                                                 suffixIcon: IconButton(
+                                                   icon: const Icon(Icons.close, color: Colors.white54),
+                                                   onPressed: () {
+                                                     _searchController.clear();
+                                                     setState(() {
+                                                       _isSearching = false;
+                                                     });
+                                                     provider.search(''); // Clear filter
+                                                   },
+                                                 ),
+                                               ),
+                                               onTap: () {
+                                                  // Explicitly request keyboard on tap (which Select key simulates in some environments)
+                                                  SystemChannels.textInput.invokeMethod('TextInput.show');
+                                               },
+                                               onChanged: (value) => provider.search(value),
+                                               onSubmitted: (value) {
+                                                 // Ensure search is triggered on keyboard "Search" button press
+                                                 provider.search(value);
+                                                 // Optionally keep focus or move focus elsewhere if needed
                                                },
                                              ),
                                            ),
-                                           onChanged: (value) => provider.search(value),
-                                         ),
                                        )
                                      : titleWidget,
                                    ),
@@ -736,28 +764,29 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                      ? provider.categories.length + 1 
                                      : provider.languages.length + 1,
                                  separatorBuilder: (_,__) => const SizedBox(width: 8),
-                                 itemBuilder: (context, index) {
+                                  itemBuilder: (context, index) {
                                    if (index == 0) {
-                                      return _buildCategoryChip(
-                                        "All", 
-                                        provider.selectedCategory == null && provider.selectedLanguage == null, 
-                                        () => provider.selectCategory(null)
+                                      final isAllSelected = provider.selectedCategory == null && provider.selectedLanguage == null;
+                                      return FocusableCategoryChip(
+                                        label: "All", 
+                                        isSelected: isAllSelected, 
+                                        onTap: () => provider.selectCategory(null)
                                       );
                                    }
                                    
                                    if (_groupBy == 'Categories') {
                                       final cat = provider.categories[index - 1];
-                                      return _buildCategoryChip(
-                                        cat.name, 
-                                        provider.selectedCategory == cat, 
-                                        () => provider.selectCategory(cat)
+                                      return FocusableCategoryChip(
+                                        label: cat.name, 
+                                        isSelected: provider.selectedCategory == cat, 
+                                        onTap: () => provider.selectCategory(cat)
                                       );
                                    } else {
                                       final lang = provider.languages[index - 1];
-                                      return _buildCategoryChip(
-                                        lang.name, 
-                                        provider.selectedLanguage == lang, 
-                                        () => provider.selectLanguage(lang)
+                                      return FocusableCategoryChip(
+                                        label: lang.name, 
+                                        isSelected: provider.selectedLanguage == lang, 
+                                        onTap: () => provider.selectLanguage(lang)
                                       );
                                    }
                                  },
@@ -800,7 +829,11 @@ class _ClassicScreenState extends State<ClassicScreen> {
                             ),
                             itemCount: channels.length,
                             itemBuilder: (context, index) {
-                              return _buildChannelCard(channels[index]);
+                               return FocusableChannelCard(
+                                 channel: channels[index],
+                                 isSelected: _selectedChannel?.uuid == channels[index].uuid,
+                                 onTap: () => setState(() => _selectedChannel = channels[index]),
+                               );
                             },
                           );
                         },
@@ -815,46 +848,6 @@ class _ClassicScreenState extends State<ClassicScreen> {
        },
       ),
       ),
-    );
-  }
-
-  Widget _buildCategoryChip(String label, bool isSelected, VoidCallback onTap) {
-    return Builder(
-      builder: (context) {
-        final focusNode = FocusNode();
-        return InkWell(
-          focusNode: focusNode,
-          onTap: onTap,
-          autofocus: isSelected,
-          borderRadius: BorderRadius.circular(4),
-          child: AnimatedBuilder(
-            animation: focusNode,
-            builder: (context, child) {
-              final isFocused = focusNode.hasFocus;
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0), 
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF0EA5E9) : (isFocused ? const Color(0xFF334155).withOpacity(0.8) : const Color(0xFF334155)),
-                  borderRadius: BorderRadius.circular(4),
-                  border: isFocused ? Border.all(color: const Color(0xFF06B6D4), width: 2) : (isSelected ? null : Border.all(color: Colors.white10)),
-                  boxShadow: isFocused ? [
-                    BoxShadow(color: const Color(0xFF06B6D4).withOpacity(0.4), blurRadius: 8, spreadRadius: 1)
-                  ] : [],
-                ),
-                child: Text(
-                  label, 
-                  style: TextStyle(
-                    color: Colors.white, 
-                    fontSize: 12, 
-                    fontWeight: (isSelected || isFocused) ? FontWeight.bold : FontWeight.normal
-                  )
-                ),
-              );
-            },
-          ),
-        );
-      }
     );
   }
 
@@ -919,124 +912,212 @@ class _ClassicScreenState extends State<ClassicScreen> {
 
     return grouped;
   }
+}
 
-  Widget _buildChannelCard(Channel channel) {
-    final isSelected = _selectedChannel?.uuid == channel.uuid;
+class FocusableCategoryChip extends StatefulWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const FocusableCategoryChip({
+    super.key,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<FocusableCategoryChip> createState() => _FocusableCategoryChipState();
+}
+
+class _FocusableCategoryChipState extends State<FocusableCategoryChip> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      focusNode: _focusNode,
+      onTap: widget.onTap,
+      // autofocus: widget.isSelected, // REMOVED to prevent focus stealing on rebuilds
+      borderRadius: BorderRadius.circular(4),
+      child: AnimatedBuilder(
+        animation: _focusNode,
+        builder: (context, child) {
+          final isFocused = _focusNode.hasFocus;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: widget.isSelected 
+                  ? const Color(0xFF0EA5E9) 
+                  : (isFocused ? const Color(0xFF334155).withOpacity(0.8) : const Color(0xFF334155)),
+              borderRadius: BorderRadius.circular(4),
+              border: isFocused 
+                  ? Border.all(color: const Color(0xFF06B6D4), width: 2) 
+                  : (widget.isSelected ? null : Border.all(color: Colors.white10)),
+              boxShadow: isFocused ? [
+                BoxShadow(color: const Color(0xFF06B6D4).withOpacity(0.4), blurRadius: 8, spreadRadius: 1)
+              ] : [],
+            ),
+            child: Text(
+              widget.label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: (widget.isSelected || isFocused) ? FontWeight.bold : FontWeight.normal
+              )
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class FocusableChannelCard extends StatefulWidget {
+  final Channel channel;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const FocusableChannelCard({
+    super.key,
+    required this.channel,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<FocusableChannelCard> createState() => _FocusableChannelCardState();
+}
+
+class _FocusableChannelCardState extends State<FocusableChannelCard> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final channel = widget.channel;
+    final isSelected = widget.isSelected;
+    
     // Use thumbnail if available, else logo
     final String? displayImage = channel.thumbnailUrl != null && channel.thumbnailUrl!.isNotEmpty 
         ? channel.thumbnailUrl 
         : channel.logoUrl;
 
-    return Builder(
-      builder: (context) {
-        // Focus handling for TV
-        final focusNode = FocusNode();
-        
-        return InkWell(
-          focusNode: focusNode,
-          autofocus: isSelected,
-          onTap: () => setState(() => _selectedChannel = channel),
-          child: AnimatedBuilder(
-            animation: focusNode,
-            builder: (context, child) {
-              final isFocused = focusNode.hasFocus;
-              final active = isSelected || isFocused;
-              
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
-                transform: active ? Matrix4.identity().scaled(1.05) : Matrix4.identity(),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(8),
-                  border: active ? Border.all(color: const Color(0xFF0EA5E9), width: 2) : Border.all(color: Colors.transparent, width: 2),
-                  boxShadow: active ? [
-                    BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.4), blurRadius: 12, spreadRadius: 1)
-                  ] : [],
-                ),
-                child: Stack(
+    return InkWell(
+      focusNode: _focusNode,
+      // autofocus: isSelected, // REMOVED to prevent focus stealing on rebuilds
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _focusNode,
+        builder: (context, child) {
+          final isFocused = _focusNode.hasFocus;
+          final active = isSelected || isFocused;
+          
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            transform: active ? Matrix4.identity().scaled(1.05) : Matrix4.identity(),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(8),
+              border: active ? Border.all(color: const Color(0xFF0EA5E9), width: 2) : Border.all(color: Colors.transparent, width: 2),
+              boxShadow: active ? [
+                BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.4), blurRadius: 12, spreadRadius: 1)
+              ] : [],
+            ),
+            child: Stack(
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (displayImage != null)
-                          Expanded(
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: CachedNetworkImage(
-                                  imageUrl: displayImage, 
-                                  fit: BoxFit.contain, 
-                                  alignment: Alignment.center,
-                                  placeholder: (context, url) => const Center(
-                                    child: CupertinoActivityIndicator(color: Colors.white54, radius: 12),
-                                  ),
-                                  errorWidget: (context, url, error) => const Icon(Icons.tv, color: Colors.white24),
-                                ),
+                    if (displayImage != null)
+                      Expanded(
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: CachedNetworkImage(
+                              imageUrl: displayImage, 
+                              fit: BoxFit.contain, 
+                              alignment: Alignment.center,
+                              placeholder: (context, url) => const Center(
+                                child: CupertinoActivityIndicator(color: Colors.white54, radius: 12),
                               ),
+                              errorWidget: (context, url, error) => const Icon(Icons.tv, color: Colors.white24),
                             ),
-                          ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                          child: Text(
-                            channel.name, 
-                            style: TextStyle(
-                              color: isSelected ? const Color(0xFF0EA5E9) : Colors.white, 
-                              fontSize: 11, 
-                              fontWeight: FontWeight.bold
-                            ), 
-                            textAlign: TextAlign.center, 
-                            maxLines: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Premium Badge
-                    if (channel.isPremium)
-                      Positioned(
-                        top: 6,
-                        left: 6,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFBBF24), // Amber
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.workspace_premium, size: 10, color: Colors.black),
-                              const SizedBox(width: 2),
-                              const Text(
-                                "PREMIUM",
-                                style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
-                              ),
-                            ],
                           ),
                         ),
                       ),
-                    // Channel Number
-                      Positioned(
-                      top: 6,
-                      right: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          "${channel.channelNumber ?? '-'}",
-                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      child: Text(
+                        channel.name, 
+                        style: TextStyle(
+                          color: isSelected ? const Color(0xFF0EA5E9) : Colors.white, 
+                          fontSize: 11, 
+                          fontWeight: FontWeight.bold
+                        ), 
+                        textAlign: TextAlign.center, 
+                        maxLines: 1,
                       ),
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-        );
-      },
+                // Premium Badge
+                if (channel.isPremium)
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFBBF24), // Amber
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.workspace_premium, size: 10, color: Colors.black),
+                          const SizedBox(width: 2),
+                          const Text(
+                            "PREMIUM",
+                            style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                // Channel Number
+                  Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      channel.channelNumber?.toString() ?? "-",
+                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -1089,6 +1170,77 @@ class SkeletonAdBanner extends StatelessWidget {
               child: const Text(
                 "ADVERTISEMENT LOADING",
                 style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.bold
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FocusableAdBanner extends StatefulWidget {
+  final Ad ad;
+  final VoidCallback onTap;
+
+  const FocusableAdBanner({
+    super.key,
+    required this.ad,
+    required this.onTap,
+  });
+
+  @override
+  State<FocusableAdBanner> createState() => _FocusableAdBannerState();
+}
+
+class _FocusableAdBannerState extends State<FocusableAdBanner> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      focusNode: _focusNode,
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _focusNode,
+        builder: (context, child) {
+          final isFocused = _focusNode.hasFocus;
+          return AnimatedContainer(
+            duration: 200.ms,
+            height: 100,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.black,
+              border: isFocused 
+                  ? Border.all(color: const Color(0xFF0EA5E9), width: 4) // Thick border for Ads
+                  : Border.all(color: Colors.transparent, width: 4),
+              boxShadow: isFocused ? [
+                   BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.5), blurRadius: 10, spreadRadius: 2)
+              ] : [],
+            ),
+            child: CachedNetworkImage(
+              imageUrl: widget.ad.imageUrl,
+              fit: BoxFit.fill,
+              placeholder: (context, url) => const SkeletonAdBanner(),
+              errorWidget: (context, url, error) => const SizedBox(), 
+            ),
+          );
+        },
+      ),
+    ).animate(key: ValueKey(widget.ad.uuid)).fadeIn();
+  }
+}
                   color: Colors.white24,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,

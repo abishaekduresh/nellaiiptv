@@ -1,3 +1,11 @@
+## [1.8.3+19] - App | [1.42.0] - Frontend | [1.31.0] - Backend - 2026-01-31
+
+### App (Flutter)
+- **Fix**: **TV Search Input** - Search bar now explicitly summons the keyboard on "Select" press.
+- **Fix**: **Fullscreen Exit** - Robust `Back` and `Escape` key handling to exit fullscreen mode reliably.
+- **Feature**: **Focusable Ads** - Ad banners now support DPad focus with visual highlights.
+- **Improvement**: **Focus Stability** - Eliminated "focus stealing" bugs by removing aggressive autofocus on list items.
+
 ## [1.8.2+18] - App | [1.42.0] - Frontend | [1.31.0] - Backend - 2026-01-30
 
 ### App (Flutter)

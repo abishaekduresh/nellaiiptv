@@ -509,6 +509,9 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
            final isSelect = event.logicalKey == LogicalKeyboardKey.select || 
                            event.logicalKey == LogicalKeyboardKey.enter ||
                            event.logicalKey == LogicalKeyboardKey.numpadEnter;
+           
+           final isBack = event.logicalKey == LogicalKeyboardKey.escape || 
+                          event.logicalKey == LogicalKeyboardKey.goBack;
 
            if (isSelect) {
              if (!widget.isFullScreen) {
@@ -519,6 +522,12 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                _toggleControls();
              }
              return KeyEventResult.handled;
+           }
+
+           if (isBack && widget.isFullScreen) {
+              // Exit fullscreen on Back button
+              widget.onDoubleTap?.call();
+              return KeyEventResult.handled;
            }
         }
         return KeyEventResult.ignored;
