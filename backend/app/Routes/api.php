@@ -101,6 +101,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         // $group->post('/channels/{uuid}/report', [\App\Controllers\ChannelController::class, 'report']);
 
         // Payments
+        $group->get('/payments/gateways', [\App\Controllers\Api\PaymentController::class, 'getGateways']);
         $group->post('/payments/create-order', [\App\Controllers\Api\PaymentController::class, 'createOrder']);
         $group->post('/payments/verify', [\App\Controllers\Api\PaymentController::class, 'verifyPayment']);
 

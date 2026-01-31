@@ -9,6 +9,8 @@ use App\Models\SubscriptionPlan;
 use App\Models\Customer;
 use App\Helpers\ResponseFormatter;
 use App\Services\Payment\RazorpayDriver;
+use App\Services\Payment\CashfreeDriver;
+use App\Models\Setting;
 use Ramsey\Uuid\Uuid;
 
 class PaymentController
@@ -19,6 +21,38 @@ class PaymentController
     {
         // Register drivers
         $this->drivers['razorpay'] = new RazorpayDriver();
+        $this->drivers['cashfree'] = new CashfreeDriver();
+    }
+
+    public function getGateways(Request $request, Response $response): Response
+    {
+        $gateways = [];
+
+        // Razorpay
+        if (Setting::get('gateway_razorpay_enabled', '1') === '1') {
+            $gateways[] = [
+                'id' => 'razorpay',
+                'name' => 'Razorpay',
+                'is_active' => true,
+                'config' => [
+                     'key_id' => $_ENV['RAZORPAY_KEY_ID'] ?? ''
+                ]
+            ];
+        }
+
+        // Cashfree
+        if (Setting::get('gateway_cashfree_enabled', '0') === '1') {
+             $gateways[] = [
+                'id' => 'cashfree',
+                'name' => 'Cashfree',
+                'is_active' => true,
+                'config' => [
+                     'mode' => $_ENV['CASHFREE_MODE'] ?? 'sandbox'
+                ]
+            ];
+        }
+
+        return ResponseFormatter::success($response, $gateways);
     }
 
     public function createOrder(Request $request, Response $response): Response
@@ -32,8 +66,16 @@ class PaymentController
         $planUuid = $data['plan_uuid'] ?? '';
         $gateway = $data['gateway'] ?? 'razorpay';
 
-        if (!isset($this->drivers[$gateway])) {
-            return ResponseFormatter::error($response, 'Invalid payment gateway');
+        // Check if gateway is enabled
+        $isEnabled = false;
+        if ($gateway === 'razorpay') {
+             $isEnabled = Setting::get('gateway_razorpay_enabled', '1') === '1';
+        } elseif ($gateway === 'cashfree') {
+             $isEnabled = Setting::get('gateway_cashfree_enabled', '0') === '1';
+        }
+
+        if (!isset($this->drivers[$gateway]) || !$isEnabled) {
+            return ResponseFormatter::error($response, 'Invalid or disabled payment gateway');
         }
 
         $plan = SubscriptionPlan::where('uuid', $planUuid)->first();
@@ -67,11 +109,14 @@ class PaymentController
             ]);
 
             return ResponseFormatter::success($response, [
-                'order_id' => $order['gateway_order_id'],
+                'order_id' => $gateway === 'razorpay' ? $order['gateway_order_id'] : $transaction->uuid, // For Cashfree SDK, we need payment_session_id mostly
+                'gateway_order_id' => $order['gateway_order_id'],
+                'payment_session_id' => $order['payment_session_id'] ?? null,
                 'transaction_uuid' => $transaction->uuid,
                 'amount' => $transaction->amount * 100, // For frontend
                 'currency' => $transaction->currency,
-                'key_id' => $_ENV['RAZORPAY_KEY_ID'] ?? ''
+                'key_id' => $_ENV['RAZORPAY_KEY_ID'] ?? '', // Only for Razorpay
+                'gateway' => $gateway
             ], 'Order created successfully');
 
         } catch (\Exception $e) {
@@ -90,8 +135,16 @@ class PaymentController
             return ResponseFormatter::error($response, 'Transaction not found');
         }
 
-        if (!isset($this->drivers[$gateway])) {
-            return ResponseFormatter::error($response, 'Invalid payment gateway');
+        // Check if gateway is enabled
+        $isEnabled = false;
+        if ($gateway === 'razorpay') {
+             $isEnabled = Setting::get('gateway_razorpay_enabled', '1') === '1';
+        } elseif ($gateway === 'cashfree') {
+             $isEnabled = Setting::get('gateway_cashfree_enabled', '0') === '1';
+        }
+
+        if (!isset($this->drivers[$gateway]) || !$isEnabled) {
+            return ResponseFormatter::error($response, 'Invalid or disabled payment gateway');
         }
 
         try {

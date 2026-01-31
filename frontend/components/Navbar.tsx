@@ -144,7 +144,7 @@ export default function Navbar() {
                       className="flex items-center space-x-1 text-secondary hover:text-yellow-300 transition-colors px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20"
                     >
                       <Settings size={16} />
-                      <span className="text-xs font-medium">Admin</span>
+                      <span className="text-xs font-medium">Dashboard</span>
                     </Link>
                   )}
                   <UserMenu user={user as any} />

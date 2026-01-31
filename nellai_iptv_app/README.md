@@ -11,6 +11,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.8.4+20
+- **Key Features**: Remote Shortcuts (STB Menu), Cleaner Player UI, Native Crash Fix.
+- **TV Support**: Added 'Menu', 'Info', 'Guide' key support for shortcuts.
+- **Stability**: Fixed FFI crashes on hot restart.
+
 ## Version: 1.8.3+19
 - **Key Features**: TV Search Fixes, Fullscreen Exit Reliability, Focusable Ads, Focus Stability.
 - **TV Search**: Resolved input issues by binding "Select" key to keyboard display.

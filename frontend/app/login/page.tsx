@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
@@ -18,8 +18,14 @@ function LoginForm() {
     user: state.user 
   }));
 
+  // Ref to track if we are currently manually handling a login submission
+  // This prevents the useEffect below from auto-redirecting when we update the auth store
+  const isSubmittingRef = useRef(false);
+
   useEffect(() => {
-    if (token && user) {
+    // Only auto-redirect if we are NOT in the middle of a manual login submission
+    // This allows handleSubmit to handle the specific redirect logic
+    if (!isSubmittingRef.current && token && user) {
       // Redirect based on user role
       if (user.role === 'reseller') {
         router.push('/reseller');
@@ -55,6 +61,7 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    isSubmittingRef.current = true; // Mark as explicit submission
 
     try {
       // Basic platform detection helper:
@@ -90,12 +97,20 @@ function LoginForm() {
         } else {
           // Handle regular customer redirection
           const redirectPath = searchParams.get('redirect') || '/';
-          router.push(redirectPath);
+          
+          // Verify redirect path is safe (internal)
+          if (redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
+             router.push(redirectPath);
+          } else {
+             router.push('/');
+          }
         }
       } else {
         toast.error(response.data.message || 'Login failed');
+        isSubmittingRef.current = false; // Reset on failure
       }
     } catch (err: any) {
+      isSubmittingRef.current = false; // Reset on error
       const errorData = err.response?.data?.errors;
       if (errorData?.error === 'device_limit_reached') {
           // Handle device limit
