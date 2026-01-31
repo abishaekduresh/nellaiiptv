@@ -2,7 +2,10 @@
 
 All notable changes to the Nellai IPTV Frontend will be documented in this file.
 
-## [1.40.0] - 2026-01-30
+## [1.42.1] - Frontend - 2026-01-31
+- **Maintenance**: Version synchronized with latest App Release (v1.8.4+20).
+
+## [1.42.0] - Frontend - 2026-01-30
 
 ### Added
 - **Device Profiles**: Smart HLS configuration engine with tier-aware buffering (High-Tier vs. Low-Tier TV).

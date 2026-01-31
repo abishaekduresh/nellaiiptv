@@ -56,6 +56,10 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->put('/api-keys/{uuid}', [\App\Controllers\Admin\ApiKeyController::class, 'update']);
         $group->delete('/api-keys/{uuid}', [\App\Controllers\Admin\ApiKeyController::class, 'delete']);
 
+        // Contact Messages
+        $group->get('/contacts', [\App\Controllers\Admin\ContactController::class, 'index']);
+        $group->delete('/contacts/{uuid}', [\App\Controllers\Admin\ContactController::class, 'delete']);
+
         // Dashboard Stats
         $group->get('/dashboard/stats', [\App\Controllers\Admin\DashboardController::class, 'getStats']);
         $group->get('/dashboard/trending', [\App\Controllers\Admin\DashboardController::class, 'getTrendingStats']);

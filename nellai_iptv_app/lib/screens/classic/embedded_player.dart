@@ -83,12 +83,25 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   int _retrySeconds = 20;
 
   late final FocusNode _focusNode;
+  
+  // Persistent Control Focus Nodes
+  late final FocusNode _menuFocusNode;
+  late final FocusNode _fsFocusNode;
+  late final FocusNode _pipFocusNode;
+  late final FocusNode _muteFocusNode;
 
   @override
   void initState() {
     super.initState();
     _currentLoadId++;
+    
+    // Init Focus Nodes
     _focusNode = FocusNode();
+    _menuFocusNode = FocusNode();
+    _fsFocusNode = FocusNode();
+    _pipFocusNode = FocusNode();
+    _muteFocusNode = FocusNode();
+    
     _focusNode.addListener(() {
       if (mounted) {
         if (_focusNode.hasFocus) {
@@ -495,6 +508,10 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     // 🛑 Synchronous disposal is safer for hot restarts to prevent post-environment-wipe callbacks
     _player.dispose();
 
+    _menuFocusNode.dispose();
+    _fsFocusNode.dispose();
+    _pipFocusNode.dispose();
+    _muteFocusNode.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -508,10 +525,22 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
         if (event is KeyDownEvent) {
            final isSelect = event.logicalKey == LogicalKeyboardKey.select || 
                            event.logicalKey == LogicalKeyboardKey.enter ||
-                           event.logicalKey == LogicalKeyboardKey.numpadEnter;
+                           event.logicalKey == LogicalKeyboardKey.numpadEnter ||
+                           event.logicalKey == LogicalKeyboardKey.space;
            
            final isBack = event.logicalKey == LogicalKeyboardKey.escape || 
                           event.logicalKey == LogicalKeyboardKey.goBack;
+
+           final isMenu = event.logicalKey == LogicalKeyboardKey.contextMenu || 
+                          event.logicalKey == LogicalKeyboardKey.keyI ||
+                          event.logicalKey == LogicalKeyboardKey.info ||
+                          event.logicalKey == LogicalKeyboardKey.guide;
+
+           if (isMenu && widget.isFullScreen) {
+              // Open STB Menu
+              widget.onTap?.call();
+              return KeyEventResult.handled;
+           }
 
            if (isSelect) {
              if (!widget.isFullScreen) {
@@ -548,7 +577,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: Colors.transparent,
                 border: (!widget.isFullScreen && hasFocus) 
                     ? Border.all(color: const Color(0xFF0EA5E9), width: 2.5) 
                     : Border.all(color: Colors.transparent, width: 2.5),
@@ -561,7 +590,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                 children: [
                   // 1. Video Surface
                   Container(
-                    color: Colors.black, 
+                    color: Colors.transparent, 
                     child: _isPremiumContent 
                       ? const SizedBox() 
                       : SizedBox.expand(
@@ -599,7 +628,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
               if (!_hasError && !_isPremiumContent) {
                 if (_isLoading) {
                    return Container(
-                     color: Colors.black, 
+                     color: Colors.transparent, 
                      child: const Center(child: PulseLoader(color: Color(0xFF06B6D4), size: 60)),
                    );
                 } else if (isBuffering) {
@@ -719,55 +748,47 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                       children: [
                         // 1. Channel List Button (STB Navigation) - NEW
                         if (widget.isFullScreen)
-                          Builder(
-                            builder: (context) {
-                              final menuFocus = FocusNode();
-                              return InkWell(
-                                focusNode: menuFocus,
+                              InkWell(
+                                focusNode: _menuFocusNode,
                                 onTap: () {
                                   _startHideTimer();
                                   widget.onTap?.call();
                                 },
                                 borderRadius: BorderRadius.circular(20),
                                 child: AnimatedBuilder(
-                                  animation: menuFocus,
+                                  animation: _menuFocusNode,
                                   builder: (context, child) {
                                     return Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: menuFocus.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
-                                        border: menuFocus.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                        color: _menuFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                        border: _menuFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
                                       ),
                                       child: const Icon(Icons.menu_open, color: Colors.white, size: 28),
                                     );
                                   },
                                 ),
-                              );
-                            }
-                          ),
+                              ),
                         if (widget.isFullScreen) const SizedBox(width: 12),
 
                         // 2. Fullscreen Toggle Button - CRITICAL FOR TV
-                        Builder(
-                          builder: (context) {
-                            final fsFocus = FocusNode();
-                            return InkWell(
-                              focusNode: fsFocus,
+                            InkWell(
+                              focusNode: _fsFocusNode,
                               onTap: () {
                                 _startHideTimer();
                                 _toggleFullScreen();
                               },
                               borderRadius: BorderRadius.circular(20),
                               child: AnimatedBuilder(
-                                animation: fsFocus,
+                                animation: _fsFocusNode,
                                 builder: (context, child) {
                                   return Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: fsFocus.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
-                                      border: fsFocus.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                      color: _fsFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                      border: _fsFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
                                     ),
                                     child: Icon(
                                       widget.isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen, 
@@ -777,18 +798,13 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                                   );
                                 },
                               ),
-                            );
-                          }
-                        ),
+                            ),
                         const SizedBox(width: 12),
 
                         // PiP Button - Show ONLY if Fullscreen
                         if (widget.isFullScreen)
-                          Builder(
-                            builder: (context) {
-                              final pipFocus = FocusNode();
-                              return InkWell(
-                                focusNode: pipFocus,
+                              InkWell(
+                                focusNode: _pipFocusNode,
                                 onTap: () async {
                                   _startHideTimer(); // Reset timer
                                   try {
@@ -808,15 +824,15 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                                 },
                                 borderRadius: BorderRadius.circular(20),
                                 child: AnimatedBuilder(
-                                  animation: pipFocus,
+                                  animation: _pipFocusNode,
                                   builder: (context, child) {
                                     return Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: pipFocus.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
-                                        border: pipFocus.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
-                                        boxShadow: pipFocus.hasFocus ? [
+                                        color: _pipFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                        border: _pipFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                        boxShadow: _pipFocusNode.hasFocus ? [
                                           BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.5), blurRadius: 8, spreadRadius: 2)
                                         ] : [],
                                       ),
@@ -824,17 +840,12 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                                     );
                                   },
                                 ),
-                              );
-                            }
-                          ),
+                              ),
                         const SizedBox(width: 12),
 
                         // 4. Mute Button - NEW
-                        Builder(
-                          builder: (context) {
-                            final muteFocus = FocusNode();
-                            return InkWell(
-                              focusNode: muteFocus,
+                            InkWell(
+                              focusNode: _muteFocusNode,
                                onTap: () async {
                                 _startHideTimer();
                                 await _toggleMute();
@@ -842,15 +853,15 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                               },
                               borderRadius: BorderRadius.circular(20),
                               child: AnimatedBuilder(
-                                animation: muteFocus,
+                                animation: _muteFocusNode,
                                 builder: (context, child) {
                                   final isMuted = AudioManager().isMuted;
                                   return Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: muteFocus.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
-                                      border: muteFocus.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                      color: _muteFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                      border: _muteFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
                                     ),
                                     child: Icon(
                                       isMuted ? Icons.volume_off : Icons.volume_up, 
@@ -860,9 +871,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                                   );
                                 },
                               ),
-                            );
-                          }
-                        ),
+                            ),
                       ],
                     ),
                   ),

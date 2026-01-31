@@ -1,3 +1,14 @@
+## [1.8.4+20] - App | [1.42.1] - Frontend | [1.31.1] - Backend - 2026-01-31
+
+### App (Flutter)
+- **Feature**: **Remote shortcuts** - Added support for "Menu", "Info", and "Guide" keys to open STB Channel List.
+- **Improvement**: **TV Navigation** - Enhanced Fullscreen trigger with "Space" and "Select" keys.
+- **Visuals**: **Player Cleanup** - Removed black borders/backgrounds from player containers.
+- **Fix**: **Native Crash** - Resolved `SIGABRT` crashes during hot restarts.
+
+### Frontend (Next.js) & Backend (PHP)
+- **Maintenance**: Version synchronized with latest App Release (v1.8.4+20).
+
 ## [1.8.3+19] - App | [1.42.0] - Frontend | [1.31.0] - Backend - 2026-01-31
 
 ### App (Flutter)

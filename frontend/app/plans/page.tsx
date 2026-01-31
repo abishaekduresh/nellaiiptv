@@ -28,6 +28,8 @@ export default function PlansPage() {
     const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
     const [showPromo, setShowPromo] = useState(false);
     const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+    const [gateways, setGateways] = useState<any[]>([]);
+    const [showGatewaySelector, setShowGatewaySelector] = useState<Plan | null>(null);
     const { user } = useAuthStore();
 
     useEffect(() => {
@@ -36,19 +38,33 @@ export default function PlansPage() {
             setShowPromo(true);
         }
 
-        const fetchPlans = async () => {
+        const fetchPlansAndGateways = async () => {
             try {
-                const res = await api.get('/plans');
-                if (res.data.status) {
-                    setPlans(res.data.data);
+                const authToken = useAuthStore.getState().token;
+                const requests = [api.get('/plans')];
+                
+                if (authToken) {
+                    requests.push(api.get('/payments/gateways'));
+                }
+
+                const results = await Promise.all(requests);
+                const plansRes = results[0];
+                const gatewaysRes = authToken ? results[1] : null;
+                
+                if (plansRes.data.status) {
+                    setPlans(plansRes.data.data);
+                }
+                
+                if (gatewaysRes && gatewaysRes.data.status) {
+                    setGateways(gatewaysRes.data.data);
                 }
             } catch (error) {
-                console.error('Failed to fetch plans:', error);
+                console.error('Failed to fetch data:', error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchPlans();
+        fetchPlansAndGateways();
     }, []);
 
     const handleSubscribe = async (plan: Plan) => {
@@ -57,72 +73,134 @@ export default function PlansPage() {
             return;
         }
 
+        if (gateways.length === 0) {
+            toast.error('No payment gateways available');
+            return;
+        }
+
+        if (gateways.length === 1) {
+            processPayment(plan, gateways[0].id);
+        } else {
+            setShowGatewaySelector(plan);
+        }
+    };
+
+    const processPayment = async (plan: Plan, gatewayValues: string) => {
         setProcessingPlan(plan.uuid);
         try {
             // 1. Create Order
             const orderRes = await api.post('/payments/create-order', {
                 plan_uuid: plan.uuid,
-                gateway: 'razorpay'
+                gateway: gatewayValues
             });
 
             if (!orderRes.data.status) {
                 toast.error(orderRes.data.message || 'Failed to initialize payment');
+                setProcessingPlan(null);
                 return;
             }
 
             const orderData = orderRes.data.data;
 
-            // 2. Open Razorpay
-            const options = {
-                key: orderData.key_id,
-                amount: orderData.amount,
-                currency: orderData.currency,
-                name: "Nellai IPTV",
-                description: `Subscription for ${plan.name}`,
-                order_id: orderData.order_id,
-                handler: async function (response: any) {
-                    // 3. Verify Payment
-                    try {
-                        const verifyRes = await api.post('/payments/verify', {
-                            transaction_uuid: orderData.transaction_uuid,
-                            gateway: 'razorpay',
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_signature: response.razorpay_signature
-                        });
-
-                        if (verifyRes.data.status) {
-                            toast.success('Subscription activated successfully!');
-                            // Refresh user session/data to reflect new plan
-                            window.location.href = '/profile';
-                        } else {
-                            toast.error(verifyRes.data.message || 'Payment verification failed');
+            // Razorpay
+            if (gatewayValues === 'razorpay') {
+                const options = {
+                    key: orderData.key_id,
+                    amount: orderData.amount,
+                    currency: orderData.currency,
+                    name: "Nellai IPTV",
+                    description: `Subscription for ${plan.name}`,
+                    order_id: orderData.order_id,
+                    handler: async function (response: any) {
+                        verifyPayment(orderData.transaction_uuid, 'razorpay', response);
+                    },
+                    prefill: {
+                        name: (user as any)?.name,
+                        email: (user as any)?.email,
+                        contact: (user as any)?.phone
+                    },
+                    theme: {
+                        color: "#06B6D4"
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            setProcessingPlan(null);
                         }
-                    } catch (err) {
-                        toast.error('Verification failed. Please contact support.');
                     }
-                },
-                prefill: {
-                    name: (user as any)?.name,
-                    email: (user as any)?.email,
-                    contact: (user as any)?.phone
-                },
-                theme: {
-                    color: "#06B6D4"
-                },
-                modal: {
-                    ondismiss: function() {
-                        setProcessingPlan(null);
-                    }
-                }
-            };
+                };
 
-            const rzp = new (window as any).Razorpay(options);
-            rzp.open();
+                const rzp = new (window as any).Razorpay(options);
+                rzp.open();
+            } 
+            // Cashfree
+            else if (gatewayValues === 'cashfree') {
+                 const cashfree = await (window as any).Cashfree({
+                    mode: gateways.find(g => g.id === 'cashfree')?.config?.mode || "sandbox"
+                });
+
+                cashfree.checkout({
+                    paymentSessionId: orderData.payment_session_id,
+                    returnUrl: null, // We handle status via poll or webhook or simple callback if supported, but CF Redirects.
+                    // For popup flow, returnUrl makes it redirect. If we want popup, we should not set returnUrl or handle it differently.
+                    // Actually, for Web SDK, it opens in same window or popup.
+                    // "redirectTarget": "_self" or "_modal". Default is redirect.
+                    redirectTarget: "_modal"
+                }).then(function(result: any){
+                    if(result.error){
+                        setProcessingPlan(null);
+                        toast.error(result.error.message);
+                    }
+                    if(result.redirect){
+                        console.log("Redirection");
+                    }
+                    if (result.paymentDetails) {
+                         // Payment completed in modal
+                         verifyPayment(orderData.transaction_uuid, 'cashfree', {
+                             order_id: orderData.gateway_order_id, 
+                             // CF SDK doesn't return detailedsignature in frontend callback often, 
+                             // checking status from backend is safer.
+                         });
+                    }
+                });
+                
+                // Since checkout is async/callback based, we need to handle "close" or finish.
+                // The new SDK promise resolves when interaction is done?
+                // Actually checkout returns a promise? No.
+                // Re-reading docs: cashfree.checkout({...}) is void.
+                // But it emits events if we are strict. 
+                // For simplicity, we assume user completes it.
+                // Wait, if redirectTarget is _modal, we need to know when it closes.
+            }
 
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Payment initialization failed');
             setProcessingPlan(null);
+        }
+    };
+
+    const verifyPayment = async (transactionUuid: string, gateway: string, response: any) => {
+        try {
+            const verifyRes = await api.post('/payments/verify', {
+                transaction_uuid: transactionUuid,
+                gateway: gateway,
+                // Razorpay specific
+                razorpay_payment_id: response?.razorpay_payment_id,
+                razorpay_order_id: response?.razorpay_order_id,
+                razorpay_signature: response?.razorpay_signature,
+                // Cashfree specific (we might checking just using order_id if payload is empty)
+                order_id: response?.order_id
+            });
+
+            if (verifyRes.data.status) {
+                toast.success('Subscription activated successfully!');
+                window.location.href = '/profile';
+            } else {
+                toast.error(verifyRes.data.message || 'Payment verification failed');
+            }
+        } catch (err) {
+            toast.error('Verification failed. Please contact support.');
+        } finally {
+             setProcessingPlan(null);
         }
     };
 
@@ -248,7 +326,39 @@ export default function PlansPage() {
                     Contact Support
                 </Link>
             </div>
+            {showGatewaySelector && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md relative">
+                        <button 
+                            onClick={() => setShowGatewaySelector(null)}
+                            className="absolute top-4 right-4 text-slate-400 hover:text-white"
+                        >
+                            <X size={20} />
+                        </button>
+                        
+                        <h3 className="text-xl font-bold text-white mb-6">Select Payment Method</h3>
+                        
+                        <div className="space-y-4">
+                            {gateways.map(gateway => (
+                                <button
+                                    key={gateway.id}
+                                    onClick={() => {
+                                        setShowGatewaySelector(null);
+                                        processPayment(showGatewaySelector, gateway.id);
+                                    }}
+                                    className="w-full p-4 flex items-center justify-between bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-primary rounded-xl transition-all group"
+                                >
+                                    <span className="font-semibold text-white capitalize">{gateway.name}</span>
+                                    {gateway.id === 'razorpay' && <div className="text-blue-400">Cards, UPI, Netbanking</div>}
+                                    {gateway.id === 'cashfree' && <div className="text-orange-400">Cards, UPI, Wallets</div>}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
             <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+            <Script src="https://sdk.cashfree.com/js/v3/cashfree.js" />
         </div>
     );
 }

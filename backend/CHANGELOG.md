@@ -2,7 +2,10 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
-## [1.29.0] - 2026-01-30
+## [1.31.1] - Backend - 2026-01-31
+- **Maintenance**: Version synchronized with latest App Release (v1.8.4+20).
+
+## [1.31.0] - Backend - 2026-01-30
 
 ### Added
 - **Filtering**: Supported `status` parameter in `getCategories` and `getLanguages` APIs (defaults to 'active').

@@ -282,7 +282,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                 // Player Area - Maximized (Flex 6 normally, or expanded if fullscreen)
                 Expanded(
                   child: Container(
-                    color: Colors.black,
+                    color: Colors.transparent,
                     child: Stack(
                       children: [
                         _selectedChannel != null 
@@ -1148,7 +1148,7 @@ class SkeletonAdBanner extends StatelessWidget {
     return Container(
       height: 100,
       width: double.infinity,
-      color: Colors.black,
+      color: Colors.transparent,
       child: Stack(
         children: [
           // Background shimmer
@@ -1221,7 +1221,7 @@ class _FocusableAdBannerState extends State<FocusableAdBanner> {
             height: 100,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: Colors.transparent,
               border: isFocused 
                   ? Border.all(color: const Color(0xFF0EA5E9), width: 4) // Thick border for Ads
                   : Border.all(color: Colors.transparent, width: 4),

@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import toast from 'react-hot-toast';
-import { Save, Lock, Image, Hammer, Monitor, Smartphone, Tv, LayoutGrid } from 'lucide-react';
+import { Save, Lock, Image, Hammer, Monitor, Smartphone, Tv, LayoutGrid, Mail } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 interface Setting {
@@ -145,7 +145,20 @@ export default function SettingsPage() {
 
   const handleUpdate = async (key: string, value: string) => {
     // Optimistic update
-    setSettings(settings.map(s => s.setting_key === key ? { ...s, setting_value: value } : s));
+    const existing = settings.find(s => s.setting_key === key);
+    if (existing) {
+        setSettings(settings.map(s => s.setting_key === key ? { ...s, setting_value: value } : s));
+    } else {
+        // Create temporary local setting object for optimistic UI
+        const newSetting: Setting = {
+            id: Date.now(), // temporary ID
+            setting_key: key,
+            setting_value: value,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+        setSettings([...settings, newSetting]);
+    }
   };
 
   const handleSave = async (key: string, value: string) => {
@@ -196,6 +209,59 @@ export default function SettingsPage() {
               </div>
             ))
           )}
+        </div>
+      </div>
+
+      {/* Payment Settings */}
+      <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
+        <div className="text-primary">₹</div>
+        Payment Gateway Settings
+      </h2>
+      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl mb-12">
+        <div className="space-y-6">
+            
+            {/* Razorpay */}
+            <div className="flex items-center justify-between p-4 bg-slate-900 rounded-lg border border-gray-700">
+                <div>
+                    <h3 className="font-semibold text-white">Enable Razorpay</h3>
+                    <p className="text-sm text-slate-400">Accept payments via Razorpay. Keys must be configured in .env.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={settings.find(s => s.setting_key === 'gateway_razorpay_enabled')?.setting_value === '1'}
+                        onChange={(e) => {
+                            const newValue = e.target.checked ? '1' : '0';
+                            handleUpdate('gateway_razorpay_enabled', newValue);
+                            handleSave('gateway_razorpay_enabled', newValue);
+                        }} 
+                    />
+                     <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+            </div>
+
+            {/* Cashfree */}
+            <div className="flex items-center justify-between p-4 bg-slate-900 rounded-lg border border-gray-700">
+                <div>
+                    <h3 className="font-semibold text-white">Enable Cashfree</h3>
+                    <p className="text-sm text-slate-400">Accept payments via Cashfree. Keys must be configured in .env.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={settings.find(s => s.setting_key === 'gateway_cashfree_enabled')?.setting_value === '1'}
+                        onChange={(e) => {
+                            const newValue = e.target.checked ? '1' : '0';
+                            handleUpdate('gateway_cashfree_enabled', newValue);
+                            handleSave('gateway_cashfree_enabled', newValue);
+                        }} 
+                    />
+                     <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+            </div>
+
         </div>
       </div>
 
@@ -388,6 +454,37 @@ export default function SettingsPage() {
                 </div>
             </div>
 
+        </div>
+      </div>
+
+      {/* Contact Settings */}
+      <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
+        <Mail className="text-primary" />
+        Contact Settings
+      </h2>
+      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+          <label className="text-text-secondary font-medium">Webhook URL</label>
+          <div className="md:col-span-3 flex gap-4">
+            <input
+              type="url"
+              value={settings.find(s => s.setting_key === 'contact_webhook_url')?.setting_value || ''}
+              onChange={(e) => handleUpdate('contact_webhook_url', e.target.value)}
+              placeholder="https://example.com/webhook"
+              className="flex-1 bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+            />
+            <button
+              onClick={() => handleSave('contact_webhook_url', settings.find(s => s.setting_key === 'contact_webhook_url')?.setting_value || '')}
+              disabled={saving}
+              className="bg-primary hover:bg-primary-dark text-white p-2 rounded-lg transition-colors"
+              title="Save"
+            >
+              <Save size={20} />
+            </button>
+          </div>
+          <p className="md:col-start-2 md:col-span-3 text-xs text-slate-500">
+            Optional: Enter a URL to receive POST requests when new contact messages are submitted.
+          </p>
         </div>
       </div>
 
