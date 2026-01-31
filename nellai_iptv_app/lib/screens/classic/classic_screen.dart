@@ -1241,16 +1241,3 @@ class _FocusableAdBannerState extends State<FocusableAdBanner> {
     ).animate(key: ValueKey(widget.ad.uuid)).fadeIn();
   }
 }
-                  color: Colors.white24,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2.0,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
