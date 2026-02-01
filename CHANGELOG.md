@@ -1,3 +1,17 @@
+## [1.8.5+21] - App | [1.42.1] - Frontend | [1.31.1] - Backend - 2026-02-01
+
+### App (Flutter)
+- **Feature**: **Channel Report System** - Users can now report stream issues (buffering, audio problems, video quality, wrong channel, etc.) directly from the player via a Flag button with a TV-friendly dialog interface.
+- **Feature**: **Fullscreen Channel Zapping** - D-pad Up/Down keys now switch to previous/next channel while in fullscreen mode for seamless browsing without exiting fullscreen.
+- **Feature**: **Fullscreen Overlay Controls** - D-pad Left/Right keys toggle the channel list overlay in fullscreen for quick navigation.
+- **Improvement**: **Faster Error Recovery** - Reduced auto-retry countdown from 20 seconds to 10 seconds for quicker stream recovery.
+- **Improvement**: **Enhanced Focus Navigation** - Implemented `FocusTraversalGroup` boundaries between player and channel grid to prevent focus trapping.
+- **Fix**: **Player Focus Behavior** - Disabled autofocus on embedded player to prevent focus stealing from channel list during browsing.
+- **Fix**: **D-pad Key Compatibility** - Removed invalid `LogicalKeyboardKey` references that caused compilation errors.
+
+### Frontend (Next.js) & Backend (PHP)
+- **Maintenance**: Version synchronized with latest App release (v1.8.5+21).
+
 ## [1.8.4+20] - App | [1.42.1] - Frontend | [1.31.1] - Backend - 2026-01-31
 
 ### App (Flutter)

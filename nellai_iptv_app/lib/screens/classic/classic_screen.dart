@@ -174,6 +174,28 @@ class _ClassicScreenState extends State<ClassicScreen> {
     });
   }
 
+  void _changeChannel(int offset) {
+    if (_selectedChannel == null) return;
+    
+    final provider = context.read<ChannelProvider>();
+    final channels = provider.filteredChannels.isNotEmpty ? provider.filteredChannels : provider.channels;
+    
+    if (channels.isEmpty) return;
+    
+    final currentIndex = channels.indexWhere((c) => c.uuid == _selectedChannel!.uuid);
+    if (currentIndex == -1) return;
+    
+    int newIndex = currentIndex + offset;
+    
+    // Loop around
+    if (newIndex < 0) newIndex = channels.length - 1;
+    if (newIndex >= channels.length) newIndex = 0;
+    
+    setState(() {
+      _selectedChannel = channels[newIndex];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -269,6 +291,29 @@ class _ClassicScreenState extends State<ClassicScreen> {
                   _handleNumberInput(digit);
                   return KeyEventResult.handled;
                 }
+
+                // D-Pad Navigation in Fullscreen
+                if (_isFullScreen) {
+                   if (logicKey == LogicalKeyboardKey.arrowUp) {
+                      _changeChannel(-1);
+                      return KeyEventResult.handled;
+                   } else if (logicKey == LogicalKeyboardKey.arrowDown) {
+                      _changeChannel(1);
+                      return KeyEventResult.handled;
+                   } else if (logicKey == LogicalKeyboardKey.arrowLeft) {
+                      // Show Overlay
+                      if (!_showChannelOverlay) setState(() => _showChannelOverlay = true);
+                      return KeyEventResult.handled;
+                   } else if (logicKey == LogicalKeyboardKey.arrowRight) {
+                      // Toggle info or close overlay
+                      if (_showChannelOverlay) {
+                         setState(() => _showChannelOverlay = false);
+                      } else {
+                         // Maybe show info? For now just ignore or show controls
+                      }
+                      return KeyEventResult.handled;
+                   }
+                }
               }
               return KeyEventResult.ignored;
             },
@@ -277,7 +322,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
               // Left Panel (Player + Info + Ads)
           Expanded(
             flex: 5,
-            child: Column(
+            child: FocusTraversalGroup(
+              child: Column(
               children: [
                 // Player Area - Maximized (Flex 6 normally, or expanded if fullscreen)
                 Expanded(
@@ -495,13 +541,15 @@ class _ClassicScreenState extends State<ClassicScreen> {
                   ),
               ],
             ),
+            ),
           ),
 
           // Right Panel (Grid + Filters)
           if (!_isFullScreen)
           Expanded(
             flex: 5,
-            child: Column(
+            child: FocusTraversalGroup(
+              child: Column(
               children: [
                    Consumer<ChannelProvider>(
                      builder: (context, provider, _) { 
@@ -841,6 +889,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                     ),
                  ],
                ),
+             ),
              ),
            ],
          ),

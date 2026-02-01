@@ -227,6 +227,25 @@ class ApiService {
       return null;
     }
   }
+
+  Future<void> reportChannelIssue(String channelUuid, String issueType, {String? description}) async {
+    try {
+      await _dio.post('/channels/$channelUuid/report', 
+        data: {
+          'issue_type': issueType,
+          if (description != null && description.isNotEmpty) 'description': description,
+        },
+        options: Options(headers: {
+          'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+          'Accept': 'application/json',
+        })
+      );
+    } catch (e) {
+      debugPrint('Error reporting channel issue: $e');
+      rethrow;
+    }
+  }
+
   Future<bool> checkHealth() async {
     try {
       final response = await _dio.get('/health', options: Options(headers: {

@@ -1,3 +1,19 @@
+## [1.8.5+21] - 2026-02-01
+
+### Added
+- **Channel Report Feature**: Users can now report issues with channels (stream not working, buffering, audio issues, etc.) directly from the player controls via a new Flag button.
+- **TV-Optimized Report Dialog**: Fully D-pad navigable issue reporting interface with predefined issue types and custom description support.
+- **Fullscreen Channel Zapping**: D-pad Up/Down keys now switch to previous/next channel while in fullscreen mode for seamless browsing.
+- **Fullscreen Overlay Controls**: D-pad Left/Right keys toggle the channel list overlay in fullscreen for quick navigation.
+
+### Changed
+- **Player Retry Countdown**: Reduced auto-retry countdown from 20 seconds to 10 seconds for faster error recovery.
+- **Player Focus Behavior**: Disabled autofocus on embedded player to prevent focus stealing from channel list during browsing.
+
+### Fixed
+- **D-pad Key Support**: Removed invalid `LogicalKeyboardKey` references (center, gameButtonA, numpad5) that caused compilation errors.
+- **Focus Navigation**: Improved focus traversal between player and channel grid using `FocusTraversalGroup` boundaries.
+
 ## [1.8.3+19] - 2026-01-31
 
 ### Fixed
