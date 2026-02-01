@@ -18,6 +18,7 @@ import '../../core/toast_service.dart';
 import '../../models/channel.dart';
 import '../../widgets/pulse_loader.dart';
 import '../../widgets/gesture_overlay.dart';
+import '../../widgets/report_issue_dialog.dart';
 
 class EmbeddedPlayer extends StatefulWidget {
   final String channelUuid;
@@ -89,6 +90,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   late final FocusNode _fsFocusNode;
   late final FocusNode _pipFocusNode;
   late final FocusNode _muteFocusNode;
+  late final FocusNode _reportFocusNode;
 
   @override
   void initState() {
@@ -101,6 +103,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     _fsFocusNode = FocusNode();
     _pipFocusNode = FocusNode();
     _muteFocusNode = FocusNode();
+    _reportFocusNode = FocusNode();
     
     _focusNode.addListener(() {
       if (mounted) {
@@ -456,7 +459,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   }
 
   void _startRetryCountdown() {
-    setState(() => _retrySeconds = 20);
+    setState(() => _retrySeconds = 10);
     _retryTimer?.cancel();
     _retryTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
@@ -512,6 +515,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     _fsFocusNode.dispose();
     _pipFocusNode.dispose();
     _muteFocusNode.dispose();
+    _reportFocusNode.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -520,7 +524,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   Widget build(BuildContext context) {
     return Focus(
       focusNode: _focusNode,
-      autofocus: true,
+      autofocus: false, // Prevent stealing focus from channel list
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent) {
            final isSelect = event.logicalKey == LogicalKeyboardKey.select || 
@@ -530,7 +534,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
            
            final isBack = event.logicalKey == LogicalKeyboardKey.escape || 
                           event.logicalKey == LogicalKeyboardKey.goBack;
-
+           
            final isMenu = event.logicalKey == LogicalKeyboardKey.contextMenu || 
                           event.logicalKey == LogicalKeyboardKey.keyI ||
                           event.logicalKey == LogicalKeyboardKey.info ||
@@ -841,6 +845,39 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                                   },
                                 ),
                               ),
+                        const SizedBox(width: 12),
+
+                        // Report Issue Button
+                            InkWell(
+                              focusNode: _reportFocusNode,
+                              onTap: () {
+                                _startHideTimer();
+                                if (_channel != null) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => ReportIssueDialog(
+                                      channelUuid: _channel!.uuid,
+                                      channelName: _channel!.name,
+                                    ),
+                                  );
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(20),
+                              child: AnimatedBuilder(
+                                animation: _reportFocusNode,
+                                builder: (context, child) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: _reportFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                      border: _reportFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                    ),
+                                    child: const Icon(Icons.flag, color: Colors.white, size: 28),
+                                  );
+                                },
+                              ),
+                            ),
                         const SizedBox(width: 12),
 
                         // 4. Mute Button - NEW
