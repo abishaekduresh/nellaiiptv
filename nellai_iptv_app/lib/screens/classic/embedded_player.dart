@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
 
 import '../../core/api_service.dart';
 import '../../core/audio_manager.dart';
+import '../../core/tv_player_controller.dart';
 import '../../core/toast_service.dart';
 import '../../models/channel.dart';
 import '../../widgets/pulse_loader.dart';
@@ -48,8 +49,9 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   final ApiService _api = ApiService();
   
   // MediaKit Controllers
-  late final Player _player;
-  late final VideoController _controller;
+  late final TVPlayerController _tvPlayer;
+  // late final Player _player; // Refactored to _tvPlayer.player
+  // late final VideoController _controller; // Refactored to _tvPlayer.videoController
   
   // PiP Controller
   late SimplePip _simplePip;
@@ -115,27 +117,12 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     });
     WidgetsBinding.instance.addObserver(this); 
     
-    // Initialize MediaKit Player
-    _player = Player();
-    
-    // 🚀 Performance Tweaks (Apply once)
-    if (!kIsWeb) {
-      try {
-        // Use dynamic to bypass compilation check if setProperty is not in the base Player interface of this version
-        final dynamic p = _player;
-        p.setProperty('cache-pause', 'no');
-        p.setProperty('demuxer-max-bytes', '10485760'); 
-        p.setProperty('demuxer-max-back-bytes', '0');
-        p.setProperty('stream-buffer-size', '131072');
-      } catch (e) {
-        debugPrint("Failed to set MediaKit properties: $e");
-      }
-    }
-    
-    _controller = VideoController(_player);
+    // Initialize MediaKit Player via TVController
+    _tvPlayer = TVPlayerController();
+    // Config logic moved to TVPlayerController
 
     // Listen for Player Errors
-    _playerErrorSub = _player.stream.error.listen((error) {
+    _playerErrorSub = _tvPlayer.player.stream.error.listen((error) {
        // debugPrint("MediaKit Stream Error: $error");
        if (mounted) _handlePlaybackError("Stream Error: $error");
     });
@@ -174,7 +161,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
       if (mounted) {
         setState(() {});
         // Also sync player volume if hardware buttons change system volume
-        _player.setVolume(vol <= 0 ? 0 : 100);
+        _tvPlayer.setVolume(vol <= 0 ? 0 : 100);
       }
     });
 
@@ -224,12 +211,12 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       if (!_isPipMode) {
-         _player.pause();
+         _tvPlayer.player.pause();
          AudioManager().restoreOriginalVolume();
       }
     } else if (state == AppLifecycleState.resumed) {
       if (!_isPremiumContent) {
-        _player.play();
+        _tvPlayer.player.play();
       }
       AudioManager().reapplyAppVolume();
       
@@ -278,7 +265,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     await AudioManager().toggleMute();
     if (mounted) {
       final bool isMuted = AudioManager().isMuted;
-      _player.setVolume(isMuted ? 0 : 100);
+      _tvPlayer.setVolume(isMuted ? 0 : 100);
     }
   }
   
@@ -341,9 +328,9 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
         });
 
         if (channel.isPremium) {
-           _player.stop().catchError((e) => debugPrint("Player Stop Error: $e")); 
+           _tvPlayer.stop(); 
            _viewCountTimer?.cancel();
-           WakelockPlus.enable(); 
+           WakelockPlus.enable();   
         } else if (channel.hlsUrl != null && (widget.initialChannel == null || wasPremium)) {
           // Only init if we haven't already OR if we are switching FROM a premium state
           await _initVideoPlayer(channel.hlsUrl!);
@@ -381,7 +368,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   }
 
   Future<void> _initVideoPlayer(String url) async {
-    if (url == _lastOpenedUrl && !_hasError && _player.state.playing) {
+    if (url == _lastOpenedUrl && !_hasError && _tvPlayer.player.state.playing) {
        // Still playing the same thing, just ensure we show the UI
        if (mounted && _isLoading) setState(() => _isLoading = false);
        return;
@@ -398,7 +385,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
 
       // 🛑 CRITICAL: We don't call stop() explicitly before open()
       // MediaKit's open() handles the transition internally much more safely for FFI.
-      await _player.open(Media(url), play: true);
+      await _tvPlayer.load(url);
       
       if (mounted) {
         setState(() {
@@ -509,7 +496,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     _playerLogSub?.cancel();
 
     // 🛑 Synchronous disposal is safer for hot restarts to prevent post-environment-wipe callbacks
-    _player.dispose();
+    _tvPlayer.dispose();
 
     _menuFocusNode.dispose();
     _fsFocusNode.dispose();
@@ -524,7 +511,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   Widget build(BuildContext context) {
     return Focus(
       focusNode: _focusNode,
-      autofocus: false, // Prevent stealing focus from channel list
+      autofocus: widget.isFullScreen, // Only autofocus if fullscreen, otherwise let user navigate to it
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent) {
            final isSelect = event.logicalKey == LogicalKeyboardKey.select || 
@@ -534,25 +521,21 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
            
            final isBack = event.logicalKey == LogicalKeyboardKey.escape || 
                           event.logicalKey == LogicalKeyboardKey.goBack;
-           
-           final isMenu = event.logicalKey == LogicalKeyboardKey.contextMenu || 
-                          event.logicalKey == LogicalKeyboardKey.keyI ||
-                          event.logicalKey == LogicalKeyboardKey.info ||
-                          event.logicalKey == LogicalKeyboardKey.guide;
-
-           if (isMenu && widget.isFullScreen) {
-              // Open STB Menu
-              widget.onTap?.call();
-              return KeyEventResult.handled;
-           }
 
            if (isSelect) {
              if (!widget.isFullScreen) {
                // If embedded, Enter/Select goes to fullscreen
-               widget.onDoubleTap?.call();
+               widget.onDoubleTap?.call(); 
              } else {
-               // If already in fullscreen, Enter/Select toggles controls
-               _toggleControls();
+               // If already in fullscreen, Toggle UI or Show Overlay (parent handles this via onTap usually)
+               // But here we want to ensure "OK" shows controls if hidden
+               if (!_showControls) {
+                   _toggleControls(show: true);
+               } else {
+                   // If controls are showing, maybe do nothing and let parent handle overlay toggle?
+                   // The parent widget.onTap is triggered below
+                   widget.onTap?.call();
+               }
              }
              return KeyEventResult.handled;
            }
@@ -599,7 +582,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                       ? const SizedBox() 
                       : SizedBox.expand(
                           child: Video(
-                            controller: _controller,
+                            controller: _tvPlayer.videoController,
                             controls: NoVideoControls,
                             alignment: Alignment.center,
                             fit: BoxFit.fill, // Stretched to fill player area in both embedded and fullscreen
@@ -625,7 +608,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
             ),
           // 3. Loading Layer (Overlay)
           StreamBuilder<bool>(
-            stream: _player.stream.buffering,
+            stream: _tvPlayer.player.stream.buffering,
             builder: (context, snapshot) {
               final isBuffering = snapshot.data ?? false;
               

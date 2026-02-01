@@ -1,3 +1,10 @@
+## [1.8.6+22] - 2026-02-01
+
+### Fixed
+- **Critical Syntax Fix**: Resolved duplicate class definitions and missing braces in `classic_screen.dart` that caused build failures.
+- **Compilation Error**: Removed invalid usage of `LogicalKeyboardKey.center` to restore build stability.
+- **Grid Navigation**: Verified and restored `Focus` handling for Channel Cards and Category Chips.
+
 ## [1.8.5+21] - 2026-02-01
 
 ### Added

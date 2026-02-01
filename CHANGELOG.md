@@ -1,3 +1,12 @@
+## [1.8.6+22] - App | [1.42.1] - Frontend | [1.31.1] - Backend - 2026-02-01
+
+### App (Flutter)
+- **Fix**: **Critical Build Fix** - Resolved duplicate class definitions and syntax errors in `ClassicScreen` to restore build stability.
+- **Fix**: **Input Handling** - Removed unsupported `LogicalKeyboardKey.center` binding.
+
+### Frontend (Next.js) & Backend (PHP)
+- **Maintenance**: Version synchronized with latest App Release (v1.8.6+22).
+
 ## [1.8.5+21] - App | [1.42.1] - Frontend | [1.31.1] - Backend - 2026-02-01
 
 ### App (Flutter)
