@@ -24,9 +24,10 @@ A premium IPTV player built for Android and Android TV.
 ### App (Flutter)
 - **Fix**: **Device Support** - Marked hardware features optional to support 2,300+ more devices.
 - **Fix**: **Legacy** - Pinned min SDK to 21.
+- **Security**: **Remediation** - Removed exposed secrets from history.
 
 ### Frontend & Backend
-- **Maintenance**: Version synchronized.
+- **Maintenance**: Version synchronized and security hardening.
 
 ## Recent Updates (v1.8.7+23 App / v1.42.1 Frontend / v1.31.1 Backend)
 
