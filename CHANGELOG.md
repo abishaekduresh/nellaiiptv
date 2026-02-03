@@ -1,3 +1,14 @@
+## [1.5.0+5] - App | [1.20.4] - Backend - 2026-01-25
+
+### App (Flutter)
+- **Added**: Fallback HLS Player with "Retry" UI and pulse animation.
+- **Added**: Android TV Store compliance features (Banner, Leanback).
+- **Added**: Connectivity monitoring with animated Toast notifications.
+- **Fixed**: Internet recovery logic.
+
+### Backend (PHP)
+- **Added**: `fallback_404_hls_url` field to public settings API response.
+
 ## [1.4.3+4] - App | [1.20.3] - Backend - 2026-01-25
 
 ### App (Flutter)

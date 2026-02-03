@@ -45,6 +45,8 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> with Single
   final FocusScopeNode _focusScopeNode = FocusScopeNode(); // Manages focus for TV remote navigation
   Timer? _autoHideTimer; // Timer to auto-close the overlay when inactive
   late AnimationController _animationController; // Controls the entrance/exit animation
+  final ScrollController _channelScrollController = ScrollController(); // To scroll to current channel
+
 
   // -- Animation Handlers --
 
@@ -139,6 +141,36 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> with Single
     
     // Start the auto-hide timer immediately
     _resetAutoHideTimer();
+
+    // Scroll to current channel after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+       _scrollToCurrentChannel();
+    });
+  }
+
+  void _scrollToCurrentChannel() {
+    if (_selectedCategory == null || widget.currentChannel == null) return;
+    
+    final channels = widget.groupedChannels[_selectedCategory];
+    if (channels == null) return;
+
+    final index = channels.indexWhere((c) => c.uuid == widget.currentChannel!.uuid);
+    if (index != -1) {
+       // Estimate Item Height: 
+       // ListTile with Dense=true (~48-56 depending on texture) + Vertical Margin (8)
+       // Let's assume ~68.0 pixels per item to be safe.
+       final double itemHeight = 65.0; 
+       final double offset = index * itemHeight;
+
+       // Center selection if possible, or just scroll to top
+       // For simple list jump:
+       if (_channelScrollController.hasClients) {
+          // Calculate valid scroll extent
+          final maxScroll = _channelScrollController.position.maxScrollExtent;
+          final target = offset > maxScroll ? maxScroll : offset;
+          _channelScrollController.jumpTo(target);
+       }
+    }
   }
 
   @override
@@ -146,6 +178,7 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> with Single
     _autoHideTimer?.cancel();
     _animationController.dispose();
     _focusScopeNode.dispose();
+    _channelScrollController.dispose();
     super.dispose();
   }
 
@@ -221,6 +254,7 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> with Single
                         child: NotificationListener<ScrollNotification>(
                           onNotification: (_) { _resetAutoHideTimer(); return false; }, // Reset timer on scroll
                           child: ListView.builder(
+                            controller: _channelScrollController,
                             padding: const EdgeInsets.symmetric(vertical: 20),
                             itemCount: widget.groupedChannels[_selectedCategory]?.length ?? 0,
                             itemBuilder: (context, index) {

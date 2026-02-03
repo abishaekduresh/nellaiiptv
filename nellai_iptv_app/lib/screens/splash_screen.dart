@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../core/api_service.dart';
 import 'package:flutter_animate/flutter_animate.dart'; // Animation support
+import 'package:in_app_update/in_app_update.dart'; // Import InAppUpdate
 import 'classic/classic_screen.dart'; // Import ClassicScreen
 
 class SplashScreen extends StatefulWidget {
@@ -28,8 +29,9 @@ class _SplashScreenState extends State<SplashScreen> {
         DeviceOrientation.landscapeRight
       ]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
-    _startTimer();
+    _checkForUpdate();
     _initPackageInfo();
     // _fetchLogo(); // Accessing settings is okay but we can default to asset/env for splash
   }
@@ -43,8 +45,29 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
-  Future<void> _startTimer() async {
-    await Future.delayed(const Duration(seconds: 3));
+  Future<void> _checkForUpdate() async {
+    // Wait for a minimum splash duration regardless of update check speed
+    final minSplashTime = Future.delayed(const Duration(seconds: 3));
+
+    try {
+      if (!kIsWeb) { // In-App Update is Android only
+        final info = await InAppUpdate.checkForUpdate();
+        if (info.updateAvailability == UpdateAvailability.updateAvailable &&
+            info.immediateUpdateAllowed) {
+            
+            await InAppUpdate.performImmediateUpdate();
+        }
+      }
+    } catch (e) {
+      debugPrint("InAppUpdate Error: $e");
+    } finally {
+      // Ensure we waited at least 3 seconds
+      await minSplashTime;
+      _navigateToClassic();
+    }
+  }
+
+  void _navigateToClassic() {
     if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const ClassicScreen()),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart'; // Import flutter_animate
 import 'package:flutter/foundation.dart'; // for kIsWeb
 import 'package:media_kit/media_kit.dart'; // MediaKit Core
 import 'package:media_kit_video/media_kit_video.dart'; // MediaKit Video Widget
@@ -55,6 +56,8 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   bool _hasError = false;
   String _errorMessage = '';
   String? _appLogoUrl;
+  String? _fallbackHlsUrl;
+  bool _fallbackUsed = false;
   Channel? _channel;
   
   // Premium State
@@ -78,6 +81,24 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     _player = Player();
     _controller = VideoController(_player);
 
+    // Listen for Player Errors
+    _player.stream.error.listen((error) {
+       // debugPrint("MediaKit Stream Error: $error");
+       if (mounted) _handlePlaybackError("Stream Error: $error");
+    });
+    
+    // Listen for Logs (often contains 404s that don't trigger stream.error instantly)
+    _player.stream.log.listen((log) {
+       // Using toString() as 'message' getter is undefined in this version
+       final String msg = log.toString();
+       if (msg.contains("404 Not Found") || msg.contains("Connection refused") || msg.contains("Input/output error")) {
+          // debugPrint("MediaKit Log Error: $msg");
+          if (mounted && !_hasError && !_fallbackUsed) {
+             _handlePlaybackError("Playback Error: $msg");
+          }
+       }
+    });
+
     // Initialize PiP
     _simplePip = SimplePip(
       onPipEntered: () {
@@ -93,8 +114,36 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     // Initialize Audio Manager
     AudioManager().init();
 
-    _fetchAppLogo();
-    _loadChannel();
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen(_handleConnectivityChange);
+
+    _initializeApp();
+  }
+  
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  bool _wasOffline = false;
+
+  void _handleConnectivityChange(List<ConnectivityResult> results) {
+     final isOffline = results.contains(ConnectivityResult.none);
+     if (isOffline) {
+       if (!_wasOffline) {
+          ToastService().show("Internet Connection Lost", type: ToastType.error);
+          _wasOffline = true;
+       }
+     } else {
+       if (_wasOffline) {
+          ToastService().show("Internet Connection Restored", type: ToastType.success);
+          _wasOffline = false;
+          // Auto-retry if we were in an error state or stuck loading
+          if (_hasError || (_isLoading && _channel == null)) {
+             _loadChannel();
+          }
+       }
+     }
+  }
+
+  Future<void> _initializeApp() async {
+    await _fetchSettings(); // Ensure settings (and fallback URL) are loaded FIRST
+    if (mounted) _loadChannel();
   }
 
   @override
@@ -154,16 +203,17 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
       return newVol;
   }
   
-  Future<void> _fetchAppLogo() async {
+  Future<void> _fetchSettings() async {
     try {
       final settings = await _api.getPublicSettings();
       if (mounted && settings != null) {
         setState(() {
           _appLogoUrl = settings.appLogoPngUrl ?? settings.logoUrl;
+          _fallbackHlsUrl = settings.fallbackHlsUrl;
         });
       }
     } catch (e) {
-      debugPrint("Logo Fetch Error: $e");
+      debugPrint("Settings Fetch Error: $e");
     }
   }
 
@@ -172,12 +222,13 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     setState(() { 
       _hasError = false; 
       _errorMessage = ''; 
+      _fallbackUsed = false; // Reset fallback state for new channel
       if (widget.initialChannel == null) _isLoading = true;
     }); 
     
     // 2. Use initialChannel data for INSTANT start if available
     if (widget.initialChannel != null) {
-      debugPrint("Instant Play Triggered for: ${widget.initialChannel!.name}");
+      // debugPrint("Instant Play Triggered for: ${widget.initialChannel!.name}");
       _channel = widget.initialChannel;
       _isPremiumContent = _channel!.isPremium;
       
@@ -237,9 +288,26 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   }
 
   Future<void> _initVideoPlayer(String url) async {
+    // Optimization: Fast fail for invalid streams before player loads
+    if (!_fallbackUsed && !_isPremiumContent && !kIsWeb) {
+       try {
+         final dio = Dio(BaseOptions(
+           connectTimeout: const Duration(seconds: 2),
+           receiveTimeout: const Duration(seconds: 2),
+           validateStatus: (status) => status != null && status < 400,
+         ));
+         await dio.head(url);
+       } catch (e) {
+         if (mounted) {
+           _handlePlaybackError("Pre-flight Check Failed");
+           return;
+         }
+       }
+    }
+
     try {
       // Don't await the open entirely to keep the UI thread responsive
-      _player.open(Media(url), play: true);
+      await _player.open(Media(url), play: true);
       
       if (mounted) {
         setState(() {
@@ -250,9 +318,42 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
       _startViewCountTimer();
       
     } catch (e) {
-      debugPrint("Video Init Error: $e");
-      if (mounted) _showError("Playback Failed");
+      // debugPrint("Video Init Error: $e");
+      if (mounted) _handlePlaybackError("Playback Failed");
     }
+  }
+
+  Future<void> _handlePlaybackError(String errorMsg) async {
+      // debugPrint("HANDLE_PLAYBACK_ERROR: $errorMsg");
+      
+      // If fallback is already being used or setup, ignore further errors
+      if (_fallbackUsed) return;
+      
+      // If fallback URL is missing, try fetching settings one last time (Race condition fix)
+      // This handles cases where error occurs before settings load completion.
+      if (_fallbackHlsUrl == null) {
+          // debugPrint("Fallback URL is null. Attempting to fetch settings...");
+          await _fetchSettings();
+      }
+
+      // debugPrint("State: _fallbackUsed=$_fallbackUsed, _isPremiumContent=$_isPremiumContent");
+      // debugPrint("Fallback URL: $_fallbackHlsUrl");
+
+      // Check Fallback Conditions:
+      // 1. Fallback hasn't been used yet (prevent loop)
+      // 2. Fallback URL exists
+      // 3. User is allowed to watch (not premium blocked)
+      if (!_fallbackUsed && _fallbackHlsUrl != null && _fallbackHlsUrl!.isNotEmpty && !_isPremiumContent) {
+          // debugPrint("Switching to Fallback URL: $_fallbackHlsUrl");
+          _fallbackUsed = true; // Prevent infinite loop
+          _initVideoPlayer(_fallbackHlsUrl!);
+          // Seamless switch - no toast to user, just play the fallback stream
+          return;
+      } else {
+        // debugPrint("Fallback conditions not met. Showing error.");
+      }
+      // Sanitize error to not expose URL to user
+      _showError("Stream Unavailable");
   }
 
   void _showError(String msg) {
@@ -276,6 +377,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _connectivitySubscription?.cancel();
     _player.dispose(); // Dispose MediaKit Player
     AudioManager().restoreOriginalVolume();
 
@@ -344,7 +446,45 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
             },
           ),
           
-          // 4. Premium Overlay
+          // 4. Retry Button (Fallback Mode)
+          // Show when fallback is active request by user to manually retry
+          if (_fallbackUsed)
+            Positioned(
+              bottom: widget.isFullScreen ? 50 : 20, // Lower in embedded mode
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                child: Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // Manually trigger reload
+                      _loadChannel();
+                    },
+                    // Responsive sizing: Larger in fullscreen, compact in embedded
+                    icon: Icon(Icons.refresh, size: widget.isFullScreen ? 18 : 14),
+                    label: Text("Retry Connection", 
+                      style: TextStyle(fontSize: widget.isFullScreen ? 15 : 12)
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent, // Solid color
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: widget.isFullScreen ? 20 : 12, 
+                        vertical: widget.isFullScreen ? 12 : 6
+                      ),
+                      minimumSize: Size.zero, // Remove default minimums for true compactness
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Tighter touch target
+                      elevation: 5,
+                    ),
+                  )
+                  .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                  .scale(begin: const Offset(1.0, 1.0), end: const Offset(1.05, 1.05), duration: 800.ms)
+                  .then(delay: 800.ms), // Gentle pulse
+                ),
+              ),
+            ),
+
+          // 5. Premium Overlay
           if (_isPremiumContent)
              _buildPremiumOverlay(),
 
@@ -533,7 +673,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                    ),
                    onPressed: () async {
-                      final url = Uri.parse("https://www.nellaiiptv.com");
+                      final url = Uri.parse("https://www.nellaiiptv.com/login");
                       if (await canLaunchUrl(url)) {
                         await launchUrl(url, mode: LaunchMode.externalApplication);
                       } else {
