@@ -1,6 +1,7 @@
-## [1.4.1] - 2026-01-24
+## [1.4.1+2] - 2026-01-24
 
 ### Added
+- **Android 15 Compatibility**: Robust Edge-to-Edge support (Target SDK 35) with native FragmentActivity integration.
 - **Near-Instant Switching**: Parallelized API fetching and player logic for zero-delay loading.
 - **Session-Based Caching**: Fast thumbnail rendering with automatic per-launch cache clearing.
 - **Enhanced Ad UX**: skeleton loading for both server response and image download phases.
@@ -19,3 +20,4 @@
 - **Volume**: Fixed volume resetting to 100% on channel change.
 - **Classic Screen**: Fixed syntax errors in grid builder and `Consumer` nesting.
 - **Crash**: Fixed "Bottom Overflowed" on splash screen.
+- **Build**: Resolved native Android build failures and synchronized versioning.
