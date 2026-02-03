@@ -6,11 +6,13 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.4.2+3
+- **Version**: 1.4.3+4
 - **Key Features**: STB Overlay, Android 15 Edge-to-Edge, Live TV, Classic Grid UI.
 
-## Recent Updates (v1.4.2+3)
+## Recent Updates (v1.4.3+4)
 
+- **Persistent Navigation**: STB Menu remembers your last category for faster browsing.
+- **Refined Player UI**: Minimalist stats overlay and improved gesture reliability.
 - **Full-Screen STB Overlay**: Intuitive channel browsing without exiting full-screen mode (Left-side).
 - **TV UX Overhaul**: "All Channels" prioritized and autofocus implemented for remotes.
 - **Persistent Information**: View counts and ratings always visible in the player.

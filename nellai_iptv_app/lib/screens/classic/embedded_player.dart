@@ -24,6 +24,7 @@ class EmbeddedPlayer extends StatefulWidget {
   final VoidCallback? onTap;
   final bool isFullScreen; 
   final bool hideControls;
+  final Function(Channel)? onChannelLoaded; // Callback to sync data back to parent
 
   const EmbeddedPlayer({
     super.key, 
@@ -33,6 +34,7 @@ class EmbeddedPlayer extends StatefulWidget {
     this.onTap,
     required this.isFullScreen,
     this.hideControls = false,
+    this.onChannelLoaded,
   });
 
   @override
@@ -210,6 +212,9 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
           // Only init if we haven't already OR if we are switching FROM a premium state
           _initVideoPlayer(channel.hlsUrl!);
         }
+
+        // Notify parent with fresh data (e.g. ratings)
+        widget.onChannelLoaded?.call(channel);
       }
     }).catchError((e) {
        if (widget.initialChannel == null) _handleError(e);
@@ -283,16 +288,16 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black, // Ensure black background
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 1. Gesture Layer / Video Surface
-          GestureOverlay(
-            onTap: _toggleControls,
-            onToggleMute: widget.onDoubleTap ?? () => _toggleMute(), 
-            child: Container(
+    return GestureOverlay(
+      onTap: _toggleControls,
+      onToggleMute: widget.onDoubleTap ?? () => _toggleMute(),
+      child: Container(
+        color: Colors.black, // Ensure black background
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 1. Video Surface
+            Container(
               color: Colors.black, 
               child: _isPremiumContent 
                 ? const SizedBox() 
@@ -304,7 +309,6 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                     ),
                   ),
             ),
-          ),
 
           // 2. Web Warning (Bottom)
           if (kIsWeb)
@@ -372,7 +376,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
               bottom: -5,
               left: 15,
               child: Opacity(
-                opacity: 0.6,
+                opacity: 0.2,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     // Responsive width: Smaller in non-fullscreen mode
@@ -409,30 +413,30 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                     ignoring: false, // Don't ignore pointers
                     child: SafeArea(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2), // Reduced padding
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.black.withOpacity(0.4), // Slightly more transparent
+                          borderRadius: BorderRadius.circular(16), // Smaller radius
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if (_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty) ...[
-                              const Icon(Icons.remove_red_eye_outlined, color: Colors.white70, size: 16),
-                              const SizedBox(width: 5),
+                              const Icon(Icons.remove_red_eye_outlined, color: Colors.white70, size: 12), // Smaller Icon
+                              const SizedBox(width: 4),
                               Text(
                                 _channel!.viewersCountFormatted!,
-                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), // Smaller Text
                               ),
                             ],
                             if (_channel!.averageRating != null && _channel!.averageRating! > 0) ...[
                               if (_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty)
-                                const SizedBox(width: 12),
-                              const Icon(Icons.star, color: Color(0xFFFCD34D), size: 16),
-                              const SizedBox(width: 4),
+                                const SizedBox(width: 8), // Reduced gap
+                              const Icon(Icons.star, color: Color(0xFFFCD34D), size: 12), // Smaller Icon
+                              const SizedBox(width: 3),
                               Text(
                                 _channel!.averageRating!.toStringAsFixed(1),
-                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), // Smaller Text
                               ),
                             ],
                           ],
@@ -483,6 +487,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                 ),
               ),
         ],
+        ),
       ),
     );
   }

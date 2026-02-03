@@ -1,14 +1,29 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/channel.dart';
 
+/// STBNavigationOverlay
+/// 
+/// This widget provides an overlay navigation menu for Set-Top Box (STB) interactions.
+/// It displays a sidebar with categories and a list of channels for the selected category.
+/// 
+/// Key Features:
+/// - **Two-Pane Layout**: Categories on the left, Channels on the right.
+/// - **TV Remote Support**: Handles focus traversal and selection events.
+/// - **Auto-Hide**: Automatically closes the overlay after inactivity (5 seconds).
+/// - **Animations**: Smooth slide-in/out animations using `AnimationController`.
+/// - **Performance**: Uses basic opacity instead of blur for better performance on low-end devices.
+
 class STBNavigationOverlay extends StatefulWidget {
-  final Map<String, List<Channel>> groupedChannels;
-  final Function(Channel) onChannelSelected;
-  final VoidCallback onClose;
-  final Channel? currentChannel;
+  final Map<String, List<Channel>> groupedChannels; // Data source: key=Category Name, value=List of Channels
+  final Function(Channel) onChannelSelected; // Callback when a channel is selected
+  final VoidCallback onClose; // Callback to close the overlay manually
+  final Channel? currentChannel; // Currently playing channel to highlight
+  final String? initialCategory; // Ensure we can resume from last selected category
+  final ValueChanged<String>? onCategoryChanged; // Notify parent of category changes
 
   const STBNavigationOverlay({
     super.key,
@@ -16,25 +31,62 @@ class STBNavigationOverlay extends StatefulWidget {
     required this.onChannelSelected,
     required this.onClose,
     this.currentChannel,
+    this.initialCategory,
+    this.onCategoryChanged,
   });
 
   @override
   State<STBNavigationOverlay> createState() => _STBNavigationOverlayState();
 }
 
-class _STBNavigationOverlayState extends State<STBNavigationOverlay> {
-  String? _selectedCategory;
-  late List<String> _categories;
-  final FocusScopeNode _focusScopeNode = FocusScopeNode();
+class _STBNavigationOverlayState extends State<STBNavigationOverlay> with SingleTickerProviderStateMixin {
+  String? _selectedCategory; // Tracks the currently selected category in the sidebar
+  late List<String> _categories; // List of category names for sidebar
+  final FocusScopeNode _focusScopeNode = FocusScopeNode(); // Manages focus for TV remote navigation
+  Timer? _autoHideTimer; // Timer to auto-close the overlay when inactive
+  late AnimationController _animationController; // Controls the entrance/exit animation
+
+  // -- Animation Handlers --
+
+  /// Reverses the animation and calls the close callback upon completion.
+  void _handleClose() {
+    _animationController.reverse().then((_) {
+       if (mounted) widget.onClose();
+    });
+  }
+
+  /// Reverses the animation and triggers channel selection upon completion.
+  void _handleChannelSelect(Channel channel) {
+    _animationController.reverse().then((_) {
+       if (mounted) widget.onChannelSelected(channel);
+    });
+  }
+
+  // -- Timer Logic --
+
+  /// Resets the auto-hide timer. Called on user activity (tap, scroll, hover, key press).
+  void _resetAutoHideTimer() {
+    _autoHideTimer?.cancel();
+    _autoHideTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        _handleClose();
+      }
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    // Maintain the order from the grouped map, but ensure "All Channels" is first if it exists
+    // Initialize Animation Controller
+    _animationController = AnimationController(vsync: this, duration: 300.ms);
+    _animationController.forward();
+
+    // -- Category Initialization --
+    // Maintain the order from the grouped map, but ensure "All Channels" is first if it exists.
     final rawCategories = widget.groupedChannels.keys.toList();
     _categories = [];
     
-    // Check for "All Channels" (case-insensitive)
+    // Check for "All Channels" (case-insensitive) to prioritize it
     final allChannelsKey = rawCategories.firstWhere(
       (k) => k.toLowerCase() == "all channels",
       orElse: () => "",
@@ -47,67 +99,101 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> {
     
     _categories.addAll(rawCategories);
 
+    // Set initial category selection logic
     if (_categories.isNotEmpty) {
-      // Try to find category of current channel
-      if (widget.currentChannel != null) {
+      // 1. Prioritize explicitly passed initial category (Persistence)
+      if (widget.initialCategory != null && _categories.contains(widget.initialCategory)) {
+        _selectedCategory = widget.initialCategory;
+      } 
+      // 2. Fallback to Current Channel's Category
+      else if (widget.currentChannel != null) {
+        // Try to find the specific category first, avoiding "All Channels" to reduce noise
         for (var entry in widget.groupedChannels.entries) {
+          if (entry.key == "All Channels") continue; // Skip generic group
           if (entry.value.any((c) => c.uuid == widget.currentChannel!.uuid)) {
             _selectedCategory = entry.key;
             break;
           }
         }
+        // If not found in specific categories, query all (e.g. if it's only in All Channels)
+        if (_selectedCategory == null) {
+          for (var entry in widget.groupedChannels.entries) {
+             if (entry.value.any((c) => c.uuid == widget.currentChannel!.uuid)) {
+               _selectedCategory = entry.key;
+               break;
+             }
+          }
+        }
       }
+      // 3. Absolute Fallback
       _selectedCategory ??= _categories.first;
+      
+      // Notify parent of the initial resolved category
+      if (_selectedCategory != null) {
+         // Defer execution to avoid setState during build if parent reacts synchronously
+         WidgetsBinding.instance.addPostFrameCallback((_) {
+            widget.onCategoryChanged?.call(_selectedCategory!);
+         });
+      }
     }
+    
+    // Start the auto-hide timer immediately
+    _resetAutoHideTimer();
   }
 
   @override
   void dispose() {
+    _autoHideTimer?.cancel();
+    _animationController.dispose();
     _focusScopeNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // FocusScope captures interactions for TV navigation
     return FocusScope(
       node: _focusScopeNode,
       child: Stack(
         children: [
-          // 1. Transparent Background Layer - Handles "Tap to Close"
+          // 1. Transparent Background Layer - Handles "Tap Outside to Close"
           Positioned.fill(
             child: GestureDetector(
-              onTap: widget.onClose,
+              onTap: _handleClose,
               behavior: HitTestBehavior.opaque,
               child: Container(color: Colors.transparent),
             ),
           ),
 
-          // 2. Sidebar Navigation Panel
+          // 2. Sidebar Navigation Panel (The main overlay content)
           Positioned(
             left: 0,
             top: 0,
             bottom: 0,
-            width: MediaQuery.of(context).size.width * 0.45,
-            child: GestureDetector(
-              onTap: () {}, // Prevent taps from reaching the closing background
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A).withOpacity(0.85),
-                  border: const Border(right: BorderSide(color: Colors.white10, width: 1)),
-                ),
-                child: ClipRRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Row(
-                      children: [
-                        // Categories Sidebar
-                        Expanded(
-                          flex: 2,
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              border: Border(right: BorderSide(color: Colors.white10)),
-                            ),
+            width: MediaQuery.of(context).size.width * 0.45, // Occupies 45% of screen width
+            child: Listener(
+              // Listen for pointer events to reset auto-hide timer
+              onPointerDown: (_) => _resetAutoHideTimer(),
+              onPointerHover: (_) => _resetAutoHideTimer(),
+              child: GestureDetector(
+                onTap: () { _resetAutoHideTimer(); }, // Prevent taps on menu from closing it
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A).withOpacity(0.90), // Increased Opacity for better contrast
+                    border: const Border(right: BorderSide(color: Colors.white10, width: 1)),
+                  ),
+                  child: Row(
+                    children: [
+                      // -- Left Pane: Category List --
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            border: Border(right: BorderSide(color: Colors.white10)),
+                          ),
+                          child: NotificationListener<ScrollNotification>(
+                            onNotification: (_) { _resetAutoHideTimer(); return false; }, // Reset timer on scroll
                             child: ListView.builder(
                               padding: const EdgeInsets.symmetric(vertical: 20),
                               itemCount: _categories.length,
@@ -118,15 +204,22 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> {
                                 return _buildMenuItem(
                                   label: category.toUpperCase(),
                                   isSelected: isSelected,
-                                  onSelect: () => setState(() => _selectedCategory = category),
+                                  onSelect: () {
+                                    setState(() => _selectedCategory = category);
+                                    widget.onCategoryChanged?.call(category);
+                                  },
                                 );
                               },
                             ),
                           ),
                         ),
-                        // Channels List
-                        Expanded(
-                          flex: 3,
+                      ),
+
+                      // -- Right Pane: Channel List --
+                      Expanded(
+                        flex: 3,
+                        child: NotificationListener<ScrollNotification>(
+                          onNotification: (_) { _resetAutoHideTimer(); return false; }, // Reset timer on scroll
                           child: ListView.builder(
                             padding: const EdgeInsets.symmetric(vertical: 20),
                             itemCount: widget.groupedChannels[_selectedCategory]?.length ?? 0,
@@ -137,16 +230,16 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> {
                               return _buildChannelItem(
                                 channel: channel,
                                 isCurrent: isCurrent,
-                                onTap: () => widget.onChannelSelected(channel),
+                                onTap: () => _handleChannelSelect(channel),
                               );
                             },
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              ).animate().slideX(begin: -1.0, end: 0.0),
+              ).animate(controller: _animationController, autoPlay: false).slideX(begin: -1.0, end: 0.0), // Slide-in Animation
             ),
           ),
         ],
@@ -154,6 +247,7 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> {
     );
   }
 
+  /// Builds a single category menu item in the left sidebar.
   Widget _buildMenuItem({
     required String label,
     required bool isSelected,
@@ -162,7 +256,10 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> {
     return Focus(
       autofocus: isSelected,
       onFocusChange: (focused) {
-        if (focused) onSelect();
+        if (focused) {
+          onSelect(); // Auto-select category on focus
+          _resetAutoHideTimer();
+        }
       },
       child: Builder(
         builder: (context) {
@@ -175,6 +272,7 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> {
               margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
               decoration: BoxDecoration(
+                // Highlight if focused or selected
                 color: isFocused ? const Color(0xFF0EA5E9) : (isSelected ? const Color(0xFF1E293B) : Colors.transparent),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -194,6 +292,7 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> {
     );
   }
 
+  /// Builds a single channel list item in the right pane.
   Widget _buildChannelItem({
     required Channel channel,
     required bool isCurrent,
@@ -203,12 +302,16 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> {
       child: Builder(
         builder: (context) {
           final isFocused = Focus.of(context).hasFocus;
+          if (isFocused) _resetAutoHideTimer(); // Reset timer if channel gains focus
+          
           return AnimatedContainer(
             duration: 200.ms,
             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
+              // Slight background highlight on focus
               color: isFocused ? const Color(0xFF0EA5E9).withOpacity(0.2) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
+              // Border highlight on focus or if currently playing
               border: Border.all(
                 color: isFocused ? const Color(0xFF0EA5E9) : (isCurrent ? Colors.white24 : Colors.transparent),
                 width: 1,

@@ -1,36 +1,34 @@
-## [1.4.2+3] - 2026-01-25
+## [1.4.3+4] - App | [1.20.3] - Backend - 2026-01-25
 
-### Added
-- **Full-Screen STB Overlay**: Multi-column channel navigation drawer available directly in full-screen mode (Left-side aligned).
-- **TV Priority Navigation**: Autofocus for category selection and "All Channels" prioritized list.
+### App (Flutter)
+- **Added**: State persistence for STB Navigation (remembers last category).
+- **Added**: Real-time sync of channel ratings/views from player to main screen.
+- **Changed**: Minimalist design for player stats overlay (smaller icons/text).
+- **Fixed**: `GestureOverlay` hoisting to fix interaction issues during loading states.
+- **Fixed**: Syntax errors in premium content logic.
 
-### Changed
-- **Persistent Player Stats**: Live viewer counts and ratings always visible in player.
+### Backend (PHP)
+- **Changed**: View count formatting now uses integer arithmetic for consistent precision (e.g. `2.2+K`).
 
-### Fixed
-- **Overlay Interaction**: Resolved bug where category clicks triggered overlay closure.
-- **Build**: Finalized Android 15 stability and Kotlin versioning.
+## [1.4.2+3] - App | [1.20.2] - Backend - 2026-01-25
 
-## [1.4.1+2] - 2026-01-24
+### App
+- **Added**: Full-Screen "Set-Top Box" style channel navigation drawer.
+- **Added**: TV-priority navigation with "All Channels" default group.
+- **Changed**: Persistent viewer counts and ratings in player.
 
-### Added
-- **Android 15 Compatibility**: Robust Edge-to-Edge support (Target SDK 35) with native FragmentActivity integration.
-- **Near-Instant Switching**: Parallelized API fetching and player logic for zero-delay loading.
-- **Session-Based Caching**: Fast thumbnail rendering with automatic per-launch cache clearing.
-- **Enhanced Ad UX**: skeleton loading for both server response and image download phases.
-- **TV Support**: Native `LEANBACK_LAUNCHER` and improved D-pad navigation.
-- **Security**: Enabled screenshot prevention and secure `.env` signing.
-- **Icons**: Updated project-wide application icons.
+### Backend
+- **Fixed**: Enhanced `APP_URL` detection for cloud deployments.
+- **Security**: Removed internal path fields from public API responses.
 
-### Changed
-- **Build**: Migrated Android signing configuration to `.env` variables for better security (removed `key.properties`).
-- **Splash Screen**: Layout is now scrollable to prevent overflow on landscape devices.
-- **Volume Control**: Removed software volume overrides. Player now relies strictly on system/hardware volume.
-- **Icons**: Updated app launcher icons.
-- **Player**: Watermark is now responsive to screen size.
+## [1.4.1+2] - App | [1.18.1] - Backend - 2026-01-24
 
-### Fixed
-- **Volume**: Fixed volume resetting to 100% on channel change.
-- **Classic Screen**: Fixed syntax errors in grid builder and `Consumer` nesting.
-- **Crash**: Fixed "Bottom Overflowed" on splash screen.
-- **Build**: Resolved native Android build failures and synchronized versioning.
+### App
+- **Added**: Android 15 Edge-to-Edge support.
+- **Added**: Parallel API fetching for instant switching.
+- **Added**: Session-based thumbnail caching.
+- **Security**: Screenshot prevention enabled.
+
+### Backend
+- **Refactored**: Database schema for relative path storage.
+- **Added**: Smart file cleanup for logo/thumbnail updates.

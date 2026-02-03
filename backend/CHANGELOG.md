@@ -2,6 +2,11 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.20.3] - 2026-01-25
+
+### Changed
+- **View Count Formatting**: Refactored `formatViewCount` in `ChannelService` and `Admin\ChannelService` to use integer arithmetic. This eliminates floating-point rounding errors, ensuring values like 2253 are correctly formatted as "2.2+K" instead of "2.3K".
+
 ## [1.20.2] - 2026-01-20
 
 ### Fixed
