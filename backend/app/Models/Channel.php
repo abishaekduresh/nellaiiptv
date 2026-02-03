@@ -10,7 +10,9 @@ class Channel extends Model
     protected $fillable = [
         'uuid', 'name', 'channel_number', 'hls_url', 'village', 
         'category_id', 'state_id', 'language_id', 'district_id', 'thumbnail_path', 'logo_path',
-        'is_featured', 'expiry_at', 'status', 'created_at', 'is_premium', 'allowed_platforms'
+        'is_featured', 'expiry_at', 'status', 'created_at', 'is_premium', 'allowed_platforms',
+        'proprietor_name', 'proprietor_phone', 'proprietor_email', 'proprietor_address',
+        'user_agent', 'referer'
     ];
 
     protected $casts = [

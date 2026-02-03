@@ -1,14 +1,17 @@
-# Nellai IPTV - Frontend v1.42.1
+# Nellai IPTV - Frontend v1.43.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.42.1)**
-- **Maintenance**: Version synchronized with App v1.8.4+20.
+### **Latest Updates (v1.43.0)**
+- **Channel Proprietor Details**: Unified section in Channel Form to maintain and display owner contact information and address.
+- **Indian Phone Validation**: Integrated robust regex-based validation for Indian phone numbers with real-time UI feedback (color-coded borders and messages).
+- **Stream Headers Support**: Custom `User-Agent` and `Referer` fields added to Channel Form to support restricted streams.
+- **Improved API Resilience**: Standardized on Admin API endpoints for fetching metadata, resolving "Failed to load" errors in filters and forms.
 
-### **Previous Updates (v1.42.0)**
-- **Maintenance**: Version synchronized with latest App optimizations and backend Geo-filtering updates.
+### **Previous Updates (v1.42.1)**
+- **Maintenance**: Version synchronized with latest App Release (v1.8.8+24).
 - **Improved Performance**: Refined HLS buffering profiles for consistent cross-device stability.
 
 ### **Previous Updates (v1.41.0)**

@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.31.1)
+# Nellai IPTV - Backend API (v1.32.0)
 
-**Version 1.31.1** | RESTful API built with Slim PHP Framework
+**Version 1.32.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -151,6 +151,12 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.32.0)
+- **Proprietor Metadata**: Expanded `Channel` model and schema to store channel owner contact details (Name, Phone, Email, Address).
+- **Stream Headers**: Added `user_agent` and `referer` fields to the `channels` table for specialized stream access control.
+- **Admin Districts API**: Registered new route `GET /admin/districts` to facilitate district selection in administrative forms.
+- **Admin Geo API**: Updated `getCategories` and `getLanguages` in `GeoService` to support `status='all'`, allowing admins to manage inactive items.
 
 ## Latest Updates (v1.31.0)
 - **Geo Filtering**: Enhanced Categories and Languages APIs with optional `status` parameter (active/inactive).

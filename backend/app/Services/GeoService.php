@@ -21,16 +21,28 @@ class GeoService
 
     public function getLanguages(string $status = 'active'): array
     {
-        return Language::where('status', $status)
-            ->orderBy('order_number', 'ASC')
+        $query = Language::query();
+        
+        // If status is empty or 'all', don't filter by status
+        if (!empty($status) && $status !== 'all') {
+            $query->where('status', $status);
+        }
+        
+        return $query->orderBy('order_number', 'ASC')
             ->get()
             ->toArray();
     }
 
     public function getCategories(string $status = 'active'): array
     {
-        return Category::where('status', $status)
-            ->orderBy('order_number', 'ASC')
+        $query = Category::query();
+        
+        // If status is empty or 'all', don't filter by status
+        if (!empty($status) && $status !== 'all') {
+            $query->where('status', $status);
+        }
+        
+        return $query->orderBy('order_number', 'ASC')
             ->get()
             ->toArray();
     }

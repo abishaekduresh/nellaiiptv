@@ -2,6 +2,18 @@
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
 
+## [1.43.0] - Website - 2026-02-03
+
+### Added
+- **Channel Proprietor Details**: Unified section in Channel Form to maintain and display owner contact information and address.
+- **Indian Phone Validation**: Integrated robust regex-based validation for Indian phone numbers with real-time UI feedback (color-coded borders and messages).
+- **Stream Headers Support**: Custom `User-Agent` and `Referer` fields added to Channel Form to support restricted streams.
+
+### Fixed
+- **Admin Filters**: Resolved "Failed to load filter options" error on the channels list by explicitly requesting `status: 'all'`.
+- **Form Options**: Resolved "Failed to load form options" on create/edit pages by standardizing on Admin API endpoints and correct parameters.
+- **UX**: Prevented form submission when an invalid phone number is entered.
+
 ## [1.42.1] - Website - 2026-02-03
 - **Maintenance**: Version synchronized with latest App Release (v1.8.8+24).
 - **Security**: Hardcoded secrets removed from codebase history.

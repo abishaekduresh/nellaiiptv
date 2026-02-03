@@ -49,9 +49,9 @@ export default function ChannelsPage() {
   const fetchFilters = async () => {
     try {
       const [catRes, langRes, stateRes] = await Promise.all([
-        adminApi.get('/categories'),
-        adminApi.get('/languages'),
-        adminApi.get('/states'),
+        adminApi.get('/admin/categories', { params: { status: 'all' } }),
+        adminApi.get('/admin/languages', { params: { status: 'all' } }),
+        adminApi.get('/admin/states'),
       ]);
       setCategories(catRes.data.data);
       setLanguages(langRes.data.data);

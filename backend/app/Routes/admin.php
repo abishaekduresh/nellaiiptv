@@ -64,5 +64,10 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/dashboard/stats', [\App\Controllers\Admin\DashboardController::class, 'getStats']);
         $group->get('/dashboard/trending', [\App\Controllers\Admin\DashboardController::class, 'getTrendingStats']);
         
+        // Geo Data (for filters)
+        $group->get('/categories', [\App\Controllers\GeoController::class, 'getCategories']);
+        $group->get('/languages', [\App\Controllers\GeoController::class, 'getLanguages']);
+        $group->get('/states', [\App\Controllers\GeoController::class, 'getStates']);
+        
     })->add(new \App\Middleware\AdminAuthMiddleware());
 });

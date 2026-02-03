@@ -6,18 +6,26 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `frontend` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.42.1
-- **Key Features**: Tier-aware HLS Buffering, Dynamic Priority Sorting, Kiosk-style Open Access, Reseller Management.
+- **Version**: 1.43.0
+- **Key Features**: Tier-aware HLS Buffering, Proprietor Management, Indian Phone Validation, custom Stream Headers.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.31.1
-- **Key Features**: API Status Filtering, Priority Sorting (order_number), Health Check API, Auth Bypass Logic.
+- **Version**: 1.32.0
+- **Key Features**: Admin Geo filtering (status='all'), Proprietor schema, Health Check API, Auth Bypass Logic.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.8+24
+- **Version**: 1.8.9+25
 - **Key Features**: Broad Device Support, Premium Exit Dialog, Channel Report System.
+
+## Recent Updates (v1.8.9+25 App / v1.43.0 Frontend / v1.32.0 Backend)
+
+### Frontend & Backend
+- **Feature**: **Channel Proprietor Details** - Full lifecycle management for channel owner metadata.
+- **Feature**: **Proprietor Phone Validation** - Real-time Indian phone format verification.
+- **Fix**: **API Reliability** - Resolved critical filter and form option loading errors by standardizing Admin API parameters.
+- **Improvement**: Added support for custom `User-Agent` and `Referer` headers per stream.
 
 ## Recent Updates (v1.8.8+24 App / v1.42.1 Frontend / v1.31.1 Backend)
 

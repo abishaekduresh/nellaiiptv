@@ -2,6 +2,18 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.32.0] - Backend - 2026-02-03
+
+### Added
+- **Proprietor Metadata**: Expanded `Channel` model and schema to store channel owner contact details (Name, Phone, Email, Address).
+- **Stream Headers**: Added `user_agent` and `referer` fields to the `channels` table for specialized stream access control.
+- **Admin Districts API**: Registered new route `GET /admin/districts` to facilitate district selection in administrative forms.
+- **Migration**: Created `add_proprietor_details_to_channels.sql` for seamless database schema updates.
+
+### Improved
+- **Admin Geo API**: Updated `getCategories` and `getLanguages` in `GeoService` to support `status='all'`, allowing admins to manage inactive items.
+- **Validation Support**: Handled extended channel properties in fillable model attributes for secure mass assignment.
+
 ## [1.31.1] - Backend - 2026-01-31
 - **Maintenance**: Version synchronized with latest App Release (v1.8.4+20).
 

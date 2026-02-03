@@ -1,3 +1,21 @@
+## [1.8.9+25] - App | [1.43.0] - Frontend | [1.32.0] - Backend - 2026-02-03
+
+### Frontend (Next.js)
+- **Feature**: **Channel Proprietor Details** - Added new section to Channel Form to maintain owner details (Name, Phone, Email, Address).
+- **Feature**: **Phone Validation** - Implemented robust Indian phone number validation with real-time visual feedback and error prevention.
+- **Fix**: **Filter Options** - Resolved "Failed to load filter options" error on admin channels list by ensuring all categories/languages are fetched.
+- **Fix**: **Form Options** - Resolved "Failed to load form options" on create/edit pages by standardizing on Admin API endpoints.
+- **Improvement**: **Stream Headers** - Added support for custom `User-Agent` and `Referer` per channel to bypass provider restrictions.
+
+### Backend (PHP)
+- **Feature**: **Proprietor Metadata** - Expanded Channels schema with fields for proprietor contact info and custom stream headers.
+- **Feature**: **Admin Geo API** - Enhanced Categories and Languages APIs to support `status='all'` for administrative filtering.
+- **Feature**: **Districts API** - Added dedicated admin route for district management.
+- **Database**: Added migration for proprietor details tracking (`add_proprietor_details_to_channels.sql`).
+
+### App (Flutter)
+- **Maintenance**: Version synchronized with latest Backend/Frontend updates.
+
 ## [1.8.8+24] - App | [1.42.1] - Frontend | [1.31.1] - Backend - 2026-02-03
 
 ### App (Flutter)

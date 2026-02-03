@@ -35,19 +35,24 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
     status: 'active',
     user_agent: '',
     referer: '',
+    proprietor_name: '',
+    proprietor_phone: '',
+    proprietor_email: '',
+    proprietor_address: '',
     ...initialData,
   });
 
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [phoneError, setPhoneError] = useState<string>('');
 
   useEffect(() => {
     const fetchFormData = async () => {
       try {
         const [statesRes, languagesRes, categoriesRes] = await Promise.all([
-          adminApi.get('/states'),
-          adminApi.get('/languages'),
-          adminApi.get('/categories')
+          adminApi.get('/admin/states'),
+          adminApi.get('/admin/languages', { params: { status: 'all' } }),
+          adminApi.get('/admin/categories', { params: { status: 'all' } })
         ]);
         
         setStates(statesRes.data.data);
@@ -65,7 +70,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
         // Fetch districts if state is already selected (editing mode)
         if (initialData?.state_id) {
             try {
-                const districtsRes = await adminApi.get(`/districts?state_id=${initialData.state_id}`);
+                const districtsRes = await adminApi.get(`/admin/districts?state_id=${initialData.state_id}`);
                 setDistricts(districtsRes.data.data);
             } catch (err) {
                 console.error('Failed to fetch initial districts', err);
@@ -86,7 +91,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
     
     if (stateId) {
       try {
-        const res = await adminApi.get(`/districts?state_id=${stateId}`);
+        const res = await adminApi.get(`/admin/districts?state_id=${stateId}`);
         setDistricts(res.data.data);
       } catch (error) {
         console.error('Failed to fetch districts', error);
@@ -97,8 +102,39 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
     }
   };
 
+  const validatePhoneNumber = (phone: string): boolean => {
+    if (!phone || phone.trim() === '') {
+      return true; // Empty is valid (optional field)
+    }
+    
+    // Remove spaces, hyphens, and parentheses
+    const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+    
+    // Indian phone number patterns:
+    // 1. 10 digits: 9876543210
+    // 2. With +91: +919876543210
+    // 3. With 91: 919876543210
+    // 4. With country code and space: +91 9876543210
+    
+    const patterns = [
+      /^[6-9]\d{9}$/,           // 10 digits starting with 6-9
+      /^\+91[6-9]\d{9}$/,       // +91 followed by 10 digits
+      /^91[6-9]\d{9}$/,         // 91 followed by 10 digits
+      /^0[6-9]\d{9}$/,          // 0 followed by 10 digits (landline format)
+    ];
+    
+    return patterns.some(pattern => pattern.test(cleaned));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate phone number if provided
+    if (formData.proprietor_phone && !validatePhoneNumber(formData.proprietor_phone)) {
+      toast.error('Invalid phone number format. Please enter a valid Indian phone number (10 digits, optionally with +91 prefix)');
+      return;
+    }
+    
     setLoading(true);
     
     // Create FormData for upload
@@ -311,6 +347,82 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
                 onChange={(e) => setFormData({ ...formData, referer: e.target.value })}
                 className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
                 placeholder="Custom Referer"
+            />
+        </div>
+
+        {/* Proprietor Details Section */}
+        <div className="md:col-span-2">
+          <h3 className="text-xl font-semibold text-white mb-4 mt-4 pb-2 border-b border-gray-800">Channel Proprietor Details</h3>
+        </div>
+
+        <div>
+            <label className="block text-text-secondary mb-2">Proprietor Name</label>
+            <input
+                type="text"
+                value={formData.proprietor_name || ''}
+                onChange={(e) => setFormData({ ...formData, proprietor_name: e.target.value })}
+                className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+                placeholder="Owner/Proprietor Name"
+            />
+        </div>
+
+        <div>
+            <label className="block text-text-secondary mb-2">Proprietor Phone</label>
+            <input
+                type="tel"
+                value={formData.proprietor_phone || ''}
+                onChange={(e) => {
+                  setFormData({ ...formData, proprietor_phone: e.target.value });
+                  // Clear error when user starts typing
+                  if (phoneError) setPhoneError('');
+                }}
+                onBlur={(e) => {
+                  const phone = e.target.value;
+                  if (phone && !validatePhoneNumber(phone)) {
+                    setPhoneError('Invalid phone number format');
+                  } else {
+                    setPhoneError('');
+                  }
+                }}
+                className={`w-full bg-background border ${
+                  phoneError 
+                    ? 'border-red-500' 
+                    : formData.proprietor_phone && validatePhoneNumber(formData.proprietor_phone)
+                    ? 'border-green-500'
+                    : 'border-gray-800'
+                } text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary`}
+                placeholder="+91 9876543210"
+            />
+            {phoneError && (
+              <p className="text-red-400 text-sm mt-1">{phoneError}</p>
+            )}
+            {!phoneError && formData.proprietor_phone && validatePhoneNumber(formData.proprietor_phone) && (
+              <p className="text-green-400 text-sm mt-1">✓ Valid phone number</p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Formats: 9876543210, +91 9876543210, or 91 9876543210
+            </p>
+        </div>
+
+        <div>
+            <label className="block text-text-secondary mb-2">Proprietor Email</label>
+            <input
+                type="email"
+                value={formData.proprietor_email || ''}
+                onChange={(e) => setFormData({ ...formData, proprietor_email: e.target.value })}
+                className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+                placeholder="owner@example.com"
+            />
+        </div>
+
+        <div>
+            <label className="block text-text-secondary mb-2">Proprietor Address</label>
+            <textarea
+                value={formData.proprietor_address || ''}
+                onChange={(e) => setFormData({ ...formData, proprietor_address: e.target.value })}
+                className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+                placeholder="Full address of the channel owner"
+                rows={3}
             />
         </div>
 
