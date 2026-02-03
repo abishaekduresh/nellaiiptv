@@ -1,3 +1,9 @@
+## [1.8.8+24] - 2026-02-03
+
+### Fixed
+- **Device Compatibility**: Resolved "Unsupported Device" warnings on Play Store by explicitly marking hardware features (Mic, Bluetooth, Telephony) as optional.
+- **Legacy Support**: Restored support for Android 5.0+ devices by pinning `minSdkVersion` to 21.
+
 ## [1.8.7+23] - 2026-02-03
 
 ### Added

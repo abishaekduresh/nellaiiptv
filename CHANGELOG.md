@@ -1,3 +1,12 @@
+## [1.8.8+24] - App | [1.42.1] - Frontend | [1.31.1] - Backend - 2026-02-03
+
+### App (Flutter)
+- **Fix**: **Device Compatibility** - Restored support for ~2,300 devices by optimizing `AndroidManifest.xml` hardware requirements (Telephony, Mic, Bluetooth are now optional).
+- **Fix**: **Legacy Support** - Explicitly set `minSdkVersion` to 21 to ensure compatibility with older Android TV boxes.
+
+### Frontend (Next.js) & Backend (PHP)
+- **Maintenance**: Version synchronized with latest App Release (v1.8.8+24).
+
 ## [1.8.7+23] - App | [1.42.1] - Frontend | [1.31.1] - Backend - 2026-02-03
 
 ### App (Flutter)
