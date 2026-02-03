@@ -1,3 +1,14 @@
+## [1.8.7+23] - App | [1.42.1] - Frontend | [1.31.1] - Backend - 2026-02-03
+
+### App (Flutter)
+- **Feature**: **TV UX** - Redesigned "Confirm Exit" dialog with premium dark theme, gradient background, and focus-aware buttons.
+- **Fix**: **TV Navigation** - Overhauled D-Pad navigation logic in Classic Mode to fix "stuck" focus and ensure natural 2D interactions.
+- **Fix**: **Focus Handling** - Resolved focus trap between Channel Grid and Player; Left arrow now correctly transitions focus.
+- **Fix**: **Build Stability** - Resolved critical syntax errors in `classic_screen.dart`.
+
+### Frontend (Next.js) & Backend (PHP)
+- **Maintenance**: Version synchronized with latest App Release (v1.8.7+23).
+
 ## [1.8.6+22] - App | [1.42.1] - Frontend | [1.31.1] - Backend - 2026-02-01
 
 ### App (Flutter)

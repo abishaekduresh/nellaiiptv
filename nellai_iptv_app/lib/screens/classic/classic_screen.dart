@@ -56,6 +56,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
   String _numberBuffer = "";
   Timer? _numberTimer;
   final FocusNode _rootFocusNode = FocusNode();
+  final FocusNode _playerFocusNode = FocusNode(); // Dedicated focus node for player area
 
   @override
   void initState() {
@@ -128,7 +129,9 @@ class _ClassicScreenState extends State<ClassicScreen> {
     _numberTimer?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
+
     _rootFocusNode.dispose();
+    _playerFocusNode.dispose();
     AudioManager().restoreOriginalVolume(); // Restore volume when leaving the screen
     super.dispose();
   }
@@ -335,11 +338,17 @@ class _ClassicScreenState extends State<ClassicScreen> {
                           _selectedChannel != null 
                           ? Focus(
                               // Wrapper focus to capture D-Pad when player is embedded but focused
+                              focusNode: _playerFocusNode,
                               onKeyEvent: (node, event) {
                                 if (event is KeyDownEvent) {
                                    if (!_isFullScreen && (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.numpadEnter)) {
                                       // OK/Select on Embedded Player -> Go Fullscreen
                                       setState(() => _isFullScreen = true);
+                                      return KeyEventResult.handled;
+                                   }
+                                   // Allow navigating back to channel list
+                                   if (!_isFullScreen && event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                                      FocusScope.of(context).focusInDirection(TraversalDirection.right);
                                       return KeyEventResult.handled;
                                    }
                                 }
@@ -564,9 +573,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
           if (!_isFullScreen)
           Expanded(
             flex: 5,
-            child: FocusTraversalGroup( // Group for Grid Area
-              policy: OrderedTraversalPolicy(),
-              child: Column(
+            child: Column( // Removed FocusTraversalGroup to allow manual D-Pad control
               children: [
                    Consumer<ChannelProvider>(
                      builder: (context, provider, _) { 
@@ -898,6 +905,11 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                  channel: channels[index],
                                  isSelected: _selectedChannel?.uuid == channels[index].uuid,
                                  onTap: () => setState(() => _selectedChannel = channels[index]),
+                                 index: index,
+                                 totalColumns: 3,
+                                 onFocusLeft: () {
+                                   _playerFocusNode.requestFocus();
+                                 },
                                );
                             },
                           );
@@ -907,7 +919,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                  ],
                ),
              ),
-             ),
+
            ],
          ),
        );
@@ -931,28 +943,143 @@ class _ClassicScreenState extends State<ClassicScreen> {
   Future<bool> _showExitConfirmation() async {
     return await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.black.withOpacity(0.9),
-        title: Text(
-          "Exit ${dotenv.env['APP_TITLE'] ?? "App"}?", 
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          "Are you sure you want to exit the app?",
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancel", style: TextStyle(color: Color(0xFFFCD34D))),
+      barrierColor: Colors.black.withOpacity(0.8), // Darker overlay
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent, // Use Container decoration
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Container(
+          width: 400, // Fixed width for TV
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF1E293B), Color(0xFF0F172A)], // Slate 800 -> Slate 900
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white10, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 20,
+                spreadRadius: 2,
+              )
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("Exit", style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.power_settings_new, color: Colors.redAccent, size: 32),
+              ),
+              const SizedBox(height: 16),
+              
+              // Title
+              Text(
+                "Exit ${dotenv.env['APP_TITLE'] ?? "Nellai IPTV"}?", 
+                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              
+              // Message
+              const Text(
+                "Are you sure you want to exit the application?",
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+
+              // Buttons Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Cancel Button
+                  _buildDialogButton(
+                    label: "Cancel",
+                    icon: Icons.close,
+                    color: Colors.white10,
+                    textColor: Colors.white,
+                    autofocus: true, // Default focus on Cancel
+                    onTap: () => Navigator.of(context).pop(false),
+                  ),
+                  const SizedBox(width: 16),
+
+                  // Exit Button
+                  _buildDialogButton(
+                    label: "Exit",
+                    icon: Icons.check,
+                    color: Colors.redAccent,
+                    textColor: Colors.white,
+                    autofocus: false,
+                    onTap: () => Navigator.of(context).pop(true),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     ) ?? false;
+  }
+
+  Widget _buildDialogButton({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required Color textColor,
+    required VoidCallback onTap,
+    bool autofocus = false,
+  }) {
+    return Builder(
+      builder: (context) {
+        final FocusNode focusNode = FocusNode();
+        return InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          autofocus: autofocus,
+          focusNode: focusNode,
+          child: AnimatedBuilder(
+            animation: focusNode,
+            builder: (context, child) {
+              final isFocused = focusNode.hasFocus;
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isFocused ? Colors.white : color,
+                  borderRadius: BorderRadius.circular(8),
+                  border: isFocused 
+                      ? Border.all(color: textColor, width: 2) 
+                      : Border.all(color: Colors.transparent, width: 2),
+                  boxShadow: isFocused ? [
+                    BoxShadow(color: textColor.withOpacity(0.4), blurRadius: 8)
+                  ] : [],
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, size: 18, color: isFocused ? Colors.black : textColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: isFocused ? Colors.black : textColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      }
+    );
   }
 
   Map<String, List<Channel>> _getGroupedChannels(ChannelProvider provider) {
@@ -1063,12 +1190,18 @@ class FocusableChannelCard extends StatefulWidget {
   final Channel channel;
   final bool isSelected;
   final VoidCallback onTap;
+  final int index; // For grid navigation
+  final int totalColumns; 
+  final VoidCallback? onFocusLeft;
 
   const FocusableChannelCard({
     super.key,
     required this.channel,
     required this.isSelected,
     required this.onTap,
+    this.index = 0,
+    this.totalColumns = 3,
+    this.onFocusLeft,
   });
 
   @override
@@ -1098,10 +1231,36 @@ class _FocusableChannelCardState extends State<FocusableChannelCard> {
       focusNode: _internalFocusNode,
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent) {
-          final isSelect = event.logicalKey == LogicalKeyboardKey.select || 
-                           event.logicalKey == LogicalKeyboardKey.enter ||
-                           event.logicalKey == LogicalKeyboardKey.numpadEnter ||
-						   event.logicalKey == LogicalKeyboardKey.gameButtonA;
+          final logicalKey = event.logicalKey;
+
+          // D-Pad Navigation logic
+          if (logicalKey == LogicalKeyboardKey.arrowUp) {
+             FocusScope.of(context).focusInDirection(TraversalDirection.up);
+             return KeyEventResult.handled;
+          } else if (logicalKey == LogicalKeyboardKey.arrowDown) {
+             FocusScope.of(context).focusInDirection(TraversalDirection.down);
+             return KeyEventResult.handled;
+          } else if (logicalKey == LogicalKeyboardKey.arrowRight) {
+             FocusScope.of(context).focusInDirection(TraversalDirection.right);
+             return KeyEventResult.handled;
+          } else if (logicalKey == LogicalKeyboardKey.arrowLeft) {
+             // Check if valid to move left in grid
+             if (widget.index % widget.totalColumns == 0) {
+                // First column -> Move to Sidebar/Player
+                if (widget.onFocusLeft != null) {
+                   widget.onFocusLeft!();
+                   return KeyEventResult.handled;
+                }
+             } else {
+                FocusScope.of(context).focusInDirection(TraversalDirection.left);
+                return KeyEventResult.handled;
+             }
+          }
+
+          final isSelect = logicalKey == LogicalKeyboardKey.select || 
+                           logicalKey == LogicalKeyboardKey.enter ||
+                           logicalKey == LogicalKeyboardKey.numpadEnter ||
+						   logicalKey == LogicalKeyboardKey.gameButtonA;
 
           if (isSelect) {
             widget.onTap(); 

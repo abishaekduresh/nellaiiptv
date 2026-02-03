@@ -1,3 +1,13 @@
+## [1.8.7+23] - 2026-02-03
+
+### Added
+- **TV UX**: Redesigned "Confirm Exit" dialog with premium dark theme and D-Pad optimized buttons.
+
+### Fixed
+- **TV Navigation**: Resolved D-Pad navigation issues in Classic Mode; Arrow keys now work naturally in the channel grid.
+- **Focus Trap**: Fixed issue where focus got stuck in the channel list; Left arrow on the first column now correctly moves focus to the Player.
+- **Syntax Error**: Fixed a critical syntax error in `classic_screen.dart` causing build failures.
+
 ## [1.8.6+22] - 2026-02-01
 
 ### Fixed
