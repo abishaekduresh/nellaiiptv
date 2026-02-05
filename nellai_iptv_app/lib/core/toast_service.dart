@@ -10,6 +10,14 @@ class ToastService {
 
   final GlobalKey<ScaffoldMessengerState> snackbarKey = GlobalKey<ScaffoldMessengerState>();
 
+  void showSuccess(String message) {
+    show(message, type: ToastType.success);
+  }
+
+  void showError(String message) {
+    show(message, type: ToastType.error);
+  }
+
   void show(String message, {ToastType type = ToastType.info}) {
     debugPrint("[TOAST]: $message"); 
     

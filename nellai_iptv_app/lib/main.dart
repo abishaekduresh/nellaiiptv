@@ -25,10 +25,11 @@ Future<void> main() async {
   WakelockPlus.enable();
 
   // Enforce Landscape
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
+  // Permissions for orientation will be handled per screen
+  // SystemChrome.setPreferredOrientations([
+  //   DeviceOrientation.landscapeLeft,
+  //   DeviceOrientation.landscapeRight,
+  // ]);
   // Hide system/nav bar
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 

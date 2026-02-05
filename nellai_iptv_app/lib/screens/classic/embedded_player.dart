@@ -42,10 +42,10 @@ class EmbeddedPlayer extends StatefulWidget {
   });
 
   @override
-  State<EmbeddedPlayer> createState() => _EmbeddedPlayerState();
+  State<EmbeddedPlayer> createState() => EmbeddedPlayerState();
 }
 
-class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObserver {
+class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObserver {
   final ApiService _api = ApiService();
   
   // MediaKit Controllers
@@ -93,11 +93,15 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
   late final FocusNode _pipFocusNode;
   late final FocusNode _muteFocusNode;
   late final FocusNode _reportFocusNode;
+  
+  bool _isDisposed = false;
+  bool _forceStopped = false; // Kill switch flag
 
   @override
   void initState() {
     super.initState();
     _currentLoadId++;
+    _isDisposed = false;
     
     // Init Focus Nodes
     _focusNode = FocusNode();
@@ -481,10 +485,54 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     });
   }
 
+  /// Explicitly stop and release all player resources.
+  /// Used during logout or navigation to ensure no background audio/video.
+  Future<void> finalStop() async {
+    if (_isDisposed) return;
+    try {
+      debugPrint("🛑 EmbeddedPlayer: Final stop requested...");
+      // 1. Force Mute first (Fastest way to stop audio)
+      _tvPlayer.player.setVolume(0);
+      // 2. Pause
+      await _tvPlayer.player.pause();
+      // 3. Stop
+      await _tvPlayer.stop(); // Mutes, clears playlist, stops
+      // 4. Dispose
+      await _tvPlayer.dispose();
+      
+      if (mounted) {
+         setState(() {
+            _forceStopped = true;
+         });
+      }
+
+      // Give native side a moment to breathe before moving on
+      await Future.delayed(const Duration(milliseconds: 300));
+      
+      _isDisposed = true;
+      debugPrint("✅ EmbeddedPlayer: Player killed and disposed.");
+    } catch (e) {
+      debugPrint("⚠️ EmbeddedPlayer: Error during finalStop: $e");
+    }
+  }
+
+  void stopPlayer() {
+    // Public method to stop the player from parent widget
+    if (!_isDisposed) {
+       _tvPlayer.stop();
+    }
+  }
+
   @override
   void dispose() {
+    if (_isDisposed) {
+       super.dispose();
+       return;
+    }
+    _isDisposed = true;
+    
     WidgetsBinding.instance.removeObserver(this);
-    AudioManager().reapplyAppVolume(); // Ensure current app volume is applied
+    // Removed: AudioManager().reapplyAppVolume() - Let parent restore volume on its own terms
 
     _viewCountTimer?.cancel();
     _retryTimer?.cancel();
@@ -495,6 +543,9 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
     _playerErrorSub?.cancel();
     _playerLogSub?.cancel();
 
+    // 🛑 Stop playback immediately when navigating away from Classic Screen
+    _tvPlayer.stop(); // Safe because it's try-catched
+    
     // 🛑 Synchronous disposal is safer for hot restarts to prevent post-environment-wipe callbacks
     _tvPlayer.dispose();
 
@@ -578,7 +629,7 @@ class _EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObse
                   // 1. Video Surface
                   Container(
                     color: Colors.transparent, 
-                    child: _isPremiumContent 
+                    child: (_isPremiumContent || _forceStopped) 
                       ? const SizedBox() 
                       : SizedBox.expand(
                           child: Video(

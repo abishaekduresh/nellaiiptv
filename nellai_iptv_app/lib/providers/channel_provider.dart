@@ -147,4 +147,84 @@ class ChannelProvider with ChangeNotifier {
     _searchQuery = query;
     notifyListeners();
   }
+  Future<void> rateChannel(String channelUuid, int rating) async {
+    // 1. Optimistic Update Calculation
+    final index = _channels.indexWhere((c) => c.uuid == channelUuid);
+    Channel? originalChannel;
+    
+    if (index != -1) {
+      originalChannel = _channels[index];
+      
+      // 1. Optimistic Update Removed per request
+      // We will only update after API success for accurate data.
+      originalChannel = _channels[index];
+    }
+
+    try {
+      // 2. Perform API Call
+      final responseData = await _apiService.rateChannel(channelUuid, rating);
+      
+      if (responseData != null && responseData['data'] != null) {
+         final data = responseData['data'];
+         print("DEBUG: Full Response Data Keys: ${data.keys.toList()}");
+         print("DEBUG: Full Response Data: $data");
+         // Assuming API returns key fields 'average_rating' and 'ratings_count'
+         // Adjust keys if your API uses different naming (e.g. camelCase vs snake_case)
+         print("DEBUG: Rate Response Data: $data");
+         
+         double? serverAvg = data['average_rating'] is num 
+            ? (data['average_rating'] as num).toDouble() 
+            : (data['average_rating'] is String ? double.tryParse(data['average_rating']) : null);
+
+         
+         // Fallback for average rating key
+         if (serverAvg == null && data['rating'] != null) {
+            serverAvg = data['rating'] is num 
+               ? (data['rating'] as num).toDouble() 
+               : (data['rating'] is String ? double.tryParse(data['rating']) : null);
+         }
+
+         int? serverCount = data['total_ratings'] is num 
+            ? (data['total_ratings'] as num).toInt() 
+            : (data['total_ratings'] is String ? int.tryParse(data['total_ratings']) : null);
+
+         if (serverCount == null && data['ratings_count'] != null) {
+            serverCount = data['ratings_count'] is num 
+               ? (data['ratings_count'] as num).toInt() 
+               : (data['ratings_count'] is String ? int.tryParse(data['ratings_count']) : null);
+         }
+            
+         // Fallback for ratings count key
+         if (serverCount == null && data['rating_count'] != null) {
+            serverCount = data['rating_count'] is num 
+               ? (data['rating_count'] as num).toInt() 
+               : (data['rating_count'] is String ? int.tryParse(data['rating_count']) : null);
+         }
+
+         print("DEBUG: Parsed ServerAvg: $serverAvg, ServerCount: $serverCount");
+
+         // Sanity Check: If server returns 0.0 (which is impossible after a rating), 
+         // ignore it and keep the Optimistic value.
+         if (serverAvg != null && serverAvg > 0 && serverCount != null) {
+            final verifiedChannel = originalChannel!.copyWith(
+               averageRating: serverAvg,
+               ratingsCount: serverCount,
+               userRating: rating, // Persist user's personal rating
+            );
+            _channels[index] = verifiedChannel;
+            notifyListeners();
+         } else {
+            print("DEBUG: Server returned 0 or null, keeping Optimistic Update");
+         }
+      }
+    } catch (e) {
+      debugPrint("Provider: Rate Channel Error: $e");
+      // Revert if API fails
+      if (index != -1 && originalChannel != null) {
+        _channels[index] = originalChannel;
+        notifyListeners();
+      }
+      rethrow;
+    }
+  }
 }

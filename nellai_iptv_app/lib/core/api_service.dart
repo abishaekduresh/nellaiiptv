@@ -7,6 +7,15 @@ import '../models/ad.dart';
 import '../models/category.dart';
 import '../models/language.dart';
 import '../models/public_settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AuthException implements Exception {
+  final String message;
+  final Map<String, dynamic>? errors;
+  AuthException(this.message, [this.errors]);
+  @override
+  String toString() => message;
+}
 
 class ApiService {
   late Dio _dio;
@@ -46,6 +55,17 @@ class ApiService {
         options.headers['X-Client-Platform'] = await _getPlatform();
         options.headers['X-Device-Id'] = await _getDeviceId();
         
+        // Attach auth token if available (for authenticated endpoints)
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final token = prefs.getString('auth_token');
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+        } catch (e) {
+          debugPrint('Error loading auth token: $e');
+        }
+        
         debugPrint('--- API Request ---');
         debugPrint('Method: ${options.method}');
         debugPrint('URL: ${options.baseUrl}${options.path}');
@@ -65,13 +85,25 @@ class ApiService {
         debugPrint('--------------------');
         return handler.next(response);
       },
-      onError: (DioException e, handler) {
+      onError: (DioException e, handler) async {
         debugPrint('--- API Error ---');
         debugPrint('Message: ${e.message}');
         debugPrint('URL: ${e.requestOptions.baseUrl}${e.requestOptions.path}');
         if (e.response != null) {
            debugPrint('Status: ${e.response?.statusCode}');
            debugPrint('Data: ${e.response?.data}');
+           
+           // Handle 401 Unauthorized - Session expired or device removed
+           if (e.response?.statusCode == 401) {
+              debugPrint('401 Unauthorized - Clearing session');
+              try {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('auth_token');
+                debugPrint('Auth token cleared due to 401');
+              } catch (error) {
+                debugPrint('Error clearing token: $error');
+              }
+           }
         }
         debugPrint('-----------------');
         return handler.next(e);
@@ -131,6 +163,7 @@ class ApiService {
     }
   }
 
+
   Future<void> incrementView(String uuid) async {
     try {
       await _dio.post('/channels/$uuid/view');
@@ -139,7 +172,120 @@ class ApiService {
     }
   }
 
+  // --- AUTHENTICATION ---
+  
+  Future<Map<String, dynamic>> login(String phone, String password) async {
+    try {
+      final response = await _dio.post('/customers/login', data: {
+        'phone': phone,
+        'password': password,
+      });
 
+      if (response.statusCode == 200 && response.data['status'] == true) {
+         return response.data['data']; // Returns { token: "...", user: { ... } }
+      } else {
+         throw AuthException(
+           response.data['message'] ?? 'Login failed',
+           response.data['errors']
+         );
+      }
+    } on DioException catch (e) {
+       if (e.response != null && e.response?.data != null) {
+          throw AuthException(
+            e.response?.data['message'] ?? 'Login failed',
+            e.response?.data['errors']
+          );
+       }
+       rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> register(String name, String phone, String email, String password) async {
+    try {
+      final response = await _dio.post('/customers/register', data: {
+        'name': name,
+        'phone': phone,
+        'email': email,
+        'password': password,
+      });
+
+      if (response.statusCode == 201 && response.data['status'] == true) {
+         return response.data['data']; // Returns { uuid: "..." }
+      } else {
+         throw Exception(response.data['message'] ?? 'Registration failed');
+      }
+    } on DioException catch (e) {
+       if (e.response != null && e.response?.data != null) {
+          throw Exception(e.response?.data['message'] ?? 'Registration failed');
+       }
+       rethrow;
+    }
+  }
+
+  Future<List<dynamic>> getSessions(String token) async {
+    try {
+       final response = await _dio.get('/customers/sessions', 
+         options: Options(headers: {
+           'Authorization': 'Bearer $token',
+         })
+       );
+       
+       if (response.statusCode == 200 && response.data['status'] == true) {
+         return response.data['data'] ?? [];
+       }
+       return [];
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+          throw Exception(e.response?.data['message'] ?? 'Failed to fetch sessions');
+       }
+       rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteSession(int id, String token) async {
+    try {
+       // Enable auto_login=true to get new token if limit allows
+       final response = await _dio.delete('/customers/sessions/$id?auto_login=true', 
+         options: Options(headers: {
+           'Authorization': 'Bearer $token',
+         })
+       );
+       
+       if (response.statusCode == 200 && response.data['status'] == true) {
+         return {
+           'success': true,
+           'data': response.data['data']
+         };
+       }
+       throw Exception(response.data['message'] ?? 'Failed to remove device');
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+          throw Exception(e.response?.data['message'] ?? 'Failed to remove device');
+       }
+       rethrow;
+    }
+  }
+
+  Future<bool> validateSession(String token) async {
+    try {
+       // Using getSessions as a lightweight validation check since we know it exists and requires auth
+       final response = await _dio.get('/customers/sessions', 
+         queryParameters: {'limit': 1},
+         options: Options(headers: {
+           'Authorization': 'Bearer $token',
+         })
+       );
+       
+       if (response.statusCode == 200 && response.data['status'] == true) {
+         return true;
+       }
+       return false;
+    } catch (e) {
+       return false;
+    }
+  }
+
+  // --- END AUTHENTICATION ---
 
   Future<Channel> getChannelDetails(String uuid) async {
       final response = await _dio.get('/channels/$uuid');
@@ -255,6 +401,21 @@ class ApiService {
     } catch (e) {
       debugPrint('Health check failed: $e');
       return false;
+    }
+  }
+  Future<Map<String, dynamic>?> rateChannel(String channelUuid, int rating) async {
+    try {
+      final response = await _dio.post('/channels/$channelUuid/rate',
+        data: {'rating': rating},
+        options: Options(headers: {
+          'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+          'Accept': 'application/json',
+        })
+      );
+      return response.data;
+    } catch (e) {
+      debugPrint('Error rating channel: $e');
+      rethrow;
     }
   }
 }

@@ -1,3 +1,16 @@
+## [1.8.9+25] - 2026-02-06
+
+### Added
+- **Focus Control**: Implemented persistent persistent `FocusNode` management in `ClassicScreen` headers (Search, Refresh, Group, Auth) to prevent focus loss during rebuilds.
+- **TV Navigation**: Replaced `GestureDetector` with focusable `TextButton` and `InkWell` in Login/Register screens for full D-pad support.
+
+### Changed
+- **Rating Logic**: Removed client-side optimistic calculation; now relies entirely on server-provided `average_rating` and `ratings_count`.
+- **UI Theme**: Unified "Rate Channel" and "Logout" dialogs with consistent dark theme, rounded corners, and Slate-900 background (`0xFF1E293B`).
+
+### Fixed
+- **API Integration**: Updated `ChannelProvider` to correctly parse `total_ratings` and `average_rating` from backend responses.
+
 ## [1.8.8+24] - 2026-02-03
 
 ### Fixed

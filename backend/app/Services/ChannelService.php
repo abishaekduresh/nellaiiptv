@@ -119,7 +119,8 @@ class ChannelService
             ->with(['language', 'state', 'district', 'category'])
             // Don't alias as viewers_count to avoid overwriting the manual column
             ->withSum('views as calculated_views_count', 'count')
-            ->withAvg('ratings', 'rating');
+            ->withAvg('ratings as average_rating', 'rating')
+            ->withCount('ratings');
 
         // Eager Load User Rating if Customer ID provided
         if (isset($filters['customer_id'])) {
@@ -227,7 +228,8 @@ class ChannelService
             ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
             ->with(['state', 'district', 'language'])
             ->withSum('views as calculated_views_count', 'count')
-            ->withAvg('ratings', 'rating')
+            ->withAvg('ratings as average_rating', 'rating')
+            ->withCount('ratings')
             ->limit($limit)
             ->get()
             ->toArray();
@@ -336,7 +338,8 @@ class ChannelService
             ->where('status', 'active')
             ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
             ->withSum('views as calculated_views_count', 'count')
-            ->withAvg('ratings', 'rating')
+            ->withAvg('ratings as average_rating', 'rating')
+            ->withCount('ratings')
             ->limit(10)
             ->get()
             ->toArray();
@@ -354,7 +357,8 @@ class ChannelService
             ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
             ->orderBy('created_at', 'desc')
             ->withSum('views as calculated_views_count', 'count')
-            ->withAvg('ratings', 'rating')
+            ->withAvg('ratings as average_rating', 'rating')
+            ->withCount('ratings')
             ->limit(10)
             ->get()
             ->toArray();

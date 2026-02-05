@@ -34,6 +34,13 @@ class AuthController
             return ResponseFormatter::error($response, 'Validation failed', 400, $errors);
         }
 
+        // Additional validation: Only allow Gmail addresses
+        if (!empty($data['email']) && !preg_match('/@gmail\.com$/i', $data['email'])) {
+            return ResponseFormatter::error($response, 'Only Gmail addresses are allowed', 400, [
+                'email' => ['Only Gmail addresses (@gmail.com) are allowed']
+            ]);
+        }
+
         try {
             $result = $this->authService->register($data);
             return ResponseFormatter::success($response, $result, 'Registration successful. Please login.', 201);

@@ -16,6 +16,10 @@ import '../../models/public_settings.dart';
 import 'embedded_player.dart';
 import 'stb_navigation_overlay.dart';
 import '../../core/audio_manager.dart';
+import '../../core/tv_player_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
+import '../auth/login_screen.dart'; // Import LoginScreen
+import '../../core/toast_service.dart'; // Import ToastService
 
 class ClassicScreen extends StatefulWidget {
   const ClassicScreen({super.key});
@@ -33,6 +37,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
   bool _isLoadingAds = true;
   int _currentAdIndex = 0;
   Timer? _adTimer;
+  Timer? _sessionValidationTimer; // Periodic session validation
   
   // Group By State
   String _groupBy = 'Categories'; // 'Categories' or 'Languages' or 'All'
@@ -51,16 +56,31 @@ class _ClassicScreenState extends State<ClassicScreen> {
   
   // Settings
   PublicSettings? _settings;
+  bool _isLoggedIn = false; // Auth State
 
   // Number Navigation State
   String _numberBuffer = "";
   Timer? _numberTimer;
   final FocusNode _rootFocusNode = FocusNode();
   final FocusNode _playerFocusNode = FocusNode(); // Dedicated focus node for player area
+  
+  // Player Control - GlobalKey to access player state directly
+  final GlobalKey<EmbeddedPlayerState> _playerKey = GlobalKey<EmbeddedPlayerState>();
+
+  // Header Focus Nodes
+  late FocusNode _searchBtnFocusNode;
+  late FocusNode _refreshBtnFocusNode;
+  late FocusNode _groupBtnFocusNode;
+  late FocusNode _authBtnFocusNode;
 
   @override
   void initState() {
     super.initState();
+    _searchBtnFocusNode = FocusNode();
+    _refreshBtnFocusNode = FocusNode();
+    _groupBtnFocusNode = FocusNode();
+    _authBtnFocusNode = FocusNode();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -75,6 +95,12 @@ class _ClassicScreenState extends State<ClassicScreen> {
           });
        }
     });
+
+    // Check Auth Status
+    _checkAuthStatus();
+    
+    // Start periodic session validation (every 30 seconds)
+    _startSessionValidation();
 
     await context.read<ChannelProvider>().fetchChannels();
     final channels = context.read<ChannelProvider>().channels;
@@ -127,14 +153,27 @@ class _ClassicScreenState extends State<ClassicScreen> {
   void dispose() {
     _adTimer?.cancel();
     _numberTimer?.cancel();
+    _sessionValidationTimer?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
 
     _rootFocusNode.dispose();
     _playerFocusNode.dispose();
-    AudioManager().restoreOriginalVolume(); // Restore volume when leaving the screen
+    
+    // Header Nodes
+    _searchBtnFocusNode.dispose();
+    _refreshBtnFocusNode.dispose();
+    _groupBtnFocusNode.dispose();
+    _authBtnFocusNode.dispose();
+    
+    // Only restore volume if NOT logging out (to prevent sudden blast if player didn't die fast enough)
+    if (!_isLoggingOut) {
+       AudioManager().restoreOriginalVolume(); 
+    }
     super.dispose();
   }
+
+  bool _isLoggingOut = false;
 
   void _handleNumberInput(String digit) {
     _numberTimer?.cancel();
@@ -197,6 +236,178 @@ class _ClassicScreenState extends State<ClassicScreen> {
     setState(() {
       _selectedChannel = channels[newIndex];
     });
+  }
+
+  Future<void> _stopPlayerCompletely() async {
+    try {
+      debugPrint("🛑 GLOBAL PLAYER STOP INITIATED");
+
+      // Prevent dispose restoring volume
+      _isLoggingOut = true;
+
+      // Kill timers
+      _adTimer?.cancel();
+      _sessionValidationTimer?.cancel();
+      _numberTimer?.cancel();
+
+      // Immediately mute (fastest perceived stop)
+      await AudioManager().setVolume(0);
+
+      // Stop Embedded Player via GlobalKey
+      if (_playerKey.currentState != null) {
+        try {
+          await _playerKey.currentState!.finalStop();
+        } catch (e) {
+          debugPrint("Embedded stop failed: $e");
+        }
+      }
+
+      // Global controller kill (RTMP / ExoPlayer / VLC)
+      await TVPlayerController.forceStopAll();
+
+      // Small delay to allow native layers to release
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      debugPrint("✅ PLAYER FULLY STOPPED");
+    } catch (e) {
+      debugPrint("❌ Player stop error: $e");
+    }
+  }
+
+  Future<void> _checkAuthStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token != null) {
+       // Validate with server
+       final isValid = await _api.validateSession(token);
+       if (!isValid) {
+          await _navigateToLogin(message: "Session expired. Please login again.");
+       } else {
+          if (mounted) setState(() => _isLoggedIn = true);
+       }
+    } else {
+       if (mounted) setState(() => _isLoggedIn = false);
+    }
+  }
+
+  Future<void> _navigateToLogin({String? message}) async {
+    _isLoggingOut = true; // Prevent volume restore in dispose
+    ToastService().show("Logging out...", type: ToastType.info); // Debug feedback
+
+    // 1. Stop Player (Redundant Kill Switch)
+    try {
+      debugPrint("🛑 Navigation: Executing Nuclear Stop Sequence...");
+      
+      // A. Mute System/App Volume First (Fastest perception of stop)
+      await AudioManager().setVolume(0); 
+
+      // B. Try Key-Based Stop (Targeted)
+      if (_playerKey.currentState != null) {
+         try {
+           await _playerKey.currentState!.finalStop();
+         } catch (e) { print("Key-based stop failed: $e"); }
+      }
+
+      // C. Try Global Static Stop (Broad)
+      await TVPlayerController.forceStopAll();
+      
+    } catch (e) {
+      debugPrint('Error stopping player during navigation: $e');
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+
+    if (mounted) {
+      if (message != null) {
+        ToastService().show(message, type: ToastType.warning);
+      }
+      
+      setState(() {
+        _isLoggedIn = false;
+      });
+
+      // Set portrait orientation for login screen
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
+
+      // Navigate to login screen and wipe stack
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (Route<dynamic> route) => false, // Remove all previous routes
+      );
+    }
+  }
+
+  void _startSessionValidation() {
+    _sessionValidationTimer?.cancel();
+    _sessionValidationTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _checkAuthStatus();
+    });
+  }
+
+  Future<void> _handleLogin() async {
+    await _stopPlayerCompletely();
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+
+    // Restore landscape when returning
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+
+    _checkAuthStatus();
+  }
+
+  Future<void> _handleLogout() async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text("Confirm Logout", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text("Are you sure you want to log out of your account?", style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel", style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Logout", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    ) ?? false;
+
+    if (!confirm) return;
+
+    await _stopPlayerCompletely();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+
+    if (!mounted) return;
+
+    setState(() => _isLoggedIn = false);
+
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
   }
 
   @override
@@ -274,8 +485,17 @@ class _ClassicScreenState extends State<ClassicScreen> {
             );
           }
           
+          // Resolve the up-to-date channel object from the provider
+          // This ensures optimistic updates (like rating changes) are reflected instantly
+          final Channel? displayChannel = _selectedChannel == null 
+              ? null 
+              : provider.channels.firstWhere(
+                  (c) => c.uuid == _selectedChannel!.uuid, 
+                  orElse: () => _selectedChannel!
+                );
+
           return Focus(
-            autofocus: true,
+            autofocus: false,
             focusNode: _rootFocusNode,
             onKeyEvent: (node, event) {
               if (event is KeyDownEvent) {
@@ -357,7 +577,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                               child: EmbeddedPlayer(
                                 channelUuid: _selectedChannel!.uuid, 
                                 initialChannel: _selectedChannel,
-                                key: ValueKey(_selectedChannel!.uuid),
+                                key: _playerKey, // Use GlobalKey for direct player control
                                 isFullScreen: _isFullScreen,
                                 hideControls: _showChannelOverlay,
                                 onDoubleTap: () => setState(() => _isFullScreen = !_isFullScreen),
@@ -431,123 +651,118 @@ class _ClassicScreenState extends State<ClassicScreen> {
                 // Channel Info - Styled Banner
                 if (!_isFullScreen)
                   Container(
-                  height: 60,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                  color: const Color(0xFF0F172A), // Darker slate to match header
-                  child: _selectedChannel != null ? Row(
-                    children: [
-                      // Left Side: Name & Metadata
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Row 1: Badge + Name
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF06B6D4),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    "CH ${_selectedChannel!.channelNumber?.toString() ?? '-'}", 
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _selectedChannel!.name.toUpperCase(),
-                                    style: const TextStyle(
-                                      color: Colors.white, 
-                                      fontSize: 16, 
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5
+                    height: 60,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    color: const Color(0xFF0F172A),
+                    child: displayChannel != null ? Row(
+                      children: [
+                        // Left Side: Name & Metadata
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Row 1: Badge + Name
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF06B6D4),
+                                      borderRadius: BorderRadius.circular(4),
                                     ),
-                                    maxLines: 1, 
-                                    overflow: TextOverflow.ellipsis,
+                                    child: Text(
+                                      "CH ${displayChannel.channelNumber?.toString() ?? '-'}", 
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            // Row 2: Metadata (Language | Location)
-                            Row(
-                              children: [
-                                // Language
-                                Container(
-                                  width: 6, height: 6,
-                                  decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  _selectedChannel!.language?.name ?? 'Unknown',
-                                  style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500),
-                                ),
-                                
-                                // Location (Only show if available)
-                                if (_selectedChannel!.location.isNotEmpty) ...[
                                   const SizedBox(width: 8),
-                                  Container(width: 1, height: 10, color: Colors.white24),
-                                  const SizedBox(width: 8),
-                                  const Icon(Icons.location_on, size: 12, color: Colors.grey),
-                                  const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
-                                      _selectedChannel!.location, 
-                                      style: const TextStyle(color: Colors.grey, fontSize: 12),
-                                      maxLines: 1,
+                                      displayChannel.name.toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Colors.white, 
+                                        fontSize: 16, 
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5
+                                      ),
+                                      maxLines: 1, 
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
-                              ],
-                            ),
-                          ],
+                              ),
+                              const SizedBox(height: 4),
+                              // Row 2: Metadata (Language | Location)
+                              Row(
+                                children: [
+                                  // Language
+                                  Container(
+                                    width: 6, height: 6,
+                                    decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    displayChannel.language?.name ?? 'Unknown',
+                                    style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500),
+                                  ),
+                                  
+                                  // Location (Only show if available)
+                                  if (displayChannel.location.isNotEmpty) ...[
+                                    const SizedBox(width: 8),
+                                    Container(width: 1, height: 10, color: Colors.white24),
+                                    const SizedBox(width: 8),
+                                    const Icon(Icons.location_on, size: 12, color: Colors.grey),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        displayChannel.location, 
+                                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      
-                      const SizedBox(width: 4),
+                        
+                        const SizedBox(width: 4),
 
-                      // Right Side: Stats Box
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.black26,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.white10),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // View Count
-                            Icon(Icons.remove_red_eye, color: const Color(0xFF0EA5E9), size: 14),
-                            const SizedBox(width: 4),
-                            Text(
-                              _selectedChannel!.viewersCountFormatted ?? "0",
-                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
-                            
-                            // Separator
-                            const SizedBox(width: 12),
-                            Container(width: 1, height: 12, color: Colors.white24),
-                            const SizedBox(width: 12),
+                        // Right Side: Stats Box
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.black26,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.white10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // View Count
+                              Icon(Icons.remove_red_eye, color: const Color(0xFF0EA5E9), size: 14),
+                              const SizedBox(width: 4),
+                              Text(
+                                displayChannel.viewersCountFormatted ?? "0",
+                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                              
+                              // Separator
+                              const SizedBox(width: 12),
+                              Container(width: 1, height: 12, color: Colors.white24),
+                              const SizedBox(width: 12),
 
-                            // Rating
-                            Icon(Icons.star, color: const Color(0xFFFBBF24), size: 14),
-                            const SizedBox(width: 4),
-                            Text(
-                              _selectedChannel!.averageRating?.toStringAsFixed(1) ?? "0.0",
-                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                              // Rating
+                              _buildStarRating(displayChannel),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ) : const SizedBox(),
-                ),
+                      ],
+                    ) : const SizedBox(),
+                  ),
 
                 // Ad Banner - Shown only if ads exist
                 if (!_isFullScreen && _ads.isNotEmpty)
@@ -701,126 +916,165 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                      children: [
                                        // Search Trigger Button (Only show if not searching)
                                        if (!_isSearching) ...[
-                                          Builder(
-                                            builder: (context) {
-                                              final searchBtnFocus = FocusNode();
-                                              return InkWell(
-                                                focusNode: searchBtnFocus,
-                                                onTap: () {
-                                                  setState(() {
-                                                    _isSearching = true;
-                                                    // Global search: Reset other filters
-                                                    provider.selectCategory(null);
-                                                    provider.selectLanguage(null);
-                                                  });
-                                                  // Request focus after rebuild
-                                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                                    _searchFocusNode.requestFocus();
-                                                  });
+                                            InkWell(
+                                              focusNode: _searchBtnFocusNode,
+                                              onTap: () {
+                                                setState(() {
+                                                  _isSearching = true;
+                                                  // Global search: Reset other filters
+                                                  provider.selectCategory(null);
+                                                  provider.selectLanguage(null);
+                                                });
+                                                // Request focus after rebuild
+                                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                  _searchFocusNode.requestFocus();
+                                                });
+                                              },
+                                              borderRadius: BorderRadius.circular(4),
+                                              child: AnimatedBuilder(
+                                                animation: _searchBtnFocusNode,
+                                                builder: (context, _) {
+                                                  return Container(
+                                                    height: 30,
+                                                    width: 30,
+                                                    decoration: BoxDecoration(
+                                                      color: _searchBtnFocusNode.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
+                                                      border: Border.all(color: Colors.white24),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: Icon(
+                                                      Icons.search,
+                                                      size: 18,
+                                                      color: _searchBtnFocusNode.hasFocus ? Colors.white : Colors.white70,
+                                                    ),
+                                                  );
                                                 },
-                                                borderRadius: BorderRadius.circular(4),
-                                                child: AnimatedBuilder(
-                                                  animation: searchBtnFocus,
-                                                  builder: (context, _) {
-                                                    return Container(
-                                                      height: 30,
-                                                      width: 30,
-                                                      decoration: BoxDecoration(
-                                                        color: searchBtnFocus.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
-                                                        border: Border.all(color: Colors.white24),
-                                                        borderRadius: BorderRadius.circular(4),
-                                                      ),
-                                                      child: Icon(
-                                                        Icons.search,
-                                                        size: 18,
-                                                        color: searchBtnFocus.hasFocus ? Colors.white : Colors.white70,
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              );
-                                            }
-                                          ),
+                                              ),
+                                            ),
                                           const SizedBox(width: 8),
                                        ],
 
                                        // Refresh Button
-                                       Builder(
-                                         builder: (context) {
-                                           final refreshFocus = FocusNode();
-                                           return InkWell(
-                                             focusNode: refreshFocus,
-                                             onTap: () => provider.fetchChannels(),
-                                             borderRadius: BorderRadius.circular(4),
-                                             child: AnimatedBuilder(
-                                               animation: refreshFocus,
-                                               builder: (context, _) {
-                                                 return Container(
-                                                   height: 30,
-                                                   width: 30, // Square button
-                                                   decoration: BoxDecoration(
-                                                     color: refreshFocus.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
-                                                     border: Border.all(color: Colors.white24),
-                                                     borderRadius: BorderRadius.circular(4),
-                                                   ),
-                                                   child: Icon(
-                                                     Icons.refresh,
-                                                     size: 18,
-                                                     color: refreshFocus.hasFocus ? Colors.white : Colors.white70,
-                                                   ),
-                                                 );
-                                               },
-                                             ),
-                                           );
-                                         }
+                                       InkWell(
+                                         focusNode: _refreshBtnFocusNode,
+                                         onTap: () => provider.fetchChannels(),
+                                         borderRadius: BorderRadius.circular(4),
+                                         child: AnimatedBuilder(
+                                           animation: _refreshBtnFocusNode,
+                                           builder: (context, _) {
+                                             return Container(
+                                               height: 30,
+                                               width: 30, // Square button
+                                               decoration: BoxDecoration(
+                                                 color: _refreshBtnFocusNode.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
+                                                 border: Border.all(color: Colors.white24),
+                                                 borderRadius: BorderRadius.circular(4),
+                                               ),
+                                               child: Icon(
+                                                 Icons.refresh,
+                                                 size: 18,
+                                                 color: _refreshBtnFocusNode.hasFocus ? Colors.white : Colors.white70,
+                                               ),
+                                             );
+                                           },
+                                         ),
                                        ),
                                        const SizedBox(width: 8),
                                        // Toggle Button to switch Group Mode (Categories / Languages)
-                                       Builder(
-                                         builder: (context) {
-                                           final groupFocus = FocusNode();
-                                           return InkWell(
-                                              focusNode: groupFocus,
-                                              onTap: () {
-                                                 setState(() {
-                                                    _groupBy = _groupBy == 'Categories' ? 'Languages' : 'Categories';
-                                                    provider.selectCategory(null); // Reset filters
-                                                 });
-                                              },
+                                       InkWell(
+                                          focusNode: _groupBtnFocusNode,
+                                          onTap: () {
+                                             setState(() {
+                                                _groupBy = _groupBy == 'Categories' ? 'Languages' : 'Categories';
+                                                provider.selectCategory(null); // Reset filters
+                                             });
+                                          },
+                                          borderRadius: BorderRadius.circular(4),
+                                          child: AnimatedBuilder(
+                                            animation: _groupBtnFocusNode,
+                                            builder: (context, _) {
+                                              return Container(
+                                               height: 30,
+                                               padding: const EdgeInsets.symmetric(horizontal: 12),
+                                               decoration: BoxDecoration(
+                                                  color: const Color(0xFF1E293B),
+                                                  border: _groupBtnFocusNode.hasFocus 
+                                                      ? Border.all(color: const Color(0xFF06B6D4), width: 2)
+                                                      : Border.all(color: Colors.white24), 
+                                                  borderRadius: BorderRadius.circular(4),
+                                                  boxShadow: _groupBtnFocusNode.hasFocus ? [
+                                                     BoxShadow(color: const Color(0xFF06B6D4).withOpacity(0.4), blurRadius: 6)
+                                                  ] : [],
+                                               ),
+                                               alignment: Alignment.center,
+                                               child: Row(
+                                                  children: [
+                                                     Text(
+                                                        "Group by: $_groupBy",
+                                                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                                     ),
+                                                     const SizedBox(width: 4),
+                                                     const Icon(Icons.swap_horiz, color: Colors.white54, size: 16),
+                                                  ],
+                                               ),
+                                              );
+                                            }
+                                          ),
+                                       ),
+
+                                       if (_isLoggedIn) ...[
+                                           const SizedBox(width: 8),
+                                            InkWell(
+                                              focusNode: _authBtnFocusNode,
+                                              onTap: _handleLogout,
                                               borderRadius: BorderRadius.circular(4),
                                               child: AnimatedBuilder(
-                                                animation: groupFocus,
+                                                animation: _authBtnFocusNode,
                                                 builder: (context, _) {
                                                   return Container(
-                                                   height: 30,
-                                                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                                                   decoration: BoxDecoration(
-                                                      color: const Color(0xFF1E293B),
-                                                      border: groupFocus.hasFocus 
-                                                          ? Border.all(color: const Color(0xFF06B6D4), width: 2)
-                                                          : Border.all(color: Colors.white24), 
+                                                    height: 30,
+                                                    width: 30,
+                                                    decoration: BoxDecoration(
+                                                      color: _authBtnFocusNode.hasFocus ? Colors.redAccent : const Color(0xFF1E293B),
+                                                      border: Border.all(color: Colors.white24),
                                                       borderRadius: BorderRadius.circular(4),
-                                                      boxShadow: groupFocus.hasFocus ? [
-                                                         BoxShadow(color: const Color(0xFF06B6D4).withOpacity(0.4), blurRadius: 6)
-                                                      ] : [],
-                                                   ),
-                                                   alignment: Alignment.center,
-                                                   child: Row(
-                                                      children: [
-                                                         Text(
-                                                            "Group by: $_groupBy",
-                                                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                                         ),
-                                                         const SizedBox(width: 4),
-                                                         const Icon(Icons.swap_horiz, color: Colors.white54, size: 16),
-                                                      ],
-                                                   ),
+                                                    ),
+                                                    child: Icon(
+                                                      Icons.logout,
+                                                      size: 18,
+                                                      color: _authBtnFocusNode.hasFocus ? Colors.white : Colors.redAccent,
+                                                    ),
                                                   );
-                                                }
+                                                },
                                               ),
-                                           );
-                                         }
-                                       ),
+                                            ),
+                                       ] else ...[
+                                           const SizedBox(width: 8),
+                                            InkWell(
+                                              focusNode: _authBtnFocusNode,
+                                              onTap: _handleLogin,
+                                              borderRadius: BorderRadius.circular(4),
+                                              child: AnimatedBuilder(
+                                                animation: _authBtnFocusNode,
+                                                builder: (context, _) {
+                                                  return Container(
+                                                    height: 30,
+                                                    width: 30,
+                                                    decoration: BoxDecoration(
+                                                      color: _authBtnFocusNode.hasFocus ? const Color(0xFF10B981) : const Color(0xFF1E293B), // Green for Login
+                                                      border: Border.all(color: Colors.white24),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: Icon(
+                                                      Icons.login,
+                                                      size: 18,
+                                                      color: _authBtnFocusNode.hasFocus ? Colors.white : const Color(0xFF10B981),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                       ],
                                      ],
                                    ),
                                  ],
@@ -1082,6 +1336,109 @@ class _ClassicScreenState extends State<ClassicScreen> {
     );
   }
 
+  void _handleRatingTap(Channel channel) {
+    if (!_isLoggedIn) {
+      ToastService().show("Login to rate channel ${channel.name}", type: ToastType.warning);
+      return;
+    }
+    _showRatingDialog(channel);
+  }
+
+  void _showRatingDialog(Channel channel) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titlePadding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 0),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        title: Center(
+          child: Text(
+            "Rate ${channel.name}", 
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+            textAlign: TextAlign.center,
+          )
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(5, (index) {
+                final int starValue = index + 1;
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context); // Close dialog
+                    
+                    Provider.of<ChannelProvider>(context, listen: false)
+                      .rateChannel(channel.uuid, starValue)
+                      .then((_) => ToastService().show("Thanks for rating!", type: ToastType.success))
+                      .catchError((e) => ToastService().show("Failed to rate", type: ToastType.error));
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Icon(
+                      Icons.star,
+                      color: (channel.userRating != null && channel.userRating! >= starValue) 
+                          ? Colors.orangeAccent 
+                          : Colors.white12,
+                      size: 36,
+                    ),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "Tap a star to submit",
+              style: TextStyle(color: Colors.white38, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStarRating(Channel channel) {
+    // 1. Single Star Display Logic
+    // Show Gold if any rating exists, otherwise Grey.
+    // If user rated, show Orange.
+    Color starColor = const Color(0xFFFBBF24); // Default Gold
+    if (channel.userRating != null) {
+      starColor = Colors.orangeAccent;
+    } else if ((channel.averageRating ?? 0) == 0) {
+      starColor = Colors.white24;
+    }
+
+    // 2. Numeric Text: Global Average
+    double globalAverage = channel.averageRating ?? 0.0;
+    
+    // 3. Count
+    final int count = channel.ratingsCount ?? 0;
+
+    return InkWell(
+      onTap: () => _handleRatingTap(channel),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.star, color: starColor, size: 16),
+          const SizedBox(width: 4),
+          Text(
+            globalAverage.toStringAsFixed(1), 
+            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+          ),
+          // TODO: Uncomment this when we have a way to display the count
+          // const SizedBox(width: 4),
+          // Text(
+          //   "($count)",
+          //   style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.normal),
+          // ),
+        ],
+      ),
+    );
+  }
+
   Map<String, List<Channel>> _getGroupedChannels(ChannelProvider provider) {
     final Map<String, List<Channel>> grouped = {};
     final channels = provider.channels;
@@ -1136,12 +1493,14 @@ class _FocusableCategoryChipState extends State<FocusableCategoryChip> {
   Widget build(BuildContext context) {
     return Focus(
       focusNode: _internalFocusNode,
+      autofocus: widget.isSelected,
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent) {
           final isSelect = event.logicalKey == LogicalKeyboardKey.select || 
                            event.logicalKey == LogicalKeyboardKey.enter ||
                            event.logicalKey == LogicalKeyboardKey.numpadEnter ||
-                           event.logicalKey == LogicalKeyboardKey.space;
+                           event.logicalKey == LogicalKeyboardKey.space ||
+                           event.logicalKey == LogicalKeyboardKey.gameButtonA;
 
           if (isSelect) {
             widget.onTap();
@@ -1150,8 +1509,9 @@ class _FocusableCategoryChipState extends State<FocusableCategoryChip> {
         }
         return KeyEventResult.ignored;
       },
-      child: Builder(
-        builder: (context) {
+      child: AnimatedBuilder(
+        animation: _internalFocusNode,
+        builder: (context, child) {
            final isFocused = _internalFocusNode.hasFocus;
            return GestureDetector(
              onTap: widget.onTap,
@@ -1229,6 +1589,7 @@ class _FocusableChannelCardState extends State<FocusableChannelCard> {
 
     return Focus(
       focusNode: _internalFocusNode,
+      autofocus: widget.isSelected,
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent) {
           final logicalKey = event.logicalKey;
@@ -1269,8 +1630,9 @@ class _FocusableChannelCardState extends State<FocusableChannelCard> {
         }
         return KeyEventResult.ignored;
       },
-      child: Builder(
-        builder: (context) {
+      child: AnimatedBuilder(
+        animation: _internalFocusNode,
+        builder: (context, child) {
           final isFocused = _internalFocusNode.hasFocus;
           final active = isSelected || isFocused;
 

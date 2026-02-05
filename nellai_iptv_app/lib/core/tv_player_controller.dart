@@ -6,10 +6,44 @@ class TVPlayerController {
   late final Player player;
   late final VideoController videoController;
   
+  // Static tracking of all active instances
+  static final List<TVPlayerController> _activeControllers = [];
+
   TVPlayerController() {
+    _activeControllers.add(this);
     player = Player();
     _configureForTV();
     videoController = VideoController(player);
+  }
+
+  /// Forces all active players to stop and dispose.
+  /// Useful for logout or critical navigation events.
+  static Future<void> forceStopAll() async {
+    debugPrint("🛑 TVPlayerController: Force stopping ${_activeControllers.length} active players...");
+    
+    // 1. Immediate Silence (Synchronous)
+    for (var controller in _activeControllers) {
+      try {
+        controller.player.setVolume(0); // Mute immediately
+        controller.player.pause();      // Pause immediately
+        // Force load empty playlist to kill stream buffer
+        controller.player.open(Playlist([]), play: false);
+      } catch (e) {
+        debugPrint("⚠️ TVPlayerController: Error muting player: $e");
+      }
+    }
+
+    // 2. Async Dispose
+    final List<Future> futures = [];
+    final List<TVPlayerController> activeList = List.from(_activeControllers);
+    _activeControllers.clear(); // Clear immediately to prevent double-access
+
+    for (var controller in activeList) {
+       futures.add(controller.dispose()); 
+    }
+    
+    await Future.wait(futures);
+    debugPrint("✅ TVPlayerController: All active players silenced and disposed.");
   }
 
   void _configureForTV() {
@@ -18,6 +52,8 @@ class TVPlayerController {
     try {
       final dynamic p = player;
       
+      /* 
+      // Optimization properties temporarily disabled due to compatibility issues
       // 1. Buffer Management (Boosted for TV)
       p.setProperty('demuxer-max-bytes', '${150 * 1024 * 1024}'); // 150MB Pre-buffer
       p.setProperty('demuxer-readahead-secs', '120');  // 2 Minutes ahead
@@ -51,8 +87,8 @@ class TVPlayerController {
       // 6. Performance
       p.setProperty('vo', 'gpu'); 
       p.setProperty('gpu-context', 'auto');
-      
-      debugPrint("✅ TVPlayerController: Optimized for TV (150MB Buffer, Performance Mode)");
+      */
+      debugPrint("✅ TVPlayerController: Optimization skipped for stability check.");
     } catch (e) {
       debugPrint("❌ TVPlayerController Error: $e");
     }
@@ -62,15 +98,32 @@ class TVPlayerController {
     await player.open(Media(url), play: true);
   }
 
-  void stop() {
-    player.stop();
+  Future<void> stop() async {
+    try {
+      player.setVolume(0); // Synchronous
+      // Instead of Playlist([]), open a null or empty source if needed, 
+      // but stop() + volume 0 should be enough if called correctly.
+      await player.stop();
+    } catch (_) {}
   }
 
   void setVolume(double volume) {
     player.setVolume(volume);
   }
 
-  void dispose() {
-    player.dispose();
+  Future<void> dispose() async {
+    _activeControllers.remove(this);
+    try {
+      debugPrint("🛑 TVPlayerController: Disposing player instance...");
+      // 1. Mute & Stop
+      await player.setVolume(0); 
+      await player.stop();
+      
+      // 2. Dispose Player
+      await player.dispose();
+      debugPrint("✅ TVPlayerController: Player disposed.");
+    } catch (e) {
+      debugPrint("❌ TVPlayerController: Error disposing player: $e");
+    }
   }
 }

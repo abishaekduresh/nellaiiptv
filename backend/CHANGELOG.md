@@ -2,6 +2,12 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.32.1] - Backend - 2026-02-06
+
+### Fixed
+- **GeoService**: Removed invalid `status` filter from `getLanguages` and `getCategories` queries to resolve "Column not found" errors.
+- **Channel Service**: Exposed `average_rating` and `ratings_count` in channel listing responses (`/channels`, `/featured`, `/related`).
+
 ## [1.32.0] - Backend - 2026-02-03
 
 ### Added

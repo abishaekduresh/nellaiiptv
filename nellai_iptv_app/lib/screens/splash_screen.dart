@@ -8,7 +8,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../core/api_service.dart';
 import 'package:flutter_animate/flutter_animate.dart'; // Animation support
 import 'package:in_app_update/in_app_update.dart'; // Import InAppUpdate
+import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 import 'classic/classic_screen.dart'; // Import ClassicScreen
+import 'auth/login_screen.dart' as import_auth; // Import LoginScreen with alias
 import 'common_error_screen.dart'; // Import CommonErrorScreen
 
 class SplashScreen extends StatefulWidget {
@@ -23,18 +25,22 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Ensure landscape is enforced if needed (though main.dart does it globally)
-    if (!kIsWeb) {
+    // Enforce Portrait for Splash on Mobile, but allow Landscape for TV/Web
+    if (!kIsWeb && _isMobile()) {
       SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft, 
-        DeviceOrientation.landscapeRight
+        DeviceOrientation.portraitUp, 
       ]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
     _checkForUpdate();
     _initPackageInfo();
-    // _fetchLogo(); // Accessing settings is okay but we can default to asset/env for splash
+  }
+  
+  bool _isMobile() {
+    if (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS) {
+      // Simple check, can be refined for tablets
+      return true;
+    }
+    return false;
   }
 
   String _version = "";
@@ -47,12 +53,13 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkForUpdate() async {
-    // Wait for a minimum splash duration regardless of update check speed
+    debugPrint("Splash: _checkForUpdate started");
     final minSplashTime = Future.delayed(const Duration(seconds: 3));
     bool shouldNavigate = true;
 
     try {
-      if (!kIsWeb && kReleaseMode) { // In-App Update is Android only & Release only
+      if (!kIsWeb && kReleaseMode && defaultTargetPlatform == TargetPlatform.android) { 
+        debugPrint("Splash: Checking for InAppUpdate");
         final info = await InAppUpdate.checkForUpdate();
         if (info.updateAvailability == UpdateAvailability.updateAvailable &&
             info.immediateUpdateAllowed) {
@@ -62,8 +69,6 @@ class _SplashScreenState extends State<SplashScreen> {
               shouldNavigate = false;
               SystemNavigator.pop();
             } else if (result == AppUpdateResult.inAppUpdateFailed) {
-              // Decide policy: Allow access on failure or retry?
-              // Currently allowing access to avoid blocking on network errors during update
               debugPrint("Update failed, proceeding to app");
             }
         }
@@ -72,15 +77,19 @@ class _SplashScreenState extends State<SplashScreen> {
       debugPrint("InAppUpdate Error: $e");
     } finally {
       if (shouldNavigate) {
+        debugPrint("Splash: Checking Backend Health...");
         // Check Backend Health
         bool isHealthy = await ApiService().checkHealth();
+        debugPrint("Splash: Health Check Result: $isHealthy");
         
-        // Ensure we waited at least 3 seconds (Splash minimum duration)
         await minSplashTime;
+        debugPrint("Splash: Minimum wait over.");
 
         if (isHealthy) {
-          _navigateToClassic();
+          debugPrint("Splash: Navigating to Auth Check");
+          _checkAuthAndNavigate();
         } else {
+             debugPrint("Splash: Navigating to Error Screen");
              if (mounted) {
                Navigator.of(context).pushReplacement(
                  MaterialPageRoute(builder: (_) => CommonErrorScreen(
@@ -88,7 +97,6 @@ class _SplashScreenState extends State<SplashScreen> {
                    message: "Could not connect to the server. Please check your internet connection or try again later.",
                    isNetworkError: true,
                    onRetry: () {
-                     // Restart Splash to retry everything
                      Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (_) => const SplashScreen())
                      );
@@ -101,12 +109,42 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  void _navigateToClassic() {
+  Future<void> _checkAuthAndNavigate() async {
+    debugPrint("Splash: Checking Shared Preferences for token");
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    debugPrint("Splash: Token found: ${token != null}");
+
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ClassicScreen()),
-      );
+      if (token != null && token.isNotEmpty) {
+        debugPrint("Splash: Going to ClassicScreen");
+        _navigateToClassic();
+      } else {
+        debugPrint("Splash: Going to LoginScreen");
+        _navigateToLogin();
+      }
     }
+  }
+
+  void _navigateToClassic() {
+    // Enforce Landscape for Classic Screen
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const ClassicScreen()),
+    );
+  }
+
+  void _navigateToLogin() {
+    // Enforce Portrait for Login
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const import_auth.LoginScreen()),
+    );
   }
 
   @override
@@ -131,9 +169,9 @@ class _SplashScreenState extends State<SplashScreen> {
                         // Try env logo or asset default
                         Image.asset(
                           'assets/img/logo.png', 
-                          width: 350, // Keep size, but scrolling handles overflow if needed
+                          width: 200, // Reduced from 350
                           // Restrict height effectively 
-                          height: MediaQuery.of(context).size.height * 0.5,
+                          height: MediaQuery.of(context).size.height * 0.3, // Reduced from 0.5
                           fit: BoxFit.contain,
                           errorBuilder: (c, e, s) => Column(
                             children: [

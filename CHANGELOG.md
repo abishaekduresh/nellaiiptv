@@ -1,3 +1,18 @@
+## [1.8.9+25] - App | [1.43.0] - Frontend | [1.32.1] - Backend - 2026-02-06
+
+### App (Flutter)
+- **Feature**: **Focus Stability** - Overhauled `ClassicScreen` header focus logic with persistent nodes to fix "stuck" D-pad navigation.
+- **Feature**: **TV Auth UX** - Login and Register screens now fully support D-pad navigation with focusable inputs and buttons.
+- **UI**: **Unified Theming** - Standardized "Rate Channel" and "Logout" dialogs with premium dark styling (`0xFF1E293B`).
+- **Logic**: **Server-Side Ratings** - Switched to server-authoritative rating calculation, removing potentially inaccurate local averages.
+
+### Backend (PHP)
+- **Fix**: **API Compatibility** - Resolved `SQLSTATE` error in `GeoService` by removing unsupported `status` filter.
+- **Feature**: **Rating Data** - Enriched channel list APIs to include live `average_rating` and `ratings_count`.
+
+### Frontend (Next.js)
+- **Maintenance**: Version synchronized with latest App and Backend releases.
+
 ## [1.8.9+25] - App | [1.43.0] - Frontend | [1.32.0] - Backend - 2026-02-03
 
 ### Frontend (Next.js)
