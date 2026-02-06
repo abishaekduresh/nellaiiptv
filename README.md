@@ -6,18 +6,34 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `frontend` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.44.0
-- **Key Features**: Admin Comments, Status Toggles, Auto-Numbering, Tier-aware HLS Buffering.
+- **Version**: 1.45.0
+- **Key Features**: Channel Views Report, Searchable Filters, JPEG/CSV Export, Serial Numbers.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.33.0
-- **Key Features**: Moderation APIs, GeoService stability, Proprietor schema.
+- **Version**: 1.34.0
+- **Key Features**: Analytics API, Status Filtering, Report Generation.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
 - **Version**: 1.8.14+30
 - **Key Features**: D-Pad Navigation Fixes, Focus Enhancements, Build Repairs.
+
+## Recent Updates (v1.8.14+30 App / v1.45.0 Frontend / v1.34.0 Backend)
+
+### Frontend (Next.js)
+- **Feature**: **Channel Views Report** - Comprehensive analytics dashboard with interactive charts and data tables.
+- **Feature**: **Export Capabilities** - Download reports as JPEG images or CSV files for offline analysis.
+- **Feature**: **Advanced Filtering** - Searchable channel dropdown with API fallback and status filtering.
+- **Improvement**: **Reports Menu** - Converted to collapsible dropdown for better organization.
+- **Improvement**: **Customer Management** - Added serial numbers to customer table.
+
+### Backend (PHP)
+- **Feature**: **Analytics Endpoint** - New report API with support for channel and status filtering.
+- **Fix**: **Architecture** - Standardized controller structure using ResponseFormatter.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized.
 
 ## Recent Updates (v1.8.14+30 App / v1.44.0 Frontend / v1.33.0 Backend)
 

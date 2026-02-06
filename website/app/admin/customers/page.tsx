@@ -261,6 +261,7 @@ export default function CustomersPage() {
           <table className="w-full text-left">
             <thead className="bg-gray-800/50 text-text-secondary text-sm uppercase">
               <tr>
+                <th className="px-6 py-4">S.No</th>
                 <th 
                     className="px-6 py-4 cursor-pointer hover:bg-white/5 transition-colors"
                     onClick={() => handleSort('name')}
@@ -300,15 +301,18 @@ export default function CustomersPage() {
             <tbody className="divide-y divide-gray-800">
               {loading ? (
                 <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-text-secondary">Loading...</td>
+                    <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">Loading...</td>
                 </tr>
               ) : customers.length === 0 ? (
                  <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-text-secondary">No customers found</td>
+                    <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">No customers found</td>
                 </tr>
               ) : (
-                customers.map((customer) => (
+                customers.map((customer, index) => (
                   <tr key={customer.uuid} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 text-text-secondary">
+                        {(page - 1) * 20 + index + 1}
+                    </td>
                     <td className="px-6 py-4">
                         <div className="font-medium text-white">{customer.name}</div>
                         <div className="text-xs text-text-secondary">{customer.email}</div>

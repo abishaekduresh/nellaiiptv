@@ -1,3 +1,19 @@
+## [1.8.14+30] - App | [1.45.0] - Frontend | [1.34.0] - Backend - 2026-02-06
+
+### Frontend (Next.js)
+- **Feature**: **Channel Views Report** - Comprehensive analytics page with interactive charts, data tables, and export capabilities.
+- **Feature**: **Searchable Filters** - Dynamic channel dropdown with API fallback and status filtering (All, Active, Inactive, Deleted).
+- **Feature**: **Export Options** - Download reports as JPEG images or CSV files.
+- **Improvement**: **Reports Navigation** - Converted "Reports" into collapsible dropdown menu.
+- **Improvement**: **Customer Table** - Added S.No column with pagination-aware serial numbers.
+
+### Backend (PHP)
+- **Feature**: **Analytics API** - New `/admin/reports/channel-views` endpoint with filtering by channel ID and status.
+- **Fix**: **Controller Architecture** - Updated ReportController to use ResponseFormatter helper.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized.
+
 ## [1.8.14+30] - App | [1.44.0] - Frontend | [1.33.0] - Backend - 2026-02-06
 
 ### Frontend (Next.js)

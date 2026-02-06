@@ -1,6 +1,6 @@
 {
   "name": "nellai-iptv-frontend",
-  "version": "1.44.0",
+  "version": "1.45.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -17,6 +17,7 @@
     "clsx": "^2.0.0",
     "date-fns": "^4.1.0",
     "hls.js": "^1.6.15",
+    "html2canvas": "^1.4.1",
     "lucide-react": "^0.300.0",
     "next": "^14.2.33",
     "react": "^18.2.0",

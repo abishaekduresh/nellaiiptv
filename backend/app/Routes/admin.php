@@ -74,6 +74,11 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/categories', [\App\Controllers\GeoController::class, 'getCategories']);
         $group->get('/languages', [\App\Controllers\GeoController::class, 'getLanguages']);
         $group->get('/states', [\App\Controllers\GeoController::class, 'getStates']);
+
+        // Reports
+        $group->group('/reports', function (RouteCollectorProxy $group) {
+            $group->get('/channel-views', [\App\Controllers\Admin\ReportController::class, 'getChannelViews']);
+        });
         
     })->add(new \App\Middleware\AdminAuthMiddleware());
 });

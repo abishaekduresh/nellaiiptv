@@ -1,8 +1,7 @@
-'use client';
-
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen, CreditCard, Mail, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen, CreditCard, Mail, MessageSquare, BarChart, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 const menuItems = [
@@ -17,9 +16,20 @@ const menuItems = [
     href: '/admin/channels',
   },
   {
+    title: 'Reports',
+    icon: BarChart,
+    href: '#', // Parent item
+    children: [
+        {
+            title: 'Channel Views',
+            href: '/admin/reports/channel-views'
+        }
+    ]
+  },
+  {
     title: 'Customers',
     icon: Users,
-    href: '/admin/customers', // Assuming this route might exist or will be added later
+    href: '/admin/customers',
   },
   {
     title: 'Comments',
@@ -67,6 +77,18 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout, user } = useAuthStore();
+  
+  // Track open menus by title
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
+      'Reports': true // Default open for visibility
+  });
+
+  const toggleMenu = (title: string) => {
+      setOpenMenus(prev => ({
+          ...prev,
+          [title]: !prev[title]
+      }));
+  };
 
   const handleLogout = () => {
     logout();
@@ -84,7 +106,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   });
 
   // Update menu item hrefs for resellers
-  const getMenuItemHref = (item: typeof menuItems[0]) => {
+  const getMenuItemHref = (item: any) => {
     if (user?.role === 'reseller') {
       if (item.title === 'Dashboard') return '/reseller';
       if (item.title === 'Customers') return '/reseller/customers';
@@ -115,15 +137,59 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               {user?.role === 'reseller' ? 'Reseller Panel' : 'Admin Panel'}
             </p>
           </div>
-          {/* Close button for mobile can be added here if needed, but overlay click works too */}
         </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {filteredMenuItems.map((item) => {
+            const hasChildren = item.children && item.children.length > 0;
+            const Icon = item.icon;
+            
+            if (hasChildren) {
+                const isOpen = openMenus[item.title];
+                const isChildActive = item.children?.some(child => pathname === child.href);
+                const isActive = isOpen || isChildActive; // Highlight parent if child active or open
+
+                return (
+                    <div key={item.title}>
+                        <button
+                            onClick={() => toggleMenu(item.title)}
+                            className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors ${
+                                isActive ? 'text-white' : 'text-text-secondary hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <Icon size={20} />
+                                <span className="font-medium">{item.title}</span>
+                            </div>
+                            {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                        </button>
+                        
+                        {isOpen && (
+                            <div className="ml-9 mt-1 space-y-1">
+                                {item.children?.map(child => {
+                                    const isChildActive = pathname === child.href;
+                                    return (
+                                        <Link
+                                            key={child.href}
+                                            href={child.href}
+                                            className={`block px-4 py-2 text-sm rounded-lg transition-colors ${
+                                                isChildActive
+                                                    ? 'bg-primary/20 text-primary'
+                                                    : 'text-text-secondary hover:text-white hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {child.title}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
           const href = getMenuItemHref(item);
-          // Exact match for active state to prevent multiple highlights
           const isActive = pathname === href || (href !== '/admin/dashboard' && href !== '/reseller' && pathname.startsWith(href));
-          const Icon = item.icon;
           
           return (
             <Link

@@ -2,6 +2,16 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.34.0] - Backend - 2026-02-06
+
+### Added
+- **Channel Views Report API**: New endpoint `GET /admin/reports/channel-views` for analytics data.
+- **Status Filtering**: Support for filtering channel views by channel status (active, inactive, deleted).
+- **Channel ID Filtering**: Ability to filter report data by specific channel ID.
+
+### Fixed
+- **ReportController**: Removed non-existent Controller base class, now uses ResponseFormatter helper.
+
 ## [1.33.0] - Backend - 2026-02-06
 
 ### Added

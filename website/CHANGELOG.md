@@ -2,6 +2,20 @@
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
 
+## [1.45.0] - Website - 2026-02-06
+
+### Added
+- **Channel Views Report**: New comprehensive analytics page (`/admin/reports/channel-views`) with interactive charts and data tables.
+- **Searchable Channel Filter**: Dynamic dropdown with API fallback for channel selection in reports.
+- **Status Filter**: Dropdown to filter channels by status (All, Active, Inactive, Deleted) with Active as default.
+- **JPEG Export**: Download entire report page as high-quality JPEG image.
+- **CSV Export**: Export channel views data as CSV file.
+- **Serial Numbers**: Added S.No column to customers table with pagination-aware numbering.
+
+### Improved
+- **Reports Sidebar**: Converted "Reports" menu item into collapsible dropdown with sub-items.
+- **Search Optimization**: Implemented debounced API search with caching to prevent redundant calls.
+
 ## [1.44.0] - Website - 2026-02-06
 
 ### Added
