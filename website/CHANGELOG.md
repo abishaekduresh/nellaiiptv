@@ -2,6 +2,16 @@
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
 
+## [1.44.0] - Website - 2026-02-06
+
+### Added
+- **Admin Comments**: New dedicated management page (`/admin/comments`) for viewing, searching, and moderating channel comments.
+- **Status Toggle**: One-click active/inactive status toggle for comments with visual indicators.
+- **Auto-Numbering**: Channel creation form now automatically fetches and pre-fills the next available channel number.
+
+### Fixed
+- **Dropdowns**: Resolved issue where filters and form dropdowns were empty due to backend API parameter mismatch.
+
 ## [1.43.0] - Website - 2026-02-03
 
 ### Added

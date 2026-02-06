@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen, CreditCard, Mail } from 'lucide-react';
+import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen, CreditCard, Mail, MessageSquare } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 const menuItems = [
@@ -20,6 +20,11 @@ const menuItems = [
     title: 'Customers',
     icon: Users,
     href: '/admin/customers', // Assuming this route might exist or will be added later
+  },
+  {
+    title: 'Comments',
+    icon: MessageSquare,
+    href: '/admin/comments',
   },
   {
     title: 'Messages',

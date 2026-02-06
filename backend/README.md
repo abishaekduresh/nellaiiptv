@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.32.0)
+# Nellai IPTV - Backend API (v1.33.0)
 
-**Version 1.32.0** | RESTful API built with Slim PHP Framework
+**Version 1.33.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -151,6 +151,11 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.33.0)
+- **Comment Moderation**: Full CRUD capabilities for `ChannelCommentController` including soft-deletes and status toggling.
+- **Auto-Numbering**: New `getNextChannelNumber` utility to streamline channel creation workflows.
+- **GeoService Stability**: Fixed critical SQL errors in filter endpoints by removing legacy column constraints.
 
 ## Latest Updates (v1.32.0)
 - **Proprietor Metadata**: Expanded `Channel` model and schema to store channel owner contact details (Name, Phone, Email, Address).

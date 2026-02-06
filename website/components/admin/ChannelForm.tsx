@@ -76,6 +76,18 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
                 console.error('Failed to fetch initial districts', err);
             }
         }
+
+        // Auto-fetch next channel number for new channels
+        if (!isEditing && !initialData?.channel_number) {
+            try {
+                const nextNumRes = await adminApi.get('/admin/channels/next-number');
+                if (nextNumRes.data?.data?.next_number) {
+                    setFormData(prev => ({ ...prev, channel_number: nextNumRes.data.data.next_number.toString() }));
+                }
+            } catch (err) {
+                console.error('Failed to fetch next channel number', err);
+            }
+        }
       } catch (error) {
         console.error('Failed to fetch form options', error);
         toast.error('Failed to load form options');

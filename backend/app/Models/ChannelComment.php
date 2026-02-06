@@ -15,4 +15,9 @@ class ChannelComment extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+
+    public function channel()
+    {
+        return $this->belongsTo(Channel::class);
+    }
 }

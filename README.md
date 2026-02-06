@@ -6,18 +6,34 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `frontend` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.43.0
-- **Key Features**: Tier-aware HLS Buffering, Proprietor Management, Indian Phone Validation, custom Stream Headers.
+- **Version**: 1.44.0
+- **Key Features**: Admin Comments, Status Toggles, Auto-Numbering, Tier-aware HLS Buffering.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.32.0
-- **Key Features**: Admin Geo filtering (status='all'), Proprietor schema, Health Check API, Auth Bypass Logic.
+- **Version**: 1.33.0
+- **Key Features**: Moderation APIs, GeoService stability, Proprietor schema.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.13+29
+- **Version**: 1.8.14+30
 - **Key Features**: D-Pad Navigation Fixes, Focus Enhancements, Build Repairs.
+
+## Recent Updates (v1.8.14+30 App / v1.44.0 Frontend / v1.33.0 Backend)
+
+### Frontend (Next.js)
+- **Feature**: **Admin Comments** - Full moderation interface for channel comments with search and soft-delete support.
+- **Feature**: **Status Toggle** - One-click status updates for comments to quickly managed user content.
+- **Improvement**: **Auto-Numbering** - Smartly fetches next available channel number.
+- **Fix**: **Dropdowns** - Resolved empty filter dropdowns in production environments.
+
+### Backend (PHP)
+- **Feature**: **Moderation APIs** - Dedicated endpoints for comment management and status toggling.
+- **Feature**: **Utilities** - `next-number` endpoint for channel sequencing.
+- **Fix**: **Stability** - Patched `GeoService` to prevent SQL errors on missing columns.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized.
 
 ## Recent Updates (v1.8.13+29 App / v1.43.0 Frontend / v1.32.2 Backend)
 

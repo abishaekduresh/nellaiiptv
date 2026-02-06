@@ -17,11 +17,17 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         // Channel Management
         $group->get('/channels', [\App\Controllers\Admin\ChannelController::class, 'index']);
         $group->post('/channels', [\App\Controllers\Admin\ChannelController::class, 'create']);
+        $group->get('/channels/next-number', [\App\Controllers\Admin\ChannelController::class, 'getNextChannelNumber']); // Must be before {uuid}
         $group->get('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'show']);
         $group->put('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'update']);
         $group->post('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'update']); // Allow POST for file uploads
         $group->delete('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'delete']);
         $group->get('/channels/{uuid}/analytics', [\App\Controllers\Admin\ChannelController::class, 'getAnalytics']);
+        
+        // Channel Comments Management
+        $group->get('/comments', [\App\Controllers\Admin\ChannelCommentController::class, 'index']);
+        $group->delete('/comments/{uuid}', [\App\Controllers\Admin\ChannelCommentController::class, 'delete']);
+        $group->put('/comments/{uuid}/status', [\App\Controllers\Admin\ChannelCommentController::class, 'updateStatus']);
         
         // Customer Management
         $group->get('/customers', [\App\Controllers\Admin\CustomerController::class, 'index']);

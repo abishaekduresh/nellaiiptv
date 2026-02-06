@@ -182,4 +182,16 @@ class ChannelController
             return ResponseFormatter::error($response, $e->getMessage(), 500);
         }
     }
+
+    public function getNextChannelNumber(Request $request, Response $response): Response
+    {
+        try {
+            $maxNumber = \App\Models\Channel::max('channel_number');
+            $nextNumber = $maxNumber ? ((int)$maxNumber + 1) : 1;
+
+            return ResponseFormatter::success($response, ['next_number' => $nextNumber], 'Next channel number retrieved');
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
+        }
+    }
 }

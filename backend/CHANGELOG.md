@@ -2,6 +2,16 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.33.0] - Backend - 2026-02-06
+
+### Added
+- **Comment Management API**: Added `ChannelCommentController` with `index` (list), `delete` (soft-delete), and `updateStatus` (toggle) endpoints.
+- **Auto-Numbering API**: Added `GET /admin/channels/next-number` to calculate the next available channel sequence.
+- **Routes**: Registered new admin endpoints for comment moderation and channel utilities.
+
+### Fixed
+- **GeoService**: Fixed "Column not found" critical error by removing invalid `status` filtering from `getLanguages` and `getCategories` methods.
+
 ## [1.32.2] - Backend - 2026-02-06
 
 ### Fixed

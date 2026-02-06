@@ -1,3 +1,19 @@
+## [1.8.14+30] - App | [1.44.0] - Frontend | [1.33.0] - Backend - 2026-02-06
+
+### Frontend (Next.js)
+- **Feature**: **Admin Comments** - Full moderation interface for channel comments with search and soft-delete support.
+- **Feature**: **Quick Actions** - Added "Toggle Status" button for comments to quickly approve/hide user content.
+- **Improvement**: **Channel Form** - Smartly pre-fills the next available channel number during creation.
+- **Fix**: **Dropdown Data** - Fixed empty category/language/state dropdowns in production by correcting API request parameters.
+
+### Backend (PHP)
+- **Feature**: **Moderation APIs** - Implemented full CRUD+Toggle endpoints for `ChannelCommentController`.
+- **Feature**: **Utility APIs** - Added `next-number` logic for channel sequencing.
+- **Fix**: **Stability** - Patched `GeoService` to prevent SQL errors on missing `status` columns in legacy databases.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized with latest Admin Panel capabilities.
+
 ## [1.8.13+29] - App | [1.43.0] - Frontend | [1.32.2] - Backend - 2026-02-06
 
 ### App (Flutter)

@@ -25,9 +25,9 @@ class GeoService
         
         // If status is empty or 'all', don't filter by status
         // Status column missing in DB, removing filter
-        if (!empty($status) && $status !== 'all') {
-           $query->where('status', $status);
-        }
+        // if (!empty($status) && $status !== 'all') {
+        //    $query->where('status', $status);
+        // }
         
         return $query->orderBy('order_number', 'ASC')
             ->get()
@@ -40,9 +40,9 @@ class GeoService
         
         // If status is empty or 'all', don't filter by status
         // Status column missing in DB, removing filter
-        if (!empty($status) && $status !== 'all') {
-           $query->where('status', $status);
-        }
+        // if (!empty($status) && $status !== 'all') {
+        //    $query->where('status', $status);
+        // }
         
         return $query->orderBy('order_number', 'ASC')
             ->get()
