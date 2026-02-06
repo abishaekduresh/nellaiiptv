@@ -2,6 +2,11 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.32.2] - Backend - 2026-02-06
+
+### Fixed
+- **Channel Model**: Cast `average_rating` to float in accessor to ensure numeric type compatibility. Laravel's `withAvg()` returns string values (e.g., "5.0000") which caused older app versions (v1.8.8+24) to crash when calling `.toDouble()` on a string. This fix maintains backward compatibility while working seamlessly with newer app versions (v1.8.10+26).
+
 ## [1.32.1] - Backend - 2026-02-06
 
 ### Fixed
