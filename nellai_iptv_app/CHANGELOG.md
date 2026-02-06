@@ -1,4 +1,16 @@
-## [1.8.12+28] - 2026-02-06
+## [1.8.13+29] - 2026-02-06
+
+### Fixed
+- **Build Repair**: Resolved `Member not found: 'center'` compiler error by removing deprecated `LogicalKeyboardKey.center` usage.
+- **Play Store Rejection**: Solved "Missing DPad functionality" by implementing explicit keyboard activation on "Select" key press for Login and Register screens.
+
+### Added
+- **D-Pad Focus Enhancements**: Enhanced focus traversal for:
+  - **Channel Details Modal**: Comments input now explicitly triggers keyboard; comments list is scrollable via D-Pad.
+  - **Star Rating Dialog**: Stars are now fully focusable and interactive via D-Pad (Left/Right navigation + Select to submit).
+  - **Profile Screen**: Validated focus traversal app-wide.
+
+
 
 ### Added
 - **D-Pad Navigation**: Implemented full D-Pad support for:

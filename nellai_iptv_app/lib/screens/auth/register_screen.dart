@@ -24,6 +24,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  
+  late FocusNode _nameFocusNode;
+  late FocusNode _emailFocusNode;
+  late FocusNode _phoneFocusNode;
+  late FocusNode _passwordFocusNode;
+  late FocusNode _confirmPasswordFocusNode;
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -36,7 +43,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
+    
+    _nameFocusNode = FocusNode(onKeyEvent: _handleKeyEvent);
+    _emailFocusNode = FocusNode(onKeyEvent: _handleKeyEvent);
+    _phoneFocusNode = FocusNode(onKeyEvent: _handleKeyEvent);
+    _passwordFocusNode = FocusNode(onKeyEvent: _handleKeyEvent);
+    _confirmPasswordFocusNode = FocusNode(onKeyEvent: _handleKeyEvent);
+    
     _fetchAd(); // Fetch random ad
+  }
+
+  @override
+  void dispose() {
+    _nameFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _phoneFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    _confirmPasswordFocusNode.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent && 
+        (event.logicalKey == LogicalKeyboardKey.select || 
+         event.logicalKey == LogicalKeyboardKey.enter)) {
+      
+      // Explicitly show keyboard on D-Pad Select/Enter
+      SystemChannels.textInput.invokeMethod('TextInput.show');
+      return KeyEventResult.ignored; // Let the text field handle the character too
+    }
+    return KeyEventResult.ignored;
   }
 
   Future<void> _fetchAd() async {
@@ -125,6 +166,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         // Name Input
                         TextFormField(
                           controller: _nameController,
+                          focusNode: _nameFocusNode,
                           autofocus: true, // Enable D-pad navigation for Android TV
                           style: const TextStyle(color: Colors.white),
                           decoration: _inputDecoration("Full Name", Icons.person),
@@ -135,6 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         // Email Input
                         TextFormField(
                           controller: _emailController,
+                          focusNode: _emailFocusNode,
                           keyboardType: TextInputType.emailAddress,
                           style: const TextStyle(color: Colors.white),
                           decoration: _inputDecoration("Email Address", Icons.email),
@@ -150,6 +193,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         // Phone Input
                         TextFormField(
                           controller: _phoneController,
+                          focusNode: _phoneFocusNode,
                           keyboardType: TextInputType.phone,
                           style: const TextStyle(color: Colors.white),
                           decoration: _inputDecoration("Phone Number", Icons.phone),
@@ -165,6 +209,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         // Password Input
                         TextFormField(
                           controller: _passwordController,
+                          focusNode: _passwordFocusNode,
                           obscureText: _obscurePassword,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
@@ -197,6 +242,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         // Confirm Password Input
                         TextFormField(
                           controller: _confirmPasswordController,
+                          focusNode: _confirmPasswordFocusNode,
                           obscureText: _obscureConfirmPassword,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(

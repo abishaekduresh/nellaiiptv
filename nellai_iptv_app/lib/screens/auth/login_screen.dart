@@ -26,6 +26,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  
+  late FocusNode _phoneFocusNode;
+  late FocusNode _passwordFocusNode;
+  
   bool _isLoading = false;
   bool _obscurePassword = true;
   Ad? _bannerAd; // Ad state
@@ -37,7 +41,32 @@ class _LoginScreenState extends State<LoginScreen> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
+    
+    _phoneFocusNode = FocusNode(onKeyEvent: _handleKeyEvent);
+    _passwordFocusNode = FocusNode(onKeyEvent: _handleKeyEvent);
+    
     _fetchAd(); // Fetch random ad
+  }
+
+  @override
+  void dispose() {
+    _phoneFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent && 
+        (event.logicalKey == LogicalKeyboardKey.select || 
+         event.logicalKey == LogicalKeyboardKey.enter)) {
+      
+      // Explicitly show keyboard on D-Pad Select/Enter
+      SystemChannels.textInput.invokeMethod('TextInput.show');
+      return KeyEventResult.ignored; // Let the text field handle the character too if needed, but mainly we want keyboard
+    }
+    return KeyEventResult.ignored;
   }
 
   Future<void> _fetchAd() async {
@@ -171,6 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Phone Input
                         TextFormField(
                           controller: _phoneController,
+                          focusNode: _phoneFocusNode,
                           autofocus: true, // Enable D-pad navigation for Android TV
                           keyboardType: TextInputType.phone,
                           style: const TextStyle(color: Colors.white),
@@ -201,6 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Password Input
                         TextFormField(
                           controller: _passwordController,
+                          focusNode: _passwordFocusNode,
                           obscureText: _obscurePassword,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(

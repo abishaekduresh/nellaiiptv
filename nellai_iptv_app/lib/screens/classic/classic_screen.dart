@@ -1469,28 +1469,46 @@ class _ClassicScreenState extends State<ClassicScreen> {
               mainAxisSize: MainAxisSize.min,
               children: List.generate(5, (index) {
                 final int starValue = index + 1;
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context); // Close dialog
-                    
-                    Provider.of<ChannelProvider>(context, listen: false)
-                      .rateChannel(channel.uuid, starValue)
-                      .then((_) => ToastService().show("Thanks for rating!", type: ToastType.success))
-                      .catchError((e) => ToastService().show("Failed to rate", type: ToastType.error));
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Icon(
-                      Icons.star,
-                      color: (channel.userRating != null && channel.userRating! >= starValue) 
-                          ? Colors.orangeAccent 
-                          : Colors.white12,
-                      size: 36,
-                    ),
-                  ),
+                return Builder(
+                  builder: (context) {
+                    final FocusNode starFocusNode = FocusNode();
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(50),
+                      focusNode: starFocusNode,
+                      onTap: () {
+                        Navigator.pop(context); // Close dialog
+                        
+                        Provider.of<ChannelProvider>(context, listen: false)
+                          .rateChannel(channel.uuid, starValue)
+                          .then((_) => ToastService().show("Thanks for rating!", type: ToastType.success))
+                          .catchError((e) => ToastService().show("Failed to rate", type: ToastType.error));
+                      },
+                      child: AnimatedBuilder(
+                        animation: starFocusNode,
+                        builder: (context, child) {
+                          final isFocused = starFocusNode.hasFocus;
+                          return Container(
+                            padding: const EdgeInsets.all(8.0),
+                            decoration: isFocused ? BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.yellowAccent.withOpacity(0.5), width: 2),
+                            ) : null,
+                            child: Icon(
+                              Icons.star_border, // Using star_border for unrated visual, or logic for filled
+                              color: isFocused ? Colors.yellowAccent : Colors.amber, 
+                              size: isFocused ? 48 : 40,
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }
                 );
               }),
             ),
+
+
             const SizedBox(height: 16),
             const Text(
               "Tap a star to submit",

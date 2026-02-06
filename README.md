@@ -16,16 +16,15 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.12+28
-- **Key Features**: D-Pad Navigation, User Profile Section, Session Management, Subscription Display.
+- **Version**: 1.8.13+29
+- **Key Features**: D-Pad Navigation Fixes, Focus Enhancements, Build Repairs.
 
-## Recent Updates (v1.8.12+28 App / v1.43.0 Frontend / v1.32.2 Backend)
+## Recent Updates (v1.8.13+29 App / v1.43.0 Frontend / v1.32.2 Backend)
 
 ### App (Flutter)
-- **Feature**: **D-Pad Navigation** - Full D-Pad support for Channel Details Modal, Manage Devices, and Profile screens.
-- **Fix**: **Comment Posting** - Resolved false "Failed to post comment" error by accepting HTTP 201 status code.
-- **Fix**: **Timezone Display** - Fixed ~5.5h timestamp offset in comments by correcting UTC-to-Local parsing.
-- **Backend Fix**: **Timezone** - Enforced IST timestamp storage in backend PHP and Database.
+- **Fix**: **Build Repair** - Resolved `Member not found: 'center'` compiler error.
+- **Fix**: **Play Store Rejection** - Solved "Missing DPad functionality" by implementing explicit keyboard activation on "Select" key press for Login/Register screens.
+- **Feature**: **D-Pad Focus Enhancements** - Enhanced focus traversal for Channel Details Modal and Star Rating Dialog.
 
 ### Backend & Frontend
 - **Maintenance**: Version synchronized.

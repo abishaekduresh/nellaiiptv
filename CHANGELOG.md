@@ -1,4 +1,11 @@
-## [1.8.12+28] - App | [1.43.0] - Frontend | [1.32.2] - Backend - 2026-02-06
+## [1.8.13+29] - App | [1.43.0] - Frontend | [1.32.2] - Backend - 2026-02-06
+
+### App (Flutter)
+- **Fix**: **Build Repair** - Resolved `Member not found: 'center'` compiler error by removing deprecated `LogicalKeyboardKey.center` usage.
+- **Fix**: **Play Store Rejection** - Solved "Missing DPad functionality" by implementing explicit keyboard activation on "Select" key press for Login/Register screens.
+- **Feature**: **D-Pad Focus Enhancements** - Enhanced focus traversal for Channel Details Modal (comments input/list) and Star Rating Dialog (interactive stars).
+
+
 
 ### App (Flutter)
 - **Feature**: **D-Pad Navigation** - Implemented full D-Pad support for Channel Details Modal (focusable items), Manage Devices Screen (focusable cards), and Profile Screen (autofocus & structure).

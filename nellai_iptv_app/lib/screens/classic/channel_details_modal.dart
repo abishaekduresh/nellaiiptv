@@ -27,7 +27,7 @@ class ChannelDetailsModal extends StatefulWidget {
 class _ChannelDetailsModalState extends State<ChannelDetailsModal> {
   final ApiService _api = ApiService();
   final TextEditingController _commentController = TextEditingController();
-  final FocusNode _commentFocusNode = FocusNode();
+  late FocusNode _commentFocusNode;
   final FocusNode _postBtnFocusNode = FocusNode();
   
   List<Comment> _comments = [];
@@ -36,12 +36,22 @@ class _ChannelDetailsModalState extends State<ChannelDetailsModal> {
   @override
   void initState() {
     super.initState();
-    _loadComments();
     
-    // Request focus on first star or close button when modal opens
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   FocusScope.of(context).requestFocus(_commentFocusNode);
-    // });
+    // Custom key event handler for comment input
+    _commentFocusNode = FocusNode(onKeyEvent: _handleKeyEvent);
+    
+    _loadComments();
+  }
+  
+  // Handle D-Pad Select/Enter for opening keyboard
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent && 
+        (event.logicalKey == LogicalKeyboardKey.select || 
+         event.logicalKey == LogicalKeyboardKey.enter)) {
+      SystemChannels.textInput.invokeMethod('TextInput.show');
+      return KeyEventResult.ignored;
+    }
+    return KeyEventResult.ignored;
   }
 
   @override
