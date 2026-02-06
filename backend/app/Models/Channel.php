@@ -74,7 +74,10 @@ class Channel extends Model
 
     public function getAverageRatingAttribute()
     {
-        return $this->attributes['average_rating'] ?? 0;
+        // Laravel's withAvg() returns a string like "5.0000"
+        // Cast to float to ensure numeric type for app compatibility
+        $value = $this->attributes['average_rating'] ?? 0;
+        return $value ? (float)$value : 0.0;
     }
 
     public function getViewersCountFormattedAttribute()
