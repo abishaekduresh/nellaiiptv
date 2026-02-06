@@ -12,6 +12,7 @@ import '../../models/channel.dart';
 import '../../models/ad.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../core/api_service.dart';
+import '../../core/device_utils.dart'; // Import DeviceUtils
 import '../../models/public_settings.dart';
 import 'embedded_player.dart';
 import 'stb_navigation_overlay.dart';
@@ -1103,7 +1104,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                           ),
                                        ),
 
-                                      if (_isLoggedIn) ...[
+                                      if (_isLoggedIn && !DeviceUtils.isTV) ...[
                                         const SizedBox(width: 8),
                                         InkWell(
                                           focusNode: _authBtnFocusNode,
@@ -1150,8 +1151,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                                 },
                                               ),
                                             ),
-                                       ] else ...[
-                                           const SizedBox(width: 8),
+                                       ] else if (!DeviceUtils.isTV) ...[
+                                            const SizedBox(width: 8),
                                             InkWell(
                                               focusNode: _authBtnFocusNode,
                                               onTap: _handleLogin,
@@ -1538,7 +1539,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
     final int count = channel.ratingsCount ?? 0;
 
     return InkWell(
-      onTap: () => _handleRatingTap(channel),
+      onTap: DeviceUtils.isTV ? null : () => _handleRatingTap(channel),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

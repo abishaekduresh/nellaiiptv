@@ -1,3 +1,12 @@
+## [1.8.14+30] - 2026-02-07
+
+### Added
+- **Device Utilities**: Implemented centralized `DeviceUtils` initialization in main.dart for improved device compatibility checks.
+- **Splash Screen**: Enhanced splash screen with device initialization logic for better startup reliability.
+
+### Changed
+- **Initialization Flow**: Moved device-specific initialization to startup sequence for consistent behavior across all Android devices.
+
 ## [1.8.13+29] - 2026-02-06
 
 ### Fixed

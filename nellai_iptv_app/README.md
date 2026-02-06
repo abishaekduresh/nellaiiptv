@@ -11,6 +11,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.8.14+30
+- **Key Features**: Device Initialization, Splash Screen Improvements, Enhanced Compatibility.
+- **Feature**: **Device Utilities** - Centralized device initialization for better compatibility.
+- **Improvement**: **Startup Flow** - Enhanced splash screen with device-specific initialization logic.
+
 ## Version: 1.8.13+29
 - **Key Features**: D-Pad Navigation Fixes, Focus Enhancements, Build Repairs.
 - **Fix**: **Build Repair** - Fixed `Member not found: 'center'` compiler error.

@@ -3,6 +3,7 @@ import '../../models/channel.dart';
 import '../../models/comment.dart';
 import '../../core/api_service.dart';
 import '../../core/toast_service.dart';
+import '../../core/device_utils.dart'; // Import DeviceUtils
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_screen.dart';
 import 'package:flutter/services.dart'; // For orientation
@@ -281,6 +282,9 @@ class _ChannelDetailsModalState extends State<ChannelDetailsModal> {
 
 
   Widget _buildPostCommentSection() {
+    if (DeviceUtils.isTV) {
+       return const SizedBox.shrink(); // Hide input section completely on TV
+    }
     if (!widget.isLoggedIn) {
       return _buildLoginPrompt('Login to post comments');
     }

@@ -1,4 +1,17 @@
-## [1.8.14+30] - App | [1.45.0] - Frontend | [1.34.0] - Backend - 2026-02-06
+## [1.8.14+30] - App | [1.45.0] - Frontend | [1.34.0] - Backend - 2026-02-07
+
+### App (Flutter)
+- **Feature**: **Device Utilities** - Implemented centralized `DeviceUtils` initialization in main.dart for improved device compatibility checks.
+- **Improvement**: **Splash Screen** - Enhanced splash screen with device initialization logic for better startup reliability.
+- **Improvement**: **Initialization Flow** - Moved device-specific initialization to startup sequence for consistent behavior across all Android devices.
+
+### Frontend (Next.js)
+- **Maintenance**: Version synchronized.
+
+### Backend (PHP)
+- **Maintenance**: Version synchronized.
+
+## [1.8.13+29] - App | [1.45.0] - Frontend | [1.34.0] - Backend - 2026-02-06
 
 ### Frontend (Next.js)
 - **Feature**: **Channel Views Report** - Comprehensive analytics page with interactive charts, data tables, and export capabilities.

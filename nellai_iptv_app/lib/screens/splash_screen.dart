@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../core/api_service.dart';
 import '../core/security_service.dart'; // Import SecurityService
+import '../core/device_utils.dart'; // Import DeviceUtils
 import 'package:flutter_animate/flutter_animate.dart'; // Animation support
 import 'package:in_app_update/in_app_update.dart'; // Import InAppUpdate
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
@@ -27,7 +28,12 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     // Enforce Portrait for Splash on Mobile, but allow Landscape for TV/Web
-    if (!kIsWeb && _isMobile()) {
+    if (DeviceUtils.isTV) {
+       SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight, 
+      ]);
+    } else if (!kIsWeb && _isMobile()) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp, 
       ]);
@@ -137,7 +143,14 @@ class _SplashScreenState extends State<SplashScreen> {
 
         if (isHealthy) {
           debugPrint("Splash: Navigating to Auth Check");
-          _checkAuthAndNavigate();
+          
+          if (DeviceUtils.isTV) {
+             // TV Device: Skipping Auth check and going straight to Classic Screen as per request
+             debugPrint("Splash: TV Detected. Navigating directly to Classic Screen.");
+             _navigateToClassic();
+          } else {
+             _checkAuthAndNavigate();
+          }
         } else {
              debugPrint("Splash: Navigating to Error Screen");
              if (mounted) {

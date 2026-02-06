@@ -13,9 +13,14 @@ import 'package:media_kit/media_kit.dart'; // Import MediaKit
 import 'package:flutter_cache_manager/flutter_cache_manager.dart'; // Import CacheManager
 import 'core/toast_service.dart'; // Import ToastService
 
+import 'core/device_utils.dart'; // Import DeviceUtils
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized(); // Initialize MediaKit
+  
+  await DeviceUtils.init(); // Initialize Device Detection
+
   
   // Clear channel thumbnail cache on startup (Session-based caching)
   await DefaultCacheManager().emptyCache();
