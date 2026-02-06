@@ -1,3 +1,20 @@
+## [1.8.10+26] - 2026-02-06
+
+### Added
+- **Security Controls**: Implemented configurable screenshot blocking and USB debugging detection via environment variables (`BLOCK_SCREENSHOTS`, `BLOCK_USB_DEBUG`).
+- **Native Security**: Added MethodChannel communication between Flutter and Kotlin for platform-specific security enforcement.
+- **Security Service**: Created dedicated `SecurityService` class to manage security checks and native platform integration.
+- **USB Debug Blocking**: Displays blocking dialog and exits app when USB debugging is detected (if enabled).
+- **Screenshot Protection**: Conditionally applies Android `FLAG_SECURE` based on environment configuration.
+- **Banner Ads**: Added banner ad support to Register screen with random ad fetching and clickable URL launching.
+
+### Changed
+- **Register Screen Layout**: Restructured using `LayoutBuilder`, `ConstrainedBox`, and `IntrinsicHeight` to match Login screen layout.
+- **Ad Positioning**: Banner ads now stick to bottom of screen using `Spacer()` widget for consistent placement.
+
+### Fixed
+- **D-pad Navigation**: Improved focus management in Register screen with proper button and input field focus support.
+
 ## [1.8.9+25] - 2026-02-06
 
 ### Added

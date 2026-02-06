@@ -16,8 +16,21 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.9+25
-- **Key Features**: TV Focus Stability, Server-Side Ratings, D-Pad Auth.
+- **Version**: 1.8.10+26
+- **Key Features**: Security Controls, Register Screen Ads, USB Debug Protection, Screenshot Blocking.
+
+## Recent Updates (v1.8.10+26 App / v1.43.0 Frontend / v1.32.1 Backend)
+
+### App (Flutter)
+- **Feature**: **Security Controls** - Configurable screenshot blocking and USB debugging detection via `.env`.
+- **Feature**: **Native Security** - MethodChannel integration for platform-specific enforcement.
+- **Feature**: **USB Debug Protection** - Blocking dialog and app exit when debugging is detected.
+- **Feature**: **Screenshot Protection** - Conditional `FLAG_SECURE` application based on configuration.
+- **Feature**: **Register Screen Ads** - Banner ads with bottom-aligned layout and clickable URLs.
+- **UI**: **Improved Layout** - Restructured Register screen to match Login screen design.
+
+### Backend & Frontend
+- **Maintenance**: Version synchronized with latest App release.
 
 ## Recent Updates (v1.8.9+25 App / v1.43.0 Frontend / v1.32.1 Backend)
 

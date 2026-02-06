@@ -165,6 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Phone Input
                         TextFormField(
                           controller: _phoneController,
+                          autofocus: true, // Enable D-pad navigation for Android TV
                           keyboardType: TextInputType.phone,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(

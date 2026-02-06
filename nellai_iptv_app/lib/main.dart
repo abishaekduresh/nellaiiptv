@@ -7,6 +7,7 @@ import 'providers/channel_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'screens/classic/classic_screen.dart';
 import 'screens/splash_screen.dart'; // Import Splash
+import 'core/security_service.dart'; // Import SecurityService
 
 import 'package:media_kit/media_kit.dart'; // Import MediaKit
 import 'package:flutter_cache_manager/flutter_cache_manager.dart'; // Import CacheManager
@@ -20,6 +21,11 @@ Future<void> main() async {
   await DefaultCacheManager().emptyCache();
   
   await dotenv.load(fileName: ".env");
+  
+  // Apply security settings (screenshot blocking)
+  await SecurityService().setScreenshotBlocking(
+    dotenv.env['BLOCK_SCREENSHOTS']?.toLowerCase() == 'true'
+  );
   
   // Enable Wakelock globally
   WakelockPlus.enable();

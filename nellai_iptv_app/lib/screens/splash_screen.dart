@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../core/api_service.dart';
+import '../core/security_service.dart'; // Import SecurityService
 import 'package:flutter_animate/flutter_animate.dart'; // Animation support
 import 'package:in_app_update/in_app_update.dart'; // Import InAppUpdate
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
@@ -31,8 +32,57 @@ class _SplashScreenState extends State<SplashScreen> {
         DeviceOrientation.portraitUp, 
       ]);
     }
+    _checkSecurityAndProceed();
+  }
+  
+  Future<void> _checkSecurityAndProceed() async {
+    // Check USB debugging if blocking is enabled
+    final blockUsbDebug = dotenv.env['BLOCK_USB_DEBUG']?.toLowerCase() == 'true';
+    
+    if (blockUsbDebug) {
+      final isDebugging = await SecurityService().isUsbDebuggingEnabled();
+      
+      if (isDebugging && mounted) {
+        _showUsbDebugBlockingDialog();
+        return; // Don't proceed with app initialization
+      }
+    }
+    
+    // If security check passed, proceed with normal flow
     _checkForUpdate();
     _initPackageInfo();
+  }
+  
+  void _showUsbDebugBlockingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning, color: Colors.red, size: 32),
+              SizedBox(width: 12),
+              Text('Security Alert'),
+            ],
+          ),
+          content: const Text(
+            'USB Debugging Detected.\n\n'
+            'This app cannot run with USB debugging enabled for security reasons. '
+            'Please disable USB debugging in Developer Options and restart the app.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                SystemNavigator.pop(); // Exit app
+              },
+              child: const Text('Exit', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
   }
   
   bool _isMobile() {

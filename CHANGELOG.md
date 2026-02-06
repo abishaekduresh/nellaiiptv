@@ -1,3 +1,20 @@
+## [1.8.10+26] - App | [1.43.0] - Frontend | [1.32.1] - Backend - 2026-02-06
+
+### App (Flutter)
+- **Feature**: **Security Controls** - Implemented configurable screenshot blocking and USB debugging detection via `.env` variables (`BLOCK_SCREENSHOTS`, `BLOCK_USB_DEBUG`).
+- **Feature**: **Native Security Integration** - Created `SecurityService` with MethodChannel for platform-specific security enforcement on Android.
+- **Feature**: **USB Debug Protection** - App displays blocking dialog and exits when USB debugging is detected (if configured).
+- **Feature**: **Screenshot Protection** - Conditionally applies Android `FLAG_SECURE` based on environment configuration to prevent screenshots and screen recording.
+- **Feature**: **Register Screen Ads** - Added banner ad support to Register screen with random ad fetching, clickable URLs, and fade-in animation.
+- **UI**: **Improved Layout** - Restructured Register screen using `LayoutBuilder` and `Spacer()` to match Login screen with bottom-aligned banner ads.
+- **Improvement**: **D-pad Navigation** - Enhanced focus management in Register screen for better TV remote compatibility.
+
+### Backend (PHP)
+- **Maintenance**: Version synchronized with latest App release (v1.8.10+26).
+
+### Frontend (Next.js)
+- **Maintenance**: Version synchronized with latest App release (v1.8.10+26).
+
 ## [1.8.9+25] - App | [1.43.0] - Frontend | [1.32.1] - Backend - 2026-02-06
 
 ### App (Flutter)
