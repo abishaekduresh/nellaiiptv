@@ -34,6 +34,7 @@ $container->set('db', function () {
         'charset'   => 'utf8mb4',
         'collation' => 'utf8mb4_unicode_ci',
         'prefix'    => '',
+        'timezone'  => '+05:30',
     ]);
 
     $capsule->setEventDispatcher(new Dispatcher(new IlluminateContainer));

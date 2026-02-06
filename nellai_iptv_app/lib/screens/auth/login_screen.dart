@@ -68,8 +68,14 @@ class _LoginScreenState extends State<LoginScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', response['token']);
       
-      // Store User Info if needed
-      // await prefs.setString('user_uuid', response['user']['uuid']);
+      // Store User Info for Profile
+      if (response['user'] != null) {
+        final user = response['user'];
+        await prefs.setString('user_uuid', user['uuid']?.toString() ?? '');
+        await prefs.setString('user_name', user['name']?.toString() ?? '');
+        await prefs.setString('user_email', user['email']?.toString() ?? '');
+        await prefs.setString('user_phone', user['phone']?.toString() ?? '');
+      }
 
       if (mounted) {
         ToastService().show("Login Successful", type: ToastType.success);

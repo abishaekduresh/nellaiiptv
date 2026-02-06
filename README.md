@@ -16,23 +16,35 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.10+26
-- **Key Features**: Security Controls, Register Screen Ads, USB Debug Protection, Screenshot Blocking.
+- **Version**: 1.8.12+28
+- **Key Features**: D-Pad Navigation, User Profile Section, Session Management, Subscription Display.
 
-## Recent Updates (v1.8.10+26 App / v1.43.0 Frontend / v1.32.1 Backend)
+## Recent Updates (v1.8.12+28 App / v1.43.0 Frontend / v1.32.2 Backend)
 
 ### App (Flutter)
-- **Feature**: **Security Controls** - Configurable screenshot blocking and USB debugging detection via `.env`.
-- **Feature**: **Native Security** - MethodChannel integration for platform-specific enforcement.
-- **Feature**: **USB Debug Protection** - Blocking dialog and app exit when debugging is detected.
-- **Feature**: **Screenshot Protection** - Conditional `FLAG_SECURE` application based on configuration.
-- **Feature**: **Register Screen Ads** - Banner ads with bottom-aligned layout and clickable URLs.
-- **UI**: **Improved Layout** - Restructured Register screen to match Login screen design.
+- **Feature**: **D-Pad Navigation** - Full D-Pad support for Channel Details Modal, Manage Devices, and Profile screens.
+- **Fix**: **Comment Posting** - Resolved false "Failed to post comment" error by accepting HTTP 201 status code.
+- **Fix**: **Timezone Display** - Fixed ~5.5h timestamp offset in comments by correcting UTC-to-Local parsing.
+- **Backend Fix**: **Timezone** - Enforced IST timestamp storage in backend PHP and Database.
+
+### Backend & Frontend
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.11+27 App / v1.43.0 Frontend / v1.32.1 Backend)
+
+### App (Flutter)
+- **Feature**: **User Profile Section** - Comprehensive profile screen with user info, subscription details, device management, and logout.
+- **Feature**: **Session Management** - Logout API integration to remove sessions from database.
+- **Feature**: **User Data Persistence** - Login stores user details in SharedPreferences for offline profile access.
+- **Fix**: **Type Conversions** - Resolved "int is not a subtype of String" errors with `.toString()` conversions.
+- **Fix**: **Subscription Display** - Profile correctly reads subscription data from backend 'plan' key.
+- **Fix**: **Orientation Management** - Refined screen orientations (ClassicScreen: landscape only, others: portrait).
+- **Improvement**: **Video Playback Control** - ClassicScreen stops playback when navigating to profile, resumes on return.
 
 ### Backend & Frontend
 - **Maintenance**: Version synchronized with latest App release.
 
-## Recent Updates (v1.8.9+25 App / v1.43.0 Frontend / v1.32.1 Backend)
+## Recent Updates (v1.8.10+26 App / v1.43.0 Frontend / v1.32.1 Backend)
 
 ### App (Flutter)
 - **Feature**: **Focus Stability** - Solved "stuck focus" issues in ClassicScreen header buttons.

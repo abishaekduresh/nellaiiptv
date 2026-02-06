@@ -1,0 +1,83 @@
+Release v1.8.11+27: User Profile Section, Session Management & Orientation Fixes
+
+## App Changes (Flutter)
+
+### Features
+- User Profile Section
+  - Comprehensive profile screen with user info card (name, email, phone)
+  - Active subscription card (plan name, expiry date, device usage)
+  - Manage Devices button and logout functionality
+  - Full D-pad navigation support
+  - OTT-style UI with premium gradients and modern design
+- Profile API Integration
+  - Added getUserProfile() method to ApiService
+  - Fetches data from /customers/profile endpoint
+- Session Management
+  - Implemented logout() API method
+  - Removes sessions from database on logout
+- User Data Persistence
+  - Login stores user details in SharedPreferences
+  - Enables offline profile display
+
+### Improvements
+- Screen Orientations
+  - ClassicScreen: Always landscape/horizontal
+  - ProfileScreen: Portrait with landscape restoration on back
+  - ManageDevicesScreen: Portrait
+  - LoginScreen/RegisterScreen: Portrait (unchanged)
+- Profile Button
+  - Replaced logout button with profile button in ClassicScreen header
+- Video Playback Control
+  - Stops playback when navigating to ProfileScreen
+  - Automatic resume on return to ClassicScreen
+
+### Fixes
+- Type Conversion Errors
+  - Fixed "int is not a subtype of String" errors
+  - Added .toString() conversions for user data fields
+  - Applied to login, profile display, and subscription data
+- Subscription Display
+  - Changed from 'subscription' to 'plan' key
+  - Updated field names to match backend response
+  - Checks both expiry_date and expires_at fields
+- Logout Orientation
+  - Fixed LoginScreen appearing in landscape after logout
+  - Added _isLoggingOut flag to prevent dispose() override
+- Profile Navigation
+  - Fixed ClassicScreen showing in portrait when returning
+  - Landscape restoration in ProfileScreen dispose() (when not logging out)
+
+## Documentation Updates
+
+### Files Modified
+- nellai_iptv_app/pubspec.yaml - Version bumped to 1.8.11+27
+- nellai_iptv_app/CHANGELOG.md - Added comprehensive v1.8.11+27 entry
+- nellai_iptv_app/README.md - Updated version and key features
+- CHANGELOG.md (root) - Added detailed v1.8.11+27 entry
+- README.md (root) - Updated app version and recent updates section
+
+### Code Files Modified
+- lib/core/api_service.dart
+  - Added getUserProfile() method
+  - Added logout() method
+- lib/screens/profile/profile_screen.dart
+  - Created new ProfileScreen widget
+  - Implemented user info and subscription display
+  - Added logout and device management navigation
+  - Fixed type conversions and subscription key
+  - Added _isLoggingOut flag for orientation control
+- lib/screens/auth/login_screen.dart
+  - Updated to store user data with .toString() conversions
+- lib/screens/classic/classic_screen.dart
+  - Replaced logout button with profile button
+  - Added video playback stop/resume on profile navigation
+  - Maintained landscape orientation enforcement
+- lib/screens/auth/manage_devices_screen.dart
+  - Set to portrait orientation
+
+## Technical Details
+- Profile screen uses ApiService().getUserProfile() for fresh data
+- Logout calls ApiService().logout() before clearing local token
+- All dynamic backend values converted to strings with .toString()
+- Orientation changes use SystemChrome.setPreferredOrientations()
+- Video control uses _stopPlayerCompletely() and _resumePlayback()

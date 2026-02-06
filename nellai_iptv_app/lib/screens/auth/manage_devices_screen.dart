@@ -23,7 +23,7 @@ class _ManageDevicesScreenState extends State<ManageDevicesScreen> {
   @override
   void initState() {
     super.initState();
-    // Enforce Portrait
+    // Enforce Portrait for Manage Devices
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
@@ -145,44 +145,59 @@ class _ManageDevicesScreenState extends State<ManageDevicesScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 0), // moved margin to separator
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          focusColor: Colors.white.withOpacity(0.1),
+          onTap: () {}, // Focusable
+          child: Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.05), // Base color
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  session['device_name'] ?? 'Unknown Device',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: iconColor, size: 24),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  "Last active: ${session['last_active'] ?? 'N/A'}",
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        session['device_name'] ?? 'Unknown Device',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Last active: ${session['last_active'] ?? 'N/A'}",
+                        style: const TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  onPressed: () => _handleRevoke(session['id']),
+                  tooltip: 'Remove Device',
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            onPressed: () => _handleRevoke(session['id']),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -1,3 +1,58 @@
+## [1.8.12+28] - 2026-02-06
+
+### Added
+- **D-Pad Navigation**: Implemented full D-Pad support for:
+  - **Channel Details Modal**: Focusable Info button (converted to IconButton) and scrollable comments list interactions.
+  - **Manage Devices Screen**: Focusable session cards allowing easy selection and removal via remote.
+  - **Profile Screen**: Added autofocus to "Manage Devices" button and improved focus traversal structure.
+
+### Fixed
+- **Comment Posting**: Resolved false "Failed to post comment" error by updating API service to accept HTTP 201 (Created) status codes.
+- **Timezone Display**: Fixed timestamp discrepancies (~5.5h offset) in comments by correctly parsing server UTC time to local device time.
+- **Backend Timezone**: Enforced `Asia/Kolkata` (IST) in backend PHP and Database configurations.
+
+## [1.8.11+27] - 2026-02-06
+
+### Added
+- **User Profile Section**: Implemented comprehensive profile screen accessible from ClassicScreen header when logged in.
+  - User information card displaying name, email, and phone with gradient avatar
+  - Active subscription card showing plan name, expiry date, and device usage
+  - Manage Devices button navigating to device management screen
+  - Logout functionality with confirmation dialog
+  - Full D-pad navigation support for TV remote control
+  - OTT-style UI with premium gradients, shadows, and modern design
+- **Profile API Integration**: Added `getUserProfile()` method to ApiService for fetching user data from `/customers/profile` endpoint.
+- **Session Management**: Implemented logout API call to remove sessions from database on logout.
+- **User Data Persistence**: Login now stores user details (uuid, name, email, phone) in SharedPreferences for offline profile display.
+
+### Changed
+- **Screen Orientations**: Refined orientation management across all screens:
+  - ClassicScreen: Always landscape/horizontal
+  - ProfileScreen: Portrait with landscape restoration when returning to ClassicScreen
+  - ManageDevicesScreen: Portrait for better mobile usability
+  - LoginScreen/RegisterScreen: Portrait (unchanged)
+- **Profile Button**: Replaced logout button in ClassicScreen header with profile button (person icon) that navigates to ProfileScreen.
+- **Video Playback Control**: ClassicScreen now stops video playback completely when navigating to ProfileScreen, with automatic resume on return.
+
+### Fixed
+- **Type Conversion Errors**: Fixed "int is not a subtype of String" errors by adding `.toString()` conversions for:
+  - User data fields (name, email, phone, uuid) during login
+  - Profile display fields (name, email, phone)
+  - Subscription data fields (plan name, expiry date, device limit)
+- **Subscription Display**: Fixed profile screen not showing subscription data by:
+  - Changing from `subscription` key to `plan` key to match backend response
+  - Updated field names: `plan['name']` instead of `subscription['plan_name']`
+  - Checking both `expiry_date` and `expires_at` for expiration date
+- **Logout Orientation**: Fixed LoginScreen appearing in landscape after logout by adding `_isLoggingOut` flag to prevent dispose() from overriding portrait orientation.
+- **Profile Navigation**: Fixed ClassicScreen showing in portrait when returning from ProfileScreen by restoring landscape in ProfileScreen's dispose() method (only when not logging out).
+
+### Technical Details
+- Profile screen uses `ApiService().getUserProfile()` to fetch fresh data on load
+- Logout calls `ApiService().logout()` to remove session from database before clearing local token
+- All dynamic values from backend are converted to strings using `.toString()` to handle both int and string types
+- Orientation changes use `SystemChrome.setPreferredOrientations()` in initState() and dispose() methods
+- Video playback control uses `_stopPlayerCompletely()` and `_resumePlayback()` methods in ClassicScreen
+
 ## [1.8.10+26] - 2026-02-06
 
 ### Added

@@ -7,6 +7,7 @@ import '../models/ad.dart';
 import '../models/category.dart';
 import '../models/language.dart';
 import '../models/public_settings.dart';
+import '../models/comment.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthException implements Exception {
@@ -394,12 +395,45 @@ class ApiService {
 
   Future<bool> checkHealth() async {
     try {
+      debugPrint('=== Health Check Started ===');
+      debugPrint('API Base URL: ${_dio.options.baseUrl}');
+      debugPrint('Endpoint: /health');
+      
       final response = await _dio.get('/health', options: Options(headers: {
         'Accept': 'application/json',
       }));
+      
+      debugPrint('Health Check Response Status: ${response.statusCode}');
+      debugPrint('Health Check Response Data: ${response.data}');
+      debugPrint('=== Health Check Success ===');
+      
       return response.statusCode == 200;
-    } catch (e) {
-      debugPrint('Health check failed: $e');
+    } on DioException catch (e) {
+      debugPrint('=== Health Check DioException ===');
+      debugPrint('Error Type: ${e.type}');
+      debugPrint('Error Message: ${e.message}');
+      
+      if (e.response != null) {
+        debugPrint('Response Status Code: ${e.response?.statusCode}');
+        debugPrint('Response Data: ${e.response?.data}');
+        debugPrint('Response Headers: ${e.response?.headers}');
+      } else {
+        debugPrint('No response received from server');
+        debugPrint('Request Options:');
+        debugPrint('  - Base URL: ${e.requestOptions.baseUrl}');
+        debugPrint('  - Path: ${e.requestOptions.path}');
+        debugPrint('  - Method: ${e.requestOptions.method}');
+        debugPrint('  - Headers: ${e.requestOptions.headers}');
+      }
+      
+      debugPrint('Stack Trace: ${e.stackTrace}');
+      debugPrint('=== Health Check Failed ===');
+      return false;
+    } catch (e, stackTrace) {
+      debugPrint('=== Health Check Generic Exception ===');
+      debugPrint('Error: $e');
+      debugPrint('Stack Trace: $stackTrace');
+      debugPrint('=== Health Check Failed ===');
       return false;
     }
   }
@@ -416,6 +450,73 @@ class ApiService {
     } catch (e) {
       debugPrint('Error rating channel: $e');
       rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile() async {
+    try {
+      final response = await _dio.get('/customers/profile', options: Options(headers: {
+        'Accept': 'application/json',
+      }));
+      
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        return response.data['data'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching user profile: $e');
+      return null;
+    }
+  }
+
+  Future<bool> logout() async {
+    try {
+      final response = await _dio.post('/customers/logout', options: Options(headers: {
+        'Accept': 'application/json',
+      }));
+      
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        debugPrint('Logout successful: Session removed from database');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error during logout: $e');
+      return false;
+    }
+  }
+
+  Future<List<Comment>> getChannelComments(String channelUuid) async {
+    try {
+      final response = await _dio.get('/channels/$channelUuid/comments', options: Options(headers: {
+        'Accept': 'application/json',
+      }));
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        final data = response.data['data'];
+        final List<dynamic> commentsJson = data['data'] ?? []; // Pagination wrapper
+        return commentsJson.map((json) => Comment.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching channel comments: $e');
+      return [];
+    }
+  }
+
+  Future<bool> addChannelComment(String channelUuid, String comment) async {
+    try {
+      final response = await _dio.post('/channels/$channelUuid/comments', 
+        data: {'comment': comment},
+        options: Options(headers: {
+          'Accept': 'application/json',
+        })
+      );
+
+      return (response.statusCode == 200 || response.statusCode == 201) && response.data['status'] == true;
+    } catch (e) {
+      debugPrint('Error adding comment: $e');
+      return false;
     }
   }
 }

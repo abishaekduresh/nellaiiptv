@@ -19,7 +19,9 @@ import '../../core/audio_manager.dart';
 import '../../core/tv_player_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 import '../auth/login_screen.dart'; // Import LoginScreen
+import '../profile/profile_screen.dart'; // Import ProfileScreen
 import '../../core/toast_service.dart'; // Import ToastService
+import 'channel_details_modal.dart'; // Import Channel Details Modal
 
 class ClassicScreen extends StatefulWidget {
   const ClassicScreen({super.key});
@@ -65,7 +67,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
   final FocusNode _playerFocusNode = FocusNode(); // Dedicated focus node for player area
   
   // Player Control - GlobalKey to access player state directly
-  final GlobalKey<EmbeddedPlayerState> _playerKey = GlobalKey<EmbeddedPlayerState>();
+  GlobalKey<EmbeddedPlayerState> _playerKey = GlobalKey<EmbeddedPlayerState>();
 
   // Header Focus Nodes
   late FocusNode _searchBtnFocusNode;
@@ -73,9 +75,38 @@ class _ClassicScreenState extends State<ClassicScreen> {
   late FocusNode _groupBtnFocusNode;
   late FocusNode _authBtnFocusNode;
 
+  // Method to show channel details modal
+  void _showChannelDetails(Channel channel) async {
+    // Check login status first
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getString('auth_token') != null;
+    
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (context) => ChannelDetailsModal(
+        channel: channel,
+        isLoggedIn: isLoggedIn,
+        onLoginRequested: () {
+           Navigator.pop(context); // Close modal
+           _handleLogin(); // Go to login
+        },
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
+    
+    // Force landscape orientation for ClassicScreen
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    
     _searchBtnFocusNode = FocusNode();
     _refreshBtnFocusNode = FocusNode();
     _groupBtnFocusNode = FocusNode();
@@ -238,6 +269,37 @@ class _ClassicScreenState extends State<ClassicScreen> {
     });
   }
 
+  void _resumePlayback() async {
+    if (_selectedChannel == null) return;
+
+    debugPrint("▶ RESUMING PLAYER");
+
+    // Restore volume
+    await AudioManager().restoreOriginalVolume();
+
+    setState(() {
+      // Kill widget
+      _selectedChannel = null;
+
+      // NEW PLAYER INSTANCE
+      _playerKey = GlobalKey<EmbeddedPlayerState>();
+    });
+
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    if (!mounted) return;
+
+    setState(() {
+      _selectedChannel = context.read<ChannelProvider>().channels.firstWhere(
+        (c) => true,
+      );
+    });
+
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    _playerFocusNode.requestFocus();
+  }
+
   Future<void> _stopPlayerCompletely() async {
     try {
       debugPrint("🛑 GLOBAL PLAYER STOP INITIATED");
@@ -392,6 +454,9 @@ class _ClassicScreenState extends State<ClassicScreen> {
     if (!confirm) return;
 
     await _stopPlayerCompletely();
+
+    // Call backend to remove session from database
+    await _api.logout();
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
@@ -757,6 +822,22 @@ class _ClassicScreenState extends State<ClassicScreen> {
 
                               // Rating
                               _buildStarRating(displayChannel),
+                              
+                              const SizedBox(width: 12),
+                              Container(width: 1, height: 12, color: Colors.white24),
+                              const SizedBox(width: 12),
+
+                              // Info Button (Moved here)
+                              IconButton(
+                                icon: const Icon(Icons.info_outline, color: Colors.white, size: 16),
+                                onPressed: () => _showChannelDetails(displayChannel),
+                                tooltip: 'Channel Details',
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                style: IconButton.styleFrom(
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -1022,11 +1103,32 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                           ),
                                        ),
 
-                                       if (_isLoggedIn) ...[
-                                           const SizedBox(width: 8),
-                                            InkWell(
-                                              focusNode: _authBtnFocusNode,
-                                              onTap: _handleLogout,
+                                      if (_isLoggedIn) ...[
+                                        const SizedBox(width: 8),
+                                        InkWell(
+                                          focusNode: _authBtnFocusNode,
+                                          onTap: () async {
+
+                                            // FULL PLAYER STOP BEFORE PROFILE
+                                            await _stopPlayerCompletely();
+
+                                            // Switch to portrait if profile is mobile style
+                                            SystemChrome.setPreferredOrientations([
+                                              DeviceOrientation.portraitUp,
+                                            ]);
+
+                                            await Navigator.of(context).push(
+                                              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                                            );
+
+                                            // Restore landscape when coming back
+                                            SystemChrome.setPreferredOrientations([
+                                              DeviceOrientation.landscapeLeft,
+                                              DeviceOrientation.landscapeRight,
+                                            ]);
+                                            // ✅ Restart video when back
+                                            _resumePlayback();
+                                          },
                                               borderRadius: BorderRadius.circular(4),
                                               child: AnimatedBuilder(
                                                 animation: _authBtnFocusNode,
@@ -1035,14 +1137,14 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                                     height: 30,
                                                     width: 30,
                                                     decoration: BoxDecoration(
-                                                      color: _authBtnFocusNode.hasFocus ? Colors.redAccent : const Color(0xFF1E293B),
+                                                      color: _authBtnFocusNode.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
                                                       border: Border.all(color: Colors.white24),
                                                       borderRadius: BorderRadius.circular(4),
                                                     ),
                                                     child: Icon(
-                                                      Icons.logout,
+                                                      Icons.person,
                                                       size: 18,
-                                                      color: _authBtnFocusNode.hasFocus ? Colors.white : Colors.redAccent,
+                                                      color: _authBtnFocusNode.hasFocus ? Colors.white : const Color(0xFF06B6D4),
                                                     ),
                                                   );
                                                 },

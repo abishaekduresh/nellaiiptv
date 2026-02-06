@@ -1,3 +1,54 @@
+## [1.8.12+28] - App | [1.43.0] - Frontend | [1.32.2] - Backend - 2026-02-06
+
+### App (Flutter)
+- **Feature**: **D-Pad Navigation** - Implemented full D-Pad support for Channel Details Modal (focusable items), Manage Devices Screen (focusable cards), and Profile Screen (autofocus & structure).
+- **Fix**: **Comment Posting** - Resolved false "Failed to post comment" error by accepting HTTP 201 status code.
+- **Fix**: **Timezone Display** - Fixed ~5.5h timestamp offset in comments by correcting UTC-to-Local parsing.
+
+### Backend (PHP)
+- **Fix**: **Timezone Configuration** - Enforced `Asia/Kolkata` (IST) in both PHP runtime and Database connection (`+05:30`) to ensure consistent timestamp storage.
+
+### Frontend (Next.js)
+- **Maintenance**: Version synchronized with latest App release.
+
+## [1.8.11+27] - App | [1.43.0] - Frontend | [1.32.1] - Backend - 2026-02-06
+
+### App (Flutter)
+- **Feature**: **User Profile Section** - Implemented comprehensive profile screen accessible from ClassicScreen header when logged in.
+  - User information card with gradient avatar displaying name, email, and phone
+  - Active subscription card showing plan name, expiry date, and device usage (current/limit)
+  - Manage Devices button navigating to device management screen
+  - Logout functionality with confirmation dialog and session cleanup
+  - Full D-pad navigation support for TV remote control
+  - OTT-style UI with premium gradients, shadows, and modern design aesthetics
+- **Feature**: **Profile API Integration** - Added `getUserProfile()` method to ApiService for fetching user data from `/customers/profile` endpoint.
+- **Feature**: **Session Management** - Implemented `logout()` API method to remove sessions from database on logout.
+- **Feature**: **User Data Persistence** - Login now stores user details (uuid, name, email, phone) in SharedPreferences for offline profile display.
+- **Improvement**: **Screen Orientations** - Refined orientation management across all screens:
+  - ClassicScreen: Always landscape/horizontal for TV experience
+  - ProfileScreen: Portrait with automatic landscape restoration when returning to ClassicScreen
+  - ManageDevicesScreen: Portrait for better mobile usability
+  - LoginScreen/RegisterScreen: Portrait (unchanged)
+- **Improvement**: **Profile Button** - Replaced logout button in ClassicScreen header with profile button (person icon) that navigates to ProfileScreen.
+- **Improvement**: **Video Playback Control** - ClassicScreen now stops video playback completely when navigating to ProfileScreen, with automatic resume on return.
+- **Fix**: **Type Conversion Errors** - Fixed "int is not a subtype of String" errors by adding `.toString()` conversions for:
+  - User data fields (name, email, phone, uuid) during login storage
+  - Profile display fields (name, email, phone) when rendering
+  - Subscription data fields (plan name, expiry date, device limit) in profile screen
+- **Fix**: **Subscription Display** - Fixed profile screen not showing subscription data by:
+  - Changing from `subscription` key to `plan` key to match backend response structure
+  - Updated field names: `plan['name']` instead of `subscription['plan_name']`
+  - Checking both `expiry_date` and `expires_at` fields for expiration date
+  - Reading device limit from plan object and active devices from customer object
+- **Fix**: **Logout Orientation** - Fixed LoginScreen appearing in landscape after logout by adding `_isLoggingOut` flag to prevent dispose() from overriding portrait orientation.
+- **Fix**: **Profile Navigation** - Fixed ClassicScreen showing in portrait when returning from ProfileScreen by restoring landscape in ProfileScreen's dispose() method (only when not logging out).
+
+### Backend (PHP)
+- **Maintenance**: Version synchronized with latest App release (v1.8.11+27).
+
+### Frontend (Next.js)
+- **Maintenance**: Version synchronized with latest App release (v1.8.11+27).
+
 ## [1.8.10+26] - App | [1.43.0] - Frontend | [1.32.1] - Backend - 2026-02-06
 
 ### App (Flutter)

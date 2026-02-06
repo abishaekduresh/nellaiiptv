@@ -11,13 +11,14 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
-## Version: 1.8.10+26
-- **Key Features**: Security Controls, Register Screen Ads, Enhanced D-pad Navigation.
-- **Security**: **Configurable Protection** - Screenshot blocking and USB debugging detection via `.env` variables.
-- **Feature**: **Native Security** - MethodChannel integration for platform-specific security enforcement.
-- **Feature**: **Register Ads** - Banner ad support with bottom-aligned layout matching Login screen.
+## Version: 1.8.12+28
+- **Key Features**: D-Pad Navigation, User Profile Section, Orientation Management, Session Cleanup.
+- **Feature**: **D-Pad Navigation** - Full support for Channel Modal, Devices, and Profile screens via TV remote.
+- **Fix**: **Comment Posting** - Solved "Failed to post comment" false error.
+- **Fix**: **Timezone Display** - Corrected timestamp parsing for accurate local time display.
+- **Fix**: **Backend Timezone** - Enforced IST (Asia/Kolkata) configuration for consistent data.
 
-## Version: 1.8.9+25
+## Version: 1.8.10+26
 - **Key Features**: Focus Persistence, TV Auth support, Server-side Ratings.
 - **Feature**: **TV Navigation** - Persistent focus nodes prevent selection loss; Login/Register screens fully D-pad accessible.
 - **UI**: **Unified Theme** - Dark theme for Rating/Logout dialogs.
