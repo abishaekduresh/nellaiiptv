@@ -82,7 +82,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
             try {
                 const nextNumRes = await adminApi.get('/admin/channels/next-number');
                 if (nextNumRes.data?.data?.next_number) {
-                    setFormData(prev => ({ ...prev, channel_number: nextNumRes.data.data.next_number.toString() }));
+                    setFormData((prev: any) => ({ ...prev, channel_number: nextNumRes.data.data.next_number.toString() }));
                 }
             } catch (err) {
                 console.error('Failed to fetch next channel number', err);
