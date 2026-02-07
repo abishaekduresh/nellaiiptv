@@ -32,10 +32,14 @@ export const metadata: Metadata = {
     type: "website",
   },
   manifest: '/manifest.json',
+  other: {
+    "google-adsense-account": process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_ID || "",
+  },
 };
 
 import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import GoogleAdSense from "@/components/GoogleAdSense";
 import DevToolsControl from "@/components/DevToolsControl";
 
 import LiteRouteGuard from "@/components/LiteRouteGuard";
@@ -50,6 +54,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-slate-950 text-white">
         <GoogleAnalytics />
         <GoogleTagManager />
+        <GoogleAdSense />
         <DevToolsControl />
         <FaviconUpdater />
         <TVNavigationProvider>

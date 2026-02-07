@@ -2,6 +2,13 @@
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
 
+## [1.46.3] - Website - 2026-02-08
+
+### Added
+- **AdSense Integration**: Implemented Google AdSense with global script loading (`GoogleAdSense`) and reusable ad unit component (`AdSenseUnit`).
+- **SEO/Meta**: Added `google-adsense-account` meta tag for verification.
+- **ads.txt**: Added `ads.txt` support with example file and `.gitignore` safety.
+
 ## [1.46.2] - Website - 2026-02-08
 
 ### Maintenance

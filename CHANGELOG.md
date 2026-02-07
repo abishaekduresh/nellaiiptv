@@ -1,3 +1,12 @@
+## [1.8.14+30] - App | [1.46.3] - Website | [1.35.3] - Backend - 2026-02-09
+
+### Website (Next.js)
+- **Feature**: **AdSense Integration** - Added Google AdSense support with `GoogleAdSense` script, `AdSenseUnit` component, and verification meta tags.
+- **Security**: **ads.txt** - Added `ads.txt` for domain verification and secured it via `.gitignore`.
+
+### Backend (PHP)
+- **Maintenance**: Version synchronized.
+
 ## [1.8.14+30] - App | [1.46.2] - Website | [1.35.2] - Backend - 2026-02-08
 
 ### Backend (PHP)
