@@ -2,6 +2,11 @@
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
 
+## [1.46.2] - Website - 2026-02-08
+
+### Maintenance
+- **Version Sync**: Synchronized version with backend updates for Public API Access support.
+
 ## [1.46.1] - Website - 2026-02-07
 
 ### Fixed

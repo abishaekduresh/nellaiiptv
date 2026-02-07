@@ -2,6 +2,12 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.35.2] - Backend - 2026-02-08
+
+### Added
+- **Public API Access**: Guests can now view `is_preview_public` channels without logging in.
+- **Access Control**: Strict 401 Unauthorized blocking for private channels when accessed by guests.
+
 ## [1.35.1] - Backend - 2026-02-07
 
 ### Improved

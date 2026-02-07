@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.46.1
+# Nellai IPTV - Frontend v1.46.2
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.46.1)**
+### **Latest Updates (v1.46.2)**
+- **Sync**: Version bump to match backend Public API capabilities.
+
+### **Previous Updates (v1.46.1)**
 - **Type Safety**: Verified and fixed `channelUuid` prop propagation to video players, ensuring strict TypeScript compliance.
 
 ### **Previous Updates (v1.46.0)**

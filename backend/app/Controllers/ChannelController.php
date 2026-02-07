@@ -31,10 +31,10 @@ class ChannelController
         $isOpenAccessVal = Setting::get('is_open_access', 0);
         $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
         
-        // Enforce Auth if not Open Access
-        if (!$user && !$isOpenAccess) {
-             return ResponseFormatter::error($response, 'Unauthorized', 401);
-        }
+        // Enforce Auth if not Open Access - REMOVED for Public API
+        // if (!$user && !$isOpenAccess) {
+        //      return ResponseFormatter::error($response, 'Unauthorized', 401);
+        // }
 
         // Perform Subscription Check for Premium Redaction in List
         $allowPremium = $isOpenAccess; // defaulting to true if open access
@@ -67,7 +67,7 @@ class ChannelController
         $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
 
         if (!$user && !$isOpenAccess) {
-             return ResponseFormatter::error($response, 'Unauthorized', 401);
+             // return ResponseFormatter::error($response, 'Unauthorized', 401);
         }
 
         $allowPremium = $isOpenAccess;
@@ -97,8 +97,6 @@ class ChannelController
             $user = $request->getAttribute('user');
             $isOpenAccessVal = Setting::get('is_open_access', 0);
             $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
-            
-            error_log("DEBUG: [ChannelController::show] UUID: $uuid, User: " . ($user ? $user->sub : 'Guest') . ", OpenAccess: " . ($isOpenAccess ? 'Yes' : 'No'));
 
             // Check if Channel is Public Preview
             // We need to fetch the channel first to check this flag.
@@ -121,14 +119,11 @@ class ChannelController
                 $isPreviewPublic = $channel['is_preview_public'] ?? false;
             }
 
-            error_log("DEBUG: [ChannelController::show] Decision Factors -> User: " . ($user ? 'YES' : 'NO') . ", OpenAccess: " . ($isOpenAccess ? 'YES' : 'NO') . ", isPreviewPublic: " . ($isPreviewPublic ? 'YES ('.$isPreviewPublic.')' : 'NO'));
-
             // Check if User is Admin
             $isAdmin = false;
             if ($user && isset($user->type) && $user->type === 'admin') {
                 $isAdmin = true;
             }
-            error_log("DEBUG: [ChannelController::show] isAdmin: " . ($isAdmin ? 'YES' : 'NO'));
 
             // Access Rules:
             // 1. If Admin -> ALLOW
@@ -147,16 +142,14 @@ class ChannelController
                 $allowPremium = true; // Admins see everything
             } elseif ($isPreviewPublic) {
                  // Public Preview allowed
-                 // Check Open Access / Subscription for premium content?
-                 // Usually Public Preview implies free access to that specific channel.
                  $allowPremium = true; 
+            } elseif ($user) {
+                 // Logged in users (Customers/Resellers) allowed to see details
+                 // Premium content redaction handles the rest
             } else {
-                 // Not Admin AND Not Public Preview -> BLOCK
-                 error_log("DEBUG: [ChannelController::show] Access Denied - Private Channel");
+                 // Guest AND Not Public Preview -> BLOCK
                  return ResponseFormatter::error($response, 'Unauthorized', 401);
             }
-            
-            error_log("DEBUG: [ChannelController::show] Access GRANTED");
 
             // If Public Preview is enabled, we might want to ensure they get the stream URL even if it's premium?
             // Usually "Public Preview" implies they can watch it.
@@ -306,7 +299,7 @@ class ChannelController
             $isOpenAccess = Setting::get('is_open_access', 0) == 1;
 
             if (!$user && !$isOpenAccess) {
-                return ResponseFormatter::error($response, 'Unauthorized', 401);
+                // return ResponseFormatter::error($response, 'Unauthorized', 401);
             }
 
             $allowPremium = $isOpenAccess;
@@ -333,7 +326,7 @@ class ChannelController
         $isOpenAccess = Setting::get('is_open_access', 0) == 1;
 
         if (!$user && !$isOpenAccess) {
-                return ResponseFormatter::error($response, 'Unauthorized', 401);
+                // return ResponseFormatter::error($response, 'Unauthorized', 401);
         }
 
         $allowPremium = $isOpenAccess;

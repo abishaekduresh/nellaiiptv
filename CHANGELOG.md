@@ -1,3 +1,16 @@
+## [1.8.14+30] - App | [1.46.2] - Website | [1.35.2] - Backend - 2026-02-08
+
+### Backend (PHP)
+- **Feature**: **Public API Access** - Enabled conditional public access to Channels API.
+  - Guests can view channels marked as `is_preview_public`.
+  - Private channels are strictly blocked for guests (401 Unauthorized).
+  - Admins retain full access to all channels.
+  - Logged-in users (Customers/Resellers) have access with standard premium redaction.
+- **Security**: Implemented granular access control logic in `ChannelController::show`.
+
+### Website (Next.js)
+- **Maintenance**: Version synchronized.
+
 ## [1.8.14+30] - App | [1.46.1] - Website | [1.35.1] - Backend - 2026-02-07
 
 ### Website (Next.js)
