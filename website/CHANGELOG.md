@@ -2,6 +2,11 @@
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
 
+## [1.46.1] - Website - 2026-02-07
+
+### Fixed
+- **Player Types**: Resolved TypeScript interface mismatch for `ClapprPlayerProps` where `channelUuid` was missing or incorrectly typed.
+
 ## [1.46.0] - Website - 2026-02-07
 
 ### Added

@@ -98,27 +98,91 @@ class ChannelController
             $isOpenAccessVal = Setting::get('is_open_access', 0);
             $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
             
-            if (!$user && !$isOpenAccess) {
-                return ResponseFormatter::error($response, 'Unauthorized', 401);
+            error_log("DEBUG: [ChannelController::show] UUID: $uuid, User: " . ($user ? $user->sub : 'Guest') . ", OpenAccess: " . ($isOpenAccess ? 'Yes' : 'No'));
+
+            // Check if Channel is Public Preview
+            // We need to fetch the channel first to check this flag.
+            
+            // Optimization: Fetch just the is_preview_public flag? 
+            // Or just fetch the channel and if it fails due to premium, we handle it?
+            
+            // Let's try to fetch it first. 
+            // We pass false for allowPremium initially to see if we can get basic info.
+            // But ChannelService::getOne might return restricted object.
+            
+            $allowPremium = $isOpenAccess;
+            $channel = $this->channelService->getOne($uuid, $platform, $allowPremium);
+            
+            // Check if preview is public
+            $isPreviewPublic = false;
+            if (is_object($channel)) {
+                $isPreviewPublic = $channel->is_preview_public ?? false;
+            } elseif (is_array($channel)) {
+                $isPreviewPublic = $channel['is_preview_public'] ?? false;
             }
 
-            // Perform Subscription Check
-            $allowPremium = $isOpenAccess;
+            error_log("DEBUG: [ChannelController::show] Decision Factors -> User: " . ($user ? 'YES' : 'NO') . ", OpenAccess: " . ($isOpenAccess ? 'YES' : 'NO') . ", isPreviewPublic: " . ($isPreviewPublic ? 'YES ('.$isPreviewPublic.')' : 'NO'));
+
+            // Check if User is Admin
+            $isAdmin = false;
+            if ($user && isset($user->type) && $user->type === 'admin') {
+                $isAdmin = true;
+            }
+            error_log("DEBUG: [ChannelController::show] isAdmin: " . ($isAdmin ? 'YES' : 'NO'));
+
+            // Access Rules:
+            // 1. If Admin -> ALLOW
+            // 2. If Public Preview -> ALLOW (regardless of Open Access setting, unless Open Access overrides "private" which it shouldn't)
+            // 3. If User is Customer (not Admin) ->
+            //    - If Open Access ON -> ALLOW? User said "allow only when Preview Public is true".
+            //    - PROBABLE MEANING: Open Access setting shouldn't force private channels to be open.
+            //    - So if isPreviewPublic is FALSE, even if Open Access is ON, we might want to block?
+            //    - Or does Open Access mean "Members don't need subscription"?
+            //    - Re-reading: "Open Access is enabled? allow only when Preview Public is true" 
+            //      -> This implies that for "Preview" pages, Open Access Global Setting is IRRELEVANT if the channel is private.
+            //      -> Public Preview is the ONLY key for non-admins.
             
-            if ($user) {
-                // Fetch full customer to check plan status
-                // Optimization: Could store plan info in JWT to avoid DB call
-                // But specifically for 'active' status checking real-time is safer
-                $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
-                if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
-                     // Check expiry
-                     if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
-                         $allowPremium = true;
-                     }
+            if ($isAdmin) {
+                // Admin always allowed
+                $allowPremium = true; // Admins see everything
+            } elseif ($isPreviewPublic) {
+                 // Public Preview allowed
+                 // Check Open Access / Subscription for premium content?
+                 // Usually Public Preview implies free access to that specific channel.
+                 $allowPremium = true; 
+            } else {
+                 // Not Admin AND Not Public Preview -> BLOCK
+                 error_log("DEBUG: [ChannelController::show] Access Denied - Private Channel");
+                 return ResponseFormatter::error($response, 'Unauthorized', 401);
+            }
+            
+            error_log("DEBUG: [ChannelController::show] Access GRANTED");
+
+            // If Public Preview is enabled, we might want to ensure they get the stream URL even if it's premium?
+            // Usually "Public Preview" implies they can watch it.
+            // If the channel is Premium AND Public Preview, we should probably allow it.
+            if ($isPreviewPublic) {
+                $allowPremium = true;
+                // Re-fetch if we need to unlock premium content that might have been redacted
+                // But ChannelService::getOne handles redaction based on $allowPremium passed to it.
+                // We passed $allowPremium (which was false/true based on auth) initially.
+                // If we now decide it's allowed, we might need to re-fetch or manually un-redact if service supports it?
+                // Simpler: Fetch it again if we decided to allow it and didn't before.
+                
+                $initialAllowPremium = $isOpenAccess;
+                 if ($user) {
+                    $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
+                    if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
+                         if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
+                             $initialAllowPremium = true;
+                         }
+                    }
+                }
+                
+                if (!$initialAllowPremium) {
+                     $channel = $this->channelService->getOne($uuid, $platform, true);
                 }
             }
-
-            $channel = $this->channelService->getOne($uuid, $platform, $allowPremium);
             
             // If channel is premium and user not allowed, we can return 403 or just the Restricted URL.
             // Returning the object with 'PAID_RESTRICTED' allows frontend to show "Upgrade to Premium" UI.

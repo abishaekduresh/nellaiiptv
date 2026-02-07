@@ -6,18 +6,26 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.46.0
+- **Version**: 1.46.1
 - **Key Features**: Admin Settings UI Modernization, Developer Tools Protection, Platform Availability Control.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.35.0
+- **Version**: 1.35.1
 - **Key Features**: Platform Blocking System, Global Channel Control, Enhanced Channel Service.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
 - **Version**: 1.8.14+30
 - **Key Features**: Device Initialization, Enhanced Compatibility, Startup Improvements.
+
+## Recent Updates (v1.8.14+30 App / v1.46.1 Website / v1.35.1 Backend)
+
+### Website (Next.js)
+- **Fix**: **Player Props Types** - Resolved TypeScript compatibility issue for `channelUuid` in player props.
+
+### Backend (PHP)
+- **Fix**: **Access Control Logging** - Enhanced debug logging for channel access control to aid troubleshooting.
 
 ## Recent Updates (v1.8.14+30 App / v1.46.0 Website / v1.35.0 Backend)
 

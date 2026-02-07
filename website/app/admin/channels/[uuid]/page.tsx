@@ -39,7 +39,21 @@ export default function EditChannelPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-white mb-8">Edit Channel</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-white">Edit Channel</h1>
+        <div className="bg-background-card px-4 py-2 rounded-lg border border-gray-800 flex items-center gap-3">
+            <span className="text-text-secondary text-sm font-mono">{uuid}</span>
+            <button 
+                onClick={() => {
+                    navigator.clipboard.writeText(uuid as string);
+                    alert('UUID Copied!');
+                }}
+                className="text-primary hover:text-primary-dark text-xs font-semibold uppercase tracking-wider"
+            >
+                Copy UUID
+            </button>
+        </div>
+      </div>
       <div className="bg-background-card p-6 rounded-lg border border-gray-800">
         <ChannelForm initialData={channel} isEditing={true} />
       </div>

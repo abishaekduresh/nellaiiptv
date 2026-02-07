@@ -266,6 +266,15 @@ export default function ChannelsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
+                        <a
+                          href={`/channels/preview/${channel.uuid}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 p-2 rounded transition-colors"
+                          title="Preview Player"
+                        >
+                          <ExternalLink size={16} />
+                        </a>
                         <button
                           onClick={() => setDetailsUuid(channel.uuid)}
                           className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 p-2 rounded transition-colors"

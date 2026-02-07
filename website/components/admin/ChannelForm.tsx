@@ -31,6 +31,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
     category_id: '',
     is_featured: false,
     is_premium: false,
+    is_preview_public: false,
     allowed_platforms: 'web,android,ios,tv',
     status: 'active',
     user_agent: '',
@@ -438,7 +439,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
             />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div 
                 onClick={() => setFormData({ ...formData, is_featured: !formData.is_featured })}
                 className={`cursor-pointer rounded-xl border-2 p-6 flex flex-col items-center gap-3 transition-all duration-200 group text-center ${
@@ -496,6 +497,26 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
                 </div>
                 <div className={`mt-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.status === 'active' ? 'border-emerald-500' : 'border-slate-600'}`}>
                     {formData.status === 'active' && <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                </div>
+            </div>
+
+            <div 
+                onClick={() => setFormData({ ...formData, is_preview_public: !formData.is_preview_public })}
+                className={`cursor-pointer rounded-xl border-2 p-6 flex flex-col items-center gap-3 transition-all duration-200 group text-center ${
+                    formData.is_preview_public 
+                    ? 'border-cyan-500 bg-cyan-500/10 shadow-[0_0_20px_rgba(6,182,212,0.1)]' 
+                    : 'border-slate-800 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-900'
+                }`}
+            >
+                <div className={`p-3 rounded-full mb-1 ${formData.is_preview_public ? 'bg-cyan-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
+                    <Monitor size={24} />
+                </div>
+                <div>
+                    <h4 className={`font-bold text-sm ${formData.is_preview_public ? 'text-white' : 'text-slate-400'}`}>Public Preview</h4>
+                    <p className="text-xs text-slate-500 mt-1">Allow preview without login</p>
+                </div>
+                <div className={`mt-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.is_preview_public ? 'border-cyan-500' : 'border-slate-600'}`}>
+                    {formData.is_preview_public && <div className="w-2.5 h-2.5 rounded-full bg-cyan-500" />}
                 </div>
             </div>
         </div>

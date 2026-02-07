@@ -2,6 +2,11 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.35.1] - Backend - 2026-02-07
+
+### Improved
+- **Debug Logging**: Added detailed `error_log` instrumentation to `ChannelController::show` for granular access control diagnostics (checking Open Access, Admin, and Preview Public states).
+
 ## [1.35.0] - Backend - 2026-02-07
 
 ### Added

@@ -60,6 +60,7 @@ class ChannelController
         $data['is_featured'] = filter_var($data['is_featured'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $data['is_premium'] = filter_var($data['is_premium'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $data['is_ad_enabled'] = filter_var($data['is_ad_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $data['is_preview_public'] = filter_var($data['is_preview_public'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         // Handle File Uploads
         if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
@@ -118,6 +119,7 @@ class ChannelController
         if (isset($data['is_featured'])) $data['is_featured'] = filter_var($data['is_featured'], FILTER_VALIDATE_BOOLEAN);
         if (isset($data['is_premium'])) $data['is_premium'] = filter_var($data['is_premium'], FILTER_VALIDATE_BOOLEAN);
         if (isset($data['is_ad_enabled'])) $data['is_ad_enabled'] = filter_var($data['is_ad_enabled'], FILTER_VALIDATE_BOOLEAN);
+        if (isset($data['is_preview_public'])) $data['is_preview_public'] = filter_var($data['is_preview_public'], FILTER_VALIDATE_BOOLEAN);
 
         unset($data['thumbnail_url']); // Frontend might send this
         unset($data['logo_url']);      // Frontend might send this

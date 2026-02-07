@@ -1,3 +1,11 @@
+## [1.8.14+30] - App | [1.46.1] - Website | [1.35.1] - Backend - 2026-02-07
+
+### Website (Next.js)
+- **Fix**: **Player Props Types** - Resolved TypeScript compatibility issue for `channelUuid` in player props.
+
+### Backend (PHP)
+- **Fix**: **Access Control Logging** - Enhanced debug logging for channel access control to aid troubleshooting.
+
 ## [1.8.14+30] - App | [1.46.0] - Website | [1.35.0] - Backend - 2026-02-07
 
 ### Website (Next.js)
