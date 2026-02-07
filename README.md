@@ -4,22 +4,37 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ## Components
 
-### `frontend` (Next.js)
+### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.45.0
-- **Key Features**: Channel Views Report, Searchable Filters, JPEG/CSV Export, Serial Numbers.
+- **Version**: 1.46.0
+- **Key Features**: Admin Settings UI Modernization, Developer Tools Protection, Platform Availability Control.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.34.0
-- **Key Features**: Analytics API, Status Filtering, Report Generation.
+- **Version**: 1.35.0
+- **Key Features**: Platform Blocking System, Global Channel Control, Enhanced Channel Service.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
 - **Version**: 1.8.14+30
 - **Key Features**: Device Initialization, Enhanced Compatibility, Startup Improvements.
 
-## Recent Updates (v1.8.14+30 App / v1.45.0 Frontend / v1.34.0 Backend)
+## Recent Updates (v1.8.14+30 App / v1.46.0 Website / v1.35.0 Backend)
+
+### Website (Next.js)
+- **Feature**: **Developer Tools Protection** - Comprehensive DevTools blocking system with keyboard shortcut blocking, console disabling, and progressive enforcement.
+- **Feature**: **Platform Availability Settings** - Global channel control interface with emergency block toggle and individual platform disable options.
+- **Feature**: **Admin Settings UI Modernization** - Complete visual overhaul with color-coded gradient sections, glassmorphism effects, and enhanced spacing.
+- **Improvement**: **Visual Design** - Applied modern design patterns across all 8 settings sections with distinct color themes and improved accessibility.
+
+### Backend (PHP)
+- **Feature**: **Platform Blocking System** - Global channel blocking with `block_all_channels` and `disabled_platforms` settings.
+- **Improvement**: **Channel Service** - Enhanced with centralized platform blocking logic across all retrieval methods.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.14+30 App / v1.45.0 Website / v1.34.0 Backend)
 
 ### App (Flutter)
 - **Feature**: **Device Utilities** - Centralized device initialization system for improved compatibility across Android devices.

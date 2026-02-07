@@ -178,29 +178,50 @@ export default function SettingsPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-white mb-8">System Settings</h1>
+    <div className="max-w-6xl mx-auto">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-white mb-2">System Settings</h1>
+        <p className="text-slate-400">Manage your application configuration, branding, and platform availability</p>
+      </div>
       
-      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl">
-        <div className="space-y-6">
+      {/* General Settings */}
+      <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/30 backdrop-blur-sm p-8 rounded-2xl border border-slate-700/50 shadow-2xl mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Save className="text-primary" size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">General Settings</h2>
+            <p className="text-sm text-slate-400">Configure basic application settings</p>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
           {settings.length === 0 ? (
-            <p className="text-text-secondary">No settings found.</p>
+            <div className="text-center py-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800 mb-4">
+                <Save className="text-slate-600" size={32} />
+              </div>
+              <p className="text-slate-400">No settings found.</p>
+            </div>
           ) : (
             settings.map((setting) => (
-              <div key={setting.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                <label className="text-text-secondary font-medium capitalize">
+              <div key={setting.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 rounded-xl bg-slate-800/40 border border-slate-700/30 hover:border-slate-600/50 transition-all">
+                <label className="text-slate-300 font-semibold capitalize">
                   {setting.setting_key.replace(/_/g, ' ')}
                 </label>
-                <div className="md:col-span-3 flex gap-4">
+                <div className="md:col-span-3 flex gap-3">
                   <textarea
                     value={setting.setting_value}
                     onChange={(e) => handleUpdate(setting.setting_key, e.target.value)}
-                    className="flex-1 bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                    className="flex-1 bg-slate-900/60 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                    rows={2}
                   />
                   <button
                     onClick={() => handleSave(setting.setting_key, setting.setting_value)}
                     disabled={saving}
-                    className="bg-primary hover:bg-primary-dark text-white p-2 rounded-lg transition-colors"
+                    className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
                     title="Save"
                   >
                     <Save size={20} />
@@ -213,18 +234,29 @@ export default function SettingsPage() {
       </div>
 
       {/* Payment Settings */}
-      <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
-        <div className="text-primary">₹</div>
-        Payment Gateway Settings
-      </h2>
-      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl mb-12">
-        <div className="space-y-6">
+      <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-800/10 backdrop-blur-sm p-8 rounded-2xl border border-emerald-700/30 shadow-2xl mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-emerald-500/10 rounded-lg">
+            <div className="text-2xl text-emerald-400">₹</div>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Payment Gateway Settings</h2>
+            <p className="text-sm text-slate-400">Configure payment providers for transactions</p>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
             
             {/* Razorpay */}
-            <div className="flex items-center justify-between p-4 bg-slate-900 rounded-lg border border-gray-700">
-                <div>
-                    <h3 className="font-semibold text-white">Enable Razorpay</h3>
-                    <p className="text-sm text-slate-400">Accept payments via Razorpay. Keys must be configured in .env.</p>
+            <div className="flex items-center justify-between p-5 bg-slate-800/60 rounded-xl border border-slate-700/40 hover:border-emerald-500/30 transition-all group">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-all">
+                        <span className="text-2xl">💳</span>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-white text-lg">Razorpay</h3>
+                        <p className="text-sm text-slate-400">Accept payments via Razorpay. Keys must be configured in .env.</p>
+                    </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                     <input 
@@ -237,15 +269,20 @@ export default function SettingsPage() {
                             handleSave('gateway_razorpay_enabled', newValue);
                         }} 
                     />
-                     <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div className="w-14 h-7 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500 shadow-lg"></div>
                 </label>
             </div>
 
             {/* Cashfree */}
-            <div className="flex items-center justify-between p-4 bg-slate-900 rounded-lg border border-gray-700">
-                <div>
-                    <h3 className="font-semibold text-white">Enable Cashfree</h3>
-                    <p className="text-sm text-slate-400">Accept payments via Cashfree. Keys must be configured in .env.</p>
+            <div className="flex items-center justify-between p-5 bg-slate-800/60 rounded-xl border border-slate-700/40 hover:border-emerald-500/30 transition-all group">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-all">
+                        <span className="text-2xl">💰</span>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-white text-lg">Cashfree</h3>
+                        <p className="text-sm text-slate-400">Accept payments via Cashfree. Keys must be configured in .env.</p>
+                    </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                     <input 
@@ -258,7 +295,7 @@ export default function SettingsPage() {
                             handleSave('gateway_cashfree_enabled', newValue);
                         }} 
                     />
-                     <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div className="w-14 h-7 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500 shadow-lg"></div>
                 </label>
             </div>
 
@@ -266,48 +303,57 @@ export default function SettingsPage() {
       </div>
 
       {/* Branding Settings */}
-      <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
-        <Image className="text-primary" />
-        Branding Settings
-      </h2>
-      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-              <label className="text-text-secondary font-medium">Application Logo</label>
+      <div className="bg-gradient-to-br from-purple-900/20 to-purple-800/10 backdrop-blur-sm p-8 rounded-2xl border border-purple-700/30 shadow-2xl mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-purple-500/10 rounded-lg">
+            <Image className="text-purple-400" size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Branding Settings</h2>
+            <p className="text-sm text-slate-400">Customize your application logos and branding</p>
+          </div>
+        </div>
+        
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+              <label className="text-slate-300 font-semibold">Application Logo</label>
               <div className="md:col-span-3">
                   <div className="flex items-center gap-4">
                       {settings.find(s => s.setting_key === 'logo_url') && (
-                          <div className="w-16 h-16 bg-slate-900 rounded-lg border border-gray-700 overflow-hidden">
+                          <div className="w-20 h-20 bg-slate-900 rounded-xl border-2 border-purple-500/30 overflow-hidden shadow-lg">
                               <img 
                                   src={settings.find(s => s.setting_key === 'logo_url')?.setting_value} 
                                   alt="Current Logo" 
-                                  className="w-full h-full object-contain"
+                                  className="w-full h-full object-contain p-2"
                               />
                           </div>
                       )}
                       
-                      <label className={`bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg cursor-pointer transition-colors ${uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          {uploadingLogo ? 'Uploading...' : 'Upload New Logo'}
-                          <input 
-                              type="file" 
-                              accept="image/*" 
-                              className="hidden" 
-                              onChange={handleLogoUpload} 
-                              disabled={uploadingLogo}
-                          />
-                      </label>
-                      <p className="text-xs text-slate-500">
-                          Recommended: 512x512 PNG/WEBP
-                      </p>
+                      <div className="flex-1">
+                          <label className={`inline-block bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-lg shadow-purple-500/20 ${uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                              {uploadingLogo ? 'Uploading...' : '📤 Upload New Logo'}
+                              <input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  className="hidden" 
+                                  onChange={handleLogoUpload} 
+                                  disabled={uploadingLogo}
+                              />
+                          </label>
+                          <p className="text-xs text-slate-500 mt-2">
+                              Recommended: 512x512 PNG/WEBP
+                          </p>
+                      </div>
                   </div>
               </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center mt-6 pt-6 border-t border-gray-800">
-              <label className="text-text-secondary font-medium">Player Overlay Logo (PNG)</label>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+              <label className="text-slate-300 font-semibold">Player Overlay Logo</label>
               <div className="md:col-span-3">
                   <div className="flex items-center gap-4">
                       {settings.find(s => s.setting_key === 'app_logo_png_path') && (
-                          <div className="w-16 h-16 bg-slate-900 rounded-lg border border-gray-700 overflow-hidden flex items-center justify-center">
+                          <div className="w-20 h-20 bg-slate-900 rounded-xl border-2 border-purple-500/30 overflow-hidden flex items-center justify-center shadow-lg">
                               <img 
                                   src={settings.find(s => s.setting_key === 'app_logo_png_path')?.setting_value} 
                                   alt="App Logo PNG" 
@@ -316,35 +362,49 @@ export default function SettingsPage() {
                           </div>
                       )}
                       
-                      <label className={`bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg cursor-pointer transition-colors ${uploadingPngLogo ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          {uploadingPngLogo ? 'Uploading...' : 'Upload PNG Logo'}
-                          <input 
-                              type="file" 
-                              accept="image/png" 
-                              className="hidden" 
-                              onChange={handlePngLogoUpload} 
-                              disabled={uploadingPngLogo}
-                          />
-                      </label>
-                      <p className="text-xs text-slate-500">
-                          Required: Transparent PNG
-                      </p>
+                       <div className="flex-1">
+                          <label className={`inline-block bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-lg shadow-purple-500/20 ${uploadingPngLogo ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                              {uploadingPngLogo ? 'Uploading...' : '📤 Upload PNG Logo'}
+                              <input 
+                                  type="file" 
+                                  accept="image/png"
+                                  className="hidden" 
+                                  onChange={handlePngLogoUpload} 
+                                  disabled={uploadingPngLogo}
+                              />
+                          </label>
+                          <p className="text-xs text-slate-500 mt-2">
+                              Required: Transparent PNG
+                          </p>
+                      </div>
                   </div>
               </div>
           </div>
+        </div>
       </div>
 
       {/* Maintenance Mode */}
-      <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
-        <Hammer className="text-primary" />
-        Maintenance Mode
-      </h2>
-      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl mb-12">
-        <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-slate-900 rounded-lg border border-gray-700">
-                <div>
-                    <h3 className="font-semibold text-white">Enable Maintenance Mode</h3>
-                    <p className="text-sm text-slate-400">Restrict public access to the application. Admins can still login.</p>
+      <div className="bg-gradient-to-br from-orange-900/20 to-orange-800/10 backdrop-blur-sm p-8 rounded-2xl border border-orange-700/30 shadow-2xl mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-orange-500/10 rounded-lg">
+            <Hammer className="text-orange-400" size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Maintenance Mode</h2>
+            <p className="text-sm text-slate-400">Control public access during maintenance periods</p>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+            <div className="flex items-center justify-between p-5 bg-slate-800/60 rounded-xl border border-slate-700/40 hover:border-orange-500/30 transition-all">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                        <span className="text-2xl">🚧</span>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-white text-lg">Enable Maintenance Mode</h3>
+                        <p className="text-sm text-slate-400">Restrict public access. Admins can still login.</p>
+                    </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                     <input 
@@ -353,28 +413,28 @@ export default function SettingsPage() {
                         checked={settings.find(s => s.setting_key === 'maintenance_mode')?.setting_value === '1'}
                         onChange={(e) => {
                             const newValue = e.target.checked ? '1' : '0';
-                            handleUpdate('maintenance_mode', newValue); // Optimistic immediate update
-                            handleSave('maintenance_mode', newValue); // Background save
+                            handleUpdate('maintenance_mode', newValue);
+                            handleSave('maintenance_mode', newValue);
                         }} 
                     />
-                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div className="w-14 h-7 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-orange-500 shadow-lg"></div>
                 </label>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                <label className="text-text-secondary font-medium">Screen Title</label>
-                <div className="md:col-span-3 flex gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+                <label className="text-slate-300 font-semibold">Screen Title</label>
+                <div className="md:col-span-3 flex gap-3">
                      <input
                         type="text"
                         value={settings.find(s => s.setting_key === 'maintenance_title')?.setting_value || ''}
                         onChange={(e) => handleUpdate('maintenance_title', e.target.value)}
                         placeholder="e.g., Under Maintenance"
-                        className="flex-1 bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                        className="flex-1 bg-slate-900/60 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                     />
                      <button
                         onClick={() => handleSave('maintenance_title', settings.find(s => s.setting_key === 'maintenance_title')?.setting_value || '')}
                         disabled={saving}
-                        className="bg-primary hover:bg-primary-dark text-white p-2 rounded-lg transition-colors"
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20"
                         title="Save"
                     >
                         <Save size={20} />
@@ -382,19 +442,20 @@ export default function SettingsPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                <label className="text-text-secondary font-medium">Screen Message</label>
-                <div className="md:col-span-3 flex gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+                <label className="text-slate-300 font-semibold">Screen Message</label>
+                <div className="md:col-span-3 flex gap-3">
                     <textarea
                         value={settings.find(s => s.setting_key === 'maintenance_message')?.setting_value || ''}
                         onChange={(e) => handleUpdate('maintenance_message', e.target.value)}
                         placeholder="e.g., We are currently upgrading our system..."
-                        className="flex-1 bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                        rows={3}
+                        className="flex-1 bg-slate-900/60 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all resize-none"
                     />
                       <button
                         onClick={() => handleSave('maintenance_message', settings.find(s => s.setting_key === 'maintenance_message')?.setting_value || '')}
                         disabled={saving}
-                        className="bg-primary hover:bg-primary-dark text-white p-2 rounded-lg transition-colors"
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20"
                         title="Save"
                     >
                         <Save size={20} />
@@ -405,14 +466,20 @@ export default function SettingsPage() {
       </div>
 
       {/* Display Settings */}
-      <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
-        <LayoutGrid className="text-primary" />
-        Display Settings
-      </h2>
-      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl mb-12">
+      <div className="bg-gradient-to-br from-cyan-900/20 to-cyan-800/10 backdrop-blur-sm p-8 rounded-2xl border border-cyan-700/30 shadow-2xl mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-cyan-500/10 rounded-lg">
+            <LayoutGrid className="text-cyan-400" size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Display Settings</h2>
+            <p className="text-sm text-slate-400">Configure visibility and display options across platforms</p>
+          </div>
+        </div>
+        
         <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-                <label className="text-text-secondary font-medium pt-2">Top Trending Visibility</label>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+                <label className="text-slate-300 font-semibold pt-2">Top Trending Visibility</label>
                 <div className="md:col-span-3">
                     <p className="text-sm text-slate-400 mb-4">Select platforms where the "Top Trending" section should be visible.</p>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -426,7 +493,7 @@ export default function SettingsPage() {
                             const isChecked = platforms.includes(platform.id);
 
                             return (
-                                <label key={platform.id} className={`flex flex-col items-center justify-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${isChecked ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}`}>
+                                <label key={platform.id} className={`flex flex-col items-center justify-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${isChecked ? 'bg-cyan-500/10 border-cyan-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}`}>
                                     <input 
                                         type="checkbox" 
                                         className="hidden" 
@@ -436,15 +503,14 @@ export default function SettingsPage() {
                                                 ? [...platforms, platform.id]
                                                 : platforms.filter(p => p !== platform.id);
                                             
-                                            // Ensure unique and save as string
                                             const uniquePlatforms = Array.from(new Set(newPlatforms)).join(',');
                                             handleSave('top_trending_platforms', uniquePlatforms);
                                             handleUpdate('top_trending_platforms', uniquePlatforms);
                                         }}
                                     />
-                                    <platform.icon size={24} className={isChecked ? 'text-primary' : 'text-slate-500'} />
+                                    <platform.icon size={24} className={isChecked ? 'text-cyan-400' : 'text-slate-500'} />
                                     <span className="font-bold text-sm">{platform.label}</span>
-                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isChecked ? 'bg-primary border-primary' : 'border-slate-600'}`}>
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isChecked ? 'bg-cyan-500 border-cyan-500' : 'border-slate-600'}`}>
                                         {isChecked && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                     </div>
                                 </label>
@@ -457,26 +523,120 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Platform Availability Settings */}
+      <div className="bg-gradient-to-br from-red-900/20 to-red-800/10 backdrop-blur-sm p-8 rounded-2xl border border-red-700/30 shadow-2xl mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-red-500/10 rounded-lg">
+            <Monitor className="text-red-400" size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Platform Availability Settings</h2>
+            <p className="text-sm text-slate-400">Control channel availability across different platforms</p>
+          </div>
+        </div>
+        
+        <div className="space-y-6">
+            {/* Global Block All Channels */}
+            <div className="flex items-center justify-between p-5 bg-red-900/30 rounded-xl border border-red-700/60 shadow-lg">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-red-500/20 flex items-center justify-center">
+                        <span className="text-2xl">🚫</span>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-white text-lg flex items-center gap-2">
+                          Block All Channels (Emergency)
+                        </h3>
+                        <p className="text-sm text-slate-400">Temporarily disable all channels across all platforms. Use this for maintenance or emergencies.</p>
+                    </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={settings.find(s => s.setting_key === 'block_all_channels')?.setting_value === '1'}
+                        onChange={(e) => {
+                            const newValue = e.target.checked ? '1' : '0';
+                            handleUpdate('block_all_channels', newValue);
+                            handleSave('block_all_channels', newValue);
+                        }} 
+                    />
+                    <div className="w-14 h-7 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-600 shadow-lg"></div>
+                </label>
+            </div>
+
+            {/* Individual Platform Toggles */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start pt-6 border-t border-red-700/30">
+                <label className="text-slate-300 font-semibold pt-2">Disable Specific Platforms</label>
+                <div className="md:col-span-3">
+                    <p className="text-sm text-slate-400 mb-4">Disable channels for specific platforms individually.</p>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {[
+                            { id: 'web', label: 'Website', icon: Monitor },
+                            { id: 'android', label: 'Android', icon: Smartphone },
+                            { id: 'ios', label: 'iOS', icon: Smartphone },
+                            { id: 'tv', label: 'TV', icon: Tv },
+                        ].map((platform) => {
+                            const disabledPlatformsStr = settings.find(s => s.setting_key === 'disabled_platforms')?.setting_value || '';
+                            const disabledPlatforms = disabledPlatformsStr.split(',').map(s => s.trim()).filter(Boolean);
+                            const isDisabled = disabledPlatforms.includes(platform.id);
+
+                            return (
+                                <label key={platform.id} className={`flex flex-col items-center justify-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${isDisabled ? 'bg-red-500/10 border-red-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}`}>
+                                    <input 
+                                        type="checkbox" 
+                                        className="hidden" 
+                                        checked={isDisabled}
+                                        onChange={(e) => {
+                                            const newDisabledPlatforms = e.target.checked 
+                                                ? [...disabledPlatforms, platform.id]
+                                                : disabledPlatforms.filter(p => p !== platform.id);
+                                            
+                                            const uniquePlatforms = Array.from(new Set(newDisabledPlatforms)).join(',');
+                                            handleSave('disabled_platforms', uniquePlatforms);
+                                            handleUpdate('disabled_platforms', uniquePlatforms);
+                                        }}
+                                    />
+                                    <platform.icon size={24} className={isDisabled ? 'text-red-500' : 'text-slate-500'} />
+                                    <span className="font-bold text-sm">{platform.label}</span>
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isDisabled ? 'bg-red-500 border-red-500' : 'border-slate-600'}`}>
+                                        {isDisabled && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                    </div>
+                                </label>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+      </div>
+
       {/* Contact Settings */}
-      <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
-        <Mail className="text-primary" />
-        Contact Settings
-      </h2>
-      <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl mb-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-          <label className="text-text-secondary font-medium">Webhook URL</label>
-          <div className="md:col-span-3 flex gap-4">
+      <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/10 backdrop-blur-sm p-8 rounded-2xl border border-blue-700/30 shadow-2xl mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-blue-500/10 rounded-lg">
+            <Mail className="text-blue-400" size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Contact Settings</h2>
+            <p className="text-sm text-slate-400">Configure webhook URL for contact form submissions</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+          <label className="text-slate-300 font-semibold">Webhook URL</label>
+          <div className="md:col-span-3 flex gap-3">
             <input
               type="url"
               value={settings.find(s => s.setting_key === 'contact_webhook_url')?.setting_value || ''}
               onChange={(e) => handleUpdate('contact_webhook_url', e.target.value)}
               placeholder="https://example.com/webhook"
-              className="flex-1 bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+              className="flex-1 bg-slate-900/60 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
             />
             <button
               onClick={() => handleSave('contact_webhook_url', settings.find(s => s.setting_key === 'contact_webhook_url')?.setting_value || '')}
               disabled={saving}
-              className="bg-primary hover:bg-primary-dark text-white p-2 rounded-lg transition-colors"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/20"
               title="Save"
             >
               <Save size={20} />
@@ -490,34 +650,40 @@ export default function SettingsPage() {
 
       {/* Password Change Section */}
         <>
-          <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center gap-2">
-            <Lock className="text-primary" />
-            Security Settings
-          </h2>
-          <div className="bg-background-card p-6 rounded-lg border border-gray-800 max-w-4xl">
-            <form onSubmit={handlePasswordChange} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                <label className="text-text-secondary font-medium">Current Password</label>
+          <div className="bg-gradient-to-br from-indigo-900/20 to-indigo-800/10 backdrop-blur-sm p-8 rounded-2xl border border-indigo-700/30 shadow-2xl mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-indigo-500/10 rounded-lg">
+                <Lock className="text-indigo-400" size={24} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Security Settings</h2>
+                <p className="text-sm text-slate-400">Update your admin password and security preferences</p>
+              </div>
+            </div>
+            
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+                <label className="text-slate-300 font-semibold">Current Password</label>
                 <div className="md:col-span-3">
                   <input
                     type="password"
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
-                    className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                    className="w-full bg-slate-900/60 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                     placeholder="Enter current password"
                     required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                <label className="text-text-secondary font-medium">New Password</label>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+                <label className="text-slate-300 font-semibold">New Password</label>
                 <div className="md:col-span-3">
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                    className="w-full bg-slate-900/60 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                     placeholder="Enter new password (min 6 chars)"
                     minLength={6}
                     required
@@ -525,27 +691,28 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                <label className="text-text-secondary font-medium">Confirm Password</label>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+                <label className="text-slate-300 font-semibold">Confirm Password</label>
                 <div className="md:col-span-3">
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                    className="w-full bg-slate-900/60 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                     placeholder="Confirm new password"
+                    minLength={6}
                     required
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-gray-800">
+              <div className="flex justify-end pt-4">
                 <button
                   type="submit"
                   disabled={changingPassword}
-                  className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white px-8 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20 font-semibold"
                 >
-                  {changingPassword ? 'Updating...' : 'Update Password'}
+                  {changingPassword ? 'Updating...' : '🔒 Update Password'}
                 </button>
               </div>
             </form>

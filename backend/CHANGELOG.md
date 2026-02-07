@@ -2,6 +2,25 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.35.0] - Backend - 2026-02-07
+
+### Added
+- **Platform Availability Control**: New global channel blocking system for platform-specific control.
+  - `isChannelsBlocked()` method in `ChannelService` to check global blocking settings
+  - Support for `block_all_channels` setting (emergency toggle)
+  - Support for `disabled_platforms` setting (comma-separated platform IDs)
+  - Platform blocking logic integrated into `getAll()`, `getFeatured()`, `getNew()`, and `getRelated()` methods
+- **Settings Model Import**: Added `Setting` model import to `ChannelService` for database access
+
+### Improved
+- **Channel Filtering**: All channel retrieval methods now check platform availability before returning results
+- **Empty Response Handling**: Returns properly formatted empty arrays/pagination when channels are blocked
+- **Platform Validation**: Validates platform parameter against blocked platforms list
+
+### Changed
+- **Service Architecture**: Enhanced `ChannelService` with centralized platform blocking logic
+- **API Responses**: Channel endpoints now respect global and platform-specific blocking settings
+
 ## [1.34.0] - Backend - 2026-02-06
 
 ### Added

@@ -36,6 +36,7 @@ export const metadata: Metadata = {
 
 import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import DevToolsControl from "@/components/DevToolsControl";
 
 import LiteRouteGuard from "@/components/LiteRouteGuard";
 
@@ -49,6 +50,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-slate-950 text-white">
         <GoogleAnalytics />
         <GoogleTagManager />
+        <DevToolsControl />
         <FaviconUpdater />
         <TVNavigationProvider>
           <ViewModeProvider>

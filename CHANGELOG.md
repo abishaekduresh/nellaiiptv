@@ -1,4 +1,35 @@
-## [1.8.14+30] - App | [1.45.0] - Frontend | [1.34.0] - Backend - 2026-02-07
+## [1.8.14+30] - App | [1.46.0] - Website | [1.35.0] - Backend - 2026-02-07
+
+### Website (Next.js)
+- **Feature**: **Developer Tools Protection** - Implemented comprehensive DevTools blocking system with `DevToolsControl` component.
+  - Disables right-click context menus and common keyboard shortcuts (F12, Ctrl+Shift+I, etc.)
+  - Detects DevTools access via browser menus using window size detection
+  - Disables console methods (log, warn, error, debug, info)
+  - Configurable via `NEXT_PUBLIC_DISABLE_DEVTOOLS` environment variable
+  - Progressive enforcement: redirects to root on first/second attempt, closes tab on third attempt
+- **Feature**: **Platform Availability Settings** - New admin interface for global channel control across platforms.
+  - Emergency "Block All Channels" toggle for maintenance scenarios
+  - Individual platform disable toggles (Website, Android, iOS, TV)
+  - Visual feedback with color-coded states and platform icons
+- **Feature**: **Admin Settings UI Modernization** - Complete visual overhaul of `/admin/settings` page.
+  - Color-coded gradient sections (8 distinct themes: Slate, Emerald, Purple, Orange, Cyan, Red, Blue, Indigo)
+  - Glassmorphism effects with backdrop blur and enhanced shadows
+  - Larger toggles (14px), improved buttons with hover animations, and enhanced input fields with focus rings
+  - Section-specific icons and descriptive subtitles for better navigation
+- **Improvement**: **Settings Page Design** - Applied modern design patterns across all sections with clear visual hierarchy and responsive layouts.
+
+### Backend (PHP)
+- **Feature**: **Platform Availability Control** - New global channel blocking system for platform-specific control.
+  - `isChannelsBlocked()` method in `ChannelService` to check global blocking settings
+  - Support for `block_all_channels` setting (emergency toggle)
+  - Support for `disabled_platforms` setting (comma-separated platform IDs: web, android, ios, tv)
+  - Platform blocking logic integrated into `getAll()`, `getFeatured()`, `getNew()`, and `getRelated()` methods
+- **Improvement**: **Channel Filtering** - All channel retrieval methods now check platform availability before returning results.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized.
+
+## [1.8.14+30] - App | [1.45.0] - Website | [1.34.0] - Backend - 2026-02-07
 
 ### App (Flutter)
 - **Feature**: **Device Utilities** - Implemented centralized `DeviceUtils` initialization in main.dart for improved device compatibility checks.

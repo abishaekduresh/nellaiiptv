@@ -8,12 +8,39 @@ use App\Models\ChannelView;
 use App\Models\ChannelComment;
 use App\Models\ChannelReport;
 use App\Models\LiveViewer;
+use App\Models\Setting;
 use Ramsey\Uuid\Uuid;
 use Exception;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class ChannelService
 {
+    /**
+     * Check if channels should be blocked globally
+     * @param string $platform The platform making the request (web, android, ios, tv)
+     * @return bool True if channels should be blocked
+     */
+    private function isChannelsBlocked(string $platform): bool
+    {
+        // Check if all channels are blocked globally
+        $blockAll = Setting::where('setting_key', 'block_all_channels')->value('setting_value');
+        if ($blockAll === '1') {
+            return true;
+        }
+
+        // Check if specific platform is disabled
+        $disabledPlatforms = Setting::where('setting_key', 'disabled_platforms')->value('setting_value');
+        if ($disabledPlatforms) {
+            $disabled = explode(',', $disabledPlatforms);
+            $disabled = array_map('trim', $disabled);
+            if (in_array($platform, $disabled)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function formatViewCount($count): string
     {
         $count = (int)$count;
@@ -113,6 +140,28 @@ class ChannelService
 
     public function getAll(array $filters = [], bool $allowPremium = false): array
     {
+        // Check if channels are globally blocked for this platform
+        $platform = $filters['platform'] ?? 'web';
+        if ($this->isChannelsBlocked($platform)) {
+            // Return empty result set
+            return isset($filters['limit']) && (int)$filters['limit'] === -1 
+                ? [] 
+                : [
+                    'current_page' => 1,
+                    'data' => [],
+                    'first_page_url' => null,
+                    'from' => null,
+                    'last_page' => 1,
+                    'last_page_url' => null,
+                    'next_page_url' => null,
+                    'path' => null,
+                    'per_page' => isset($filters['limit']) ? (int)$filters['limit'] : 20,
+                    'prev_page_url' => null,
+                    'to' => null,
+                    'total' => 0
+                ];
+        }
+
         $query = Channel::query()
             ->select('channels.*')
             ->where('status', 'active')
@@ -223,6 +272,11 @@ class ChannelService
 
     public function getFeatured(int $limit = 20, string $platform = 'web', bool $allowPremium = false): array
     {
+        // Check if channels are globally blocked for this platform
+        if ($this->isChannelsBlocked($platform)) {
+            return [];
+        }
+
         $channels = Channel::where('status', 'active')
             ->where('is_featured', 1)
             ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
@@ -331,6 +385,11 @@ class ChannelService
 
     public function getRelated(string $uuid, string $platform = 'web', bool $allowPremium = false): array
     {
+        // Check if channels are globally blocked for this platform
+        if ($this->isChannelsBlocked($platform)) {
+            return [];
+        }
+
         $channel = $this->getOne($uuid);
         
         $channels = Channel::where('language_id', $channel->language_id)
@@ -353,6 +412,11 @@ class ChannelService
 
     public function getNew(string $platform = 'web', bool $allowPremium = false): array
     {
+        // Check if channels are globally blocked for this platform
+        if ($this->isChannelsBlocked($platform)) {
+            return [];
+        }
+
         $channels = Channel::where('status', 'active')
             ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
             ->orderBy('created_at', 'desc')

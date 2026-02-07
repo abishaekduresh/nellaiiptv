@@ -2,6 +2,50 @@
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
 
+## [1.46.0] - Website - 2026-02-07
+
+### Added
+- **Developer Tools Protection**: Implemented comprehensive DevTools blocking system with `DevToolsControl` component.
+  - Disables right-click context menus
+  - Blocks common developer tools keyboard shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
+  - Detects DevTools access via browser menus using window size detection
+  - Disables console methods (log, warn, error, debug, info)
+  - Configurable via `NEXT_PUBLIC_DISABLE_DEVTOOLS` environment variable
+  - Progressive enforcement: redirects to root on first/second attempt, closes tab on third attempt
+- **Platform Availability Settings**: New admin interface for global channel control across platforms.
+  - Emergency "Block All Channels" toggle for maintenance scenarios
+  - Individual platform disable toggles (Website, Android, iOS, TV)
+  - Visual feedback with color-coded states (red for disabled platforms)
+  - Grid layout with platform icons for easy management
+- **Admin Settings UI Modernization**: Complete visual overhaul of `/admin/settings` page.
+  - Color-coded gradient sections (8 distinct themes)
+  - Glassmorphism effects with backdrop blur
+  - Enhanced spacing and typography throughout
+  - Larger, more prominent buttons with hover animations
+  - Improved input fields with focus rings
+  - Section-specific icons and themes
+  - Modern card designs with rounded corners and shadows
+
+### Improved
+- **Settings Page Design**: Applied modern design patterns across all sections:
+  - General Settings: Slate theme with enhanced input cards
+  - Payment Gateway: Emerald theme with provider-specific cards
+  - Branding: Purple theme with improved upload controls
+  - Maintenance Mode: Orange warning theme with larger toggles
+  - Display Settings: Cyan theme with platform selection cards
+  - Platform Availability: Red emergency theme with prominent controls
+  - Contact Settings: Blue theme with enhanced webhook input
+  - Security Settings: Indigo theme with individual password field cards
+- **Visual Hierarchy**: Clear section separation with color psychology (green for payments, red for emergency, etc.)
+- **Responsive Design**: All settings sections adapt seamlessly to mobile, tablet, and desktop
+- **Interactive Elements**: Added hover scale effects, focus rings, and smooth transitions
+
+### Changed
+- **Toggle Switches**: Increased size from 11px to 14px width for better accessibility
+- **Button Styling**: Updated all save buttons with modern rounded corners and shadow effects
+- **Input Fields**: Enhanced with focus states, better borders, and improved padding
+- **Section Headers**: Now include icon containers and descriptive subtitles
+
 ## [1.45.0] - Website - 2026-02-06
 
 ### Added
