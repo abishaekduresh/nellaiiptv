@@ -65,7 +65,11 @@ class Channel extends Model
 
     public function getThumbnailUrlAttribute()
     {
-        return $this->formatUrl($this->attributes['thumbnail_path'] ?? null);
+        $path = $this->attributes['thumbnail_path'] ?? null;
+        if (empty($path)) {
+            $path = $this->attributes['logo_path'] ?? null;
+        }
+        return $this->formatUrl($path);
     }
 
     public function getLogoUrlAttribute()

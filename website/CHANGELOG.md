@@ -2,6 +2,15 @@
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
 
+## [1.47.0] - Website - 2026-02-10
+
+### Added
+- **Enhanced Export Filters**: Added comprehensive filtering support (Search, Category, Language, State, Status) in the Export Channels modal.
+
+### Improvements
+- **Persistent Filter State**: Export modal now automatically inherits and pre-fills active filters from the main channels list.
+- **Header Exposure**: Optimized CORS headers to allow frontend access to download filenames (`Content-Disposition`).
+
 ## [1.46.3] - Website - 2026-02-08
 
 ### Added

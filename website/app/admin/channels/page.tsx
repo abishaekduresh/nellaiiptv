@@ -8,6 +8,7 @@ import adminApi from '@/lib/adminApi';
 import { Category, Language, State } from '@/types';
 import ChannelAnalyticsModal from '@/components/admin/ChannelAnalyticsModal';
 import ChannelDetailsModal from '@/components/admin/ChannelDetailsModal';
+import ExportChannelsModal from '@/components/admin/ExportChannelsModal';
 
 interface AdminChannel {
   uuid: string;
@@ -45,6 +46,7 @@ export default function ChannelsPage() {
   // Analytics Modal State
   const [analyticsUuid, setAnalyticsUuid] = useState<string | null>(null);
   const [detailsUuid, setDetailsUuid] = useState<string | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const fetchFilters = async () => {
     try {
@@ -116,13 +118,22 @@ export default function ChannelsPage() {
     <div>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <h1 className="text-3xl font-bold text-white">Channels</h1>
-        <Link
-          href="/admin/channels/create"
-          className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors"
-        >
-          <Plus size={20} />
-          <span>Add Channel</span>
-        </Link>
+        <div className="flex gap-3">
+             <button
+                onClick={() => setShowExportModal(true)}
+                className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors border border-gray-700"
+             >
+                <Filter size={18} />
+                <span>Export CSV</span>
+             </button>
+            <Link
+              href="/admin/channels/create"
+              className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              <Plus size={20} />
+              <span>Add Channel</span>
+            </Link>
+        </div>
       </div>
 
       {/* Search and Filter */}
@@ -341,6 +352,22 @@ export default function ChannelsPage() {
             uuid={detailsUuid || ''} 
             isOpen={!!detailsUuid} 
             onClose={() => setDetailsUuid(null)} 
+        />
+        
+        {/* Export Modal */}
+        <ExportChannelsModal
+            isOpen={showExportModal}
+            onClose={() => setShowExportModal(false)}
+            categories={categories}
+            languages={languages}
+            states={states}
+            currentFilters={{
+                search,
+                category_id: filterCategory,
+                language_id: filterLanguage,
+                state_id: filterState,
+                status: filterStatus
+            }}
         />
       </div>
     </div>

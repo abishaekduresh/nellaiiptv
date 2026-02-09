@@ -2,6 +2,14 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
 
+## [1.36.0] - Backend - 2026-02-10
+
+### Added
+- **Filtered Exports**: Updated `ChannelService` and `ChannelController` to support granular filtering (Category, Language, State, Status, Search) for CSV exports.
+
+### Improvements
+- **CORS Middleware**: Exposed `Content-Disposition` header to ensure browsers can correctly resolve filenames during file downloads.
+
 ## [1.35.3] - Backend - 2026-02-09
 
 ### Maintenance

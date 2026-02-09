@@ -17,6 +17,7 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         // Channel Management
         $group->get('/channels', [\App\Controllers\Admin\ChannelController::class, 'index']);
         $group->post('/channels', [\App\Controllers\Admin\ChannelController::class, 'create']);
+        $group->get('/channels/export', [\App\Controllers\Admin\ChannelController::class, 'export']); // Export Route
         $group->get('/channels/next-number', [\App\Controllers\Admin\ChannelController::class, 'getNextChannelNumber']); // Must be before {uuid}
         $group->get('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'show']);
         $group->put('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'update']);

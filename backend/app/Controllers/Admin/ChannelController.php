@@ -29,21 +29,179 @@ class ChannelController
         }
     }
 
-    private function handleUpload($file, $directory)
+    public function export(Request $request, Response $response): Response
+    {
+        $filters = $request->getQueryParams();
+        $columnsParam = $filters['columns'] ?? '';
+        $columns = !empty($columnsParam) ? explode(',', $columnsParam) : [];
+
+        if (empty($columns)) {
+             return ResponseFormatter::error($response, 'No columns selected for export', 400);
+        }
+
+        // Validate Columns (Security)
+        $allowedColumns = [
+            'id', 'uuid', 'name', 'channel_number', 'category', 'language', 
+            'state', 'district', 'status', 'views', 'is_premium', 'is_featured', 
+            'created_at', 'hls_url'
+        ];
+
+        $validColumns = array_intersect($columns, $allowedColumns);
+        
+        if (empty($validColumns)) {
+            return ResponseFormatter::error($response, 'Invalid columns selected', 400);
+        }
+
+        // Header Mapping (for display)
+        $headerMap = [
+            'id' => 'ID',
+            'uuid' => 'UUID',
+            'name' => 'Name',
+            'channel_number' => 'Channel Number',
+            'category' => 'Category',
+            'language' => 'Language',
+            'state' => 'State',
+            'district' => 'District',
+            'status' => 'Status',
+            'views' => 'Total Views',
+            'is_premium' => 'Premium',
+            'is_featured' => 'Featured',
+            'created_at' => 'Created At',
+            'hls_url' => 'Stream URL'
+        ];
+
+        try {
+            $generator = $this->channelService->export($filters, $validColumns);
+            
+            $response = $response
+                ->withHeader('Content-Type', 'text/csv')
+                ->withHeader('Content-Disposition', 'attachment; filename="channels_export_' . date('Y-m-d_H-i-s') . '.csv"')
+                ->withHeader('Pragma', 'no-cache')
+                ->withHeader('Expires', '0');
+
+            $body = $response->getBody();
+            
+            // Write Headers
+            $csvHeaders = [];
+            foreach ($validColumns as $col) {
+                $csvHeaders[] = $headerMap[$col] ?? ucfirst($col);
+            }
+            
+            $handle = fopen('php://temp', 'r+');
+            fputcsv($handle, $csvHeaders, ",", "\"", "\\"); // Explicitly set defaults for PHP 8.1+
+            rewind($handle);
+            $body->write(stream_get_contents($handle));
+            ftruncate($handle, 0); // Clear for reuse
+            
+            foreach ($generator as $row) {
+                // Resetting handle is faster than closing/opening
+                rewind($handle);
+                fputcsv($handle, array_values($row), ",", "\"", "\\"); // Explicitly set defaults for PHP 8.1+
+                rewind($handle);
+                $body->write(stream_get_contents($handle));
+                ftruncate($handle, 0);
+            }
+            
+            fclose($handle);
+
+            return $response;
+
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
+        }
+    }
+
+    private function handleUpload($file, $directory, $allowedExtensions = [], $convertToWebp = false, $channelName = null, $resizeDimensions = [])
     {
         if ($file->getError() === UPLOAD_ERR_OK) {
-            $extension = pathinfo($file->getClientFilename(), PATHINFO_EXTENSION);
-            // Sanitize and rename: timestamp_random.ext
-            $filename = time() . '_' . bin2hex(random_bytes(8)) . '.' . $extension;
+            $extension = strtolower(pathinfo($file->getClientFilename(), PATHINFO_EXTENSION));
+
+            // Validate Extension
+            if (!empty($allowedExtensions)) {
+                if (!in_array($extension, $allowedExtensions)) {
+                    throw new Exception("Invalid file type for $directory. Allowed: " . implode(', ', $allowedExtensions));
+                }
+            }
+
+            // Determine Target Extension
+            $targetExtension = $convertToWebp ? 'webp' : $extension;
+            
+            // Construct Filename
+            $prefix = '';
+            if (!empty($channelName)) {
+                // Sanitize: "DURESH TV" -> "duresh_tv"
+                $cleanName = preg_replace('/[^a-zA-Z0-9]+/', '_', strtolower($channelName));
+                $cleanName = trim($cleanName, '_');
+                if (!empty($cleanName)) {
+                    $prefix = $cleanName . '_';
+                }
+            }
+            
+            $filename = $prefix . time() . '.' . $targetExtension;
             
             // Ensure directory exists
             $path = __DIR__ . '/../../../public' . $directory;
             if (!file_exists($path)) {
                 mkdir($path, 0777, true);
             }
-            $file->moveTo($path . '/' . $filename);
-            
 
+            $targetPath = $path . '/' . $filename;
+            
+            $shouldProcess = $convertToWebp || !empty($resizeDimensions);
+
+            if ($shouldProcess && $extension === 'png') {
+                // Move to temp path first to handle safely
+                $tempPath = $path . '/' . time() . '_temp.' . $extension;
+                $file->moveTo($tempPath);
+
+                $sourceImage = imagecreatefrompng($tempPath);
+                if ($sourceImage) {
+                    // Get current dimensions
+                    $width = imagesx($sourceImage);
+                    $height = imagesy($sourceImage);
+                    
+                    // Determine new dimensions
+                    $newWidth = !empty($resizeDimensions) ? $resizeDimensions[0] : $width;
+                    $newHeight = !empty($resizeDimensions) ? $resizeDimensions[1] : $height;
+
+                    // Create destination image
+                    $destImage = imagecreatetruecolor($newWidth, $newHeight);
+                    
+                    // Handle Transparency
+                    imagepalettetotruecolor($destImage);
+                    imagealphablending($destImage, false);
+                    imagesavealpha($destImage, true);
+                    $transparent = imagecolorallocatealpha($destImage, 255, 255, 255, 127);
+                    
+                    // Apply transparency background for WebP/PNG
+                    // Logic: imagefill completely transparent for the new canvas
+                    imagefilledrectangle($destImage, 0, 0, $newWidth, $newHeight, $transparent);
+                    
+                    // Resample (Resize)
+                    imagecopyresampled($destImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+                    
+                    // Save
+                    if ($convertToWebp) {
+                         imagewebp($destImage, $targetPath, 80); // 80% quality
+                    } else {
+                         // Default to PNG since input is PNG
+                         imagepng($destImage, $targetPath, 9);
+                    }
+                    
+                    imagedestroy($sourceImage);
+                    imagedestroy($destImage);
+                    
+                    // Remove temp file
+                    if (file_exists($tempPath)) {
+                        unlink($tempPath);
+                    }
+                } else {
+                    // Fallback if GD fails
+                    rename($tempPath, $targetPath);
+                }
+            } else {
+                $file->moveTo($targetPath);
+            }
             
             // Return relative path for database storage
             return "$directory/$filename";
@@ -62,13 +220,20 @@ class ChannelController
         $data['is_ad_enabled'] = filter_var($data['is_ad_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $data['is_preview_public'] = filter_var($data['is_preview_public'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        // Handle File Uploads
-        if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
-            $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails');
-        }
-        
-        if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
-            $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos');
+        try {
+            // Handle File Uploads
+            $channelName = $data['name'] ?? null;
+            
+            if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
+                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails', [], false, $channelName);
+            }
+            
+            if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
+                // Allow only png, convert to webp, resize to 512x512
+                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos', ['png'], true, $channelName, [512, 512]);
+            }
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 400);
         }
 
         $rules = [
@@ -132,21 +297,32 @@ class ChannelController
             // Access raw attributes directly
             $oldThumbnail = $oldChannel->getAttributes()['thumbnail_path'] ?? null;
             $oldLogo = $oldChannel->getAttributes()['logo_path'] ?? null;
+            $oldName = $oldChannel->name ?? null; 
         } catch (\Exception $e) {
             $oldThumbnail = null;
             $oldLogo = null;
+            $oldName = null;
         }
 
         try {
             // Handle File Uploads
+            // Use new name if provided, otherwise old name
+            $channelName = $data['name'] ?? $oldName;
+
             if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
-                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails');
+                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails', [], false, $channelName);
             }
             
             if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
-                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos');
+                // Allow only png, convert to webp, resize to 512x512
+                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos', ['png'], true, $channelName, [512, 512]);
             }
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 400);
+        }
 
+        try {
+            // Update Channel
             $channel = $this->channelService->update($uuid, $data);
 
             error_log("DEBUG: Channel Updated Successfully. New State: is_featured=" . ($channel->is_featured ? 'true' : 'false') . ", is_premium=" . ($channel->is_premium ? 'true' : 'false'));

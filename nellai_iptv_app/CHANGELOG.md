@@ -1,3 +1,8 @@
+## [1.8.17+33] - 2026-02-10
+
+### Maintenance
+- **Version Sync**: Synchronized version with Website and Backend updates for channel export filtering features.
+
 ## [1.8.16+32] - 2026-02-09
 
 ### Added

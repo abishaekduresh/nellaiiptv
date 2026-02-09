@@ -1,3 +1,9 @@
+## [1.8.17+33] - App | [1.47.0] - Website | [1.36.0] - Backend - 2026-02-10
+
+### Added
+- **Export Filters (Website/Backend)**: Comprehensive filtering system for channel exports (Search, Category, Language, State, Status).
+- **CORS Improvements (Backend)**: Added `Content-Disposition` to exposed headers for better download handling.
+
 ## [1.8.16+32] - App | [1.46.3] - Website | [1.35.3] - Backend - 2026-02-09
 
 ### App (Flutter)

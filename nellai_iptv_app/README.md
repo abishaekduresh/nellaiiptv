@@ -11,10 +11,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.8.17+33
+- **Key Features**: Global Version Sync, Infrastructure Compatibility.
+- **Maintenance**: Version synchronized with Website and Backend updates for channel export features.
+
 ## Version: 1.8.16+32
-- **Key Features**: Smart Stream Retry, Modified Fullscreen Tap, TV UI Cleanup.
-- **Feature**: **Smart Retry** - Retries stream 3 times before fallback to prevent false positives.
-- **UX**: **Mobile Fullscreen** - Single tap now opens STB Overlay; Controls stay visible.
 
 ## Version: 1.8.15+31
 - **Key Features**: STB Info Overlay, TV Focus Fixes, Fullscreen Logic.

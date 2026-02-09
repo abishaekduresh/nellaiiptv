@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.35.3)
+# Nellai IPTV - Backend API (v1.36.0)
 
-**Version 1.35.3** | RESTful API built with Slim PHP Framework
+**Version 1.36.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -152,8 +152,11 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
+## Latest Updates (v1.36.0)
+- **Filtered Exports**: Comprehensive filtering support for channel export API.
+- **CORS Headers**: Exposed `Content-Disposition` for better browser download handling.
+
 ## Latest Updates (v1.35.3)
-- **Maintenance**: Version synchronized with frontend updates.
 
 ## Latest Updates (v1.35.2)
 - **Public API**: Enabled conditional access for guests on public preview channels.

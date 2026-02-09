@@ -6,18 +6,28 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.46.3
-- **Key Features**: AdSense Integration, Admin Settings UI Modernization, Developer Tools Protection.
+- **Version**: 1.47.0
+- **Key Features**: Enhanced Export Filters, AdSense Integration, Admin Settings UI Modernization.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.35.3
-- **Key Features**: Platform Blocking System, Global Channel Control, Enhanced Channel Service.
+- **Version**: 1.36.0
+- **Key Features**: Filtered Exports, Platform Blocking System, Global Channel Control.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.16+32
+- **Version**: 1.8.17+33
 - **Key Features**: Smart Retry, Fullscreen Tap UX, TV UI Cleanup.
+
+## Recent Updates (v1.8.17+33 App / v1.47.0 Website / v1.36.0 Backend)
+
+### Website (Next.js)
+- **Feature**: **Enhanced Export Filters** - Added granular filtering (Search, Category, Language, State, Status) to the channel export utility.
+- **Improvement**: **Auto-Filter Context** - Export modal now inherits active filters from the main channel list automatically.
+
+### Backend (PHP)
+- **Feature**: **Filtered Exports** - Core service updated to support multi-column filtering for CSV generators.
+- **Improvement**: **CORS Exposure** - Exposed `Content-Disposition` header to ensure frontend can resolve download filenames correctly.
 
 ## Recent Updates (v1.8.16+32 App / v1.46.3 Website / v1.35.3 Backend)
 
