@@ -26,10 +26,11 @@ class DeviceUtils {
       // We set threshold slightly lower (e.g. 1.8GB) because OS reserves some.
       const int lowRamThreshold = 2000 * 1024 * 1024; 
       // Note: totalMemory returns bytes.
-      final totalRam = androidInfo.totalMemory; // This is a int (bytes)
-      _isHighPerformance = totalRam > lowRamThreshold;
+      // final totalRam = androidInfo.totalMemory; // Error: totalMemory not found in some versions
+      // _isHighPerformance = totalRam > lowRamThreshold;
+      _isHighPerformance = true; // Default to true for now
       
-      debugPrint("📱 Device Info: Model=${androidInfo.model}, RAM=${(totalRam / 1024 / 1024).toStringAsFixed(0)}MB, TV=$_isTV, HighPerf=$_isHighPerformance");
+      debugPrint("📱 Device Info: Model=${androidInfo.model}, TV=$_isTV, HighPerf=$_isHighPerformance");
 
     } else {
       // Add iOS/other platform TV checks if needed

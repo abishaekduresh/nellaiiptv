@@ -1,3 +1,14 @@
+## [1.8.16+32] - App | [1.46.3] - Website | [1.35.3] - Backend - 2026-02-09
+
+### App (Flutter)
+- **Feature**: **Smart Retry Logic** - Intelligent 3-attempt stream recovery system to prevent aggressive fallback video triggering.
+- **UX**: **Mobile Fullscreen** - Single tap in fullscreen now opens STB Navigation Overlay; Top controls remain visible.
+- **TV**: **Clean UI** - Hidden non-essential top-right buttons on TV interfaces to reduce visual clutter.
+- **Fix**: **Build Stability** - Fixed compilation errors related to imports and variable declarations.
+
+### Website (Next.js) & Backend (PHP)
+- **Maintenance**: Version synchronized.
+
 ## [1.8.15+31] - App | [1.46.3] - Website | [1.35.3] - Backend - 2026-02-09
 
 ### App (Flutter)

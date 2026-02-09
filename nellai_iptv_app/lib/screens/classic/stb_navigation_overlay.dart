@@ -184,19 +184,34 @@ class _STBNavigationOverlayState extends State<STBNavigationOverlay> with Single
 
   @override
   Widget build(BuildContext context) {
+    final menuWidth = MediaQuery.of(context).size.width * 0.45;
+    
     // FocusScope captures interactions for TV navigation
     return FocusScope(
       node: _focusScopeNode,
       child: Stack(
         children: [
           // 1. Transparent Background Layer - Handles "Tap Outside to Close"
-          Positioned.fill(
+          // We define two zones to avoid blocking the Top-Right controls (approx 80px height)
+          // Zone A: Below the controls (Main body)
+          Positioned(
+            left: menuWidth, // Start after the menu
+            top: 80, // Start below the controls header
+            right: 0,
+            bottom: 0,
             child: GestureDetector(
               onTap: _handleClose,
               behavior: HitTestBehavior.opaque,
               child: Container(color: Colors.transparent),
             ),
           ),
+          // Zone B: The top area between menu and controls? 
+          // Actually, if we leave it open, clicks fall through to the player which triggers "Toggle Overlay" (Close).
+          // So we don't need a specific blocker there unless we want to PREVENT 'toggle'.
+          // Letting it fall through is fine (Standard 'click outside' behavior).
+          
+          // However, we DO need to cover the area *behind* the menu if the menu is semi-transparent?
+          // The menu itself has a GestureDetector, so that's handled.
 
           // 2. Sidebar Navigation Panel (The main overlay content)
           Positioned(

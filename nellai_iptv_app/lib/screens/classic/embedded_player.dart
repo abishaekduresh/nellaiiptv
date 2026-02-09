@@ -14,6 +14,7 @@ import 'package:wakelock_plus/wakelock_plus.dart'; // Import WakelockPlus
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
 
 import '../../core/api_service.dart';
+import '../../core/device_utils.dart';
 import '../../core/audio_manager.dart';
 import '../../core/tv_player_controller.dart';
 import '../../core/toast_service.dart';
@@ -89,6 +90,10 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   // Auto-Retry Logic
   Timer? _retryTimer;
   int _retrySeconds = 20;
+
+  // Smart Stream Retry Logic
+  int _streamRetryCount = 0;
+  static const int kMaxStreamRetries = 3;
 
   late final FocusNode _focusNode;
   
@@ -213,6 +218,9 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     }
     if (oldWidget.isFullScreen != widget.isFullScreen) {
       _updateSystemUI();
+      if (widget.isFullScreen) {
+         _triggerInfoBanner();
+      }
     }
   }
 
@@ -295,6 +303,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
    Future<void> _loadChannel() async {
     final int loadId = ++_currentLoadId;
     _retryTimer?.cancel(); // Cancel any existing retry loop when starting a new load
+    _streamRetryCount = 0; // Reset retry count for new channel
     // 1. Reset Error State but keep loading if we don't have initial data
     setState(() { 
       _hasError = false; 
@@ -425,6 +434,19 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
       if (_fallbackMp4Url == null) {
           // debugPrint("Fallback URL is null. Attempting to fetch settings...");
           await _fetchSettings();
+      }
+
+      // 🛑 Smart Retry Logic
+      // Before giving up and showing Fallback, try to reconnect a few times.
+      if (_streamRetryCount < kMaxStreamRetries && !_fallbackUsed && !_isPremiumContent) {
+          _streamRetryCount++;
+          debugPrint("⚠️ Stream Error. Retrying $_streamRetryCount/$kMaxStreamRetries...");
+          
+          await Future.delayed(const Duration(seconds: 1)); // Small backoff
+          if (mounted && !_isDisposed) {
+             _initVideoPlayer(_lastOpenedUrl ?? ""); 
+          }
+          return; // Exit early, don't show fallback yet
       }
 
       // debugPrint("State: _fallbackUsed=$_fallbackUsed, _isPremiumContent=$_isPremiumContent");
@@ -627,7 +649,8 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
               if (!widget.isFullScreen) {
                 _toggleFullScreen();
               } else {
-                _toggleControls();
+                // Single tap in fullscreen -> Toggle STB Overlay (via parent)
+                widget.onTap?.call();
               }
             },
             onToggleMute: widget.onDoubleTap ?? () => _toggleMute(),
@@ -824,7 +847,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                                child: CachedNetworkImage(
                                   imageUrl: _channel!.logoUrl!,
                                   fit: BoxFit.contain,
-                                  errorBuilder: (_,__,___) => const Icon(Icons.tv, color: Colors.white54),
+                                  errorWidget: (_,__,___) => const Icon(Icons.tv, color: Colors.white54),
                                ),
                             ),
                          
@@ -894,13 +917,13 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
              ),
              
           // 8. Cast & PiP Buttons (Top Right)
-            if (!kIsWeb && !_isPipMode && !_isPremiumContent) 
+            if (!kIsWeb && !_isPipMode && !_isPremiumContent && !DeviceUtils.isTV) 
               Positioned(
                 top: 20,
                 right: 20,
                 child: AnimatedOpacity(
                   opacity: _showControls ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 200),
                   child: IgnorePointer(
                     ignoring: !_showControls,
                     child: Row(

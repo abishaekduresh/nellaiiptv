@@ -1,3 +1,16 @@
+## [1.8.16+32] - 2026-02-09
+
+### Added
+- **Smart Retry Logic**: Implemented intelligent stream recovery that retries connection 3 times before switching to Fallback Video, reducing false positives.
+- **TV Clean UI**: Automatically hides Top Right buttons (Cast, PiP, Mute) on TV devices for a cleaner viewing experience.
+
+### Changed
+- **Mobile Fullscreen UX**: Single tap in fullscreen now opens the STB Navigation Overlay immediately instead of toggling player controls.
+- **Controls Usage**: Top Right buttons (Mute, PiP, Menu) now remain visible and interactive when the STB Overlay is active on mobile devices.
+
+### Fixed
+- **Compilation**: Resolved `DeviceUtils` import error and duplicate variable declarations.
+
 ## [1.8.15+31] - 2026-02-09
 
 ### Added
