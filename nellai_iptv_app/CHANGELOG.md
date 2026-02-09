@@ -1,3 +1,13 @@
+## [1.8.15+31] - 2026-02-09
+
+### Added
+- **STB Info Overlay**: Implemented a "Set-Top Box" style channel information banner (Logo, Number, Name, Category) that appears on channel load in fullscreen.
+- **Auto-Hide Logic**: Info overlay automatically fades out after 3 seconds; restricted to fullscreen mode only.
+
+### Fixed
+- **TV Focus**: Resolved issue where "OK" button triggered system overlays; ensured focus remains on player controls.
+- **Navigation**: Restored focus to category menu after interacting with the player.
+
 ## [1.8.14+30] - 2026-02-07
 
 ### Added

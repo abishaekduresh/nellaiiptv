@@ -1,3 +1,14 @@
+## [1.8.15+31] - App | [1.46.3] - Website | [1.35.3] - Backend - 2026-02-09
+
+### App (Flutter)
+- **Feature**: **STB Info Overlay** - Implemented a "Set-Top Box" style channel information banner (Logo, Number, Name, Category) containing channel details.
+- **Logic**: **Auto-Hide** - Info overlay automatically fades out after 3 seconds; restricted to fullscreen mode only.
+- **Fix**: **TV Focus** - Resolved issue where "OK" button triggered system overlays; ensured focus remains on player controls.
+- **Fix**: **Navigation** - Restored focus to category menu after interacting with the player.
+
+### Website (Next.js) & Backend (PHP)
+- **Maintenance**: Version synchronized.
+
 ## [1.8.14+30] - App | [1.46.3] - Website | [1.35.3] - Backend - 2026-02-09
 
 ### Website (Next.js)

@@ -646,7 +646,15 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                 key: _playerKey, // Use GlobalKey for direct player control
                                 isFullScreen: _isFullScreen,
                                 hideControls: _showChannelOverlay,
-                                onDoubleTap: () => setState(() => _isFullScreen = !_isFullScreen),
+                                onDoubleTap: () {
+                                  setState(() => _isFullScreen = !_isFullScreen);
+                                  if (!_isFullScreen) {
+                                     // Recover focus to player on exit
+                                     WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        _playerFocusNode.requestFocus();
+                                     });
+                                  }
+                                },
                                 onTap: () {
                                   // Mouse/Touch Tap Logic
                                   if (_isFullScreen) {
@@ -1716,27 +1724,18 @@ class _FocusableChannelCardState extends State<FocusableChannelCard> {
           final logicalKey = event.logicalKey;
 
           // D-Pad Navigation logic
-          if (logicalKey == LogicalKeyboardKey.arrowUp) {
-             FocusScope.of(context).focusInDirection(TraversalDirection.up);
-             return KeyEventResult.handled;
-          } else if (logicalKey == LogicalKeyboardKey.arrowDown) {
-             FocusScope.of(context).focusInDirection(TraversalDirection.down);
-             return KeyEventResult.handled;
-          } else if (logicalKey == LogicalKeyboardKey.arrowRight) {
-             FocusScope.of(context).focusInDirection(TraversalDirection.right);
-             return KeyEventResult.handled;
-          } else if (logicalKey == LogicalKeyboardKey.arrowLeft) {
-             // Check if valid to move left in grid
+          
+          // Only intercept Left to jump to Player/Sidebar
+          if (logicalKey == LogicalKeyboardKey.arrowLeft) {
+             // Check if valid to move left in grid (First Column)
              if (widget.index % widget.totalColumns == 0) {
-                // First column -> Move to Sidebar/Player
                 if (widget.onFocusLeft != null) {
                    widget.onFocusLeft!();
                    return KeyEventResult.handled;
                 }
-             } else {
-                FocusScope.of(context).focusInDirection(TraversalDirection.left);
-                return KeyEventResult.handled;
              }
+             // Otherwise let default traversal handle moving left within the grid
+             return KeyEventResult.ignored; 
           }
 
           final isSelect = logicalKey == LogicalKeyboardKey.select || 

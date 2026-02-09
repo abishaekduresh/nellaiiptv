@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'device_utils.dart';
 
 class TVPlayerController {
   late final Player player;
@@ -52,43 +53,56 @@ class TVPlayerController {
     try {
       final dynamic p = player;
       
-      /* 
-      // Optimization properties temporarily disabled due to compatibility issues
-      // 1. Buffer Management (Boosted for TV)
-      p.setProperty('demuxer-max-bytes', '${150 * 1024 * 1024}'); // 150MB Pre-buffer
-      p.setProperty('demuxer-readahead-secs', '120');  // 2 Minutes ahead
-      p.setProperty('stream-buffer-size', '${2 * 1024 * 1024}');  // 2MB Stream Buffer
+      final bool isHighPerf = DeviceUtils.isHighPerformance;
+      debugPrint("⚙️ TVPlayerController: Configuring for ${isHighPerf ? 'High' : 'Low'} Performance Device");
+
+      if (isHighPerf) {
+        // --- HIGH SPEC CONFIGURATION (>2GB RAM) ---
+        // 1. Buffer Management (Max Quality)
+        p.setProperty('demuxer-max-bytes', '${100 * 1024 * 1024}'); // 100MB Buffer
+        p.setProperty('demuxer-readahead-secs', '60');
+        
+        // 2. Hardware Acceleration
+        p.setProperty('hwdec', 'auto'); 
+        p.setProperty('hwdec-codecs', 'all'); 
+        p.setProperty('video-sync', 'audio');
+
+        // 3. Network
+        p.setProperty('demuxer-lavf-o', 'reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5');
+        p.setProperty('network-timeout', '30');
+        
+        // 4. Quality
+        p.setProperty('hls-bitrate', 'max');
+        // Default scaling is usually bicubic or similar good quality
       
-      // 2. Hardware Acceleration
-      p.setProperty('hwdec', 'auto'); 
-      p.setProperty('hwdec-codecs', 'all'); 
+      } else {
+        // --- LOW SPEC CONFIGURATION (<=2GB RAM) ---
+        // 1. Buffer Management (Conservative)
+        p.setProperty('demuxer-max-bytes', '${32 * 1024 * 1024}'); // 32MB Buffer to save RAM
+        p.setProperty('demuxer-readahead-secs', '30');
+        
+        // 2. Hardware Acceleration (Still needed, but maybe with tweaks)
+        p.setProperty('hwdec', 'auto'); 
+        p.setProperty('hwdec-codecs', 'all'); 
+        p.setProperty('video-sync', 'audio');
+        p.setProperty('framedrop', 'vo'); // Allow frame drops to keep audio sync
+
+        // 3. Rendering Efficiency (Fastest Scaling)
+        p.setProperty('scale', 'bilinear'); 
+        p.setProperty('dscale', 'bilinear'); 
+        p.setProperty('cscale', 'bilinear');
+        // Force OpenGL context if possible for better low-end support, varies by device
+        // p.setProperty('gpu-context', 'android'); 
+
+        // 4. Network (Fail Fast)
+        p.setProperty('demuxer-lavf-o', 'reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5');
+        p.setProperty('network-timeout', '20'); 
+        
+        // 5. Quality (Auto bitrate to prevent choking)
+        // p.setProperty('hls-bitrate', 'auto'); // Let it adapt instead of forcing max
+      }
       
-      // 3. HLS Optimization (Quality Priority)
-      p.setProperty('hls-bitrate', 'max'); // Always prefer highest quality
-      p.setProperty('cache', 'yes');
-      p.setProperty('cache-secs', '300'); // 5 Minutes Cache
-      p.setProperty('cache-pause-initial', 'yes'); 
-      p.setProperty('cache-pause-wait', '2'); // Low wait for faster start
-      
-      // 4. Video Quality & Rendering (Performance Mode)
-      // Switched to bilinear/fast settings to prevent GPU pixelation/stutter on TV
-      p.setProperty('video-sync', 'audio'); 
-      p.setProperty('interpolation', 'no'); 
-      p.setProperty('deband', 'no'); 
-      p.setProperty('scale', 'bilinear'); 
-      p.setProperty('dscale', 'bilinear'); 
-      p.setProperty('cscale', 'bilinear'); 
-      
-      // 5. Network & Stability
-      p.setProperty('demuxer-lavf-o', 'reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5');
-      p.setProperty('network-timeout', '60'); // 60s Timeout
-      p.setProperty('demuxer-max-back-bytes', '${50 * 1024 * 1024}'); // 50MB Back buffer
-      
-      // 6. Performance
-      p.setProperty('vo', 'gpu'); 
-      p.setProperty('gpu-context', 'auto');
-      */
-      debugPrint("✅ TVPlayerController: Optimization skipped for stability check.");
+      debugPrint("✅ TVPlayerController: Optimizations Applied.");
     } catch (e) {
       debugPrint("❌ TVPlayerController Error: $e");
     }

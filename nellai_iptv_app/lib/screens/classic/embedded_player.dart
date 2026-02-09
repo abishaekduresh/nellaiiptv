@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart'; // for kIsWeb
 import 'package:media_kit/media_kit.dart'; // MediaKit Core
 import 'package:media_kit_video/media_kit_video.dart'; // MediaKit Video Widget
 import 'package:dio/dio.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -78,6 +79,10 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   Timer? _viewCountTimer;
   bool _hasIncrementedView = false;
   
+  // Info Banner State
+  bool _showChannelInfo = false;
+  Timer? _infoTimer;
+
   StreamSubscription? _playerErrorSub;
   StreamSubscription? _playerLogSub;
 
@@ -340,6 +345,9 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
           await _initVideoPlayer(channel.hlsUrl!);
         }
 
+        // Trigger Info Banner on new channel load
+        _triggerInfoBanner();
+
         // Notify parent with fresh data (e.g. ratings)
         widget.onChannelLoaded?.call(channel);
       }
@@ -395,6 +403,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
         setState(() {
           _isLoading = false;
         });
+        _triggerInfoBanner();
       }
 
       _startViewCountTimer();
@@ -477,12 +486,27 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
 
   void _startViewCountTimer() {
     _viewCountTimer?.cancel();
-    _viewCountTimer = Timer(const Duration(seconds: 5), () {
+    _viewCountTimer = Timer(const Duration(seconds: 1), () {
       if (mounted && _channel != null && !_hasIncrementedView && !_isPremiumContent) {
         _api.incrementView(_channel!.uuid);
         _hasIncrementedView = true;
       }
     });
+  }
+
+  void _triggerInfoBanner() {
+     if (_isPremiumContent || !widget.isFullScreen) return;
+     
+     setState(() {
+       _showChannelInfo = true;
+     });
+     
+     _infoTimer?.cancel();
+     _infoTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) {
+           setState(() => _showChannelInfo = false);
+        }
+     });
   }
 
   /// Explicitly stop and release all player resources.
@@ -564,38 +588,33 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
       focusNode: _focusNode,
       autofocus: widget.isFullScreen, // Only autofocus if fullscreen, otherwise let user navigate to it
       onKeyEvent: (node, event) {
-        if (event is KeyDownEvent) {
-           final isSelect = event.logicalKey == LogicalKeyboardKey.select || 
-                           event.logicalKey == LogicalKeyboardKey.enter ||
-                           event.logicalKey == LogicalKeyboardKey.numpadEnter ||
-                           event.logicalKey == LogicalKeyboardKey.space;
-           
-           final isBack = event.logicalKey == LogicalKeyboardKey.escape || 
-                          event.logicalKey == LogicalKeyboardKey.goBack;
+        final isSelect = event.logicalKey == LogicalKeyboardKey.select || 
+                        event.logicalKey == LogicalKeyboardKey.enter ||
+                        event.logicalKey == LogicalKeyboardKey.numpadEnter ||
+                        event.logicalKey == LogicalKeyboardKey.space;
+        
+        final isBack = event.logicalKey == LogicalKeyboardKey.escape || 
+                       event.logicalKey == LogicalKeyboardKey.goBack;
 
-           if (isSelect) {
-             if (!widget.isFullScreen) {
-               // If embedded, Enter/Select goes to fullscreen
-               widget.onDoubleTap?.call(); 
-             } else {
-               // If already in fullscreen, Toggle UI or Show Overlay (parent handles this via onTap usually)
-               // But here we want to ensure "OK" shows controls if hidden
-               if (!_showControls) {
-                   _toggleControls(show: true);
+        // 1. ALWAYS consume Select/Enter/Back to prevent System Overlays
+        if (isSelect || isBack) {
+           if (event is KeyDownEvent) {
+             if (isSelect) {
+               if (!widget.isFullScreen) {
+                 widget.onDoubleTap?.call(); 
                } else {
-                   // If controls are showing, maybe do nothing and let parent handle overlay toggle?
-                   // The parent widget.onTap is triggered below
-                   widget.onTap?.call();
+                 if (!_showControls) {
+                     _toggleControls(show: true);
+                 } else {
+                     widget.onTap?.call();
+                 }
                }
+             } else if (isBack && widget.isFullScreen) {
+                widget.onDoubleTap?.call();
              }
-             return KeyEventResult.handled;
            }
-
-           if (isBack && widget.isFullScreen) {
-              // Exit fullscreen on Back button
-              widget.onDoubleTap?.call();
-              return KeyEventResult.handled;
-           }
+           // Crucially return handled for KeyUp as well to prevent "button up" triggering system menus
+           return KeyEventResult.handled;
         }
         return KeyEventResult.ignored;
       },
@@ -614,14 +633,9 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
             onToggleMute: widget.onDoubleTap ?? () => _toggleMute(),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.transparent,
-                border: (!widget.isFullScreen && hasFocus) 
-                    ? Border.all(color: const Color(0xFF0EA5E9), width: 2.5) 
-                    : Border.all(color: Colors.transparent, width: 2.5),
-                boxShadow: (!widget.isFullScreen && hasFocus) ? [
-                  BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)
-                ] : [],
+                // Border removed here, moved to Stack for Z-Index visibility
               ),
               child: Stack(
                 fit: StackFit.expand,
@@ -742,6 +756,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                ),
              ),
 
+
           // 6. Watermark Layer (Hide in PiP)
           if (!_hasError && _appLogoUrl != null && !_isPipMode && !_isPremiumContent)
             Positioned(
@@ -769,10 +784,116 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
               ),
             ),
 
-             // 7. Viewer Count & Rating (REMOVED)
-
-
-             // 8. Cast & PiP Buttons (Top Right)
+          // 7. Channel Info Banner (STB Style)
+          // Shows on load, auto-hides. Hidden if STB Menu is open (hideControls).
+          if (_showChannelInfo && !widget.hideControls && _channel != null && !_isPipMode)
+             Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                   padding: EdgeInsets.fromLTRB(
+                      widget.isFullScreen ? 32 : 16, 
+                      24, 
+                      widget.isFullScreen ? 32 : 16, 
+                      widget.isFullScreen ? 24 : 12
+                   ),
+                   decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                         begin: Alignment.topCenter,
+                         end: Alignment.bottomCenter,
+                         colors: [Colors.transparent, Colors.black.withOpacity(0.9)],
+                         stops: const [0.0, 0.4],
+                      ),
+                   ),
+                   child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                         // Channel Logo
+                         if (_channel!.logoUrl != null)
+                            Container(
+                               width: widget.isFullScreen ? 80 : 50,
+                               height: widget.isFullScreen ? 80 : 50,
+                               margin: const EdgeInsets.only(right: 16),
+                               padding: const EdgeInsets.all(4),
+                               decoration: BoxDecoration(
+                                  color: Colors.white10,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.white24),
+                               ),
+                               child: CachedNetworkImage(
+                                  imageUrl: _channel!.logoUrl!,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_,__,___) => const Icon(Icons.tv, color: Colors.white54),
+                               ),
+                            ),
+                         
+                         // Channel Info
+                         Expanded(
+                            child: Column(
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               mainAxisSize: MainAxisSize.min,
+                               children: [
+                                  Row(
+                                     children: [
+                                        // Channel Number Badge
+                                        Container(
+                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                           decoration: BoxDecoration(
+                                              color: const Color(0xFF0EA5E9), // Sky 500
+                                              borderRadius: BorderRadius.circular(4),
+                                           ),
+                                           child: Text(
+                                              "CH ${_channel!.channelNumber ?? '-'}",
+                                              style: TextStyle(
+                                                 color: Colors.white,
+                                                 fontSize: widget.isFullScreen ? 14 : 11,
+                                                 fontWeight: FontWeight.bold,
+                                              ),
+                                           ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        // Category Badge
+                                        if (_channel!.category?.name != null)
+                                           Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                 color: Colors.white24,
+                                                 borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                 _channel!.category!.name,
+                                                 style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: widget.isFullScreen ? 12 : 10,
+                                                    fontWeight: FontWeight.w500,
+                                                 ),
+                                              ),
+                                           ),
+                                     ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  // Channel Name
+                                  Text(
+                                     _channel!.name,
+                                     style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: widget.isFullScreen ? 28 : 18,
+                                        fontWeight: FontWeight.bold,
+                                        shadows: const [Shadow(color: Colors.black, blurRadius: 4, offset: Offset(0, 2))],
+                                     ),
+                                     maxLines: 1,
+                                     overflow: TextOverflow.ellipsis,
+                                  ),
+                               ],
+                            ),
+                         ),
+                      ],
+                   ),
+                ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.2, end: 0, duration: 300.ms),
+             ),
+             
+          // 8. Cast & PiP Buttons (Top Right)
             if (!kIsWeb && !_isPipMode && !_isPremiumContent) 
               Positioned(
                 top: 20,
@@ -948,6 +1069,21 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                   ),
                 ),
               ),
+              // 9. FOCUS HIGHLIGHTER (Always On Top)
+              // Moved here from Container decoration to ensure it sits ABOVE the video texture
+              if (!widget.isFullScreen && hasFocus)
+                 Positioned.fill(
+                   child: IgnorePointer(
+                     child: Container(
+                       decoration: BoxDecoration(
+                         border: Border.all(color: const Color(0xFF0EA5E9), width: 3.0),
+                         boxShadow: [
+                           BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)
+                         ],
+                       ),
+                     ),
+                   ),
+                 ),
             ],
           ),
         ),
