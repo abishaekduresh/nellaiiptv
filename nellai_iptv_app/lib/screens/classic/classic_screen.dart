@@ -7,10 +7,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../providers/channel_provider.dart';
 import '../../models/channel.dart';
 import '../../models/ad.dart';
+import '../../models/comment.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../core/api_service.dart';
 import '../../core/device_utils.dart'; // Import DeviceUtils
 import '../../models/public_settings.dart';
@@ -41,6 +44,9 @@ class _ClassicScreenState extends State<ClassicScreen> {
   int _currentAdIndex = 0;
   Timer? _adTimer;
   Timer? _sessionValidationTimer; // Periodic session validation
+  
+  // Comment State
+  List<Comment> _comments = [];
   
   // Group By State
   String _groupBy = 'Categories'; // 'Categories' or 'Languages' or 'All'
@@ -144,6 +150,20 @@ class _ClassicScreenState extends State<ClassicScreen> {
     _loadAds();
   }
 
+  Future<void> _loadComments() async {
+    if (_selectedChannel == null) return;
+    try {
+      final comments = await _api.getChannelComments(_selectedChannel!.uuid);
+      if (mounted) {
+        setState(() {
+          _comments = comments;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading comments: $e');
+    }
+  }
+
   Future<void> _loadAds() async {
     setState(() => _isLoadingAds = true);
     try {
@@ -240,6 +260,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
         setState(() {
           _selectedChannel = exactChannel.first;
         });
+        _loadComments(); // Load comments for new channel
       }
     }
 
@@ -268,6 +289,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
     setState(() {
       _selectedChannel = channels[newIndex];
     });
+    _loadComments(); // Load comments for new channel
   }
 
   void _resumePlayback() async {
@@ -673,7 +695,12 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                 },
                               ),
                           )
-                        : const Center(child: CircularProgressIndicator()),
+                        : Center(
+                            child: LoadingAnimationWidget.progressiveDots(
+                              color: const Color(0xFF06B6D4), 
+                              size: 60
+                            ),
+                          ),
                         
                         // Set-top Box Navigation Overlay
                         if (_isFullScreen && _showChannelOverlay)
@@ -836,17 +863,37 @@ class _ClassicScreenState extends State<ClassicScreen> {
                               Container(width: 1, height: 12, color: Colors.white24),
                               const SizedBox(width: 12),
 
-                              // Info Button (Moved here)
-                              IconButton(
-                                icon: const Icon(Icons.info_outline, color: Colors.white, size: 16),
-                                onPressed: () => _showChannelDetails(displayChannel),
-                                tooltip: 'Channel Details',
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                style: IconButton.styleFrom(
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                              ),
+
+
+                              // Comment Button with Notifier
+                               Stack(
+                                 clipBehavior: Clip.none,
+                                 children: [
+                                   IconButton(
+                                     icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 16),
+                                     onPressed: () => _showChannelDetails(displayChannel),
+                                     tooltip: 'Comments',
+                                     padding: EdgeInsets.zero,
+                                     constraints: const BoxConstraints(),
+                                     style: IconButton.styleFrom(
+                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                     ),
+                                   ),
+                                   if (_comments.isNotEmpty)
+                                     Positioned(
+                                       right: -2,
+                                       top: -2,
+                                       child: Container(
+                                         width: 8,
+                                         height: 8,
+                                         decoration: const BoxDecoration(
+                                           color: Colors.redAccent,
+                                           shape: BoxShape.circle,
+                                         ),
+                                       ),
+                                     ),
+                                 ],
+                               ),
                             ],
                           ),
                         ),
@@ -868,6 +915,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
                          }
                      },
                   ),
+
+
               ],
             ),
           ),
@@ -1861,14 +1910,18 @@ class SkeletonChannelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: const Center(
-        child: CupertinoActivityIndicator(color: Colors.white24, radius: 12),
+    return Shimmer.fromColors(
+      baseColor: const Color(0xFF1E293B),
+      highlightColor: const Color(0xFF334155),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const Center(
+          child: Icon(Icons.tv, color: Colors.white10, size: 24),
+        ),
       ),
     );
   }
@@ -1879,40 +1932,27 @@ class SkeletonAdBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 100,
-      width: double.infinity,
-      color: Colors.transparent,
-      child: Stack(
-        children: [
-          // Background shimmer
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.white10,
-            ),
-          ).animate(onPlay: (c) => c.repeat())
-           .shimmer(duration: 2.seconds, color: Colors.white24),
-          
-          // Ad label hint
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black26, 
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Text(
-                "ADVERTISEMENT LOADING",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  letterSpacing: 1.5,
-                  fontWeight: FontWeight.bold
-                ),
-              ),
+    return Shimmer.fromColors(
+      baseColor: Colors.white10,
+      highlightColor: Colors.white24,
+      child: Container(
+        height: 100,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white10,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Center(
+          child: Text(
+            "ADVERTISEMENT",
+            style: TextStyle(
+              color: Colors.white24,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1975,3 +2015,5 @@ class _FocusableAdBannerState extends State<FocusableAdBanner> {
     ).animate(key: ValueKey(widget.ad.uuid)).fadeIn();
   }
 }
+
+

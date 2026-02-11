@@ -1,3 +1,12 @@
+## [1.8.18+34] - App | [1.47.0] - Website | [1.36.0] - Backend - 2026-02-11
+
+### App (Flutter)
+- **Fix**: **Player Focus** - Resolved issue where first channel was incorrectly selected after fullscreen exit; ensured correct channel maintains focus.
+- **UI**: **Selection State** - Fixed visual indicator to correctly highlight the active channel.
+
+### Website (Next.js) & Backend (PHP)
+- **Maintenance**: Version synchronized.
+
 ## [1.8.17+33] - App | [1.47.0] - Website | [1.36.0] - Backend - 2026-02-10
 
 ### Added

@@ -1,3 +1,9 @@
+## [1.8.18+34] - 2026-02-11
+
+### Fixed
+- **Player Focus**: Resolved critical issue where the first channel card was incorrectly selected instead of the active channel when exiting fullscreen or refreshing.
+- **Selection State**: Ensured visual selection state accurately reflects the currently playing channel.
+
 ## [1.8.17+33] - 2026-02-10
 
 ### Maintenance

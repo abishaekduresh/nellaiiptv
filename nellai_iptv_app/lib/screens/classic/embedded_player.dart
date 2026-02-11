@@ -12,6 +12,7 @@ import 'package:simple_pip_mode/simple_pip.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:wakelock_plus/wakelock_plus.dart'; // Import WakelockPlus
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../core/api_service.dart';
 import '../../core/device_utils.dart';
@@ -93,7 +94,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
 
   // Smart Stream Retry Logic
   int _streamRetryCount = 0;
-  static const int kMaxStreamRetries = 3;
+  static const int kMaxStreamRetries = 0;
 
   late final FocusNode _focusNode;
   
@@ -309,12 +310,13 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
       _hasError = false; 
       _errorMessage = ''; 
       _fallbackUsed = false; // Reset fallback state for new channel
+      _hasIncrementedView = false; // Reset view count for new channel
       if (widget.initialChannel == null) _isLoading = true;
     }); 
     
     // 2. Use initialChannel data for INSTANT start if available
     if (widget.initialChannel != null) {
-      // debugPrint("Instant Play Triggered for: ${widget.initialChannel!.name}");
+       debugPrint("Instant Play Triggered for: ${widget.initialChannel!.name}");
       _channel = widget.initialChannel;
       _isPremiumContent = _channel!.isPremium;
       
@@ -432,8 +434,9 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
       // If fallback URL is missing, try fetching settings one last time (Race condition fix)
       // This handles cases where error occurs before settings load completion.
       if (_fallbackMp4Url == null) {
-          // debugPrint("Fallback URL is null. Attempting to fetch settings...");
+          debugPrint("⚠️ Fallback URL is null. Attempting to fetch settings...");
           await _fetchSettings();
+          debugPrint("⚠️ Settings fetched. Fallback URL: $_fallbackMp4Url");
       }
 
       // 🛑 Smart Retry Logic
@@ -457,7 +460,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
       // 2. Fallback URL exists
       // 3. User is allowed to watch (not premium blocked)
       if (!_fallbackUsed && _fallbackMp4Url != null && _fallbackMp4Url!.isNotEmpty && !_isPremiumContent) {
-          // debugPrint("Switching to Fallback URL: $_fallbackMp4Url");
+          debugPrint("✅ Switching to Fallback URL: $_fallbackMp4Url");
           _fallbackUsed = true; // Prevent infinite loop
           
           if (mounted) {
@@ -474,7 +477,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
           // Seamless switch - no toast to user, just play the fallback stream
           return;
       } else {
-        // debugPrint("Fallback conditions not met. Showing error.");
+        debugPrint("❌ Fallback conditions not met. _fallbackUsed: $_fallbackUsed, URL: $_fallbackMp4Url, Premium: $_isPremiumContent");
       }
       // Sanitize error to not expose URL to user
       _showError("Stream Unavailable");
@@ -508,10 +511,15 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
 
   void _startViewCountTimer() {
     _viewCountTimer?.cancel();
-    _viewCountTimer = Timer(const Duration(seconds: 1), () {
+    debugPrint("⏳ Starting View Count Timer...");
+    _viewCountTimer = Timer(const Duration(milliseconds: 100), () {
+      debugPrint("⏰ Timer Fired. Channel: ${_channel?.name}, HasInc: $_hasIncrementedView, Premium: $_isPremiumContent");
       if (mounted && _channel != null && !_hasIncrementedView && !_isPremiumContent) {
+        debugPrint("🚀 Incrementing View: ${_channel!.uuid}");
         _api.incrementView(_channel!.uuid);
         _hasIncrementedView = true;
+      } else {
+        debugPrint("❌ View Increment Skipped.");
       }
     });
   }
@@ -704,10 +712,20 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                 if (_isLoading) {
                    return Container(
                      color: Colors.transparent, 
-                     child: const Center(child: PulseLoader(color: Color(0xFF06B6D4), size: 60)),
+                     child: Center(
+                        child: LoadingAnimationWidget.progressiveDots(
+                          color: const Color(0xFF06B6D4), 
+                          size: 60
+                        ),
+                     ),
                    );
                 } else if (isBuffering) {
-                   return const Center(child: PulseLoader(color: Color(0xFF06B6D4), size: 60));
+                   return Center(
+                      child: LoadingAnimationWidget.progressiveDots(
+                        color: const Color(0xFF06B6D4), 
+                        size: 60
+                      ),
+                   );
                 }
               }
               return const SizedBox();
