@@ -4,10 +4,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/splash_screen.dart';
 import 'widgets/connectivity_wrapper.dart';
 import 'services/toast_service.dart';
+import 'package:media_kit/media_kit.dart'; // Import MediaKit
 
 Future<void> main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    MediaKit.ensureInitialized(); // Initialize MediaKit
     await dotenv.load(fileName: ".env");
     runApp(const MyApp());
   }, (error, stack) {

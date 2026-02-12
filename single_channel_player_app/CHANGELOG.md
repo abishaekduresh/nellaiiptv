@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.3] - 2026-02-12
+
+### Added
+- **Splash Animation**: Implemented entry animation for the logo on splash screen using `flutter_animate`.
+
+## [1.2.2] - 2026-02-12
+
+### Changed
+- **Watermark Opacity**: Reduced opacity for better viewing experience.
+
 ## [1.2.1] - 2026-01-22
 
 ### Fixed

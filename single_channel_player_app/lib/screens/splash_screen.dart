@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import '../services/api_service.dart';
-
+import 'package:flutter_animate/flutter_animate.dart'; // Animation support
 import 'video_player_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -26,34 +25,9 @@ class _SplashScreenState extends State<SplashScreen> {
     }
     _startTimer();
     _initPackageInfo();
-    _fetchLogo();
   }
 
   String _version = "";
-  String? _logoUrl;
-
-  Future<void> _fetchLogo() async {
-    try {
-      final uuid = dotenv.env['CHANNEL_UUID'];
-      if (uuid != null) {
-        final channel = await ApiService().getChannelDetails(uuid);
-        if (mounted) {
-          setState(() {
-             // Logic: Use logoUrl if valid (isNotEmpty), else thumbnail, else null (Asset fallback)
-             String? validLogo = (channel.logoUrl != null && channel.logoUrl!.isNotEmpty) 
-                 ? channel.logoUrl 
-                 : (channel.thumbnailUrl != null && channel.thumbnailUrl!.isNotEmpty) 
-                     ? channel.thumbnailUrl 
-                     : null;
-                     
-             _logoUrl = validLogo;
-          });
-        }
-      }
-    } catch (_) {
-       // Silent fail -> shows Asset Logo
-    }
-  }
 
   Future<void> _initPackageInfo() async {
     final info = await PackageInfo.fromPlatform();
@@ -83,10 +57,14 @@ class _SplashScreenState extends State<SplashScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/logo.png',
+                      'assets/logo.webp',
                       width: 200,
                       errorBuilder: (c, e, s) => const Icon(Icons.tv, size: 100, color: Color(0xFF06B6D4)),
-                    ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 800.ms)
+                    .scale(duration: 600.ms, curve: Curves.easeOutBack)
+                    .shimmer(delay: 1000.ms, duration: 1500.ms, color: Colors.white24),
                   ],
                 ),
               ),

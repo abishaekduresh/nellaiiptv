@@ -1,3 +1,16 @@
+## [1.2.3+4] - App | [1.47.0] - Website | [1.36.1] - Backend - 2026-02-12
+
+### App (Single Channel Player)
+- **Added**: **Splash Animation** - Implemented entry animation for the logo on splash screen using `flutter_animate`.
+
+## [1.2.2+3] - App | [1.47.0] - Website | [1.36.1] - Backend - 2026-02-12
+
+### App (Flutter)
+- **Changed**: **Watermark Opacity** - Reduced opacity for better viewing experience.
+
+### Backend (PHP)
+- **Maintenance**: Version synchronized.
+
 ## [1.8.18+34] - App | [1.47.0] - Website | [1.36.0] - Backend - 2026-02-11
 
 ### App (Flutter)

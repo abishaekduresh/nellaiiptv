@@ -11,13 +11,23 @@ Premium web interface optimized for Browsers and Smart TV.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.36.0
+- **Version**: 1.36.1
 - **Key Features**: Filtered Exports, Platform Blocking System, Global Channel Control.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.18+34
+- **Version**: 1.8.18+34 (Main) / 1.2.3+4 (Single Channel)
 - **Key Features**: Player Focus Fixes, Correct Selection State, TV UI Cleanup.
+
+## Recent Updates (v1.2.3+4 SCPA / v1.47.0 Website / v1.36.1 Backend)
+
+### App (Single Channel Player)
+- **Added**: **Splash Animation** - Implemented entry animation for the logo on splash screen using `flutter_animate`.
+
+## Recent Updates (v1.2.2+3 SCPA / v1.47.0 Website / v1.36.1 Backend)
+
+### App (Flutter)
+- **Changed**: **Watermark Opacity** - Reduced opacity for a more subtle branding effect.
 
 ## Recent Updates (v1.8.18+34 App / v1.47.0 Website / v1.36.0 Backend)
 

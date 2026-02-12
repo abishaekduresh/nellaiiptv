@@ -127,27 +127,47 @@ class ChannelController
 
             // Access Rules:
             // 1. If Admin -> ALLOW
-            // 2. If Public Preview -> ALLOW (regardless of Open Access setting, unless Open Access overrides "private" which it shouldn't)
-            // 3. If User is Customer (not Admin) ->
-            //    - If Open Access ON -> ALLOW? User said "allow only when Preview Public is true".
-            //    - PROBABLE MEANING: Open Access setting shouldn't force private channels to be open.
-            //    - So if isPreviewPublic is FALSE, even if Open Access is ON, we might want to block?
-            //    - Or does Open Access mean "Members don't need subscription"?
-            //    - Re-reading: "Open Access is enabled? allow only when Preview Public is true" 
-            //      -> This implies that for "Preview" pages, Open Access Global Setting is IRRELEVANT if the channel is private.
-            //      -> Public Preview is the ONLY key for non-admins.
+            // 2. If Public Preview -> ALLOW
+            // 3. If API Key & Platform Present (Single Channel/Trusted App) -> ALLOW
+            // 4. If User is Customer -> ALLOW
             
+            $apiKey = $request->getHeaderLine('X-API-KEY');
+            // Platform already fetched above as $platform
+
+            $isTrustedApp = false;
+            if (!empty($apiKey) && !empty($platform)) {
+                // Check if API Key exists and is active
+                 $keyRecord = \App\Models\ApiKey::where('key_string', $apiKey)
+                    ->where('status', 'active')
+                    ->first();
+                 
+                 if ($keyRecord) {
+                     // Check specific Platform Access
+                     // allowed_platforms is comma separated string e.g. "android,ios,web"
+                     $allowedPlatforms = explode(',', strtolower($keyRecord->allowed_platforms));
+                     if (in_array(strtolower($platform), $allowedPlatforms)) {
+                         $isTrustedApp = true;
+                         
+                         // Update Last Used
+                         $keyRecord->last_used_at = date('Y-m-d H:i:s');
+                         $keyRecord->save();
+                     }
+                 }
+            }
+
             if ($isAdmin) {
                 // Admin always allowed
-                $allowPremium = true; // Admins see everything
+                $allowPremium = true; 
             } elseif ($isPreviewPublic) {
                  // Public Preview allowed
                  $allowPremium = true; 
+            } elseif ($isTrustedApp) {
+                 // Valid API Key & Platform -> ALLOW
+                 $allowPremium = true;
             } elseif ($user) {
-                 // Logged in users (Customers/Resellers) allowed to see details
-                 // Premium content redaction handles the rest
+                 // Logged in users
             } else {
-                 // Guest AND Not Public Preview -> BLOCK
+                 // Guest AND Not Public Preview AND No API Key -> BLOCK
                  return ResponseFormatter::error($response, 'Unauthorized', 401);
             }
 

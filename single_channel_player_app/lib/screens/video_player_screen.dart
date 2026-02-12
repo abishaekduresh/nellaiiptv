@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'; // for kIsWeb
-import 'package:video_player/video_player.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:dio/dio.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -27,8 +28,16 @@ class VideoPlayerScreen extends StatefulWidget {
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindingObserver {
   final ApiService _api = ApiService();
   
-  // Official Video Player Controller
-  VideoPlayerController? _videoPlayerController;
+  late final Player _player;
+  late final VideoController _videoController;
+  
+  // Player Subscriptions
+  StreamSubscription<bool>? _bufferingSubscription;
+  // Player Subscriptions
+
+  StreamSubscription<String?>? _errorSubscription;
+  StreamSubscription<int?>? _widthSubscription; // Listen for video dimensions
+  StreamSubscription<double>? _volumeSubscription; // Listen for System Volume changes
   
   // PiP Controller
   late SimplePip _simplePip;
@@ -55,6 +64,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
     _enterLandscape();
     WakelockPlus.enable();
     
+    // Initialize MediaKit Player
+    _player = Player();
+    _videoController = VideoController(_player);
+
     // Initialize PiP
     _simplePip = SimplePip(
       onPipEntered: () {
@@ -71,6 +84,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
 
     // Initialize Audio Manager
     AudioManager().init();
+    
+    // Listen to System Volume Changes (e.g. Hardware Buttons or Gestures)
+    // If user increases volume, ensure Player is unmuted
+    _volumeSubscription = AudioManager().volumeStream.listen((volume) {
+       if (volume > 0 && _player.state.volume == 0) {
+          _player.setVolume(100.0); // Unmute Player
+       }
+    });
 
     _fetchAppLogo();
     _fetchChannel();
@@ -78,17 +99,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (_videoPlayerController == null) return;
-    
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       // Prevent pausing if we are effectively in PiP mode (or entering it)
       if (!_isPipMode) {
-         _videoPlayerController!.pause();
+         _player.pause();
          // Restore System Volume when backgrounded (unless entering PiP)
          AudioManager().restoreOriginalVolume();
       }
     } else if (state == AppLifecycleState.resumed) {
-      _videoPlayerController!.play();
+      _player.play();
       // Re-apply Session Volume when foregrounded
       AudioManager().reapplyAppVolume();
       
@@ -120,10 +139,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   }
 
   Future<double> _toggleMute() async {
-      if (_videoPlayerController == null) return 0;
-      double current = _videoPlayerController!.value.volume;
-      double newVol = (current > 0) ? 0.0 : 1.0;
-      await _videoPlayerController!.setVolume(newVol);
+      double current = _player.state.volume;
+      double newVol = (current > 0) ? 0.0 : 100.0;
+      await _player.setVolume(newVol);
       return newVol;
   }
 
@@ -189,22 +207,43 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
 
   Future<void> _initVideoPlayer(String url) async {
     try {
-      // Dispose previous if any
-      _disposeControllers();
+      // Dispose previous activity
+      _disposeControllers(); // Stops player and cancels subs
 
-      _videoPlayerController = VideoPlayerController.networkUrl(
-        Uri.parse(url),
-        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-      );
+      await _player.open(Media(url), play: true);
+      await _player.setVolume(100.0); // Ensure Audio is ON
+      await _player.setPlaylistMode(PlaylistMode.none);
+
+      // Listen for buffering
+      _bufferingSubscription = _player.stream.buffering.listen((isBuffering) {
+          if (!mounted) return;
+          if (isBuffering) {
+            if (!_isLoading) {
+              setState(() { _isLoading = true; });
+              _checkBufferingHealth();
+            }
+          } else {
+             if (_isLoading) {
+               setState(() { _isLoading = false; });
+             }
+          }
+      });
+
+      // Listen for Errors
+      _errorSubscription = _player.stream.error.listen((error) {
+         if (!mounted) return;
+         _showError("Playback Error: $error");
+      });
+
+      // Listen for Video Dimensions (Seamless Transition)
+      _widthSubscription = _player.stream.width.listen((width) {
+        if (mounted && width != null && width > 0) {
+           // Video has dimensions, trigger rebuild to hide logo overlay
+           setState(() {});
+        }
+      });
       
-      await _videoPlayerController!.initialize();
-      await _videoPlayerController!.setLooping(false);
-      await _videoPlayerController!.setVolume(1.0); // Ensure Audio is ON
-      await _videoPlayerController!.play(); // Auto Play
-
-      // Listen for buffering/errors
-      _videoPlayerController!.addListener(_videoListener);
-
+      // Wait a bit for initialization or just assume valid if no error
       setState(() {
         _isLoading = false;
       });
@@ -221,43 +260,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   DateTime? _lastBufferTime;
   int _bufferCount = 0;
 
-  void _videoListener() {
-    if (!mounted || _videoPlayerController == null) return;
-
-    // Handle Errors
-    if (_videoPlayerController!.value.hasError) {
-       _showError("Playback Error: ${_videoPlayerController!.value.errorDescription}");
-       return;
-    }
-
-    // Handle Buffering
-    if (_videoPlayerController!.value.isBuffering) {
-      if (!_isLoading) {
-        setState(() {
-          _isLoading = true;
-        });
-        
-        // Smart Buffering Monitor
-        final now = DateTime.now();
-        if (_lastBufferTime != null && now.difference(_lastBufferTime!) < const Duration(seconds: 30)) {
-           _bufferCount++;
-        } else {
-           _bufferCount = 1; // Reset window
-        }
-        _lastBufferTime = now;
-
-        if (_bufferCount >= 3) {
-           ToastService().show("Unstable Network: Buffering...", type: ToastType.warning);
-           _bufferCount = 0; // Reset after warning
-        }
+  void _checkBufferingHealth() {
+      // Smart Buffering Monitor
+      final now = DateTime.now();
+      if (_lastBufferTime != null && now.difference(_lastBufferTime!) < const Duration(seconds: 30)) {
+          _bufferCount++;
+      } else {
+          _bufferCount = 1; // Reset window
       }
-    } else {
-      if (_isLoading) {
-        setState(() {
-          _isLoading = false;
-        });
+      _lastBufferTime = now;
+
+      if (_bufferCount >= 3) {
+          ToastService().show("Unstable Network: Buffering...", type: ToastType.warning);
+          _bufferCount = 0; // Reset after warning
       }
-    }
   }
 
   void _showError(String msg) {
@@ -279,17 +295,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   }
 
   void _disposeControllers() {
-    if (_videoPlayerController != null) {
-       _videoPlayerController!.removeListener(_videoListener);
-       _videoPlayerController!.dispose();
-       _videoPlayerController = null;
-    }
+    _bufferingSubscription?.cancel();
+
+    _errorSubscription?.cancel();
+    _widthSubscription?.cancel();
+    _volumeSubscription?.cancel();
+    // Do not dispose _player here if you want to reuse it, but typically we do for full reset.
+    // However, with single instance, maybe just stop. 
+    // But since _initVideoPlayer creates new one? No, I initialized _player in initState (final).
+    // So I should just stop it.
+    _player.stop();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _disposeControllers();
+    _player.dispose(); // Dispose the final player instance
     WakelockPlus.disable();
     // Restore System Volume on Exit
     AudioManager().restoreOriginalVolume();
@@ -327,18 +349,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
             onToggleMute: _toggleMute,
             child: Container(
               color: Colors.black, // Ensure black background
-              child: (_videoPlayerController != null && _videoPlayerController!.value.isInitialized)
-                ? SizedBox.expand(
-                    child: FittedBox(
-                      fit: BoxFit.fill,
-                      child: SizedBox(
-                        width: _videoPlayerController!.value.size.width,
-                        height: _videoPlayerController!.value.size.height,
-                        child: VideoPlayer(_videoPlayerController!),
-                      ),
-                    ),
-                  )
-                : const SizedBox.shrink(),
+              child: Video(
+                controller: _videoController,
+                fit: BoxFit.fill,
+                controls: NoVideoControls,
+              ),
             ),
           ),
 
@@ -360,8 +375,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
             ),
 
           // 3. Loading Layer (Overlay)
-          if (_isLoading && !_hasError)
-            const Center(child: PulseLoader(color: Color(0xFF06B6D4), size: 60)),
+          // Maintain overlay until video has dimensions and is playing (Seamless Transition)
+          if ((_isLoading || _player.state.width == null || _player.state.width == 0) && !_hasError)
+             Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Always show loader if in this state
+                  const PulseLoader(color: Color(0xFF06B6D4), size: 60),
+                ],
+              ),
+             ),
           
           // 4. Error Layer
           if (_hasError)
@@ -397,7 +421,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
               bottom: 10,
               left: 20,
               child: Opacity(
-                opacity: 0.6,
+                opacity: 0.2,
                 child: Image.network(
                   _appLogoUrl!,
                   width: 150,
@@ -456,7 +480,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
               ),
 
             // 7. Cast & PiP Buttons (Top Right)
-            if (!kIsWeb && _videoPlayerController != null && _videoPlayerController!.value.isInitialized && !_isPipMode)
+            if (!kIsWeb && !_isPipMode)
               Positioned(
                 top: 20,
                 right: 20,
@@ -467,20 +491,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                     ignoring: !_showControls,
                     child: Row(
                       children: [
-                        // Cast Button
-                        IconButton(
-                          icon: const Icon(Icons.cast, color: Colors.white, size: 28),
-                          onPressed: () async {
-                            _startHideTimer(); // Reset timer
-                            final connectivityResult = await Connectivity().checkConnectivity();
-                            if (connectivityResult.contains(ConnectivityResult.wifi)) {
-                               ToastService().show("Searching for Cast devices...", type: ToastType.info);
-                            } else {
-                               ToastService().show("Connect to WiFi to Cast", type: ToastType.warning);
-                            }
-                          },
-                        ),
-                        const SizedBox(width: 8),
+
                         // PiP Button
                         IconButton(
                           icon: const Icon(Icons.picture_in_picture_alt, color: Colors.white, size: 28),
@@ -517,26 +528,92 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   Future<bool> _showExitConfirmation() async {
     return await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.black.withOpacity(0.5), // Transparent like theme
-        title: Text(
-          "Exit ${dotenv.env['APP_NAME'] ?? "App"}?", 
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          "Are you sure you want to exit the app?",
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancel", style: TextStyle(color: Color(0xFFFCD34D))), // Secondary
+      barrierColor: Colors.black.withOpacity(0.8),
+      builder: (context) => Dialog(
+        backgroundColor: const Color(0xFF1E293B), // Dark Slate
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: 350, // Reduced Width
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.power_settings_new, color: Colors.red, size: 32),
+              ),
+              const SizedBox(height: 20),
+              
+              // Title
+              Text(
+                "Exit ${dotenv.env['APP_NAME'] ?? "App"}?", 
+                style: const TextStyle(
+                  color: Colors.white, 
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              
+              // Message
+              const Text(
+                "Are you sure you want to close the player?",
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 30),
+              
+              // Buttons
+              Row(
+                children: [
+                  // Cancel Button
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                        ),
+                      ),
+                      child: const Text(
+                        "Cancel", 
+                        style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  
+                  // Exit Button
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red, // Prominent color for destructive action
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Exit", 
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("Exit", style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold)), // Primary
-          ),
-        ],
+        ),
       ),
     ) ?? false;
   }

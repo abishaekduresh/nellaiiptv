@@ -1,12 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import '../models/channel.dart';
 
 class ApiService {
   late Dio _dio;
-  
-  late String _currentHost; // Store the actual host we are connecting to
+  late String _currentHost;
+  final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
+  String? _cachedPlatform;
+  String? _cachedDeviceId;
 
   ApiService() {
     String baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:8000/api';
@@ -35,23 +38,72 @@ class ApiService {
 
     _dio = Dio(options);
     _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) {
-        options.headers['X-Client-Platform'] = _getPlatform();
+      onRequest: (options, handler) async {
+        options.headers['X-Client-Platform'] = await _getPlatform();
+        options.headers['X-Device-Id'] = await _getDeviceId();
         // print("REQUEST[${options.method}] => PATH: ${options.path}");
         return handler.next(options);
       },
+      onResponse: (response, handler) {
+        debugPrint('--- API Response ---');
+        debugPrint('Status: ${response.statusCode}');
+        debugPrint('URL: ${response.requestOptions.baseUrl}${response.requestOptions.path}');
+        // debugPrint('Data: ${response.data}'); // Concise logging
+        debugPrint('--------------------');
+        return handler.next(response);
+      },
       onError: (DioException e, handler) {
-        print("ERROR[${e.response?.statusCode}] => PATH: ${e.requestOptions.path}");
+        debugPrint('--- API Error ---');
+        debugPrint('Message: ${e.message}');
+        debugPrint('URL: ${e.requestOptions.baseUrl}${e.requestOptions.path}');
+        if (e.response != null) {
+           debugPrint('Status: ${e.response?.statusCode}');
+           debugPrint('Data: ${e.response?.data}');
+        }
+        debugPrint('-----------------');
         return handler.next(e);
       },
     ));
   }
 
-  String _getPlatform() {
-    if (kIsWeb) return 'web';
-    if (defaultTargetPlatform == TargetPlatform.android) return 'android';
-    if (defaultTargetPlatform == TargetPlatform.iOS) return 'ios';
-    return 'tv';
+  // Platform Detection: Distinguishes between Mobile and TV (Leanback)
+  Future<String> _getPlatform() async {
+    if (_cachedPlatform != null) return _cachedPlatform!;
+    
+    if (kIsWeb) {
+      _cachedPlatform = 'web';
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
+      // Industry Standard: Check for Leanback feature to identify Android TV devices
+      bool isTV = androidInfo.systemFeatures.contains('android.software.leanback') || 
+                  androidInfo.host.toLowerCase().contains('tv') ||
+                  androidInfo.model.toLowerCase().contains('tv');
+      _cachedPlatform = isTV ? 'tv' : 'android';
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      _cachedPlatform = 'ios';
+    } else {
+      _cachedPlatform = 'unknown'; // Fallback for Windows/Linux
+    }
+    return _cachedPlatform!;
+  }
+
+  Future<String> _getDeviceId() async {
+    if (_cachedDeviceId != null) return _cachedDeviceId!;
+
+    try {
+      if (kIsWeb) {
+        _cachedDeviceId = 'web-session';
+      } else if (defaultTargetPlatform == TargetPlatform.android) {
+        AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
+        _cachedDeviceId = androidInfo.id;
+      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+        IosDeviceInfo iosInfo = await _deviceInfo.iosInfo;
+        _cachedDeviceId = iosInfo.identifierForVendor;
+      }
+    } catch (e) {
+      _cachedDeviceId = 'unknown-device';
+    }
+    return _cachedDeviceId ?? 'unknown-device';
   }
 
   Future<String?> getAppLogo() async {
