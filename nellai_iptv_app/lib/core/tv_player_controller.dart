@@ -62,44 +62,51 @@ class TVPlayerController {
         p.setProperty('demuxer-max-bytes', '${100 * 1024 * 1024}'); // 100MB Buffer
         p.setProperty('demuxer-readahead-secs', '60');
         
-        // 2. Hardware Acceleration
+        // 2. Hardware Acceleration & Performance
         p.setProperty('hwdec', 'auto'); 
         p.setProperty('hwdec-codecs', 'all'); 
         p.setProperty('video-sync', 'audio');
+        p.setProperty('vd-lavc-fast', '1'); // Enable fast decoding
+        p.setProperty('audio-pitch-correction', 'yes');
 
-        // 3. Network
+        // 3. Network & IPTV Optimization
         p.setProperty('demuxer-lavf-o', 'reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5');
         p.setProperty('network-timeout', '30');
+        p.setProperty('cache-pause', 'no'); // Don't pause on low cache for live streams
+        p.setProperty('probesize', '65536'); // Smaller probe size for faster start
+        p.setProperty('analyzeduration', '1000000'); // 1 second
         
         // 4. Quality
         p.setProperty('hls-bitrate', 'max');
-        // Default scaling is usually bicubic or similar good quality
       
       } else {
         // --- LOW SPEC CONFIGURATION (<=2GB RAM) ---
         // 1. Buffer Management (Conservative)
-        p.setProperty('demuxer-max-bytes', '${32 * 1024 * 1024}'); // 32MB Buffer to save RAM
-        p.setProperty('demuxer-readahead-secs', '30');
+        p.setProperty('demuxer-max-bytes', '${16 * 1024 * 1024}'); // 16MB Buffer to save RAM
+        p.setProperty('demuxer-readahead-secs', '15');
         
-        // 2. Hardware Acceleration (Still needed, but maybe with tweaks)
+        // 2. Hardware Acceleration & CPU Saving
         p.setProperty('hwdec', 'auto'); 
         p.setProperty('hwdec-codecs', 'all'); 
         p.setProperty('video-sync', 'audio');
         p.setProperty('framedrop', 'vo'); // Allow frame drops to keep audio sync
+        p.setProperty('vd-lavc-fast', '1'); // Enable fast decoding
+        p.setProperty('vd-lavc-skiploopfilter', 'all'); // Skip loop filter to save CPU
+        p.setProperty('vd-lavc-skipidct', 'all'); // Skip IDCT for performance
 
         // 3. Rendering Efficiency (Fastest Scaling)
         p.setProperty('scale', 'bilinear'); 
         p.setProperty('dscale', 'bilinear'); 
         p.setProperty('cscale', 'bilinear');
-        // Force OpenGL context if possible for better low-end support, varies by device
-        // p.setProperty('gpu-context', 'android'); 
 
-        // 4. Network (Fail Fast)
+        // 4. Network & IPTV Optimization
         p.setProperty('demuxer-lavf-o', 'reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5');
         p.setProperty('network-timeout', '20'); 
+        p.setProperty('probesize', '32768'); // Even smaller probe for low-end
+        p.setProperty('analyzeduration', '500000'); // 0.5 seconds
         
         // 5. Quality (Auto bitrate to prevent choking)
-        // p.setProperty('hls-bitrate', 'auto'); // Let it adapt instead of forcing max
+        p.setProperty('hls-bitrate', 'auto'); 
       }
       
       debugPrint("✅ TVPlayerController: Optimizations Applied.");

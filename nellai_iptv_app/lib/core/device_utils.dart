@@ -24,11 +24,21 @@ class DeviceUtils {
       // RAM Check (Total Memory in Bytes)
       // 2GB = 2 * 1024 * 1024 * 1024 = 2,147,483,648 bytes
       // We set threshold slightly lower (e.g. 1.8GB) because OS reserves some.
-      const int lowRamThreshold = 2000 * 1024 * 1024; 
-      // Note: totalMemory returns bytes.
-      // final totalRam = androidInfo.totalMemory; // Error: totalMemory not found in some versions
-      // _isHighPerformance = totalRam > lowRamThreshold;
-      _isHighPerformance = true; // Default to true for now
+      const int lowRamThreshold = 1800 * 1024 * 1024; 
+      
+      // Try to get totalMemory if available in this version of device_info_plus
+      try {
+        // Access via data map to avoid compile-time errors if property is missing in this version
+        final dynamic totalRamValue = androidInfo.data['totalMemory'];
+        if (totalRamValue != null && totalRamValue is int) {
+          _isHighPerformance = totalRamValue > lowRamThreshold;
+        } else {
+          _isHighPerformance = true; // Fallback
+        }
+      } catch (e) {
+        debugPrint("⚠️ DeviceUtils: Could not get totalMemory: $e");
+        _isHighPerformance = true; // Fallback to true
+      }
       
       debugPrint("📱 Device Info: Model=${androidInfo.model}, TV=$_isTV, HighPerf=$_isHighPerformance");
 

@@ -1,3 +1,10 @@
+## [1.8.19+35] - App | [1.47.1] - Website | [1.36.1] - Backend - 2026-02-13
+
+### App (Flutter)
+- **Feature**: **TV Playback Optimization** - Hardware-aware device profiling and tailored FFmpeg properties for low-end hardware.
+- **Improved**: **Buffer Management** - Optimized probesize and readahead for faster channel switches.
+- **Branding**: **Dynamic Updates** - Integrated environment-based app name loading and logo asset synchronization.
+
 ## [1.2.3+4] - App | [1.47.0] - Website | [1.36.1] - Backend - 2026-02-12
 
 ### App (Single Channel Player)

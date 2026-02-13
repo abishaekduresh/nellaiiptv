@@ -766,7 +766,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                   )
                   .animate(onPlay: (controller) => controller.repeat(reverse: true))
                   .scale(begin: const Offset(1.0, 1.0), end: const Offset(1.05, 1.05), duration: 800.ms)
-                  .then(delay: 800.ms), // Gentle pulse
+                  .then(delay: DeviceUtils.isHighPerformance ? 800.ms : Duration.zero), // Simplify on low-end
                 ),
               ),
             ),
@@ -847,7 +847,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                          stops: const [0.0, 0.4],
                       ),
                    ),
-                   child: Row(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                          // Channel Logo
@@ -930,8 +930,12 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                             ),
                          ),
                       ],
-                   ),
-                ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.2, end: 0, duration: 300.ms),
+                    ),
+                ).animate().fadeIn(duration: 300.ms).slideY(
+                  begin: DeviceUtils.isHighPerformance ? 0.2 : 0.0, // Disable slide on low-end
+                  end: 0, 
+                  duration: 300.ms
+                ),
              ),
              
           // 8. Cast & PiP Buttons (Top Right)

@@ -1,3 +1,16 @@
+## [1.8.19+35] - 2026-02-13
+
+### Added
+- **TV Playback Optimization**: Implemented hardware-aware device profiling (RAM check) and tailored MediaKit/FFmpeg properties for low-end hardware.
+- **Branding Update**: Integrated dynamic app name loading from environment variables and updated logo branding across all main screens.
+
+### Changed
+- **Performance**: Optimized buffer management and probesize for faster IPTV stream connection and reduced stuttering on resource-constrained TVs.
+- **UX**: Conditionally reduced animation complexity on low-performance devices to save CPU cycles and improve responsiveness.
+
+### Fixed
+- **Compile Stability**: Fixed a critical compile-time error in device memory detection logic by safely accessing RAM info via the data map.
+
 ## [1.8.18+34] - 2026-02-11
 
 ### Fixed
