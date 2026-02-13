@@ -1,9 +1,12 @@
-## [1.8.20+36] - App | [1.47.1] - Website | [1.36.1] - Backend - 2026-02-14
+## [1.8.20+37] - App | [1.47.1] - Website | [1.36.1] - Backend - 2026-02-14
 
 ### App (Flutter)
-- **Feature**: **TV Focus Highlighting** - Added visual selection indicators and inner glows for clearer D-pad navigation on TV.
-- **Improved**: **Hardware-Aware Playback** - Enhanced auto-tuning of FFmpeg properties for devices with limited RAM.
-- **Reliability**: Fine-tuned buffer and probesize for smoother IPTV stream delivery on low-end hardware.
+- **Feature**: **Focus Auto-Hide** - Integrated a 3-second auto-hide timer for player focus highlights to maintain a clean viewing experience.
+- **Improved**: **TV Focus Highlights** - Added visual selection indicators and inner glows for clearer D-pad navigation on TV.
+- **Reliability**: Resolved "child != this" focus errors and fixed compilation state issues in the player component.
+- **Hardware-Aware Playback**: Enhanced auto-tuning of FFmpeg properties for devices with limited RAM.
+
+## [1.8.19+36] - App | [1.47.1] - Website | [1.36.1] - Backend - 2026-02-13
 
 ## [1.8.19+35] - App | [1.47.1] - Website | [1.36.1] - Backend - 2026-02-13
 
