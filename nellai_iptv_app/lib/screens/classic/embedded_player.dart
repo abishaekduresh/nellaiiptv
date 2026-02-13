@@ -107,6 +107,20 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   
   bool _isDisposed = false;
   bool _forceStopped = false; // Kill switch flag
+  
+  // Timer for player focus highlight auto-hide
+  bool _showFocusHighlight = false;
+  Timer? _focusHighlightTimer;
+
+  void _startFocusHighlightTimer() {
+    _focusHighlightTimer?.cancel();
+    setState(() => _showFocusHighlight = true);
+    _focusHighlightTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => _showFocusHighlight = false);
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -126,6 +140,9 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
       if (mounted) {
         if (_focusNode.hasFocus) {
           _toggleControls(show: true);
+          _startFocusHighlightTimer();
+        } else {
+          setState(() => _showFocusHighlight = false);
         }
         setState(() {});
       }
@@ -618,6 +635,9 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
       focusNode: _focusNode,
       autofocus: widget.isFullScreen, // Only autofocus if fullscreen, otherwise let user navigate to it
       onKeyEvent: (node, event) {
+        if (event is KeyDownEvent) {
+          _startFocusHighlightTimer();
+        }
         final isSelect = event.logicalKey == LogicalKeyboardKey.select || 
                         event.logicalKey == LogicalKeyboardKey.enter ||
                         event.logicalKey == LogicalKeyboardKey.numpadEnter ||
@@ -651,517 +671,482 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
       child: Builder(
         builder: (context) {
           final bool hasFocus = _focusNode.hasFocus;
-          return GestureOverlay(
-            onTap: () {
-              _focusNode.requestFocus();
-              if (!widget.isFullScreen) {
-                _toggleFullScreen();
-              } else {
-                // Single tap in fullscreen -> Toggle STB Overlay (via parent)
-                widget.onTap?.call();
-              }
-            },
-            onToggleMute: widget.onDoubleTap ?? () => _toggleMute(),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              decoration: const BoxDecoration(
-                color: Colors.transparent,
-                // Border removed here, moved to Stack for Z-Index visibility
-              ),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // 1. Video Surface
-          GestureOverlay(
-            onDoubleTap: widget.onDoubleTap,
-            onTap: () {
-               _toggleControls();
-               widget.onTap?.call();
-            },
-            child: Focus(
-              focusNode: _focusNode,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: _focusNode.hasFocus
-                        ? const Color(0xFF06B6D4).withOpacity(0.5)
-                        : Colors.transparent,
-                    width: 2,
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              // 1. Video Surface
+              GestureOverlay(
+                onDoubleTap: widget.onDoubleTap,
+                onTap: () {
+                   _focusNode.requestFocus();
+                   _startFocusHighlightTimer();
+                   if (!widget.isFullScreen) {
+                      _toggleFullScreen();
+                   } else {
+                      _toggleControls();
+                      widget.onTap?.call();
+                   }
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: hasFocus
+                          ? const Color(0xFF06B6D4).withOpacity(0.5)
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                    boxShadow: hasFocus ? [
+                      BoxShadow(
+                        color: const Color(0xFF06B6D4).withOpacity(0.2),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      )
+                    ] : [],
                   ),
-                  boxShadow: _focusNode.hasFocus ? [
-                    BoxShadow(
-                      color: const Color(0xFF06B6D4).withOpacity(0.2),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    )
-                  ] : [],
-                ),
-                child: (_isPremiumContent || _forceStopped) 
-                      ? const SizedBox() 
-                      : SizedBox.expand(
-                          child: Video(
-                            controller: _tvPlayer.videoController,
-                            fit: BoxFit.fill,
-                            controls: NoVideoControls, // We use our own custom controls
-                            alignment: Alignment.center,
-                          ),
-                        ),
-              ),
-            ),
-          ),
-
-          // 2. Web Warning (Bottom)
-          if (kIsWeb)
-            Positioned(
-              bottom: 20,
-              left: 20,
-              right: 20,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                color: Colors.black54,
-                child: const Text( 
-                  "NOTE: Desktop Chrome cannot play HLS (.m3u8) natively.\nPlease test on Android Emulator or Safari.",
-                  style: TextStyle(color: Colors.yellow, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          // 3. Loading Layer (Overlay)
-          StreamBuilder<bool>(
-            stream: _tvPlayer.player.stream.buffering,
-            builder: (context, snapshot) {
-              final isBuffering = snapshot.data ?? false;
-              
-              if (!_hasError && !_isPremiumContent) {
-                if (_isLoading) {
-                   return Container(
-                     color: Colors.transparent, 
-                     child: Center(
-                        child: LoadingAnimationWidget.progressiveDots(
-                          color: const Color(0xFF06B6D4), 
-                          size: 60
-                        ),
-                     ),
-                   );
-                } else if (isBuffering) {
-                   return Center(
-                      child: LoadingAnimationWidget.progressiveDots(
-                        color: const Color(0xFF06B6D4), 
-                        size: 60
-                      ),
-                   );
-                }
-              }
-              return const SizedBox();
-            },
-          ),
-          
-          // 4. Retry Button (Fallback Mode)
-          // Show when fallback is active request by user to manually retry
-          if (_fallbackUsed)
-            Positioned(
-              bottom: widget.isFullScreen ? 50 : 20, // Lower in embedded mode
-              left: 0,
-              right: 0,
-              child: SafeArea(
-                child: Center(
-                  child: ElevatedButton.icon(
-                    autofocus: true, // Auto-focus on fallback for D-Pad
-                    onPressed: () {
-                      // Manually trigger reload
-                      _loadChannel();
-                    },
-                    // Responsive sizing: Larger in fullscreen, compact in embedded
-                    icon: Icon(Icons.refresh, size: widget.isFullScreen ? 18 : 14),
-                    label: Text("$_retrySeconds", 
-                      style: TextStyle(fontSize: widget.isFullScreen ? 15 : 12)
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF06B6D4), // Cyan to match theme
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: widget.isFullScreen ? 20 : 12, 
-                        vertical: widget.isFullScreen ? 12 : 6
-                      ),
-                      minimumSize: Size.zero, // Remove default minimums for true compactness
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Tighter touch target
-                      elevation: 5,
-                    ),
-                  )
-                  .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                  .scale(begin: const Offset(1.0, 1.0), end: const Offset(1.05, 1.05), duration: 800.ms)
-                  .then(delay: DeviceUtils.isHighPerformance ? 800.ms : Duration.zero), // Simplify on low-end
-                ),
-              ),
-            ),
-
-          // 5. Premium Overlay
-          if (_isPremiumContent)
-             _buildPremiumOverlay(),
-
-          // 5. Error Layer
-          if (_hasError && !_isPremiumContent)
-             Center(
-               child: Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                   const Icon(Icons.error_outline, color: Color(0xFF06B6D4), size: 50),
-                   const SizedBox(height: 10),
-                   Text(
-                     _errorMessage,
-                     style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
-                     textAlign: TextAlign.center,
-                   ),
-                   const SizedBox(height: 10),
-                   ElevatedButton(
-                     onPressed: _loadChannel, 
-                     child: const Text("Retry"),
-                   )
-                 ],
-               ),
-             ),
-
-
-          // 6. Watermark Layer (Hide in PiP)
-          if (!_hasError && _appLogoUrl != null && !_isPipMode && !_isPremiumContent)
-            Positioned(
-              bottom: -5,
-              left: 15,
-              child: Opacity(
-                opacity: 0.2,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Responsive width: Smaller in non-fullscreen mode
-                    double scale = widget.isFullScreen ? 0.12 : 0.08;
-                    double minWidth = widget.isFullScreen ? 80.0 : 45.0;
-                    double maxWidth = widget.isFullScreen ? 150.0 : 80.0;
-                    
-                    double width = constraints.maxWidth * scale;
-                    width = width.clamp(minWidth, maxWidth);
-                    
-                    return Image.network(
-                      _appLogoUrl!,
-                      width: width,
-                      errorBuilder: (c,e,s) => const SizedBox(),
-                    );
-                  }
-                ),
-              ),
-            ),
-
-          // 7. Channel Info Banner (STB Style)
-          // Shows on load, auto-hides. Hidden if STB Menu is open (hideControls).
-          if (_showChannelInfo && !widget.hideControls && _channel != null && !_isPipMode)
-             Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                   padding: EdgeInsets.fromLTRB(
-                      widget.isFullScreen ? 32 : 16, 
-                      24, 
-                      widget.isFullScreen ? 32 : 16, 
-                      widget.isFullScreen ? 24 : 12
-                   ),
-                   decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                         begin: Alignment.topCenter,
-                         end: Alignment.bottomCenter,
-                         colors: [Colors.transparent, Colors.black.withOpacity(0.9)],
-                         stops: const [0.0, 0.4],
-                      ),
-                   ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                         // Channel Logo
-                         if (_channel!.logoUrl != null)
-                            Container(
-                               width: widget.isFullScreen ? 80 : 50,
-                               height: widget.isFullScreen ? 80 : 50,
-                               margin: const EdgeInsets.only(right: 16),
-                               padding: const EdgeInsets.all(4),
-                               decoration: BoxDecoration(
-                                  color: Colors.white10,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.white24),
-                               ),
-                               child: CachedNetworkImage(
-                                  imageUrl: _channel!.logoUrl!,
-                                  fit: BoxFit.contain,
-                                  errorWidget: (_,__,___) => const Icon(Icons.tv, color: Colors.white54),
-                               ),
+                  child: (_isPremiumContent || _forceStopped) 
+                        ? const SizedBox() 
+                        : SizedBox.expand(
+                            child: Video(
+                              controller: _tvPlayer.videoController,
+                              fit: BoxFit.fill,
+                              controls: NoVideoControls, // We use our own custom controls
+                              alignment: Alignment.center,
                             ),
-                         
-                         // Channel Info
-                         Expanded(
-                            child: Column(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               mainAxisSize: MainAxisSize.min,
-                               children: [
-                                  Row(
-                                     children: [
-                                        // Channel Number Badge
-                                        Container(
-                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                           decoration: BoxDecoration(
-                                              color: const Color(0xFF0EA5E9), // Sky 500
-                                              borderRadius: BorderRadius.circular(4),
-                                           ),
-                                           child: Text(
-                                              "CH ${_channel!.channelNumber ?? '-'}",
-                                              style: TextStyle(
-                                                 color: Colors.white,
-                                                 fontSize: widget.isFullScreen ? 14 : 11,
-                                                 fontWeight: FontWeight.bold,
-                                              ),
-                                           ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        // Category Badge
-                                        if (_channel!.category?.name != null)
-                                           Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                 color: Colors.white24,
-                                                 borderRadius: BorderRadius.circular(4),
-                                              ),
-                                              child: Text(
-                                                 _channel!.category!.name,
-                                                 style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: widget.isFullScreen ? 12 : 10,
-                                                    fontWeight: FontWeight.w500,
-                                                 ),
-                                              ),
-                                           ),
-                                     ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // Channel Name
-                                  Text(
-                                     _channel!.name,
-                                     style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: widget.isFullScreen ? 28 : 18,
-                                        fontWeight: FontWeight.bold,
-                                        shadows: const [Shadow(color: Colors.black, blurRadius: 4, offset: Offset(0, 2))],
-                                     ),
-                                     maxLines: 1,
-                                     overflow: TextOverflow.ellipsis,
-                                  ),
-                               ],
+                          ),
+                ),
+              ),
+              
+              // 2. Web Warning (Bottom)
+              if (kIsWeb)
+                Positioned(
+                  bottom: 20,
+                  left: 20,
+                  right: 20,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    color: Colors.black54,
+                    child: const Text( 
+                      "NOTE: Desktop Chrome cannot play HLS (.m3u8) natively.\nPlease test on Android Emulator or Safari.",
+                      style: TextStyle(color: Colors.yellow, fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              // 3. Loading Layer (Overlay)
+              StreamBuilder<bool>(
+                stream: _tvPlayer.player.stream.buffering,
+                builder: (context, snapshot) {
+                  final isBuffering = snapshot.data ?? false;
+                  
+                  if (!_hasError && !_isPremiumContent) {
+                    if (_isLoading) {
+                       return Container(
+                         color: Colors.transparent, 
+                         child: Center(
+                            child: LoadingAnimationWidget.progressiveDots(
+                              color: const Color(0xFF06B6D4), 
+                              size: 60
                             ),
                          ),
-                      ],
-                    ),
-                ).animate().fadeIn(duration: 300.ms).slideY(
-                  begin: DeviceUtils.isHighPerformance ? 0.2 : 0.0, // Disable slide on low-end
-                  end: 0, 
-                  duration: 300.ms
-                ),
-             ),
-             
-          // 8. Cast & PiP Buttons (Top Right)
-            if (!kIsWeb && !_isPipMode && !_isPremiumContent && !DeviceUtils.isTV) 
-              Positioned(
-                top: 20,
-                right: 20,
-                child: AnimatedOpacity(
-                  opacity: _showControls ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: IgnorePointer(
-                    ignoring: !_showControls,
-                    child: Row(
-                      children: [
-                        // 1. Channel List Button (STB Navigation) - NEW
-                        if (widget.isFullScreen)
-                              InkWell(
-                                focusNode: _menuFocusNode,
-                                onTap: () {
-                                  _startHideTimer();
-                                  widget.onTap?.call();
-                                },
-                                borderRadius: BorderRadius.circular(20),
-                                child: AnimatedBuilder(
-                                  animation: _menuFocusNode,
-                                  builder: (context, child) {
-                                    return Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: _menuFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
-                                        border: _menuFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
-                                      ),
-                                      child: const Icon(Icons.menu_open, color: Colors.white, size: 28),
-                                    );
-                                  },
-                                ),
-                              ),
-                        if (widget.isFullScreen) const SizedBox(width: 12),
-
-                        // 2. Fullscreen Toggle Button - CRITICAL FOR TV
-                            InkWell(
-                              focusNode: _fsFocusNode,
-                              onTap: () {
-                                _startHideTimer();
-                                _toggleFullScreen();
-                              },
-                              borderRadius: BorderRadius.circular(20),
-                              child: AnimatedBuilder(
-                                animation: _fsFocusNode,
-                                builder: (context, child) {
-                                  return Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: _fsFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
-                                      border: _fsFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
-                                    ),
-                                    child: Icon(
-                                      widget.isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen, 
-                                      color: Colors.white, 
-                                      size: 28
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                        const SizedBox(width: 12),
-
-                        // PiP Button - Show ONLY if Fullscreen
-                        if (widget.isFullScreen)
-                              InkWell(
-                                focusNode: _pipFocusNode,
-                                onTap: () async {
-                                  _startHideTimer(); // Reset timer
-                                  try {
-                                     final isPipAvailable = await SimplePip.isPipAvailable;
-                                     if (isPipAvailable) {
-                                       // Optimistically set mode to prevent auto-pause race condition
-                                       setState(() { _isPipMode = true; });
-                                       await _simplePip.enterPipMode(aspectRatio: (16, 9));
-                                     } else {
-                                       ToastService().show("PiP not supported on this device", type: ToastType.warning);
-                                     }
-                                  } catch (e) {
-                                     // Revert state if failed
-                                     setState(() { _isPipMode = false; });
-                                     ToastService().show("PiP Failed: $e", type: ToastType.error);
-                                  }
-                                },
-                                borderRadius: BorderRadius.circular(20),
-                                child: AnimatedBuilder(
-                                  animation: _pipFocusNode,
-                                  builder: (context, child) {
-                                    return Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: _pipFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
-                                        border: _pipFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
-                                        boxShadow: _pipFocusNode.hasFocus ? [
-                                          BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.5), blurRadius: 8, spreadRadius: 2)
-                                        ] : [],
-                                      ),
-                                      child: const Icon(Icons.picture_in_picture_alt, color: Colors.white, size: 28),
-                                    );
-                                  },
-                                ),
-                              ),
-                        const SizedBox(width: 12),
-
-                        // Report Issue Button
-                            InkWell(
-                              focusNode: _reportFocusNode,
-                              onTap: () {
-                                _startHideTimer();
-                                if (_channel != null) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => ReportIssueDialog(
-                                      channelUuid: _channel!.uuid,
-                                      channelName: _channel!.name,
-                                    ),
-                                  );
-                                }
-                              },
-                              borderRadius: BorderRadius.circular(20),
-                              child: AnimatedBuilder(
-                                animation: _reportFocusNode,
-                                builder: (context, child) {
-                                  return Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: _reportFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
-                                      border: _reportFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
-                                    ),
-                                    child: const Icon(Icons.flag, color: Colors.white, size: 28),
-                                  );
-                                },
-                              ),
-                            ),
-                        const SizedBox(width: 12),
-
-                        // 4. Mute Button - NEW
-                            InkWell(
-                              focusNode: _muteFocusNode,
-                               onTap: () async {
-                                _startHideTimer();
-                                await _toggleMute();
-                                if (mounted) setState(() {});
-                              },
-                              borderRadius: BorderRadius.circular(20),
-                              child: AnimatedBuilder(
-                                animation: _muteFocusNode,
-                                builder: (context, child) {
-                                  final isMuted = AudioManager().isMuted;
-                                  return Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: _muteFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
-                                      border: _muteFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
-                                    ),
-                                    child: Icon(
-                                      isMuted ? Icons.volume_off : Icons.volume_up, 
-                                      color: Colors.white, 
-                                      size: 28
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                      ],
+                       );
+                    } else if (isBuffering) {
+                       return Center(
+                          child: LoadingAnimationWidget.progressiveDots(
+                            color: const Color(0xFF06B6D4), 
+                            size: 60
+                          ),
+                       );
+                    }
+                  }
+                  return const SizedBox();
+                },
+              ),
+              
+              // 4. Retry Button (Fallback Mode)
+              if (_fallbackUsed)
+                Positioned(
+                  bottom: widget.isFullScreen ? 50 : 20,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(
+                    child: Center(
+                      child: ElevatedButton.icon(
+                        autofocus: true,
+                        onPressed: () {
+                          _loadChannel();
+                        },
+                        icon: Icon(Icons.refresh, size: widget.isFullScreen ? 18 : 14),
+                        label: Text("$_retrySeconds", 
+                          style: TextStyle(fontSize: widget.isFullScreen ? 15 : 12)
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF06B6D4),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: widget.isFullScreen ? 20 : 12, 
+                            vertical: widget.isFullScreen ? 12 : 6
+                          ),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          elevation: 5,
+                        ),
+                      )
+                      .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                      .scale(begin: const Offset(1.0, 1.0), end: const Offset(1.05, 1.05), duration: 800.ms)
+                      .then(delay: DeviceUtils.isHighPerformance ? 800.ms : Duration.zero),
                     ),
                   ),
                 ),
-              ),
-              // 9. FOCUS HIGHLIGHTER (Always On Top)
-              // Moved here from Container decoration to ensure it sits ABOVE the video texture
-              if (!widget.isFullScreen && hasFocus)
+
+              // 5. Premium Overlay
+              if (_isPremiumContent)
+                 _buildPremiumOverlay(),
+
+              // 5. Error Layer
+              if (_hasError && !_isPremiumContent)
+                 Center(
+                   child: Column(
+                     mainAxisAlignment: MainAxisAlignment.center,
+                     children: [
+                       const Icon(Icons.error_outline, color: Color(0xFF06B6D4), size: 50),
+                       const SizedBox(height: 10),
+                       Text(
+                         _errorMessage,
+                         style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
+                         textAlign: TextAlign.center,
+                       ),
+                       const SizedBox(height: 10),
+                       ElevatedButton(
+                         onPressed: _loadChannel, 
+                         child: const Text("Retry"),
+                       )
+                     ],
+                   ),
+                 ),
+
+              // 6. Watermark Layer
+              if (!_hasError && _appLogoUrl != null && !_isPipMode && !_isPremiumContent)
+                Positioned(
+                  bottom: -5,
+                  left: 15,
+                  child: Opacity(
+                    opacity: 0.2,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        double scale = widget.isFullScreen ? 0.12 : 0.08;
+                        double minWidth = widget.isFullScreen ? 80.0 : 45.0;
+                        double maxWidth = widget.isFullScreen ? 150.0 : 80.0;
+                        
+                        double width = constraints.maxWidth * scale;
+                        width = width.clamp(minWidth, maxWidth);
+                        
+                        return Image.network(
+                          _appLogoUrl!,
+                          width: width,
+                          errorBuilder: (c,e,s) => const SizedBox(),
+                        );
+                      }
+                    ),
+                  ),
+                ),
+
+              // 7. Channel Info Banner
+              if (_showChannelInfo && !widget.hideControls && _channel != null && !_isPipMode)
+                 Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                       padding: EdgeInsets.fromLTRB(
+                          widget.isFullScreen ? 32 : 16, 
+                          24, 
+                          widget.isFullScreen ? 32 : 16, 
+                          widget.isFullScreen ? 24 : 12
+                       ),
+                       decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                             begin: Alignment.topCenter,
+                             end: Alignment.bottomCenter,
+                             colors: [Colors.transparent, Colors.black.withOpacity(0.9)],
+                             stops: const [0.0, 0.4],
+                          ),
+                       ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                             if (_channel!.logoUrl != null)
+                                Container(
+                                   width: widget.isFullScreen ? 80 : 50,
+                                   height: widget.isFullScreen ? 80 : 50,
+                                   margin: const EdgeInsets.only(right: 16),
+                                   padding: const EdgeInsets.all(4),
+                                   decoration: BoxDecoration(
+                                      color: Colors.white10,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.white24),
+                                   ),
+                                   child: CachedNetworkImage(
+                                      imageUrl: _channel!.logoUrl!,
+                                      fit: BoxFit.contain,
+                                      errorWidget: (_,__,___) => const Icon(Icons.tv, color: Colors.white54),
+                                   ),
+                                ),
+                             
+                             Expanded(
+                                child: Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   mainAxisSize: MainAxisSize.min,
+                                   children: [
+                                      Row(
+                                         children: [
+                                            Container(
+                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                               decoration: BoxDecoration(
+                                                  color: const Color(0xFF0EA5E9),
+                                                  borderRadius: BorderRadius.circular(4),
+                                               ),
+                                               child: Text(
+                                                  "CH ${_channel!.channelNumber ?? '-'}",
+                                                  style: TextStyle(
+                                                     color: Colors.white,
+                                                     fontSize: widget.isFullScreen ? 14 : 11,
+                                                     fontWeight: FontWeight.bold,
+                                                  ),
+                                               ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            if (_channel!.category?.name != null)
+                                               Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                     color: Colors.white24,
+                                                     borderRadius: BorderRadius.circular(4),
+                                                  ),
+                                                  child: Text(
+                                                     _channel!.category!.name,
+                                                     style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: widget.isFullScreen ? 12 : 10,
+                                                        fontWeight: FontWeight.w500,
+                                                     ),
+                                                  ),
+                                               ),
+                                         ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                         _channel!.name,
+                                         style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: widget.isFullScreen ? 28 : 18,
+                                            fontWeight: FontWeight.bold,
+                                            shadows: const [Shadow(color: Colors.black, blurRadius: 4, offset: Offset(0, 2))],
+                                         ),
+                                         maxLines: 1,
+                                         overflow: TextOverflow.ellipsis,
+                                      ),
+                                   ],
+                                ),
+                             ),
+                          ],
+                        ),
+                    ).animate().fadeIn(duration: 300.ms).slideY(
+                      begin: DeviceUtils.isHighPerformance ? 0.2 : 0.0,
+                      end: 0, 
+                      duration: 300.ms
+                    ),
+                 ),
+                 
+              // 8. Cast & PiP Buttons
+                if (!kIsWeb && !_isPipMode && !_isPremiumContent && !DeviceUtils.isTV) 
+                  Positioned(
+                    top: 20,
+                    right: 20,
+                    child: AnimatedOpacity(
+                      opacity: _showControls ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: IgnorePointer(
+                        ignoring: !_showControls,
+                        child: Row(
+                          children: [
+                            if (widget.isFullScreen)
+                                  InkWell(
+                                    focusNode: _menuFocusNode,
+                                    onTap: () {
+                                      _startHideTimer();
+                                      widget.onTap?.call();
+                                    },
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: AnimatedBuilder(
+                                      animation: _menuFocusNode,
+                                      builder: (context, child) {
+                                        return Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: _menuFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                            border: _menuFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                          ),
+                                          child: const Icon(Icons.menu_open, color: Colors.white, size: 28),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                            if (widget.isFullScreen) const SizedBox(width: 12),
+
+                                InkWell(
+                                  focusNode: _fsFocusNode,
+                                  onTap: () {
+                                    _startHideTimer();
+                                    _toggleFullScreen();
+                                  },
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: AnimatedBuilder(
+                                    animation: _fsFocusNode,
+                                    builder: (context, child) {
+                                      return Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: _fsFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                          border: _fsFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                        ),
+                                        child: Icon(
+                                          widget.isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen, 
+                                          color: Colors.white, 
+                                          size: 28
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                            const SizedBox(width: 12),
+
+                            if (widget.isFullScreen)
+                                  InkWell(
+                                    focusNode: _pipFocusNode,
+                                    onTap: () async {
+                                      _startHideTimer();
+                                      try {
+                                         final isPipAvailable = await SimplePip.isPipAvailable;
+                                         if (isPipAvailable) {
+                                           setState(() { _isPipMode = true; });
+                                           await _simplePip.enterPipMode(aspectRatio: (16, 9));
+                                         } else {
+                                           ToastService().show("PiP not supported on this device", type: ToastType.warning);
+                                         }
+                                      } catch (e) {
+                                         setState(() { _isPipMode = false; });
+                                         ToastService().show("PiP Failed: $e", type: ToastType.error);
+                                      }
+                                    },
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: AnimatedBuilder(
+                                      animation: _pipFocusNode,
+                                      builder: (context, child) {
+                                        return Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: _pipFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                            border: _pipFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                            boxShadow: _pipFocusNode.hasFocus ? [
+                                              BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.5), blurRadius: 8, spreadRadius: 2)
+                                            ] : [],
+                                          ),
+                                          child: const Icon(Icons.picture_in_picture_alt, color: Colors.white, size: 28),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                            const SizedBox(width: 12),
+
+                                InkWell(
+                                  focusNode: _reportFocusNode,
+                                  onTap: () {
+                                    _startHideTimer();
+                                    if (_channel != null) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => ReportIssueDialog(
+                                          channelUuid: _channel!.uuid,
+                                          channelName: _channel!.name,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: AnimatedBuilder(
+                                    animation: _reportFocusNode,
+                                    builder: (context, child) {
+                                      return Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: _reportFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                          border: _reportFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                        ),
+                                        child: const Icon(Icons.flag, color: Colors.white, size: 28),
+                                      );
+                                    },
+                                  ),
+                                ),
+                            const SizedBox(width: 12),
+
+                                InkWell(
+                                  focusNode: _muteFocusNode,
+                                   onTap: () async {
+                                    _startHideTimer();
+                                    await _toggleMute();
+                                    if (mounted) setState(() {});
+                                  },
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: AnimatedBuilder(
+                                    animation: _muteFocusNode,
+                                    builder: (context, child) {
+                                      final isMuted = AudioManager().isMuted;
+                                      return Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: _muteFocusNode.hasFocus ? const Color(0xFF0EA5E9).withOpacity(0.8) : Colors.black45,
+                                          border: _muteFocusNode.hasFocus ? Border.all(color: Colors.white, width: 2) : null,
+                                        ),
+                                        child: Icon(
+                                          isMuted ? Icons.volume_off : Icons.volume_up, 
+                                          color: Colors.white, 
+                                          size: 28
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              // 9. FOCUS HIGHLIGHTER
+              if (!widget.isFullScreen && hasFocus && _showFocusHighlight)
                  Positioned.fill(
                    child: IgnorePointer(
                      child: Container(
                        decoration: BoxDecoration(
-                         border: Border.all(color: const Color(0xFF0EA5E9), width: 3.0),
+                         border: Border.all(color: const Color(0xFF06B6D4), width: 3.0),
                          boxShadow: [
-                           BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)
+                           BoxShadow(color: const Color(0xFF06B6D4).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)
                          ],
                        ),
                      ),
                    ),
                  ),
             ],
-          ),
-        ),
-      );
-    },
-  ),
-);
-}
+          );
+        },
+      ),
+    );
+  }
 
   Widget _buildPremiumOverlay() {
     return Container(

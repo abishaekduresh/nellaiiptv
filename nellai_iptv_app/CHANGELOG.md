@@ -1,15 +1,19 @@
-## [1.8.20+36] - 2026-02-14
+## [1.8.20+37] - 2026-02-14
 
 ### Added
-- **TV Focus Highlighting**: Implemented visual cyan highlights and inner glow for player selection and internal controls to improve D-pad navigation feedback.
-- **Hardware-Aware Playback**: Added intelligent device profiling to automatically tune FFmpeg/MediaKit properties for low-end Android TV hardware.
+- **Focus Auto-Hide**: Integrated a 3-second auto-hide timer for player focus highlights to maintain a clean viewing experience.
+- **TV Focus Highlights**: Implemented visual cyan highlights and inner glow for player selection and internal controls.
+- **Hardware-Aware Playback**: Added intelligent device profiling to tune FFmpeg/MediaKit properties for low-end Android TV hardware.
 
 ### Improved
-- **Playback Stabiliry**: Fine-tuned buffer management and network probesize to prevent stuttering on resource-constrained TV devices.
-- **UI Experience**: Conditionally simplified animations for low-performance devices to maintain high frame rates.
+- **Interaction Feedback**: Interaction via D-pad, touch, or mouse resets the focus highlight timer for clear feedback during use.
+- **Playback Stability**: Fine-tuned buffer management and network probesize to prevent stuttering on resource-constrained TV devices.
 
 ### Fixed
-- **Compile Logic**: Safely implemented memory detection to ensure compatibility with various device_info_plus versions.
+- **Focus Reliability**: Resolved critical "child != this" errors in EmbeddedPlayer by consolidating gesture overlays.
+- **Syntax & State**: Fixed compilation errors and state variable references in the player components.
+
+## [1.8.19+36] - 2026-02-13
 
 ## [1.8.19+35] - 2026-02-13
 

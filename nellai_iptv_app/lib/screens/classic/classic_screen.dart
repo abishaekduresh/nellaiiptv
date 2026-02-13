@@ -53,6 +53,20 @@ class _ClassicScreenState extends State<ClassicScreen> {
   
   // Fullscreen State
   bool _isFullScreen = false;
+  
+  // Timer for player focus highlight auto-hide
+  bool _showPlayerFocus = false;
+  Timer? _playerFocusTimer;
+
+  void _startPlayerFocusTimer() {
+    _playerFocusTimer?.cancel();
+    setState(() => _showPlayerFocus = true);
+    _playerFocusTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => _showPlayerFocus = false);
+      }
+    });
+  }
   bool _showChannelOverlay = false;
   
   // STB Persisted State
@@ -121,7 +135,13 @@ class _ClassicScreenState extends State<ClassicScreen> {
     
     // Add listener to player focus node for visual feedback
     _playerFocusNode.addListener(() {
-      if (mounted) setState(() {});
+      if (mounted) {
+         if (_playerFocusNode.hasFocus) {
+            _startPlayerFocusTimer();
+         } else {
+            setState(() => _showPlayerFocus = false);
+         }
+      }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -653,8 +673,9 @@ class _ClassicScreenState extends State<ClassicScreen> {
                               // Wrapper focus to capture D-Pad when player is embedded but focused
                               focusNode: _playerFocusNode,
                               onKeyEvent: (node, event) {
-                                if (event is KeyDownEvent) {
-                                   if (!_isFullScreen && (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.numpadEnter)) {
+                                 if (event is KeyDownEvent) {
+                                    _startPlayerFocusTimer();
+                                    if (!_isFullScreen && (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.numpadEnter)) {
                                       // OK/Select on Embedded Player -> Go Fullscreen
                                       setState(() => _isFullScreen = true);
                                       return KeyEventResult.handled;
@@ -671,7 +692,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                 duration: const Duration(milliseconds: 200),
                                 decoration: BoxDecoration(
                                   border: Border.all(
-                                    color: _playerFocusNode.hasFocus && !_isFullScreen
+                                    color: _playerFocusNode.hasFocus && _showPlayerFocus && !_isFullScreen
                                         ? const Color(0xFF06B6D4) // Cyan highlight
                                         : Colors.transparent,
                                     width: 3,
@@ -695,9 +716,10 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                          });
                                       }
                                     },
-                                    onTap: () {
-                                      // Mouse/Touch Tap Logic
-                                      if (_isFullScreen) {
+                                     onTap: () {
+                                       _startPlayerFocusTimer();
+                                       // Mouse/Touch Tap Logic
+                                       if (_isFullScreen) {
                                         setState(() => _showChannelOverlay = !_showChannelOverlay);
                                       } else {
                                         // If embedded and tapped -> Fullscreen
