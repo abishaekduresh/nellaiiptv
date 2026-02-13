@@ -672,19 +672,44 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                 fit: StackFit.expand,
                 children: [
                   // 1. Video Surface
-                  Container(
-                    color: Colors.transparent, 
-                    child: (_isPremiumContent || _forceStopped) 
+          GestureOverlay(
+            onDoubleTap: widget.onDoubleTap,
+            onTap: () {
+               _toggleControls();
+               widget.onTap?.call();
+            },
+            child: Focus(
+              focusNode: _focusNode,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: _focusNode.hasFocus
+                        ? const Color(0xFF06B6D4).withOpacity(0.5)
+                        : Colors.transparent,
+                    width: 2,
+                  ),
+                  boxShadow: _focusNode.hasFocus ? [
+                    BoxShadow(
+                      color: const Color(0xFF06B6D4).withOpacity(0.2),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ] : [],
+                ),
+                child: (_isPremiumContent || _forceStopped) 
                       ? const SizedBox() 
                       : SizedBox.expand(
                           child: Video(
                             controller: _tvPlayer.videoController,
-                            controls: NoVideoControls,
+                            fit: BoxFit.fill,
+                            controls: NoVideoControls, // We use our own custom controls
                             alignment: Alignment.center,
-                            fit: BoxFit.fill, // Stretched to fill player area in both embedded and fullscreen
                           ),
                         ),
-                  ),
+              ),
+            ),
+          ),
 
           // 2. Web Warning (Bottom)
           if (kIsWeb)

@@ -118,6 +118,11 @@ class _ClassicScreenState extends State<ClassicScreen> {
     _refreshBtnFocusNode = FocusNode();
     _groupBtnFocusNode = FocusNode();
     _authBtnFocusNode = FocusNode();
+    
+    // Add listener to player focus node for visual feedback
+    _playerFocusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -662,37 +667,52 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                 }
                                 return KeyEventResult.ignored;
                               },
-                              child: EmbeddedPlayer(
-                                channelUuid: _selectedChannel!.uuid, 
-                                initialChannel: _selectedChannel,
-                                key: _playerKey, // Use GlobalKey for direct player control
-                                isFullScreen: _isFullScreen,
-                                hideControls: _showChannelOverlay,
-                                onDoubleTap: () {
-                                  setState(() => _isFullScreen = !_isFullScreen);
-                                  if (!_isFullScreen) {
-                                     // Recover focus to player on exit
-                                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                                        _playerFocusNode.requestFocus();
-                                     });
-                                  }
-                                },
-                                onTap: () {
-                                  // Mouse/Touch Tap Logic
-                                  if (_isFullScreen) {
-                                    setState(() => _showChannelOverlay = !_showChannelOverlay);
-                                  } else {
-                                    // If embedded and tapped -> Fullscreen
-                                    setState(() => _isFullScreen = true);
-                                  }
-                                },
-                                onChannelLoaded: (updatedChannel) {
-                                   if (mounted && _selectedChannel?.uuid == updatedChannel.uuid) {
-                                      setState(() {
-                                        _selectedChannel = updatedChannel;
-                                      });
-                                   }
-                                },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: _playerFocusNode.hasFocus && !_isFullScreen
+                                        ? const Color(0xFF06B6D4) // Cyan highlight
+                                        : Colors.transparent,
+                                    width: 3,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(5),
+                                  child: EmbeddedPlayer(
+                                    channelUuid: _selectedChannel!.uuid, 
+                                    initialChannel: _selectedChannel,
+                                    key: _playerKey, // Use GlobalKey for direct player control
+                                    isFullScreen: _isFullScreen,
+                                    hideControls: _showChannelOverlay,
+                                    onDoubleTap: () {
+                                      setState(() => _isFullScreen = !_isFullScreen);
+                                      if (!_isFullScreen) {
+                                         // Recover focus to player on exit
+                                         WidgetsBinding.instance.addPostFrameCallback((_) {
+                                            _playerFocusNode.requestFocus();
+                                         });
+                                      }
+                                    },
+                                    onTap: () {
+                                      // Mouse/Touch Tap Logic
+                                      if (_isFullScreen) {
+                                        setState(() => _showChannelOverlay = !_showChannelOverlay);
+                                      } else {
+                                        // If embedded and tapped -> Fullscreen
+                                        setState(() => _isFullScreen = true);
+                                      }
+                                    },
+                                    onChannelLoaded: (updatedChannel) {
+                                       if (mounted && _selectedChannel?.uuid == updatedChannel.uuid) {
+                                          setState(() {
+                                            _selectedChannel = updatedChannel;
+                                          });
+                                       }
+                                    },
+                                  ),
+                                ),
                               ),
                           )
                         : Center(

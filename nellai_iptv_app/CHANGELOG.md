@@ -1,3 +1,16 @@
+## [1.8.20+36] - 2026-02-14
+
+### Added
+- **TV Focus Highlighting**: Implemented visual cyan highlights and inner glow for player selection and internal controls to improve D-pad navigation feedback.
+- **Hardware-Aware Playback**: Added intelligent device profiling to automatically tune FFmpeg/MediaKit properties for low-end Android TV hardware.
+
+### Improved
+- **Playback Stabiliry**: Fine-tuned buffer management and network probesize to prevent stuttering on resource-constrained TV devices.
+- **UI Experience**: Conditionally simplified animations for low-performance devices to maintain high frame rates.
+
+### Fixed
+- **Compile Logic**: Safely implemented memory detection to ensure compatibility with various device_info_plus versions.
+
 ## [1.8.19+35] - 2026-02-13
 
 ### Added

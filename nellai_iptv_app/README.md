@@ -11,6 +11,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.8.20+36
+- **Key Features**: TV Focus Highlighting, Hardware-Aware Playback, Stability Improvements.
+- **Added**: **TV Focus Highlight** - Added visual selection indicators for better remote navigation.
+- **Improved**: **Low-End Performance** - Enhanced FFmpeg tuning for devices with <=2GB RAM.
+
 ## Version: 1.8.19+35
 - **Key Features**: TV Playback Optimization, Hardware-Aware Profiling, Branding Update.
 - **Added**: **TV Playback Optimization** - Improved smoothness on low-end hardware using memory detection and FFmpeg tuning.
