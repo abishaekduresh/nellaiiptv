@@ -1,3 +1,15 @@
+## [1.8.22+39] - App | [1.47.3] - Website | [1.36.3] - Backend - 2026-02-16
+
+### Website (Next.js)
+- **Feature**: **RTMP URL Support** - Added an optional field for RTMP stream URLs in the Admin Channel Form.
+
+### Backend (PHP)
+- **Database**: Added `rtmp_url` column to the `channels` table to support RTMP stream URLs.
+- **Model**: Updated the `Channel` model to support mass assignment for the new `rtmp_url` field.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized with latest Backend/Website updates.
+
 ## [1.8.21+38] - App | [1.47.2] - Website | [1.36.2] - Backend - 2026-02-16
 
 ### Backend (PHP)

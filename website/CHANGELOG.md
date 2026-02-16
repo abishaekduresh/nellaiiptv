@@ -2,6 +2,14 @@
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
  
+## [1.47.3] - Website - 2026-02-16
+
+### Added
+- **RTMP URL Support**: Added an optional field for RTMP stream URLs in the channel management forms.
+
+### Maintenance
+- **Version Sync**: Synchronized version with Backend and App updates.
+
 ## [1.47.2] - Website - 2026-02-16
  
 ### Added

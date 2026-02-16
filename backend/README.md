@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.36.2)
+# Nellai IPTV - Backend API (v1.36.3)
 
-**Version 1.36.2** | RESTful API built with Slim PHP Framework
+**Version 1.36.3** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -151,6 +151,11 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.36.3)
+- **RTMP URL Support**: Added a new `rtmp_url` column to the `channels` table.
+- **Mass Assignment**: Updated `Channel` model to allow mass assignment for the `rtmp_url` field.
+- **Sync**: Version synchronized with Frontend v1.47.3.
 
 ## Latest Updates (v1.36.2)
 - **Auto-WebP Conversion**: Implemented server-side conversion of `.png` uploads to optimized `.webp`.

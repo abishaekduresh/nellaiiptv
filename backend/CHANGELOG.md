@@ -2,6 +2,15 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
  
+## [1.36.3] - Backend - 2026-02-16
+
+### Added
+- **RTMP URL Support**: Added a new `rtmp_url` column to the `channels` table.
+- **Mass Assignment**: Updated `Channel` model to allow mass assignment for the `rtmp_url` field.
+
+### Maintenance
+- **Version Sync**: Synchronized version with Website and App updates.
+
 ## [1.36.2] - Backend - 2026-02-16
  
 ### Added

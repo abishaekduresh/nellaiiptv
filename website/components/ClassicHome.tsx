@@ -14,6 +14,7 @@ import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
 import ClassicMenu from './ClassicMenu';
 import ChannelComments from './ChannelComments';
+import { resolveImageUrl } from '@/lib/utils';
 
 
 interface ClassicHomeProps {
@@ -50,7 +51,7 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
                   // Logo Logic
                   const logo = response.data.data.logo_url || response.data.data.logo_path;
                   if (logo) {
-                      setLogoUrl(logo);
+                      setLogoUrl(resolveImageUrl(logo));
                   }
                   
                   // Top Trending Logic (Classic = tv)
@@ -486,7 +487,7 @@ function FilterTabItem({ label, index, isSelected, onSelect }: { label: string; 
                  <div className="flex items-center gap-2 lg:gap-3">
                     {/* Branding Logo - Link to Home */}
                     <Link href="/">
-                        <img src={logoUrl} alt="Logo" className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg object-contain bg-black cursor-pointer hover:scale-105 transition-transform" />
+                        <img src={resolveImageUrl(logoUrl)} alt="Logo" className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg object-contain bg-black cursor-pointer hover:scale-105 transition-transform" />
                     </Link>
                     <div>
                         <h2 className="font-bold text-white text-sm lg:text-base leading-tight">Nellai IPTV</h2>
@@ -635,7 +636,7 @@ function ChannelListItem({ channel, index, isActive, onSelect, compact = false }
         <>
             <div className={`absolute inset-0 bg-slate-800 animate-pulse ${isLoadingImage ? 'opacity-100 z-10' : 'opacity-0 -z-10'} transition-opacity`} />
             <img
-            src={channel.thumbnail_url}
+            src={resolveImageUrl(channel.thumbnail_url)}
             alt={channel.name}
             loading="lazy"
             onLoad={() => setIsLoadingImage(false)}

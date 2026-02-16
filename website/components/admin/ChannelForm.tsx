@@ -40,6 +40,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
     proprietor_phone: '',
     proprietor_email: '',
     proprietor_address: '',
+    rtmp_url: '',
     ...initialData,
   });
 
@@ -247,6 +248,17 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
             onChange={(e) => setFormData({ ...formData, hls_url: e.target.value })}
             className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
             placeholder="https://example.com/stream.m3u8"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-text-secondary mb-2">RTMP URL (Optional)</label>
+          <input
+            type="text"
+            value={formData.rtmp_url}
+            onChange={(e) => setFormData({ ...formData, rtmp_url: e.target.value })}
+            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+            placeholder="rtmp://example.com/live/stream"
           />
         </div>
 

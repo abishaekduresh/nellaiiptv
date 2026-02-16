@@ -6,18 +6,30 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.47.2
-- **Key Features**: WebP Support, Auto-Resizing UI, Enhanced Export Filters.
+- **Version**: 1.47.3
+- **Key Features**: RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.36.2
-- **Key Features**: Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
+- **Version**: 1.36.3
+- **Key Features**: RTMP URL Support, Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.21+38 (Main) / 1.2.3+4 (Single Channel)
-- **Key Features**: Focus Auto-Hide, TV Focus Highlights, Hardware-Aware Playback, Fix Focus Errors.
+- **Version**: 1.8.22+39 (Main) / 1.2.3+4 (Single Channel)
+- **Key Features**: RTMP URL Support, Focus Auto-Hide, TV Focus Highlights, Hardware-Aware Playback, Fix Focus Errors.
+
+## Recent Updates (v1.8.22+39 App / v1.47.3 Website / v1.36.3 Backend)
+
+### Website (Next.js)
+- **Feature**: **RTMP URL Support** - Added an optional field for RTMP stream URLs in the Admin Channel Form.
+
+### Backend (PHP)
+- **Database**: Added `rtmp_url` column to the `channels` table to support RTMP stream URLs.
+- **Model**: Updated the `Channel` model to support mass assignment for the new `rtmp_url` field.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized with latest Backend/Website updates.
 
 ## Recent Updates (v1.8.21+38 App / v1.47.2 Website / v1.36.2 Backend)
 
