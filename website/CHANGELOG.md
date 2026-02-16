@@ -1,8 +1,22 @@
 # Website Changelog
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
-
-## [1.47.0] - Website - 2026-02-10
+ 
+## [1.47.2] - Website - 2026-02-16
+ 
+### Added
+- **WebP Image Support**: Full support for `.webp` image uploads for thumbnails and logos in the channel management forms.
+ 
+### Improved
+- **Thumbnail Resolution**: Updated UI help text to recommend **1280x720px** resolution for high-definition channel previews.
+- **Logo Resolution**: Explicitly specified **512x512px** requirement for channel logos in the admin interface.
+- **Accepted Formats**: File inputs now explicitly accept `image/png` and `image/webp`.
+- **Maintenance**: Version synchronized.
+ 
+## [1.47.1] - Website - 2026-02-14
+ 
+### Maintenance
+- **Version Sync**: Synchronized version with App update.
 
 ### Added
 - **Enhanced Export Filters**: Added comprehensive filtering support (Search, Category, Language, State, Status) in the Export Channels modal.

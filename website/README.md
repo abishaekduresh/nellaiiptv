@@ -1,12 +1,18 @@
-# Nellai IPTV - Frontend v1.47.0
+# Nellai IPTV - Frontend v1.47.2
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.47.0)**
-- **Export Filters**: Added comprehensive filtering (Search, Status, Category, Language, State) in the Export Channels modal.
-- **Persistence**: Export modal automatically pre-fills filters from the current channel list state.
+### **Latest Updates (v1.47.2)**
+- **WebP Support**: Added full support for `.webp` image uploads across all channel management forms.
+- **HD Previews**: Updated UI guidance to recommend **1280x720px** for high-quality channel thumbnails.
+- **Sync**: Version synchronized with Backend v1.36.2.
+
+### **Previous Updates (v1.47.1)**
+- **Maintenance**: Version synchronized with root release.
+
+### **Previous Updates (v1.47.0)**
 
 ### **Previous Updates (v1.46.3)**
 - **Type Safety**: Verified and fixed `channelUuid` prop propagation to video players, ensuring strict TypeScript compliance.

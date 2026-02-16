@@ -1,7 +1,20 @@
 # Backend Changelog
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
-
+ 
+## [1.36.2] - Backend - 2026-02-16
+ 
+### Added
+- **Automatic WebP Conversion**: Backend now automatically converts `.png` uploads to optimized `.webp` format to reduce bandwidth and storage usage.
+- **Automatic Image Resizing**: Server-side image processing now enforces standard resolutions for all channel assets:
+  - **Thumbnails**: Automatically resized to **1280x720px** (720p 16:9).
+  - **Logos**: Automatically resized to **512x512px**.
+ 
+### Improved
+- **Image Handling Utility**: Enhanced `handleUpload` service to support arbitrary resizing dimensions and format conversion logic.
+- **Storage Management**: Simplified image storage strategy by using pure Unix timestamps for filenames, replacing the legacy sanitized name prefix.
+- **Maintenance**: Version synchronized.
+ 
 ## [1.36.1] - Backend - 2026-02-12
 
 ### Maintenance

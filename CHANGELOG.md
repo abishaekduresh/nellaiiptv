@@ -1,3 +1,17 @@
+## [1.8.21+38] - App | [1.47.2] - Website | [1.36.2] - Backend - 2026-02-16
+
+### Backend (PHP)
+- **Feature**: **Automatic WebP Support** - Implemented automatic conversion of `.png` uploads to optimized `.webp` format.
+- **Feature**: **Image Resizing** - Server-side enforcement of standard resolutions: Thumbnails (**1280x720px**) and Logos (**512x512px**).
+- **Maintenance**: Simplified file storage naming conventions using Unix timestamps.
+
+### Website (Next.js)
+- **UX**: **Resolution Guidelines** - Updated admin channel forms to explicitly mention recommended resolutions for thumbnails and logos.
+- **Reliability**: Updated file input filters to natively support `.webp` for all image fields.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized with latest Backend/Website updates.
+
 ## [1.8.20+37] - App | [1.47.1] - Website | [1.36.1] - Backend - 2026-02-14
 
 ### App (Flutter)

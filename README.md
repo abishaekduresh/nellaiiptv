@@ -6,18 +6,29 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.47.1
-- **Key Features**: Enhanced Export Filters, AdSense Integration, Admin Settings UI Modernization.
+- **Version**: 1.47.2
+- **Key Features**: WebP Support, Auto-Resizing UI, Enhanced Export Filters.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.36.1
-- **Key Features**: Filtered Exports, Platform Blocking System, Global Channel Control.
+- **Version**: 1.36.2
+- **Key Features**: Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.20+37 (Main) / 1.2.3+4 (Single Channel)
+- **Version**: 1.8.21+38 (Main) / 1.2.3+4 (Single Channel)
 - **Key Features**: Focus Auto-Hide, TV Focus Highlights, Hardware-Aware Playback, Fix Focus Errors.
+
+## Recent Updates (v1.8.21+38 App / v1.47.2 Website / v1.36.2 Backend)
+
+### Backend (PHP)
+- **Feature**: **WebP Optimization** - Automatic conversion of PNG uploads to `.webp`.
+- **Feature**: **Auto-Resizing** - Thumbnails are now automatically resized to **1280x720px**; Logos to **512x512px**.
+- **Change**: **Clean Names** - Switched to timestamp-based naming for all uploads.
+
+### Website (Next.js)
+- **UI**: Added explicit resolution guidance for 720p thumbnails and high-res logos.
+- **Format**: Enabled `.webp` support across all admin upload components.
 
 ## Recent Updates (v1.8.20+37 App / v1.47.1 Website / v1.36.1 Backend)
 

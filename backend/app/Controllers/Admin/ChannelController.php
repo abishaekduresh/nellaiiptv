@@ -129,7 +129,6 @@ class ChannelController
             // Construct Filename
             $prefix = '';
             if (!empty($channelName)) {
-                // Sanitize: "DURESH TV" -> "duresh_tv"
                 $cleanName = preg_replace('/[^a-zA-Z0-9]+/', '_', strtolower($channelName));
                 $cleanName = trim($cleanName, '_');
                 if (!empty($cleanName)) {
@@ -137,7 +136,8 @@ class ChannelController
                 }
             }
             
-            $filename = $prefix . time() . '.' . $targetExtension;
+            // $filename = $prefix . time() . '.' . $targetExtension;
+            $filename = time() . '.' . $targetExtension;
             
             // Ensure directory exists
             $path = __DIR__ . '/../../../public' . $directory;
@@ -149,12 +149,17 @@ class ChannelController
             
             $shouldProcess = $convertToWebp || !empty($resizeDimensions);
 
-            if ($shouldProcess && $extension === 'png') {
+            if ($shouldProcess && ($extension === 'png' || $extension === 'webp')) {
                 // Move to temp path first to handle safely
                 $tempPath = $path . '/' . time() . '_temp.' . $extension;
                 $file->moveTo($tempPath);
 
-                $sourceImage = imagecreatefrompng($tempPath);
+                if ($extension === 'png') {
+                    $sourceImage = imagecreatefrompng($tempPath);
+                } else {
+                    $sourceImage = imagecreatefromwebp($tempPath);
+                }
+
                 if ($sourceImage) {
                     // Get current dimensions
                     $width = imagesx($sourceImage);
@@ -173,8 +178,7 @@ class ChannelController
                     imagesavealpha($destImage, true);
                     $transparent = imagecolorallocatealpha($destImage, 255, 255, 255, 127);
                     
-                    // Apply transparency background for WebP/PNG
-                    // Logic: imagefill completely transparent for the new canvas
+                    // Apply transparency background
                     imagefilledrectangle($destImage, 0, 0, $newWidth, $newHeight, $transparent);
                     
                     // Resample (Resize)
@@ -183,9 +187,10 @@ class ChannelController
                     // Save
                     if ($convertToWebp) {
                          imagewebp($destImage, $targetPath, 80); // 80% quality
-                    } else {
-                         // Default to PNG since input is PNG
+                    } else if ($extension === 'png') {
                          imagepng($destImage, $targetPath, 9);
+                    } else {
+                         imagewebp($destImage, $targetPath, 80);
                     }
                     
                     imagedestroy($sourceImage);
@@ -225,12 +230,13 @@ class ChannelController
             $channelName = $data['name'] ?? null;
             
             if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
-                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails', [], false, $channelName);
+                // Allow png/webp, convert to webp, resize to 1280x720
+                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails', ['png', 'webp'], true, $channelName, [1280, 720]);
             }
             
             if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
-                // Allow only png, convert to webp, resize to 512x512
-                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos', ['png'], true, $channelName, [512, 512]);
+                // Allow png/webp, convert to webp, resize to 512x512
+                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos', ['png', 'webp'], true, $channelName, [512, 512]);
             }
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 400);
@@ -310,12 +316,13 @@ class ChannelController
             $channelName = $data['name'] ?? $oldName;
 
             if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
-                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails', [], false, $channelName);
+                // Allow png/webp, convert to webp, resize to 1280x720
+                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails', ['png', 'webp'], true, $channelName, [1280, 720]);
             }
             
             if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
-                // Allow only png, convert to webp, resize to 512x512
-                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos', ['png'], true, $channelName, [512, 512]);
+                // Allow png/webp, convert to webp, resize to 512x512
+                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos', ['png', 'webp'], true, $channelName, [512, 512]);
             }
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 400);

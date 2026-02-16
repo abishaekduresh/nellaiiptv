@@ -259,12 +259,12 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
               )}
               <input
                 type="file"
-                accept="image/*"
+                accept="image/png, image/webp"
                 onChange={(e) => handleFileChange(e, 'thumbnail')}
                 className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark"
               />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Displayed on channel grid.</p>
+           <p className="text-xs text-gray-500 mt-1">Thumbnail of the channel (1280x720). Supports .png, .webp</p>
         </div>
 
         {/* LOGO UPLOAD */}
@@ -276,12 +276,12 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
               )}
               <input
                 type="file"
-                accept="image/*"
+                accept="image/png, image/webp"
                 onChange={(e) => handleFileChange(e, 'logo')}
                 className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark"
               />
           </div>
-           <p className="text-xs text-gray-500 mt-1">Official logo of the channel.</p>
+           <p className="text-xs text-gray-500 mt-1">Official logo of the channel (512x512px). Supports .png, .webp</p>
         </div>
 
         <div>
