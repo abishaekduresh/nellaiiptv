@@ -1,6 +1,11 @@
-## [1.8.22+39] - App | [1.47.3] - Website | [1.36.3] - Backend - 2026-02-16
+## [1.8.23+40] - App | [1.47.3] - Website | [1.36.3] - Backend - 2026-02-21
 
-### Website (Next.js)
+### App (Flutter)
+- **Feature**: **Comment Count Badge** - Added visual notification badge on the channel details comments icon showing the total number of comments for a channel (capped at 99+).
+- **Optimization**: **HD TV Playback** - Added aggressive optimizations to MediaKit/FFmpeg properties (`vd-lavc-skiploopfilter=all`, `vd-lavc-skipidct=all`, `framedrop=vo`) to ensure completely smooth Full HD playback on low-end TV processors.
+- **Fix**: **TV Player Highlight** - Fixed issue where the cyan player focus border wouldn't trigger correctly when navigating the UI with a D-Pad.
+
+## [1.8.22+39] - App | [1.47.3] - Website | [1.36.3] - Backend - 2026-02-16
 - **Feature**: **RTMP URL Support** - Added an optional field for RTMP stream URLs in the Admin Channel Form.
 
 ### Backend (PHP)

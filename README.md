@@ -16,8 +16,15 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.22+39 (Main) / 1.2.3+4 (Single Channel)
-- **Key Features**: RTMP URL Support, Focus Auto-Hide, TV Focus Highlights, Hardware-Aware Playback, Fix Focus Errors.
+- **Version**: 1.8.23+40 (Main) / 1.2.3+4 (Single Channel)
+- **Key Features**: Comment Count Badge, HD TV Player Optimization, Fix Focus Errors.
+
+## Recent Updates (v1.8.23+40 App / v1.47.3 Website / v1.36.3 Backend)
+
+### App (Flutter)
+- **Feature**: **Comment Count Badge** - Added visual notification badge on the channel details comments icon showing the total number of comments for a channel (capped at 99+).
+- **Optimization**: **HD TV Playback** - Added aggressive optimizations to MediaKit/FFmpeg properties (`vd-lavc-skiploopfilter=all`, `vd-lavc-skipidct=all`, `framedrop=vo`) to ensure completely smooth Full HD playback on low-end TV processors.
+- **Fix**: **TV Player Highlight** - Fixed issue where the cyan player focus border wouldn't trigger correctly when navigating the UI with a D-Pad.
 
 ## Recent Updates (v1.8.22+39 App / v1.47.3 Website / v1.36.3 Backend)
 

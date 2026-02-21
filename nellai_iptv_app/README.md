@@ -11,10 +11,15 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
-## Version: 1.8.20+37
-- **Key Features**: Focus Auto-Hide, TV Focus Highlights, Hardware-Aware Playback, Fix Focus Errors.
-- **Added**: **TV Focus Highlight** - Added visual selection indicators for better remote navigation.
-- **Improved**: **Low-End Performance** - Enhanced FFmpeg tuning for devices with <=2GB RAM.
+## Version: 1.8.23+40
+- **Key Features**: Comment Count Badge, HD TV Player Optimization, Fix Focus Errors.
+- **Added**: **Comment Count Badge** - Added visual notification badge on the channel details comments icon showing the total number of comments for a channel.
+- **Optimization**: **HD TV Playback** - Added aggressive optimizations to MediaKit/FFmpeg properties to ensure smooth Full HD playback on low-end TV processors.
+- **Fix**: **TV Player Highlight** - Fixed issue where the cyan player focus border wouldn't trigger correctly when navigating the UI with a D-Pad.
+
+## Version: 1.8.22+39
+- **Key Features**: RTMP URL Support.
+- **Maintenance**: Version synchronized with latest Backend/Website updates.
 
 ## Version: 1.8.19+35
 - **Key Features**: TV Playback Optimization, Hardware-Aware Profiling, Branding Update.

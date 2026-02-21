@@ -104,7 +104,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
     
     if (!mounted) return;
 
-    showDialog(
+    await showDialog(
       context: context,
       barrierColor: Colors.black87,
       builder: (context) => ChannelDetailsModal(
@@ -116,6 +116,9 @@ class _ClassicScreenState extends State<ClassicScreen> {
         },
       ),
     );
+
+    // Refresh comments when modal closes in case a comment was added
+    _loadComments();
   }
 
   @override
@@ -141,6 +144,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
          } else {
             setState(() => _showPlayerFocus = false);
          }
+         // Force a rebuild to visually show/hide the focus border
+         setState(() {});
       }
     });
 
@@ -171,6 +176,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
       setState(() {
         _selectedChannel = channels.first;
       });
+      _loadComments();
     }
     _loadAds();
   }
@@ -342,6 +348,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
         (c) => true,
       );
     });
+    _loadComments();
 
     await Future.delayed(const Duration(milliseconds: 200));
 
@@ -760,6 +767,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                   _selectedChannel = channel;
                                   _showChannelOverlay = false; // Auto close on select
                                 });
+                                _loadComments();
                               },
                            ),
 
@@ -923,14 +931,27 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                    ),
                                    if (_comments.isNotEmpty)
                                      Positioned(
-                                       right: -2,
-                                       top: -2,
+                                       right: -8,
+                                       top: -8,
                                        child: Container(
-                                         width: 8,
-                                         height: 8,
+                                         padding: const EdgeInsets.all(2),
                                          decoration: const BoxDecoration(
                                            color: Colors.redAccent,
                                            shape: BoxShape.circle,
+                                         ),
+                                         constraints: const BoxConstraints(
+                                           minWidth: 16,
+                                           minHeight: 16,
+                                         ),
+                                         alignment: Alignment.center,
+                                         child: Text(
+                                           '${_comments.length > 99 ? '99+' : _comments.length}',
+                                           style: const TextStyle(
+                                             color: Colors.white,
+                                             fontSize: 9,
+                                             fontWeight: FontWeight.bold,
+                                           ),
+                                           textAlign: TextAlign.center,
                                          ),
                                        ),
                                      ),
@@ -1360,7 +1381,10 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                return FocusableChannelCard(
                                  channel: channels[index],
                                  isSelected: _selectedChannel?.uuid == channels[index].uuid,
-                                 onTap: () => setState(() => _selectedChannel = channels[index]),
+                                 onTap: () {
+                                     setState(() => _selectedChannel = channels[index]);
+                                     _loadComments();
+                                 },
                                  index: index,
                                  totalColumns: 3,
                                  onFocusLeft: () {

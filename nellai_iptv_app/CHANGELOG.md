@@ -1,6 +1,21 @@
-## [1.8.20+37] - 2026-02-14
+## [1.8.23+40] - 2026-02-21
 
 ### Added
+- **Comment Count Badge**: Added visual notification badge on the channel details comments icon showing the total number of comments for a channel (capped at 99+).
+
+### Improved
+- **HD TV Playback**: Added aggressive optimizations to MediaKit/FFmpeg properties (`vd-lavc-skiploopfilter=all`, `vd-lavc-skipidct=all`, `framedrop=vo`) to ensure completely smooth Full HD playback on low-end TV SOCs tracking HD streams.
+
+### Fixed
+- **TV Player Highlight**: Fixed issue where the cyan player focus border wouldn't trigger correctly when navigating the UI with a D-Pad.
+
+## [1.8.22+39] - 2026-02-16
+- **Maintenance**: Version synchronized with latest Backend/Website updates.
+
+## [1.8.21+38] - 2026-02-16
+- **Maintenance**: Version synchronized with latest Backend/Website updates.
+
+## [1.8.20+37] - 2026-02-14
 - **Focus Auto-Hide**: Integrated a 3-second auto-hide timer for player focus highlights to maintain a clean viewing experience.
 - **TV Focus Highlights**: Implemented visual cyan highlights and inner glow for player selection and internal controls.
 - **Hardware-Aware Playback**: Added intelligent device profiling to tune FFmpeg/MediaKit properties for low-end Android TV hardware.

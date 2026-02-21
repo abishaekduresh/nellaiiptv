@@ -56,19 +56,32 @@ class TVPlayerController {
       final bool isHighPerf = DeviceUtils.isHighPerformance;
       debugPrint("⚙️ TVPlayerController: Configuring for ${isHighPerf ? 'High' : 'Low'} Performance Device");
 
+      // Global optimizations for TV Processors (Often weak arm chips)
+      // 1. Hardware Acceleration (Force best available)
+      p.setProperty('hwdec', 'auto-safe'); 
+      p.setProperty('hwdec-codecs', 'all'); 
+      
+      // 2. Sync and Dropping (Prioritize audio, drop frames if needed)
+      p.setProperty('video-sync', 'audio');
+      p.setProperty('framedrop', 'vo'); // Allow dropping frames to keep sync
+      
+      // 3. Decoder Optimizations (Aggressively skip heavy processing)
+      p.setProperty('vd-lavc-fast', 'yes'); // Enable fast decoding
+      p.setProperty('vd-lavc-skiploopfilter', 'all'); // Skip h264/hevc loop filter (huge CPU saving)
+      p.setProperty('vd-lavc-skipidct', 'all'); // Skip IDCT for performance
+      p.setProperty('vd-lavc-skipframe', 'nonref'); // Skip non-reference frames if struggling
+      
+      // 4. Rendering Efficiency (Fastest Scaling)
+      p.setProperty('scale', 'fast_bilinear'); 
+      p.setProperty('dscale', 'fast_bilinear'); 
+      p.setProperty('cscale', 'fast_bilinear');
+
       if (isHighPerf) {
         // --- HIGH SPEC CONFIGURATION (>2GB RAM) ---
         // 1. Buffer Management (Max Quality)
-        p.setProperty('demuxer-max-bytes', '${100 * 1024 * 1024}'); // 100MB Buffer
+        p.setProperty('demuxer-max-bytes', '${150 * 1024 * 1024}'); // 150MB Buffer
         p.setProperty('demuxer-readahead-secs', '60');
         
-        // 2. Hardware Acceleration & Performance
-        p.setProperty('hwdec', 'auto'); 
-        p.setProperty('hwdec-codecs', 'all'); 
-        p.setProperty('video-sync', 'audio');
-        p.setProperty('vd-lavc-fast', '1'); // Enable fast decoding
-        p.setProperty('audio-pitch-correction', 'yes');
-
         // 3. Network & IPTV Optimization
         p.setProperty('demuxer-lavf-o', 'reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5');
         p.setProperty('network-timeout', '30');
@@ -82,24 +95,10 @@ class TVPlayerController {
       } else {
         // --- LOW SPEC CONFIGURATION (<=2GB RAM) ---
         // 1. Buffer Management (Conservative)
-        p.setProperty('demuxer-max-bytes', '${16 * 1024 * 1024}'); // 16MB Buffer to save RAM
-        p.setProperty('demuxer-readahead-secs', '15');
+        p.setProperty('demuxer-max-bytes', '${32 * 1024 * 1024}'); // 32MB Buffer to save RAM, but enough for FHD
+        p.setProperty('demuxer-readahead-secs', '20');
         
-        // 2. Hardware Acceleration & CPU Saving
-        p.setProperty('hwdec', 'auto'); 
-        p.setProperty('hwdec-codecs', 'all'); 
-        p.setProperty('video-sync', 'audio');
-        p.setProperty('framedrop', 'vo'); // Allow frame drops to keep audio sync
-        p.setProperty('vd-lavc-fast', '1'); // Enable fast decoding
-        p.setProperty('vd-lavc-skiploopfilter', 'all'); // Skip loop filter to save CPU
-        p.setProperty('vd-lavc-skipidct', 'all'); // Skip IDCT for performance
-
-        // 3. Rendering Efficiency (Fastest Scaling)
-        p.setProperty('scale', 'bilinear'); 
-        p.setProperty('dscale', 'bilinear'); 
-        p.setProperty('cscale', 'bilinear');
-
-        // 4. Network & IPTV Optimization
+        // 2. Network & IPTV Optimization
         p.setProperty('demuxer-lavf-o', 'reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5');
         p.setProperty('network-timeout', '20'); 
         p.setProperty('probesize', '32768'); // Even smaller probe for low-end
