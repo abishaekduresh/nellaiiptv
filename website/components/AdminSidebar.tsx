@@ -16,6 +16,11 @@ const menuItems = [
     href: '/admin/channels',
   },
   {
+    title: 'Scrolling Ads',
+    icon: Tv,
+    href: '/admin/scrolling-ads',
+  },
+  {
     title: 'Reports',
     icon: BarChart,
     href: '#', // Parent item

@@ -1,6 +1,13 @@
-## [1.8.23+40] - 2026-02-21
+## [1.8.24+41] - 2026-02-21
 
 ### Added
+- **Scrolling Ads Marquee**: Implemented a dynamic scrolling text ticker in the Classic Screen to display server-controlled advertisements.
+- **Marquee Settings**: Integrated support for custom `scroll_speed` and `repeat_count` configured via the Admin Panel.
+
+### Maintenance
+- **Version Sync**: Synchronized version with Website and Backend updates.
+
+## [1.8.23+40] - 2026-02-21
 - **Comment Count Badge**: Added visual notification badge on the channel details comments icon showing the total number of comments for a channel (capped at 99+).
 
 ### Improved

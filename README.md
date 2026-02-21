@@ -6,18 +6,30 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.47.3
-- **Key Features**: RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
+- **Version**: 1.48.0
+- **Key Features**: Scrolling Ads Ticker, RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.36.3
-- **Key Features**: RTMP URL Support, Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
+- **Version**: 1.37.0
+- **Key Features**: Scrolling Ads API, RTMP URL Support, Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.23+40 (Main) / 1.2.3+4 (Single Channel)
-- **Key Features**: Comment Count Badge, HD TV Player Optimization, Fix Focus Errors.
+- **Version**: 1.8.24+41 (Main) / 1.2.3+4 (Single Channel)
+- **Key Features**: Scrolling Ads Marquee, Comment Count Badge, HD TV Player Optimization, Fix Focus Errors.
+
+## Recent Updates (v1.8.24+41 App / v1.48.0 Website / v1.37.0 Backend)
+
+### App (Flutter)
+- **Feature**: **Scrolling Ads Marquee** - Implemented a dynamic scrolling text ticker in the Classic Screen to display server-controlled advertisements with customizable scroll velocity (`scroll_speed`) and repeat limits (`repeat_count`).
+
+### Website (Next.js)
+- **Feature**: **Scrolling Ads Ticker** - Integrated a gap-free marquee on the player interface (`/channels` and `/channel/{uuid}`) to display scrolling text advertisements.
+- **Feature**: **Admin Ads Management** - Created a full CRUD interface in the Admin Panel for Scrolling Ads, featuring markdown support, scroll velocity control, and play limiters.
+
+### Backend (PHP)
+- **Feature**: **Scrolling Ads API** - Implemented full CRUD REST API for Scrolling Ads (`/admin/scrolling-ads`). Added new `scroll_speed` field and renamed `display_duration` to `repeat_count`. Exposed `/scrolling-ads` public endpoint.
 
 ## Recent Updates (v1.8.23+40 App / v1.47.3 Website / v1.36.3 Backend)
 

@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.36.3)
+# Nellai IPTV - Backend API (v1.37.0)
 
-**Version 1.36.3** | RESTful API built with Slim PHP Framework
+**Version 1.37.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -152,12 +152,15 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
+## Latest Updates (v1.37.0)
+- **Scrolling Ads API**: Implemented full CRUD REST API for managing Scrolling Ads (`/admin/scrolling-ads`).
+- **Database Fields**: Added `repeat_count` and `scroll_speed` to support advanced ad playback logic.
+- **Public Endpoint**: Exposed public `/scrolling-ads` endpoint for apps and websites to fetch active ads.
+- **Sync**: Version synchronized with Frontend v1.48.0 and App v1.8.24+41.
+
 ## Latest Updates (v1.36.3)
 - **RTMP URL Support**: Added a new `rtmp_url` column to the `channels` table.
 - **Mass Assignment**: Updated `Channel` model to allow mass assignment for the `rtmp_url` field.
-- **Sync**: Version synchronized with Frontend v1.47.3.
-
-## Latest Updates (v1.36.2)
 - **Auto-WebP Conversion**: Implemented server-side conversion of `.png` uploads to optimized `.webp`.
 - **Image Resizing**: Enforced target resolutions for channel thumbnails (**1280x720px**) and logos (**512x512px**).
 - **Clean Naming**: Switched to timestamp-only filenames for all image uploads.

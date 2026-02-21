@@ -11,6 +11,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.8.24+41
+- **Key Features**: Scrolling Ads Marquee.
+- **Added**: **Scrolling Ads Marquee** - Implemented a dynamic scrolling text ticker in the Classic screen to display server-controlled advertisements with customizable scroll speed and repeat counts.
+- **Maintenance**: Version synchronized with latest Backend/Website updates.
+
 ## Version: 1.8.23+40
 - **Key Features**: Comment Count Badge, HD TV Player Optimization, Fix Focus Errors.
 - **Added**: **Comment Count Badge** - Added visual notification badge on the channel details comments icon showing the total number of comments for a channel.

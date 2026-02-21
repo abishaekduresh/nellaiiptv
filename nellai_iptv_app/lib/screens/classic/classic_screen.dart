@@ -11,7 +11,9 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../providers/channel_provider.dart';
 import '../../models/channel.dart';
 import '../../models/ad.dart';
+import '../../models/scrolling_ad.dart';
 import '../../models/comment.dart';
+import '../../widgets/scrolling_text_marquee.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../core/api_service.dart';
@@ -44,6 +46,10 @@ class _ClassicScreenState extends State<ClassicScreen> {
   int _currentAdIndex = 0;
   Timer? _adTimer;
   Timer? _sessionValidationTimer; // Periodic session validation
+
+  // Scrolling Ad State
+  List<ScrollingAd> _scrollingAds = [];
+  int _currentScrollingAdIndex = 0;
   
   // Comment State
   List<Comment> _comments = [];
@@ -198,18 +204,54 @@ class _ClassicScreenState extends State<ClassicScreen> {
   Future<void> _loadAds() async {
     setState(() => _isLoadingAds = true);
     try {
-      final ads = await _api.getAds();
-      if (mounted && ads.isNotEmpty) {
+      final futures = await Future.wait([
+        _api.getAds(),
+        _api.getScrollingAds()
+      ]);
+      final ads = futures[0] as List<Ad>;
+      final scrollingAds = futures[1] as List<ScrollingAd>;
+      
+      if (mounted) {
         setState(() {
           _ads = ads;
+          _scrollingAds = scrollingAds;
           _isLoadingAds = false;
         });
-        _startAdRotation();
-      } else {
-        setState(() => _isLoadingAds = false);
+        if (_ads.isNotEmpty) _startAdRotation();
       }
     } catch (e) {
       if (mounted) setState(() => _isLoadingAds = false);
+    }
+  }
+
+  void _advanceToNextScrollingAd() {
+    if (!mounted || _scrollingAds.isEmpty) return;
+    setState(() {
+      _currentScrollingAdIndex = (_currentScrollingAdIndex + 1) % _scrollingAds.length;
+    });
+  }
+
+  /// Handles the refresh button tap — reloads channels, banner ads, and scrolling ads.
+  Future<void> _handleRefresh() async {
+    // Reset scrolling ad index so it starts fresh from the first ad
+    setState(() {
+      _currentScrollingAdIndex = 0;
+      _scrollingAds = [];
+      _ads = [];
+    });
+
+    // Cancel any running ad rotation timers
+    _adTimer?.cancel();
+
+    // Reload channels and all ads in parallel
+    await Future.wait([
+      context.read<ChannelProvider>().fetchChannels(),
+      _loadAds(),
+    ]);
+
+    // Reload comments for the currently selected channel
+    if (_selectedChannel != null && mounted) {
+      _loadComments();
     }
   }
 
@@ -593,7 +635,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
-                    onPressed: () => provider.fetchChannels(),
+                    onPressed: () => _handleRefresh(), // Also reloads ads
                     icon: const Icon(Icons.refresh),
                     label: const Text("Retry"),
                     style: ElevatedButton.styleFrom(
@@ -660,9 +702,12 @@ class _ClassicScreenState extends State<ClassicScreen> {
               }
               return KeyEventResult.ignored;
             },
-            child: Row(
+            child: Column(
               children: [
-              // Left Panel (Player + Info + Ads)
+                Expanded(
+                  child: Row(
+                    children: [
+                    // Left Panel (Player + Info + Ads)
           Expanded(
             flex: 5,
             child: Column(
@@ -802,7 +847,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                 // Channel Info - Styled Banner
                 if (!_isFullScreen)
                   Container(
-                    height: 60,
+                    height: 48, // Reduced from 60 to tighten the channel info bar
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                     color: const Color(0xFF0F172A),
                     child: displayChannel != null ? Row(
@@ -884,7 +929,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
 
                         // Right Side: Stats Box
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3), // Reduced vertical from 6→3
                           decoration: BoxDecoration(
                             color: Colors.black26,
                             borderRadius: BorderRadius.circular(6),
@@ -962,6 +1007,22 @@ class _ClassicScreenState extends State<ClassicScreen> {
                         ),
                       ],
                     ) : const SizedBox(),
+                  ),
+
+                // Relocated Scrolling Ads right below the Player and Channel Info Banner
+                if (!_isFullScreen && _scrollingAds.isNotEmpty)
+                  Container(
+                    height: 30,
+                    width: double.infinity,
+                    color: const Color(0xFF0F172A),
+                    alignment: Alignment.center,
+                    child: ScrollingTextMarquee(
+                      key: ValueKey('${_scrollingAds[_currentScrollingAdIndex].uuid}_$_currentScrollingAdIndex'), 
+                      text: _scrollingAds[_currentScrollingAdIndex].textContent,
+                      scrollSpeed: _scrollingAds[_currentScrollingAdIndex].scrollSpeed,
+                      repeatCount: _scrollingAds[_currentScrollingAdIndex].repeatCount,
+                      onComplete: _advanceToNextScrollingAd,
+                    ),
                   ),
 
                 // Ad Banner - Shown only if ads exist
@@ -1159,7 +1220,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                        // Refresh Button
                                        InkWell(
                                          focusNode: _refreshBtnFocusNode,
-                                         onTap: () => provider.fetchChannels(),
+                                         onTap: () => _handleRefresh(), // Reloads channels + banner ads + scrolling ads
                                          borderRadius: BorderRadius.circular(4),
                                          child: AnimatedBuilder(
                                            animation: _refreshBtnFocusNode,
@@ -1402,8 +1463,12 @@ class _ClassicScreenState extends State<ClassicScreen> {
 
            ],
          ),
-       );
-       },
+       ),
+
+      ],
+    ),
+  );
+  },
       ),
       ),
     );

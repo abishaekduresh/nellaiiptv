@@ -9,6 +9,7 @@ import { useTVFocus } from '@/hooks/useTVFocus';
 import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu, ArrowLeft } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
 import AdBanner from './AdBanner';
+import ScrollingAdsTicker from './ScrollingAdsTicker';
 import api from '@/lib/api';
 import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
@@ -384,6 +385,9 @@ function FilterTabItem({ label, index, isSelected, onSelect }: { label: string; 
                     </div>
                 </div>
            </div>
+
+           {/* Scrolling Ads Ticker - shown just below the player */}
+           <ScrollingAdsTicker />
               
            {/* Channel Info Card - Fixed Size */}
            <div className="w-full bg-slate-900/90 backdrop-blur-sm rounded-xl border border-slate-700/50 p-2 lg:p-3 shadow-lg shrink-0 mb-1 lg:mb-2">

@@ -2,6 +2,16 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
  
+## [1.37.0] - Backend - 2026-02-21
+
+### Added
+- **Scrolling Ads API**: Implemented full CRUD REST API for Scrolling Ads (`/admin/scrolling-ads`).
+- **Database Migrations**: Added new `scroll_speed` field and renamed `display_duration` to `repeat_count`.
+- **Public Endpoint**: Exposed `/scrolling-ads` endpoint for frontend apps to consume active marquee advertisements.
+
+### Maintenance
+- **Version Sync**: Synchronized version with Frontend and App updates.
+
 ## [1.36.3] - Backend - 2026-02-16
 
 ### Added

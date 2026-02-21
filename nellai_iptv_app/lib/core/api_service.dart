@@ -8,6 +8,7 @@ import '../models/category.dart';
 import '../models/language.dart';
 import '../models/public_settings.dart';
 import '../models/comment.dart';
+import '../models/scrolling_ad.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthException implements Exception {
@@ -299,8 +300,10 @@ class ApiService {
   }
   Future<List<Ad>> getAds() async {
     try {
+      final platform = await _getPlatform();
       final response = await _dio.get('/ads', options: Options(headers: {
         'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+        'X-Client-Platform': platform,
         'Accept': 'application/json',
       }));
       if (response.statusCode == 200 && response.data['data'] != null) {
@@ -312,6 +315,29 @@ class ApiService {
       return [];
     } catch (e) {
       debugPrint('Error fetching ads: $e');
+      return [];
+    }
+  }
+
+  Future<List<ScrollingAd>> getScrollingAds() async {
+    try {
+      final platform = await _getPlatform();
+      final response = await _dio.get('/scrolling-ads', options: Options(headers: {
+        'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+        'X-Client-Platform': platform,
+        'Accept': 'application/json',
+      }));
+      debugPrint('SCROLLING ADS RESPONSE: ${response.data}');
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        // The API returns an array directly in the 'data' field
+        final adsList = response.data['data'];
+        if (adsList is List) {
+           return adsList.map((e) => ScrollingAd.fromJson(e)).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching scrolling ads: $e');
       return [];
     }
   }

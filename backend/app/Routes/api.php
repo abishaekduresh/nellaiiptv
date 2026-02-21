@@ -35,6 +35,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         // Ads
         $group->get('/ads', [\App\Controllers\AdController::class, 'index']);
         $group->post('/ads/{uuid}/impression', [\App\Controllers\AdController::class, 'impression']);
+        $group->get('/scrolling-ads', [\App\Controllers\ScrollingAdController::class, 'index']);
 
         // Geo
         $group->get('/states', [\App\Controllers\GeoController::class, 'getStates']);

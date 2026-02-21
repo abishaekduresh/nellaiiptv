@@ -1,7 +1,16 @@
 # Website Changelog
 
 All notable changes to the Nellai IPTV Website will be documented in this file.
+
+## [1.48.0] - Website - 2026-02-21
+
+### Added
+- **Scrolling Ads Ticker**: Implemented a gap-free marquee on the player interface (`/channels` and `/channel/{uuid}`) to display scrolling text advertisements.
+- **Admin Ads Management**: Created a full CRUD interface in the Admin Panel for Scrolling Ads, featuring markdown support, scroll velocity control (`scroll_speed`), and play limiters (`repeat_count`).
  
+### Maintenance
+- **Version Sync**: Synchronized version with Backend and App updates.
+
 ## [1.47.3] - Website - 2026-02-16
 
 ### Added

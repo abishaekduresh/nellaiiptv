@@ -57,6 +57,13 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/transactions', [\App\Controllers\Admin\AdminTransactionController::class, 'index']);
         $group->get('/transactions/unified', [\App\Controllers\Admin\AdminTransactionController::class, 'getUnifiedLogs']);
 
+        // Scrolling Ads Management
+        $group->get('/scrolling-ads', [\App\Controllers\Admin\ScrollingAdAdminController::class, 'index']);
+        $group->post('/scrolling-ads', [\App\Controllers\Admin\ScrollingAdAdminController::class, 'create']);
+        $group->get('/scrolling-ads/{uuid}', [\App\Controllers\Admin\ScrollingAdAdminController::class, 'show']);
+        $group->put('/scrolling-ads/{uuid}', [\App\Controllers\Admin\ScrollingAdAdminController::class, 'update']);
+        $group->delete('/scrolling-ads/{uuid}', [\App\Controllers\Admin\ScrollingAdAdminController::class, 'delete']);
+
         // API Keys Management
         $group->get('/api-keys', [\App\Controllers\Admin\ApiKeyController::class, 'index']);
         $group->post('/api-keys', [\App\Controllers\Admin\ApiKeyController::class, 'create']);

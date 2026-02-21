@@ -1,12 +1,16 @@
-# Nellai IPTV - Frontend v1.47.3
+# Nellai IPTV - Frontend v1.48.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.47.3)**
+### **Latest Updates (v1.48.0)**
+- **Scrolling Ads Ticker**: Integrated a seamless, gap-free scrolling text ticker below the video player on channel pages.
+- **Admin Ads Management**: Added a full Admin UI for managing scrolling ads, supporting markdown, custom scroll speeds, and repeat counts.
+- **Sync**: Version synchronized with Backend v1.37.0 and App v1.8.24+41.
+
+### **Previous Updates (v1.47.3)**
 - **RTMP URL Support**: Added an optional field for RTMP stream URLs in the channel management forms.
-- **Sync**: Version synchronized with Backend v1.36.3 and App v1.8.22+39.
 
 ### **Previous Updates (v1.47.2)**
 - **WebP Support**: Added full support for `.webp` image uploads across all channel management forms.

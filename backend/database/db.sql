@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS `channels` (
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `channel_number` int NOT NULL,
   `hls_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `rtmp_url` text COLLATE utf8mb4_unicode_ci,
   `village` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `category_id` int NOT NULL,
   `state_id` int NOT NULL,
@@ -84,10 +85,17 @@ CREATE TABLE IF NOT EXISTS `channels` (
   `is_featured` tinyint(1) NOT NULL DEFAULT '0',
   `is_premium` tinyint(1) NOT NULL DEFAULT '0',
   `is_ad_enabled` tinyint NOT NULL DEFAULT '1',
-  `expiry_at` date NOT NULL,
+  `expiry_at` datetime NOT NULL,
   `status` enum('active','inactive','expired','deleted') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `allowed_platforms` set('web','android','ios','tv') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'web,android,ios,tv',
+  `proprietor_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `proprietor_phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `proprietor_email` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `proprietor_address` text COLLATE utf8mb4_unicode_ci,
+  `user_agent` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `referer` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_preview_public` tinyint(1) DEFAULT '0' COMMENT 'Allow public access to preview player without authentication',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`),
   UNIQUE KEY `channel_number` (`channel_number`),
@@ -307,8 +315,26 @@ CREATE TABLE IF NOT EXISTS `languages` (
   `order_number` int NOT NULL,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `code` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` enum('active','inactive','deleted') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table nellaiiptv.scrolling_ads
+CREATE TABLE IF NOT EXISTS `scrolling_ads` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `text_content` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `display_duration_sec` int DEFAULT '10',
+  `status` enum('active','inactive') COLLATE utf8mb4_unicode_ci DEFAULT 'active',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  KEY `idx_uuid` (`uuid`),
+  KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.

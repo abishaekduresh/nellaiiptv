@@ -1,3 +1,15 @@
+## [1.8.24+41] - App | [1.48.0] - Website | [1.37.0] - Backend - 2026-02-21
+
+### App (Flutter)
+- **Feature**: **Scrolling Ads Marquee** - Implemented a dynamic scrolling text ticker in the Classic Screen to display server-controlled advertisements with customizable scroll velocity (`scroll_speed`) and repeat limits (`repeat_count`).
+
+### Website (Next.js)
+- **Feature**: **Scrolling Ads Ticker** - Integrated a gap-free marquee on the player interface (`/channels` and `/channel/{uuid}`) to display scrolling text advertisements.
+- **Feature**: **Admin Ads Management** - Created a full CRUD interface in the Admin Panel for Scrolling Ads, featuring markdown support, scroll velocity control, and play limiters.
+
+### Backend (PHP)
+- **Feature**: **Scrolling Ads API** - Implemented full CRUD REST API for Scrolling Ads (`/admin/scrolling-ads`). Added new `scroll_speed` field and renamed `display_duration` to `repeat_count`. Exposed `/scrolling-ads` public endpoint.
+
 ## [1.8.23+40] - App | [1.47.3] - Website | [1.36.3] - Backend - 2026-02-21
 
 ### App (Flutter)
