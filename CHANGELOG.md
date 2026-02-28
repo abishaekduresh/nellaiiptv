@@ -1,3 +1,8 @@
+## [1.8.27+44] - App | [1.48.1] - Website | [1.37.1] - Backend - 2026-02-28
+
+### App (Flutter)
+- **Feature**: **Clear Image Cache** - Added a new Storage section in the Settings screen allowing users to explicitly empty the local image cache (`flutter_cache_manager`) to free up device storage. Includes visual toast confirmations for success and failure states.
+
 ## [1.8.26+43] - App | [1.48.1] - Website | [1.37.1] - Backend - 2026-02-28
 
 ### App (Flutter)

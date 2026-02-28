@@ -1,3 +1,9 @@
+## [1.8.27+44] - 2026-02-28
+
+### Added
+- **Storage Management**: Added a new "Clear Image Cache" button inside Settings to allow users to manually wipe downloaded covers and icons to free space on memory-constrained TV boxes.
+- **Visual Feedback**: Implemented toast notifications showing active clearing status and success/error resolutions.
+
 ## [1.8.26+43] - 2026-02-28
 
 ### Added

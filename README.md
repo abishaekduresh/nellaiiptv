@@ -16,8 +16,13 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.26+43 (Main) / 1.2.3+4 (Single Channel)
-- **Key Features**: Enhanced Channel Search, Channel Sorting Settings, Focus Persistence, HD TV Player Crash Optimizations.
+- **Version**: 1.8.27+44 (Main) / 1.2.3+4 (Single Channel)
+- **Key Features**: Storage Management, Enhanced Channel Search, Channel Sorting Settings, Focus Persistence.
+
+## Recent Updates (v1.8.27+44 App / v1.48.1 Website / v1.37.1 Backend)
+
+### App (Flutter)
+- **Feature**: **Storage Management** - Added a "Clear Image Cache" option in settings allowing users to manually free up device storage used by cached channel logos and thumbnails.
 
 ## Recent Updates (v1.8.26+43 App / v1.48.1 Website / v1.37.1 Backend)
 

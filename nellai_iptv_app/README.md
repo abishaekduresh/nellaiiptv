@@ -11,6 +11,10 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.8.27+44
+- **Key Features**: Storage Management, Enhanced Channel Search, Settings Screen channel ordering, D-Pad support.
+- **Added**: **Storage Management** - Implemented a built-in "Clear Image Cache" utility using `flutter_cache_manager` inside the Settings Screen so users can reclaim device memory on low-end STBs.
+
 ## Version: 1.8.26+43
 - **Key Features**: Enhanced Channel Search, Settings Screen channel ordering, D-Pad support, TV Stream Crash Prevention.
 - **Added**: **Enhanced Channel Search** - Users can search the application using a physical or digital keyboard to filter channels by both Name and native Channel Number. Active searches re-order to numerical bounds dynamically.
