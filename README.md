@@ -6,18 +6,24 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.48.0
+- **Version**: 1.48.1
 - **Key Features**: Scrolling Ads Ticker, RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.37.0
+- **Version**: 1.37.1
 - **Key Features**: Scrolling Ads API, RTMP URL Support, Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.24+41 (Main) / 1.2.3+4 (Single Channel)
-- **Key Features**: Scrolling Ads Marquee, Comment Count Badge, HD TV Player Optimization, Fix Focus Errors.
+- **Version**: 1.8.25+42 (Main) / 1.2.3+4 (Single Channel)
+- **Key Features**: Channel Sorting Settings, Focus Persistence, HD TV Player Crash Optimizations.
+
+## Recent Updates (v1.8.25+42 App / v1.48.1 Website / v1.37.1 Backend)
+
+### App (Flutter)
+- **Feature**: **Settings Screen & Channel Order** - Implemented a global settings screen configured with D-Pad focus mapping. Users can toggle channel sorting dynamically (Random vs Channel Number order) overriding the default shuffled behavior, with full state persistence locally saved on device.
+- **Optimization**: **TV Playback Stability** - Prevented out-of-memory demuxer crashes on low-end Amlogic/Mediatek Android TVs by converting the channel change logic into a synchronized sequence that fully flushes video streams prior to new connection requests. 
 
 ## Recent Updates (v1.8.24+41 App / v1.48.0 Website / v1.37.0 Backend)
 

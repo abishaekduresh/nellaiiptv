@@ -11,6 +11,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.8.25+42
+- **Key Features**: Settings Screen channel ordering, D-Pad support, TV Stream Crash Prevention.
+- **Added**: **Settings Screen** - Implemented a TV-optimized settings screen allowing users to toggle channel sorting between Random (Default) and Channel Number Order with local persistence.
+- **Fix**: **TV Stream Crash Prevention** - Added synchronous flushing and demuxer stops during channel changes to prevent out-of-memory crashes on low-end Android TVs.
+
 ## Version: 1.8.24+41
 - **Key Features**: Scrolling Ads Marquee.
 - **Added**: **Scrolling Ads Marquee** - Implemented a dynamic scrolling text ticker in the Classic screen to display server-controlled advertisements with customizable scroll speed and repeat counts.

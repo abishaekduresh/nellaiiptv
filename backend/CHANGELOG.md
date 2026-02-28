@@ -2,6 +2,11 @@
 
 All notable changes to the Nellai IPTV Backend will be documented in this file.
  
+## [1.37.1] - Backend - 2026-02-28
+
+### Maintenance
+- **Version Sync**: Synchronized version with Frontend v1.48.1 and App v1.8.25+42 tracking heavy TV performance patches and persistent user settings interfaces.
+
 ## [1.37.0] - Backend - 2026-02-21
 
 ### Added

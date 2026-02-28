@@ -1,3 +1,9 @@
+## [1.8.25+42] - App | [1.48.1] - Website | [1.37.1] - Backend - 2026-02-28
+
+### App (Flutter)
+- **Feature**: **Settings Screen & Channel Order** - App-wide sorting logic injected into the TV-optimized Classic Screen allowing channels to be sorted by Channel Number or randomly shuffled natively from the TV remote.
+- **Optimization**: **Demuxer Memory Fixes** - Corrected a fault sequence causing the media-kit to crash Android TVs when channel selection buttons were mashed rapidly.
+
 ## [1.8.24+41] - App | [1.48.0] - Website | [1.37.0] - Backend - 2026-02-21
 
 ### App (Flutter)

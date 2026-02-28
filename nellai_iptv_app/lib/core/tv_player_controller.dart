@@ -57,20 +57,25 @@ class TVPlayerController {
       debugPrint("⚙️ TVPlayerController: Configuring for ${isHighPerf ? 'High' : 'Low'} Performance Device");
 
       // Global optimizations for TV Processors (Often weak arm chips)
-      // 1. Hardware Acceleration (Force best available)
-      p.setProperty('hwdec', 'auto-safe'); 
+      
+      // 1. Hardware Acceleration
+      // 'auto-safe' fails on many low-end Android TVs yielding audio-only.
+      // Explicitly forcing 'mediacodec' or 'auto' works best.
+      p.setProperty('hwdec', 'mediacodec,auto'); 
       p.setProperty('hwdec-codecs', 'all'); 
+      
+      // GLFinish ensures proper rendering sync on Android 
+      p.setProperty('opengl-glfinish', 'yes');
       
       // 2. Sync and Dropping (Prioritize audio, drop frames if needed)
       p.setProperty('video-sync', 'audio');
       p.setProperty('framedrop', 'vo'); // Allow dropping frames to keep sync
       
-      // 3. Decoder Optimizations (Aggressively skip heavy processing)
+      // 3. Decoder Optimizations
       p.setProperty('vd-lavc-fast', 'yes'); // Enable fast decoding
-      p.setProperty('vd-lavc-skiploopfilter', 'all'); // Skip h264/hevc loop filter (huge CPU saving)
-      p.setProperty('vd-lavc-skipidct', 'all'); // Skip IDCT for performance
-      p.setProperty('vd-lavc-skipframe', 'nonref'); // Skip non-reference frames if struggling
-      
+      // REMOVED: vd-lavc-skipidct and vd-lavc-skipframe. Aggressive skipping destroys reference
+      // frames on Amlogic/Mediatek HW decoders causing a permanent black screen.
+
       // 4. Rendering Efficiency (Fastest Scaling)
       p.setProperty('scale', 'fast_bilinear'); 
       p.setProperty('dscale', 'fast_bilinear'); 
@@ -78,33 +83,32 @@ class TVPlayerController {
 
       if (isHighPerf) {
         // --- HIGH SPEC CONFIGURATION (>2GB RAM) ---
-        // 1. Buffer Management (Max Quality)
+        // 1. Buffer Management (Max Quality, Full HD support)
         p.setProperty('demuxer-max-bytes', '${150 * 1024 * 1024}'); // 150MB Buffer
-        p.setProperty('demuxer-readahead-secs', '60');
+        p.setProperty('demuxer-max-back-bytes', '${50 * 1024 * 1024}');
+        p.setProperty('cache', 'yes');
         
-        // 3. Network & IPTV Optimization
-        p.setProperty('demuxer-lavf-o', 'reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5');
-        p.setProperty('network-timeout', '30');
-        p.setProperty('cache-pause', 'no'); // Don't pause on low cache for live streams
-        p.setProperty('probesize', '65536'); // Smaller probe size for faster start
-        p.setProperty('analyzeduration', '1000000'); // 1 second
+        // 2. Network & IPTV Optimization
+        p.setProperty('demuxer-lavf-o', 'reconnect=1,reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=2');
+        p.setProperty('network-timeout', '10');
         
-        // 4. Quality
-        p.setProperty('hls-bitrate', 'max');
+        // 3. Quality
+        p.setProperty('hls-bitrate', 'max'); // Force highest quality for high end TVs
       
       } else {
         // --- LOW SPEC CONFIGURATION (<=2GB RAM) ---
         // 1. Buffer Management (Conservative)
-        p.setProperty('demuxer-max-bytes', '${32 * 1024 * 1024}'); // 32MB Buffer to save RAM, but enough for FHD
-        p.setProperty('demuxer-readahead-secs', '20');
+        p.setProperty('demuxer-max-bytes', '${32 * 1024 * 1024}'); // 32MiB to prevent OutOfMemory crashes
+        p.setProperty('demuxer-max-back-bytes', '${8 * 1024 * 1024}'); // Shrink back buffer aggressively
+        p.setProperty('cache', 'yes');
+        p.setProperty('cache-pause', 'no'); // Do not pause stream to build cache
         
         // 2. Network & IPTV Optimization
-        p.setProperty('demuxer-lavf-o', 'reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5');
-        p.setProperty('network-timeout', '20'); 
-        p.setProperty('probesize', '32768'); // Even smaller probe for low-end
-        p.setProperty('analyzeduration', '500000'); // 0.5 seconds
+        // Aggressive reconnect flags
+        p.setProperty('demuxer-lavf-o', 'reconnect=1,reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=2');
+        p.setProperty('network-timeout', '10'); 
         
-        // 5. Quality (Auto bitrate to prevent choking)
+        // 3. Quality (Auto bitrate to prevent choking)
         p.setProperty('hls-bitrate', 'auto'); 
       }
       
@@ -115,14 +119,26 @@ class TVPlayerController {
   }
 
   Future<void> load(String url) async {
+    // 1. Synchronously mute to prevent audio overlap
+    player.setVolume(0);
+    
+    // 2. Stop player stream completely.
+    // Extremely important for low-spec Android TVs to avoid crashing the demuxer when switching.
+    await player.stop();
+    
+    // 3. Small arbitrary delay to let native resources flush. 
+    await Future.delayed(const Duration(milliseconds: 50));
+    
+    // 4. Open new stream safely
     await player.open(Media(url), play: true);
+    
+    // 5. Restore volume after stream is attempting to open
+    player.setVolume(100.0);
   }
 
   Future<void> stop() async {
     try {
       player.setVolume(0); // Synchronous
-      // Instead of Playlist([]), open a null or empty source if needed, 
-      // but stop() + volume 0 should be enough if called correctly.
       await player.stop();
     } catch (_) {}
   }

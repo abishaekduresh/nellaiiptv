@@ -1,3 +1,13 @@
+## [1.8.25+42] - 2026-02-28
+
+### Added
+- **Settings Screen**: Implemented a new settings UI (accessible via the Gear icon in Classic layout) allowing users to globally toggle channel lists between Random and Channel Number constraints.
+- **Device Persistence**: Settings preferences are cleanly stored in `SharedPreferences`.
+- **TV D-Pad Support**: The Settings screen fully maps focus nodes and selection inputs to physical remote D-Pads and forces Landscape orientation specifically on TV hardware.
+
+### Fixed
+- **TV Playback Stability**: Low-end SoCs (Mediatek/Amlogic) crashed rapidly via out-of-memory demuxer errors when mashing the channel change keys. Implemented a robust `load()` pipeline that guarantees synchronous stream unloading before spinning up a new media container.
+
 ## [1.8.24+41] - 2026-02-21
 
 ### Added

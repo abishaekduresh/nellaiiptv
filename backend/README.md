@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.37.0)
+# Nellai IPTV - Backend API (v1.37.1)
 
-**Version 1.37.0** | RESTful API built with Slim PHP Framework
+**Version 1.37.1** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -151,6 +151,9 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.37.1)
+- **Sync**: Version synchronized with Frontend v1.48.1 and App v1.8.25+42.
 
 ## Latest Updates (v1.37.0)
 - **Scrolling Ads API**: Implemented full CRUD REST API for managing Scrolling Ads (`/admin/scrolling-ads`).

@@ -26,6 +26,7 @@ import '../../core/tv_player_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 import '../auth/login_screen.dart'; // Import LoginScreen
 import '../profile/profile_screen.dart'; // Import ProfileScreen
+import '../settings/settings_screen.dart'; // Import SettingsScreen
 import '../../core/toast_service.dart'; // Import ToastService
 import 'channel_details_modal.dart'; // Import Channel Details Modal
 
@@ -101,6 +102,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
   late FocusNode _refreshBtnFocusNode;
   late FocusNode _groupBtnFocusNode;
   late FocusNode _authBtnFocusNode;
+  late FocusNode _settingsBtnFocusNode;
 
   // Method to show channel details modal
   void _showChannelDetails(Channel channel) async {
@@ -141,6 +143,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
     _refreshBtnFocusNode = FocusNode();
     _groupBtnFocusNode = FocusNode();
     _authBtnFocusNode = FocusNode();
+    _settingsBtnFocusNode = FocusNode();
     
     // Add listener to player focus node for visual feedback
     _playerFocusNode.addListener(() {
@@ -290,6 +293,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
     _refreshBtnFocusNode.dispose();
     _groupBtnFocusNode.dispose();
     _authBtnFocusNode.dispose();
+    _settingsBtnFocusNode.dispose();
     
     // Only restore volume if NOT logging out (to prevent sudden blast if player didn't die fast enough)
     if (!_isLoggingOut) {
@@ -1217,6 +1221,34 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                           const SizedBox(width: 8),
                                        ],
 
+                                       // Settings Button
+                                       InkWell(
+                                         focusNode: _settingsBtnFocusNode,
+                                         onTap: () {
+                                            Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+                                         },
+                                         borderRadius: BorderRadius.circular(4),
+                                         child: AnimatedBuilder(
+                                           animation: _settingsBtnFocusNode,
+                                           builder: (context, _) {
+                                             return Container(
+                                               height: 30,
+                                               width: 30,
+                                               decoration: BoxDecoration(
+                                                 color: _settingsBtnFocusNode.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
+                                                 border: Border.all(color: Colors.white24),
+                                                 borderRadius: BorderRadius.circular(4),
+                                               ),
+                                               child: Icon(
+                                                 Icons.settings,
+                                                 size: 18,
+                                                 color: _settingsBtnFocusNode.hasFocus ? Colors.white : Colors.white70,
+                                               ),
+                                             );
+                                           },
+                                         ),
+                                       ),
+                                       const SizedBox(width: 8),
                                        // Refresh Button
                                        InkWell(
                                          focusNode: _refreshBtnFocusNode,

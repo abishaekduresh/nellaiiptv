@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart'; // Import Wakelock
 import 'providers/channel_provider.dart';
 import 'providers/favorites_provider.dart';
+import 'providers/settings_provider.dart';
 import 'screens/classic/classic_screen.dart';
 import 'screens/splash_screen.dart'; // Import Splash
 import 'core/security_service.dart'; // Import SecurityService
@@ -47,6 +48,7 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => ChannelProvider()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
       ],

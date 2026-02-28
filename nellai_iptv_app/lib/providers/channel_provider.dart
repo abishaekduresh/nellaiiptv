@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api_service.dart';
 import '../models/channel.dart';
 import '../models/category.dart';
@@ -85,16 +86,10 @@ class ChannelProvider with ChangeNotifier {
 
       final channels = results[0] as List<Channel>;
       
-      // Filter only ACTIVE channels
       final activeChannels = channels.where((c) => c.status.toLowerCase() == 'active').toList();
-      
-      // Sort by channel number ascending
-      activeChannels.sort((a, b) {
-        final numA = a.channelNumber ?? 0;
-        final numB = b.channelNumber ?? 0;
-        return numA.compareTo(numB);
-      });
       _channels = activeChannels;
+      await applySort();
+
       _allCategories = results[1] as List<Category>;
       _allLanguages = results[2] as List<Language>;
 
@@ -106,6 +101,23 @@ class ChannelProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> applySort() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String order = prefs.getString('channelOrder') ?? 'random';
+
+    if (order == 'channelNumber') {
+      _channels.sort((a, b) {
+        final numA = a.channelNumber ?? 0;
+        final numB = b.channelNumber ?? 0;
+        return numA.compareTo(numB);
+      });
+    } else {
+      // Default to random
+      _channels.shuffle();
+    }
+    notifyListeners();
   }
 
   void _computeAvailableFilters() {
