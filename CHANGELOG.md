@@ -1,3 +1,8 @@
+## [1.8.26+43] - App | [1.48.1] - Website | [1.37.1] - Backend - 2026-02-28
+
+### App (Flutter)
+- **Feature**: **Enhanced Channel Search** - Users can now accurately search channels by both channel name and channel number. Search results dynamically sort by channel number for improved remote-control navigation, automatically falling back to the configured default sorting when cleared.
+
 ## [1.8.25+42] - App | [1.48.1] - Website | [1.37.1] - Backend - 2026-02-28
 
 ### App (Flutter)

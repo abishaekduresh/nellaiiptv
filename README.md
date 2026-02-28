@@ -16,8 +16,13 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.25+42 (Main) / 1.2.3+4 (Single Channel)
-- **Key Features**: Channel Sorting Settings, Focus Persistence, HD TV Player Crash Optimizations.
+- **Version**: 1.8.26+43 (Main) / 1.2.3+4 (Single Channel)
+- **Key Features**: Enhanced Channel Search, Channel Sorting Settings, Focus Persistence, HD TV Player Crash Optimizations.
+
+## Recent Updates (v1.8.26+43 App / v1.48.1 Website / v1.37.1 Backend)
+
+### App (Flutter)
+- **Feature**: **Enhanced Channel Search** - Implemented robust search capabilities supporting both channel names and numeric IDs. Results dynamically order by channel number for seamless filtering, and contextually revert to user preferences when cleared.
 
 ## Recent Updates (v1.8.25+42 App / v1.48.1 Website / v1.37.1 Backend)
 

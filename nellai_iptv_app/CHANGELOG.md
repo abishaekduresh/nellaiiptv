@@ -1,3 +1,9 @@
+## [1.8.26+43] - 2026-02-28
+
+### Added
+- **Channel Search Enhancement**: Users can now search for channels by typing the channel number. 
+- **Dynamic Search Sorting**: For an intuitive search experience, results are actively sorted in ascending channel number order while typing, reverting to default sorting when cleared.
+
 ## [1.8.25+42] - 2026-02-28
 
 ### Added

@@ -51,7 +51,7 @@ class ChannelProvider with ChangeNotifier {
   String? get error => _error;
 
   List<Channel> get filteredChannels {
-    return _channels.where((channel) {
+    final filteredList = _channels.where((channel) {
       bool matchesCategory = true;
       if (_selectedCategory != null) {
         matchesCategory = channel.category?.uuid == _selectedCategory!.uuid;
@@ -64,11 +64,24 @@ class ChannelProvider with ChangeNotifier {
 
       bool matchesSearch = true;
       if (_searchQuery.isNotEmpty) {
-        matchesSearch = channel.name.toLowerCase().contains(_searchQuery.toLowerCase());
+        final query = _searchQuery.toLowerCase();
+        matchesSearch = channel.name.toLowerCase().contains(query) ||
+            (channel.channelNumber != null &&
+                channel.channelNumber.toString().contains(query));
       }
 
       return matchesCategory && matchesLanguage && matchesSearch;
     }).toList();
+
+    if (_searchQuery.isNotEmpty) {
+      filteredList.sort((a, b) {
+        final numA = a.channelNumber ?? 999999;
+        final numB = b.channelNumber ?? 999999;
+        return numA.compareTo(numB);
+      });
+    }
+
+    return filteredList;
   }
 
   Future<void> fetchChannels() async {
