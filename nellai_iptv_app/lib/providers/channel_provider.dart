@@ -117,19 +117,11 @@ class ChannelProvider with ChangeNotifier {
   }
 
   Future<void> applySort() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String order = prefs.getString('channelOrder') ?? 'random';
-
-    if (order == 'channelNumber') {
-      _channels.sort((a, b) {
-        final numA = a.channelNumber ?? 0;
-        final numB = b.channelNumber ?? 0;
-        return numA.compareTo(numB);
-      });
-    } else {
-      // Default to random
-      _channels.shuffle();
-    }
+    _channels.sort((a, b) {
+      final numA = a.channelNumber ?? 999999;
+      final numB = b.channelNumber ?? 999999;
+      return numA.compareTo(numB);
+    });
     notifyListeners();
   }
 

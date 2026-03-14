@@ -1,6 +1,11 @@
 # Backend Changelog
 
 
+
+## [1.37.3] - Backend - 2026-03-14
+
+### Changed
+- **App Sync**: Version bumped to remain in sync with App v1.8.27+46 which enforced ascending channel number sorting by default and removed the channel order settings option.
 ## [1.37.2] - Backend - 2026-03-14
 
 ### Fixed
@@ -344,4 +349,5 @@ All notable changes to the Nellai IPTV Backend will be documented in this file.
 
 ---
 *Nellai IPTV Backend Development Team*
+
 

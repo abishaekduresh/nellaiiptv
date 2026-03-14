@@ -664,3 +664,4 @@
 - **Refactored**: Database schema for relative path storage.
 - **Added**: Smart file cleanup for logo/thumbnail updates.
 
+

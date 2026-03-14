@@ -1,6 +1,11 @@
 # Website Changelog
 
 
+
+## [1.48.2] - 2026-03-14
+
+### Changed
+- **App Sync**: Version bumped to remain in sync with App v1.8.27+46 which enforced ascending channel number sorting by default and removed the channel order settings option.
 ## [1.48.1] - 2026-03-14
 
 ### Fixed
@@ -425,4 +430,5 @@ All notable changes to the Nellai IPTV Website will be documented in this file.
 - **Toast Notifications**: Integrated global toast system for connectivity and action feedback.
 - **Channel Reporting UI**: Added interface for users to report stream issues.
 - **Contact Form**: Implemented contact page for user inquiries.
+
 
