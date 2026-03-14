@@ -1,5 +1,10 @@
 # Website Changelog
 
+
+## [1.48.1] - 2026-03-14
+
+### Fixed
+- **App Compatibility**: Backend and website version bumped to stay in sync with App v1.8.27+45 which includes Android TV specific playback fixes.
 All notable changes to the Nellai IPTV Website will be documented in this file.
 
 ## [1.48.0] - Website - 2026-02-21
@@ -420,3 +425,4 @@ All notable changes to the Nellai IPTV Website will be documented in this file.
 - **Toast Notifications**: Integrated global toast system for connectivity and action feedback.
 - **Channel Reporting UI**: Added interface for users to report stream issues.
 - **Contact Form**: Implemented contact page for user inquiries.
+

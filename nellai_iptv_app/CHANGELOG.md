@@ -440,3 +440,4 @@
 - **Crash**: Fixed "Bottom Overflowed" on splash screen.
 - **Build**: Fixed compilation errors on Android 15 by upgrading native activity base class and resolving Kotlin version conflicts.
 - **Deployment**: Incremented version code to 2 to resolve Play Store upload conflicts.
+

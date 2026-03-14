@@ -1,5 +1,10 @@
 # Backend Changelog
 
+
+## [1.37.2] - Backend - 2026-03-14
+
+### Fixed
+- **App Compatibility**: Backend and website version bumped to stay in sync with App v1.8.27+45 which includes Android TV specific playback fixes.
 All notable changes to the Nellai IPTV Backend will be documented in this file.
  
 ## [1.37.1] - Backend - 2026-02-28
@@ -339,3 +344,4 @@ All notable changes to the Nellai IPTV Backend will be documented in this file.
 
 ---
 *Nellai IPTV Backend Development Team*
+

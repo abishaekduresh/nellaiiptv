@@ -14,7 +14,13 @@ class TVPlayerController {
     _activeControllers.add(this);
     player = Player();
     _configureForTV();
-    videoController = VideoController(player);
+    videoController = VideoController(
+      player,
+      configuration: const VideoControllerConfiguration(
+        // Fixes black screen rendering issues on some Android TV boxes
+        androidAttachSurfaceAfterVideoParameters: false,
+      ),
+    );
   }
 
   /// Forces all active players to stop and dispose.
@@ -60,12 +66,13 @@ class TVPlayerController {
       
       // 1. Hardware Acceleration
       // 'auto-safe' fails on many low-end Android TVs yielding audio-only.
-      // Explicitly forcing 'mediacodec' or 'auto' works best.
-      p.setProperty('hwdec', 'mediacodec,auto'); 
-      p.setProperty('hwdec-codecs', 'all'); 
+      // Using 'auto' is the safest fallback. 'mediacodec,auto' can cause black screen/audio-only on Amlogic/Mediatek TVs (e.g. Zebronics).
+      p.setProperty('hwdec', 'auto'); 
       
       // GLFinish ensures proper rendering sync on Android 
       p.setProperty('opengl-glfinish', 'yes');
+      // Set Video Output to gpu which is recommended for Android TV black screen issues
+      p.setProperty('vo', 'gpu');
       
       // 2. Sync and Dropping (Prioritize audio, drop frames if needed)
       p.setProperty('video-sync', 'audio');
