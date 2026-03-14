@@ -3,6 +3,11 @@
 
 
 
+
+## [1.48.4] - 2026-03-14
+
+### Changed
+- **App Sync**: Version bumped in sync with App v1.8.28+48 (AGP 8.9.1 upgrade and dependency updates).
 ## [1.48.3] - 2026-03-14
 
 ### Changed
@@ -435,6 +440,7 @@ All notable changes to the Nellai IPTV Website will be documented in this file.
 - **Toast Notifications**: Integrated global toast system for connectivity and action feedback.
 - **Channel Reporting UI**: Added interface for users to report stream issues.
 - **Contact Form**: Implemented contact page for user inquiries.
+
 
 
 

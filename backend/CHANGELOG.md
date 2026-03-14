@@ -3,6 +3,11 @@
 
 
 
+
+## [1.37.5] - Backend - 2026-03-14
+
+### Changed
+- **App Sync**: Version bumped in sync with App v1.8.28+48 (AGP 8.9.1 upgrade and dependency updates).
 ## [1.37.4] - Backend - 2026-03-14
 
 ### Changed
@@ -354,6 +359,7 @@ All notable changes to the Nellai IPTV Backend will be documented in this file.
 
 ---
 *Nellai IPTV Backend Development Team*
+
 
 
 
