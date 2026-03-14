@@ -1221,7 +1221,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                           const SizedBox(width: 8),
                                        ],
 
-                                       // Settings Button
+                                       // Settings Button (Hidden on TV)
+                                       if (!DeviceUtils.isTV)
                                        InkWell(
                                          focusNode: _settingsBtnFocusNode,
                                          onTap: () {
@@ -1275,7 +1276,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                          ),
                                        ),
                                        const SizedBox(width: 8),
-                                       // Toggle Button to switch Group Mode (Categories / Languages)
+                                       // Toggle Button to switch Group Mode (Categories / Languages) - Hidden on TV
+                                       if (!DeviceUtils.isTV)
                                        InkWell(
                                           focusNode: _groupBtnFocusNode,
                                           onTap: () {
@@ -1395,45 +1397,47 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                    ),
                                  ],
                                ),
-                             const SizedBox(height: 12),
-                             
-                             // Horizontal Filter List
-                             SizedBox(
-                               height: 32,
-                               child: ListView.separated(
-                                 scrollDirection: Axis.horizontal,
-                                 itemCount: _groupBy == 'Categories' 
-                                     ? provider.categories.length + 1 
-                                     : provider.languages.length + 1,
-                                 separatorBuilder: (_,__) => const SizedBox(width: 8),
-                                  itemBuilder: (context, index) {
-                                   if (index == 0) {
-                                      final isAllSelected = provider.selectedCategory == null && provider.selectedLanguage == null;
-                                      return FocusableCategoryChip(
-                                        label: "All", 
-                                        isSelected: isAllSelected, 
-                                        onTap: () => provider.selectCategory(null)
-                                      );
-                                   }
-                                   
-                                   if (_groupBy == 'Categories') {
-                                      final cat = provider.categories[index - 1];
-                                      return FocusableCategoryChip(
-                                        label: cat.name, 
-                                        isSelected: provider.selectedCategory == cat, 
-                                        onTap: () => provider.selectCategory(cat)
-                                      );
-                                   } else {
-                                      final lang = provider.languages[index - 1];
-                                      return FocusableCategoryChip(
-                                        label: lang.name, 
-                                        isSelected: provider.selectedLanguage == lang, 
-                                        onTap: () => provider.selectLanguage(lang)
-                                      );
-                                   }
-                                 },
-                               ),
-                             )
+                             if (!DeviceUtils.isTV) ...[
+                              const SizedBox(height: 12),
+                              
+                              // Horizontal Filter List (Hidden on TV)
+                              SizedBox(
+                                height: 32,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _groupBy == 'Categories' 
+                                      ? provider.categories.length + 1 
+                                      : provider.languages.length + 1,
+                                  separatorBuilder: (_,__) => const SizedBox(width: 8),
+                                   itemBuilder: (context, index) {
+                                    if (index == 0) {
+                                       final isAllSelected = provider.selectedCategory == null && provider.selectedLanguage == null;
+                                       return FocusableCategoryChip(
+                                         label: "All", 
+                                         isSelected: isAllSelected, 
+                                         onTap: () => provider.selectCategory(null)
+                                       );
+                                    }
+                                    
+                                    if (_groupBy == 'Categories') {
+                                       final cat = provider.categories[index - 1];
+                                       return FocusableCategoryChip(
+                                         label: cat.name, 
+                                         isSelected: provider.selectedCategory == cat, 
+                                         onTap: () => provider.selectCategory(cat)
+                                       );
+                                    } else {
+                                       final lang = provider.languages[index - 1];
+                                       return FocusableCategoryChip(
+                                         label: lang.name, 
+                                         isSelected: provider.selectedLanguage == lang, 
+                                         onTap: () => provider.selectLanguage(lang)
+                                       );
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
                            ],
                         ),
                       );

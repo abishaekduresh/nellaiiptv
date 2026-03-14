@@ -2,6 +2,11 @@
 
 
 
+
+## [1.48.3] - 2026-03-14
+
+### Changed
+- **App Sync**: Version bumped in sync with App v1.8.27+47 which hides Settings/Category UI on Android TV devices.
 ## [1.48.2] - 2026-03-14
 
 ### Changed
@@ -430,5 +435,6 @@ All notable changes to the Nellai IPTV Website will be documented in this file.
 - **Toast Notifications**: Integrated global toast system for connectivity and action feedback.
 - **Channel Reporting UI**: Added interface for users to report stream issues.
 - **Contact Form**: Implemented contact page for user inquiries.
+
 
 
