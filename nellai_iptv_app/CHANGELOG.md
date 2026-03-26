@@ -1,3 +1,12 @@
+## [1.9.0+49] - 2026-03-27
+
+### Changed
+- **Player Migration**: Migrated from MediaKit to standard `video_player` (ExoPlayer) for significantly improved compatibility and stability on low-end Android TV hardware (e.g., Zebronics).
+
+### Fixed
+- **TV Playback**: Resolved "black screen" and "no playback" issues on certain Amlogic/Mediatek chipsets by leveraging Google's native ExoPlayer implementation.
+- **Null Safety**: Hardened the player UI with robust null-checks and stable state management during stream initialization.
+
 ## [1.8.27+44] - 2026-02-28
 
 ### Added

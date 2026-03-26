@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Import for LogicalKeyboardKey
 import 'package:flutter_animate/flutter_animate.dart'; // Import flutter_animate
 import 'package:flutter/foundation.dart'; // for kIsWeb
-import 'package:media_kit/media_kit.dart'; // MediaKit Core
-import 'package:media_kit_video/media_kit_video.dart'; // MediaKit Video Widget
+import 'package:video_player/video_player.dart'; // VideoPlayer
 import 'package:dio/dio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -153,11 +152,8 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     _tvPlayer = TVPlayerController();
     // Config logic moved to TVPlayerController
 
-    // Listen for Player Errors
-    _playerErrorSub = _tvPlayer.player.stream.error.listen((error) {
-       // debugPrint("MediaKit Stream Error: $error");
-       if (mounted) _handlePlaybackError("Stream Error: $error");
-    });
+    // Listen for Player Errors via listener
+    _tvPlayer.player?.addListener(_playerListener);
     
     // Listen for Logs (often contains 404s that don't trigger stream.error instantly)
     // Disabled to prevent FFI callback crashes on hot restart
@@ -198,6 +194,15 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     });
 
     _initializeApp();
+  }
+
+  void _playerListener() {
+    if (!mounted || _isDisposed) return;
+    if (_tvPlayer.player?.value.hasError ?? false) {
+      if (!_hasError) {
+        _handlePlaybackError("Playback Error: ${_tvPlayer.player!.value.errorDescription}");
+      }
+    }
   }
   
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
@@ -246,12 +251,12 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       if (!_isPipMode) {
-         _tvPlayer.player.pause();
+         _tvPlayer.player?.pause();
          AudioManager().restoreOriginalVolume();
       }
     } else if (state == AppLifecycleState.resumed) {
       if (!_isPremiumContent) {
-        _tvPlayer.player.play();
+        _tvPlayer.player?.play();
       }
       AudioManager().reapplyAppVolume();
       
@@ -408,7 +413,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   }
 
   Future<void> _initVideoPlayer(String url) async {
-    if (url == _lastOpenedUrl && !_hasError && _tvPlayer.player.state.playing) {
+    if (url == _lastOpenedUrl && !_hasError && (_tvPlayer.player?.value.isPlaying ?? false)) {
        // Still playing the same thing, just ensure we show the UI
        if (mounted && _isLoading) setState(() => _isLoading = false);
        return;
@@ -557,17 +562,16 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   }
 
   /// Explicitly stop and release all player resources.
-  /// Used during logout or navigation to ensure no background audio/video.
   Future<void> finalStop() async {
     if (_isDisposed) return;
     try {
       debugPrint("🛑 EmbeddedPlayer: Final stop requested...");
       // 1. Force Mute first (Fastest way to stop audio)
-      _tvPlayer.player.setVolume(0);
+      _tvPlayer.setVolume(0);
       // 2. Pause
-      await _tvPlayer.player.pause();
+      await _tvPlayer.pause();
       // 3. Stop
-      await _tvPlayer.stop(); // Mutes, clears playlist, stops
+      await _tvPlayer.stop(); 
       // 4. Dispose
       await _tvPlayer.dispose();
       
@@ -610,14 +614,14 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     _audioSubscription?.cancel();
     _connectivitySubscription?.cancel();
     
-    // Explicitly cancel player-specific subscriptions first
+    // Explicitly remove listeners
+    _tvPlayer.player?.removeListener(_playerListener);
     _playerErrorSub?.cancel();
     _playerLogSub?.cancel();
 
-    // 🛑 Stop playback immediately when navigating away from Classic Screen
-    _tvPlayer.stop(); // Safe because it's try-catched
+    // 🛑 Stop playback immediately
+    _tvPlayer.stop(); 
     
-    // 🛑 Synchronous disposal is safer for hot restarts to prevent post-environment-wipe callbacks
     _tvPlayer.dispose();
 
     _menuFocusNode.dispose();
@@ -704,14 +708,16 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                       )
                     ] : [],
                   ),
-                  child: (_isPremiumContent || _forceStopped) 
+                  child: (_isPremiumContent || _forceStopped || _tvPlayer.videoController == null) 
                         ? const SizedBox() 
                         : SizedBox.expand(
-                            child: Video(
-                              controller: _tvPlayer.videoController,
+                            child: FittedBox(
                               fit: BoxFit.fill,
-                              controls: NoVideoControls, // We use our own custom controls
-                              alignment: Alignment.center,
+                              child: SizedBox(
+                                width: _tvPlayer.videoController!.value.size.width,
+                                height: _tvPlayer.videoController!.value.size.height,
+                                child: VideoPlayer(_tvPlayer.videoController!),
+                              ),
                             ),
                           ),
                 ),
@@ -734,34 +740,35 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                   ),
                 ),
               // 3. Loading Layer (Overlay)
-              StreamBuilder<bool>(
-                stream: _tvPlayer.player.stream.buffering,
-                builder: (context, snapshot) {
-                  final isBuffering = snapshot.data ?? false;
-                  
-                  if (!_hasError && !_isPremiumContent) {
-                    if (_isLoading) {
-                       return Container(
-                         color: Colors.transparent, 
-                         child: Center(
+              if (_tvPlayer.player != null)
+                ValueListenableBuilder<VideoPlayerValue>(
+                  valueListenable: _tvPlayer.player!,
+                  builder: (context, value, child) {
+                    final isBuffering = value.isBuffering;
+                    
+                    if (!_hasError && !_isPremiumContent) {
+                      if (_isLoading) {
+                         return Container(
+                           color: Colors.transparent, 
+                           child: Center(
+                              child: LoadingAnimationWidget.progressiveDots(
+                                color: const Color(0xFF06B6D4), 
+                                size: 60
+                              ),
+                           ),
+                         );
+                      } else if (isBuffering) {
+                         return Center(
                             child: LoadingAnimationWidget.progressiveDots(
                               color: const Color(0xFF06B6D4), 
                               size: 60
                             ),
-                         ),
-                       );
-                    } else if (isBuffering) {
-                       return Center(
-                          child: LoadingAnimationWidget.progressiveDots(
-                            color: const Color(0xFF06B6D4), 
-                            size: 60
-                          ),
-                       );
+                         );
+                      }
                     }
-                  }
-                  return const SizedBox();
-                },
-              ),
+                    return const SizedBox();
+                  },
+                ),
               
               // 4. Retry Button (Fallback Mode)
               if (_fallbackUsed)

@@ -4,12 +4,17 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 
 ## Features
 
-- **Live TV Streaming**: High-quality streaming with MediaKit player.
+- **Live TV Streaming**: High-quality streaming with ExoPlayer (via video_player).
 - **Classic TV Interface**: Grid-based channel selection optimized for Remote controls.
 - **Premium Content**: Secure handling of premium channels with status indicators.
 - **Security**: Built-in screenshot and screen recording prevention.
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
+
+## Version: 1.9.0+49
+- **Key Features**: Migration to VideoPlayer (ExoPlayer) for Android TV stability.
+- **Added**: **Player Migration** - Migrated the core playback engine to ExoPlayer to resolve compatibility issues on Zebronics and other low-end STBs.
+- **Improved**: **Null Safety** - Hardened the UI with comprehensive null-safety guards.
 
 ## Version: 1.8.27+44
 - **Key Features**: Storage Management, Enhanced Channel Search, Settings Screen channel ordering, D-Pad support.
@@ -152,7 +157,7 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 ## Tech Stack
 
 - **Flutter**: ^3.32.6
-- **Player**: MediaKit
+- **Player**: VideoPlayer (ExoPlayer)
 - **State Management**: Provider
 - **Networking**: Dio
 - **Animation**: Flutter Animate

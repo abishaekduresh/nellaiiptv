@@ -10,7 +10,7 @@ import 'screens/classic/classic_screen.dart';
 import 'screens/splash_screen.dart'; // Import Splash
 import 'core/security_service.dart'; // Import SecurityService
 
-import 'package:media_kit/media_kit.dart'; // Import MediaKit
+// import 'package:media_kit/media_kit.dart'; // Removed for VideoPlayer
 import 'package:flutter_cache_manager/flutter_cache_manager.dart'; // Import CacheManager
 import 'core/toast_service.dart'; // Import ToastService
 
@@ -18,7 +18,7 @@ import 'core/device_utils.dart'; // Import DeviceUtils
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  MediaKit.ensureInitialized(); // Initialize MediaKit
+  // MediaKit.ensureInitialized(); // Removed for VideoPlayer
   
   await DeviceUtils.init(); // Initialize Device Detection
 
