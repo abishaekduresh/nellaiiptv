@@ -1,3 +1,13 @@
+## [1.9.2+51] - 2026-04-14
+
+### Added
+- **App Version Display**: The Settings screen now shows the running app version (e.g., `Version 1.9.2+51`) pinned at the bottom center in a subtle muted style.
+
+### Fixed
+- **Share Code Deep Link**: Fixed `ToastService.show()` call in `ClassicScreen` -- `type` is a named parameter; changed from positional `show(msg, ToastType.error)` to named `show(msg, type: ToastType.error)`.
+
+### Maintenance
+- **Version Sync**: Synchronized with Backend v1.38.0 and Website v1.49.0.
 ## [1.9.1+50] - 2026-04-14
 
 ### Added

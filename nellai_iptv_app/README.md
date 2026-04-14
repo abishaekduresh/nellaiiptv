@@ -11,7 +11,16 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.9.2+51
+- **Key Features**: App Version Display in Settings, Deep Link Share Code Support, Bug Fix.
+- **Added**: **App Version Display** - Settings screen now shows the running app version pinned at the bottom center in a subtle muted style.
+- **Added**: **Deep Link Share** - `app_links` integration handles incoming `nellaiiptv://channels/share/{code}` and HTTPS deep links; auto-plays the matching channel on launch.
+- **Fixed**: **Toast Named Param** - Fixed `ToastService.show()` call in `ClassicScreen` using named `type:` parameter.
+
 ## Version: 1.9.1+50
+- **Key Features**: Share code feature (not published separately — combined into 1.9.2+51).
+
+## Version: 1.9.0+49
 - **Key Features**: Migration to VideoPlayer (ExoPlayer) for Android TV stability.
 - **Added**: **Player Migration** - Migrated the core playback engine to ExoPlayer to resolve compatibility issues on Zebronics and other low-end STBs.
 - **Improved**: **Null Safety** - Hardened the UI with comprehensive null-safety guards.

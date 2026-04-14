@@ -1,3 +1,8 @@
+## [1.9.2+51] - App | [1.49.0] - Website | [1.38.0] - Backend - 2026-04-14
+
+### App (Flutter)
+- **Feature**: **App Version Display** - Settings screen now shows the running app version (e.g. `Version 1.9.2+51`) pinned at the bottom center.
+- **Fixed**: **Toast Named Param Bug** - Fixed `ToastService.show()` in `ClassicScreen` to use named `type:` parameter instead of positional.
 ## [1.9.1+50] - App | [1.49.0] - Website | [1.38.0] - Backend - 2026-04-14
 
 ### App (Flutter)

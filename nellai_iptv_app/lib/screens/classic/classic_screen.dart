@@ -199,7 +199,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
            }
        } catch (e) {
            debugPrint('Error loading channel from share code: $e');
-           if (mounted) ToastService().show('Failed to load shared channel', ToastType.error);
+           if (mounted) ToastService().show('Failed to load shared channel', type: ToastType.error);
        }
     }
 

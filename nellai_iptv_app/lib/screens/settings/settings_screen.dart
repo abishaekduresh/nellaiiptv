@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/device_utils.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -17,6 +18,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final FocusNode _clearCacheFocusNode = FocusNode();
 
   bool _isClearingCache = false;
+  String _appVersion = '';
 
   Future<void> _handleClearCache() async {
     if (_isClearingCache) return;
@@ -34,9 +36,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (mounted) setState(() => _appVersion = 'Version ${info.version}+${info.buildNumber}');
+  }
+
   @override
   void initState() {
     super.initState();
+    _loadVersion();
     if (DeviceUtils.isTV) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
@@ -77,31 +85,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {
-          return ListView(
-            padding: const EdgeInsets.all(16.0),
+          return Column(
             children: [
-            const Text(
-              'Storage',
-              style: TextStyle(
-                color: Colors.cyan,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(16.0),
+                  children: [
+                  const Text(
+                    'Storage',
+                    style: TextStyle(
+                      color: Colors.cyan,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: _buildActionOption(
+                      focusNode: _clearCacheFocusNode,
+                      title: 'Clear Image Cache',
+                      icon: Icons.delete_outline,
+                      iconColor: Colors.redAccent,
+                      onSelect: _handleClearCache,
+                    ),
+                  ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: _buildActionOption(
-                focusNode: _clearCacheFocusNode,
-                title: 'Clear Image Cache',
-                icon: Icons.delete_outline,
-                iconColor: Colors.redAccent,
-                onSelect: _handleClearCache,
-              ),
-            ),
+              if (_appVersion.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  child: Text(
+                    _appVersion,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white30,
+                      fontSize: 12,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
             ],
           );
         },
