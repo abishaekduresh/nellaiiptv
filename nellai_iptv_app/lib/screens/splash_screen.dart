@@ -11,6 +11,7 @@ import '../core/device_utils.dart'; // Import DeviceUtils
 import 'package:flutter_animate/flutter_animate.dart'; // Animation support
 import 'package:in_app_update/in_app_update.dart'; // Import InAppUpdate
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
+import 'package:app_links/app_links.dart'; // Import app_links
 import 'classic/classic_screen.dart'; // Import ClassicScreen
 import 'auth/login_screen.dart' as import_auth; // Import LoginScreen with alias
 import 'common_error_screen.dart'; // Import CommonErrorScreen
@@ -23,10 +24,15 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  String? _initialShareCode;
+  late AppLinks _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
 
   @override
   void initState() {
     super.initState();
+    _initDeepLinks();
+
     // Enforce Portrait for Splash on Mobile, but allow Landscape for TV/Web
     if (DeviceUtils.isTV) {
        SystemChrome.setPreferredOrientations([
@@ -41,6 +47,41 @@ class _SplashScreenState extends State<SplashScreen> {
     _checkSecurityAndProceed();
   }
   
+  Future<void> _initDeepLinks() async {
+    _appLinks = AppLinks();
+    try {
+      final uri = await _appLinks.getInitialLink();
+      if (uri != null) {
+        _extractShareCode(uri);
+      }
+    } catch (e) {
+      debugPrint('Error getting initial link: $e');
+    }
+
+    _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
+      if (mounted) {
+        _extractShareCode(uri);
+      }
+    });
+  }
+
+  void _extractShareCode(Uri uri) {
+    if (uri.path.contains('/share/')) {
+      final parts = uri.path.split('/');
+      final index = parts.indexOf('share');
+      if (index != -1 && index + 1 < parts.length) {
+        _initialShareCode = parts[index + 1];
+        debugPrint('Found share code: $_initialShareCode');
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> _checkSecurityAndProceed() async {
     // Check USB debugging if blocking is enabled
     final blockUsbDebug = dotenv.env['BLOCK_USB_DEBUG']?.toLowerCase() == 'true';
@@ -196,7 +237,7 @@ class _SplashScreenState extends State<SplashScreen> {
       DeviceOrientation.landscapeRight,
     ]);
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const ClassicScreen()),
+      MaterialPageRoute(builder: (_) => ClassicScreen(initialShareCode: _initialShareCode)),
     );
   }
 

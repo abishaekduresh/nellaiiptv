@@ -1,9 +1,18 @@
 # Backend Changelog
 
+## [1.38.0] - Backend - 2026-04-14
 
+### Added
+- **Channel Share Code**: Added `share_code` column (VARCHAR 6, UNIQUE) to the `channels` table for static 6-digit shareable channel identifiers.
+- **API Endpoint**: Implemented `GET /api/channels/share/{share_code}` public endpoint to resolve a share code to full channel details.
+- **Auto-Generation**: Updated `Channel` model `boot()` method to automatically generate a unique 6-digit `share_code` on record creation.
+- **Admin API**: `share_code` is now included in channel create/update payloads and returned in all channel API responses.
 
+### Fixed
+- **Slim Route Param Mismatch**: Fixed `findByShareCode` method -- Slim 4 requires PHP parameter name to exactly match the route placeholder (`{share_code}` -> ``).
 
-
+### Maintenance
+- **Version Sync**: Synchronized with Website v1.49.0 and App v1.9.1+50.
 ## [1.37.5] - Backend - 2026-03-14
 
 ### Changed

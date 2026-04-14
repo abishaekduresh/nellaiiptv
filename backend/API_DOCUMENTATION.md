@@ -1,6 +1,6 @@
-# Nellai IPTV - API Documentation (v1.19.0)
+# Nellai IPTV - API Documentation (v1.20.0)
 
-**Version 1.19.0**
+**Version 1.20.0**
 
 Base URL: `/api`
 
@@ -335,12 +335,49 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
     "uuid": "channel-uuid",
     "name": "Channel Name",
     "channel_number": 1,
+    "share_code": "721089",
     "hls_url": "https://...",
     "thumbnail_url": "https://...",
     "logo_url": "https://...",
     "viewers_count": 150
   }
 }
+```
+
+---
+
+### Get Channel by Share Code
+
+**Endpoint**: `GET /channels/share/{share_code}`
+
+**Access**: Public (requires `X-API-KEY` header)
+
+**Description**: Resolves a 6-digit static share code to the full channel object. Used by share links (`/channels/share/721089`) to look up the channel UUID for deep linking and web preview redirection.
+
+**Path Parameters**:
+- `share_code` *(string, required)*: The 6-digit share code assigned to the channel.
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "Channel details retrieved successfully",
+  "data": {
+    "uuid": "f4a39ec0-10bf-46a7-a06c-cb34977b9f43",
+    "name": "PCN CHANNEL TV",
+    "channel_number": 333,
+    "share_code": "721089",
+    "hls_url": "https://example.com/stream.m3u8",
+    "thumbnail_url": "https://...",
+    "logo_url": "https://...",
+    "viewers_count": 12
+  }
+}
+```
+
+**Error Response** (404):
+```json
+{ "status": false, "message": "Channel not found" }
 ```
 
 ---
@@ -581,4 +618,4 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 
 ---
 
-**Last Updated**: January 10, 2026 | **Version**: 1.16.0
+**Last Updated**: April 14, 2026 | **Version**: 1.20.0

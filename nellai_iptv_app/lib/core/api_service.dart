@@ -166,6 +166,19 @@ class ApiService {
   }
 
 
+  Future<Channel?> getChannelByShareCode(String shareCode) async {
+    try {
+      final response = await _dio.get('/channels/share/$shareCode');
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        return Channel.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching channel by share code: $e');
+      return null;
+    }
+  }
+
   Future<void> incrementView(String uuid) async {
     try {
       await _dio.post('/channels/$uuid/view');

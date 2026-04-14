@@ -73,6 +73,8 @@ CREATE TABLE IF NOT EXISTS `channels` (
   `uuid` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `channel_number` int NOT NULL,
+  `share_code` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+
   `hls_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `rtmp_url` text COLLATE utf8mb4_unicode_ci,
   `village` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -99,6 +101,7 @@ CREATE TABLE IF NOT EXISTS `channels` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`),
   UNIQUE KEY `channel_number` (`channel_number`),
+  UNIQUE KEY `share_code` (`share_code`),
   KEY `idx_is_featured` (`is_featured`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

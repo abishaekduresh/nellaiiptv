@@ -1,3 +1,13 @@
+## [1.9.1+50] - 2026-04-14
+
+### Added
+- **Deep Link Share Handling**: Integrated `app_links` package to listen for incoming deep links at app startup via `SplashScreen`.
+- **Share Code Auto-Play**: `ClassicScreen` now accepts an optional `initialShareCode` parameter. When provided via a deep link, it fetches the matching channel by share code and auto-plays it immediately after channels load.
+- **Android Deep Link Config**: Added `<intent-filter>` entries to `AndroidManifest.xml` for both HTTPS (`/channels/share/`) and custom URI scheme (`nellaiiptv://channels/share/`).
+- **API Helper**: Added `getChannelByShareCode(String shareCode)` method to `ApiService` for clean share-code-to-channel resolution.
+
+### Maintenance
+- **Version Sync**: Synchronized with Backend v1.38.0 and Website v1.49.0.
 ## [1.9.0+49] - 2026-03-27
 
 ### Changed

@@ -11,7 +11,7 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
-## Version: 1.9.0+49
+## Version: 1.9.1+50
 - **Key Features**: Migration to VideoPlayer (ExoPlayer) for Android TV stability.
 - **Added**: **Player Migration** - Migrated the core playback engine to ExoPlayer to resolve compatibility issues on Zebronics and other low-end STBs.
 - **Improved**: **Null Safety** - Hardened the UI with comprehensive null-safety guards.

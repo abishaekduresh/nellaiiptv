@@ -52,6 +52,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
 
         // Channels (Open Access Optional)
         $group->get('/channels', [\App\Controllers\ChannelController::class, 'index']);
+        $group->get('/channels/share/{share_code}', [\App\Controllers\ChannelController::class, 'findByShareCode']);
         $group->get('/channels/featured', [\App\Controllers\ChannelController::class, 'getFeatured']);
         $group->get('/channels/new', [\App\Controllers\ChannelController::class, 'getNew']);
         $group->get('/channels/{uuid}', [\App\Controllers\ChannelController::class, 'show']);

@@ -20,6 +20,7 @@ interface ChannelDetails {
   uuid: string;
   name: string;
   channel_number: number | string;
+  share_code?: string;
   hls_url: string;
   thumbnail_url: string;
   logo_url: string;
@@ -205,6 +206,7 @@ export default function ChannelDetailsModal({ uuid, isOpen, onClose }: ChannelDe
                            <DetailItem icon={MapPin} label="State" value={channel.state?.name} />
                            <DetailItem icon={MapPin} label="District" value={channel.district?.name} />
                            {channel.village && <DetailItem icon={MapPin} label="Village" value={channel.village} />}
+                           {channel.share_code && <DetailItem icon={LinkIcon} label="Share Code" value={channel.share_code} />}
                        </div>
                   </div>
               </div>
@@ -227,6 +229,18 @@ export default function ChannelDetailsModal({ uuid, isOpen, onClose }: ChannelDe
                               {channel.hls_url}
                           </div>
                       </div>
+
+                      {channel.share_code && (
+                          <div className="bg-slate-900/50 rounded-xl border border-slate-800 overflow-hidden">
+                              <div className="p-3 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
+                                  <span className="text-xs font-semibold text-slate-400">Public Share URL</span>
+                                  <CopyButton text={`${typeof window !== 'undefined' ? window.location.origin : ''}/channels/share/${channel.share_code}`} onCopy={() => handleCopy(`${typeof window !== 'undefined' ? window.location.origin : ''}/channels/share/${channel.share_code}`, 'Share URL')} />
+                              </div>
+                              <div className="p-3 bg-slate-950 font-mono text-xs text-blue-400 break-all leading-relaxed select-all">
+                                  {`${typeof window !== 'undefined' ? window.location.origin : ''}/channels/share/${channel.share_code}`}
+                              </div>
+                          </div>
+                      )}
 
                       <div className="grid gap-3">
                           <div className="bg-slate-900/50 p-3 rounded-xl border border-slate-800">

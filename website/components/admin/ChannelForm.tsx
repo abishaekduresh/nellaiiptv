@@ -22,6 +22,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
   const [formData, setFormData] = useState({
     name: '',
     channel_number: '',
+    share_code: '',
     hls_url: '',
     thumbnail_url: '',
     logo_url: '',
@@ -89,6 +90,10 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
             } catch (err) {
                 console.error('Failed to fetch next channel number', err);
             }
+        }
+        
+        if (!isEditing && !initialData?.share_code) {
+           setFormData((prev: any) => ({ ...prev, share_code: Math.floor(100000 + Math.random() * 900000).toString() }));
         }
       } catch (error) {
         console.error('Failed to fetch form options', error);
@@ -236,6 +241,18 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
             onChange={(e) => setFormData({ ...formData, channel_number: e.target.value })}
             className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
             placeholder="e.g. 101"
+          />
+        </div>
+
+        <div>
+          <label className="block text-text-secondary mb-2">Share Code (6 Digits)</label>
+          <input
+            type="text"
+            maxLength={6}
+            value={formData.share_code || ''}
+            onChange={(e) => setFormData({ ...formData, share_code: e.target.value.replace(/\D/g, '') })}
+            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary font-mono tracking-widest"
+            placeholder="e.g. 123456"
           />
         </div>
 

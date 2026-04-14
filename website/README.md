@@ -1,47 +1,47 @@
-# Nellai IPTV - Frontend v1.48.0
+# Nellai IPTV - Frontend v1.49.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.48.0)**
+### **Latest Updates (v1.49.0)**
 - **Scrolling Ads Ticker**: Integrated a seamless, gap-free scrolling text ticker below the video player on channel pages.
 - **Admin Ads Management**: Added a full Admin UI for managing scrolling ads, supporting markdown, custom scroll speeds, and repeat counts.
 - **Sync**: Version synchronized with Backend v1.37.0 and App v1.8.24+41.
 
-### **Previous Updates (v1.47.3)**
+### **Previous Updates (v1.49.0)**
 - **RTMP URL Support**: Added an optional field for RTMP stream URLs in the channel management forms.
 
-### **Previous Updates (v1.47.2)**
+### **Previous Updates (v1.49.0)**
 - **WebP Support**: Added full support for `.webp` image uploads across all channel management forms.
 - **HD Previews**: Updated UI guidance to recommend **1280x720px** for high-quality channel thumbnails.
 - **Sync**: Version synchronized with Backend v1.36.2.
 
-### **Previous Updates (v1.47.1)**
+### **Previous Updates (v1.49.0)**
 - **Maintenance**: Version synchronized with root release.
 
-### **Previous Updates (v1.47.0)**
+### **Previous Updates (v1.49.0)**
 
-### **Previous Updates (v1.46.3)**
+### **Previous Updates (v1.49.0)**
 - **Type Safety**: Verified and fixed `channelUuid` prop propagation to video players, ensuring strict TypeScript compliance.
 
-### **Previous Updates (v1.46.0)**
+### **Previous Updates (v1.49.0)**
 - **Admin Comments**: New dedicated management page (`/admin/comments`) for viewing, searching, and moderating channel comments.
 - **Status Toggle**: Low-friction status toggling (Active/Inactive) for comments directly from the list view.
 - **Auto-Numbering**: Intelligent channel form that pre-fetches the next available channel number to prevent conflicts.
 - **API Stability**: Resolved empty filter dropdowns by aligning API parameters with backend schemas.
 
-### **Previous Updates (v1.43.0)**
+### **Previous Updates (v1.49.0)**
 - **Channel Proprietor Details**: Unified section in Channel Form to maintain and display owner contact information and address.
 - **Indian Phone Validation**: Integrated robust regex-based validation for Indian phone numbers with real-time UI feedback (color-coded borders and messages).
 - **Stream Headers Support**: Custom `User-Agent` and `Referer` fields added to Channel Form to support restricted streams.
 - **Improved API Resilience**: Standardized on Admin API endpoints for fetching metadata, resolving "Failed to load" errors in filters and forms.
 
-### **Previous Updates (v1.42.1)**
+### **Previous Updates (v1.49.0)**
 - **Maintenance**: Version synchronized with latest App Release (v1.8.8+24).
 - **Improved Performance**: Refined HLS buffering profiles for consistent cross-device stability.
 
-### **Previous Updates (v1.41.0)**
+### **Previous Updates (v1.49.0)**
 - **Device Profiles**: Tier-aware HLS buffering engine for optimized PC & TV playback.
 - **Unified Branding**: Sidebar logo now functions as a global "Home" navigation link.
 - **Ad Refinement**: Full-width grid banners replace individual channel ads.

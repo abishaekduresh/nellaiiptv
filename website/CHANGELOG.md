@@ -1,9 +1,15 @@
 # Website Changelog
 
+## [1.49.0] - Website - 2026-04-14
 
+### Added
+- **Channel Share Link**: New `/channels/share/[shortCode]` Next.js server-side route that handles smart redirection -- detects Android/iOS devices and issues a deep link Intent URI to open the Nellai IPTV Flutter app directly; falls back to the web preview player after 2.5 seconds.
+- **Share URL in Channel Details Modal**: The admin `ChannelDetailsModal` now displays a one-click copyable Public Share URL block when a channel has a `share_code`.
+- **Share Code in Channel Form**: Admin `ChannelForm` now includes a `Share Code (6 Digits)` input. Auto-populates with a random 6-digit code on new channel creation.
+- **Share Code in Channel Details**: Channel details info grid now shows `Share Code` alongside location metadata.
 
-
-
+### Maintenance
+- **Version Sync**: Synchronized with Backend v1.38.0 and App v1.9.1+50.
 ## [1.48.4] - 2026-03-14
 
 ### Changed

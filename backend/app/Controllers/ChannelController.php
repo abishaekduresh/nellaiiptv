@@ -85,6 +85,22 @@ class ChannelController
     }
 
 
+    public function findByShareCode(Request $request, Response $response, string $share_code = ''): Response
+    {
+        if (!$share_code) {
+            return ResponseFormatter::error($response, 'Share code is required', 400);
+        }
+        
+        try {
+            $channel = \App\Models\Channel::where('share_code', $share_code)->first();
+            if (!$channel) {
+                return ResponseFormatter::error($response, 'Channel not found', 404);
+            }
+            return $this->show($request, $response, $channel->uuid);
+        } catch (\Exception $e) {
+            return ResponseFormatter::error($response, 'Failed to fetch channel', 500);
+        }
+    }
 
     public function show(Request $request, Response $response, string $uuid): Response
     {

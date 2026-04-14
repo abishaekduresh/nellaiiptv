@@ -31,7 +31,9 @@ import '../../core/toast_service.dart'; // Import ToastService
 import 'channel_details_modal.dart'; // Import Channel Details Modal
 
 class ClassicScreen extends StatefulWidget {
-  const ClassicScreen({super.key});
+  final String? initialShareCode;
+  const ClassicScreen({super.key, this.initialShareCode});
+
 
   @override
   State<ClassicScreen> createState() => _ClassicScreenState();
@@ -181,14 +183,39 @@ class _ClassicScreenState extends State<ClassicScreen> {
 
     await context.read<ChannelProvider>().fetchChannels();
     final channels = context.read<ChannelProvider>().channels;
-    if (channels.isNotEmpty && mounted) {
+    
+    bool channelSelected = false;
+    if (widget.initialShareCode != null && widget.initialShareCode!.isNotEmpty) {
+       try {
+           final channelData = await _api.getChannelByShareCode(widget.initialShareCode!);
+           if (channelData != null) {
+               if (mounted) {
+                   setState(() {
+                       _selectedChannel = channelData;
+                       _playerKey = GlobalKey<EmbeddedPlayerState>();
+                   });
+                   channelSelected = true;
+               }
+           }
+       } catch (e) {
+           debugPrint('Error loading channel from share code: $e');
+           if (mounted) ToastService().show('Failed to load shared channel', ToastType.error);
+       }
+    }
+
+    if (!channelSelected && channels.isNotEmpty && mounted) {
       setState(() {
         _selectedChannel = channels.first;
       });
-      _loadComments();
     }
+    
+    if (_selectedChannel != null) {
+       _loadComments();
+    }
+    
     _loadAds();
   }
+
 
   Future<void> _loadComments() async {
     if (_selectedChannel == null) return;

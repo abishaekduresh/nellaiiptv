@@ -6,12 +6,12 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.48.1
+- **Version**: 1.49.0
 - **Key Features**: Scrolling Ads Ticker, RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.37.1
+- **Version**: 1.38.0
 - **Key Features**: Scrolling Ads API, RTMP URL Support, Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
 
 ### `nellai_iptv_app` (Flutter)

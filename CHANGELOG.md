@@ -1,3 +1,14 @@
+## [1.9.1+50] - App | [1.49.0] - Website | [1.38.0] - Backend - 2026-04-14
+
+### App (Flutter)
+- **Feature**: **Deep Link Share** - Added `app_links` integration to handle incoming deep links at startup. Share codes from `nellaiiptv://channels/share/{code}` or HTTPS links are parsed in `SplashScreen` and forwarded to `ClassicScreen` to auto-play the matching channel.
+
+### Website (Next.js)
+- **Feature**: **Share Redirect Page** - New `/channels/share/[shortCode]` smart page detects mobile vs desktop and issues Android Intent URIs or direct redirects to the web preview player.
+- **Feature**: **Share Code Admin UI** - Channel Details Modal shows the full, copyable Public Share URL. Channel Form auto-generates and displays the 6-digit share code.
+
+### Backend (PHP/Slim)
+- **Feature**: **Channel Share Code API** - New `GET /api/channels/share/{share_code}` endpoint. `Channel` model auto-generates a unique 6-digit `share_code` on creation. Fixed Slim 4 route param injection bug.
 ## [1.8.27+44] - App | [1.48.1] - Website | [1.37.1] - Backend - 2026-02-28
 
 ### App (Flutter)
