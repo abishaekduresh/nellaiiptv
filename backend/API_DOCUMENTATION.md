@@ -1,10 +1,24 @@
-# Nellai IPTV - API Documentation (v1.16.1)
+# Nellai IPTV - API Documentation (v1.20.0)
 
-**Version 1.17.0**
+**Version 1.20.0**
 
 Base URL: `/api`
 
 ## Security & Headers
+...
+(rest of headers)
+...
+        "channel_number": 1,
+        "hls_url": "https://...",
+        "thumbnail_url": "https://...",
+        "logo_url": "https://domain.com/uploads/channel/logos/...",
+        "viewers_count": 150,
+...
+    "channel_number": 1,
+    "hls_url": "https://...",
+    "thumbnail_url": "https://...",
+    "logo_url": "https://domain.com/uploads/channel/logos/...",
+    "viewers_count": 150
 
 **CRITICAL**: All public API requests MUST include the **API Key**.
 Protected endpoints require BOTH the API Key and a Bearer Token.
@@ -286,6 +300,7 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
         "channel_number": 1,
         "hls_url": "https://...",
         "thumbnail_url": "https://...",
+        "logo_url": "https://...",
         "viewers_count": 150,
         "is_featured": true,
         "is_premium": true,
@@ -320,11 +335,49 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
     "uuid": "channel-uuid",
     "name": "Channel Name",
     "channel_number": 1,
+    "share_code": "721089",
     "hls_url": "https://...",
     "thumbnail_url": "https://...",
+    "logo_url": "https://...",
     "viewers_count": 150
   }
 }
+```
+
+---
+
+### Get Channel by Share Code
+
+**Endpoint**: `GET /channels/share/{share_code}`
+
+**Access**: Public (requires `X-API-KEY` header)
+
+**Description**: Resolves a 6-digit static share code to the full channel object. Used by share links (`/channels/share/721089`) to look up the channel UUID for deep linking and web preview redirection.
+
+**Path Parameters**:
+- `share_code` *(string, required)*: The 6-digit share code assigned to the channel.
+
+**Response** (200):
+```json
+{
+  "status": true,
+  "message": "Channel details retrieved successfully",
+  "data": {
+    "uuid": "f4a39ec0-10bf-46a7-a06c-cb34977b9f43",
+    "name": "PCN CHANNEL TV",
+    "channel_number": 333,
+    "share_code": "721089",
+    "hls_url": "https://example.com/stream.m3u8",
+    "thumbnail_url": "https://...",
+    "logo_url": "https://...",
+    "viewers_count": 12
+  }
+}
+```
+
+**Error Response** (404):
+```json
+{ "status": false, "message": "Channel not found" }
 ```
 
 ---
@@ -486,6 +539,42 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 
 ---
 
+## API Key Management
+
+### List API Keys
+**Endpoint**: `GET /admin/api-keys` (Protected: Admin)
+
+**Response**:
+```json
+{
+  "status": true,
+  "data": [
+    {
+      "uuid": "api-key-uuid",
+      "key": "sk_live_dummy_key_value",
+      "name": "My Application Key",
+      "allowed_platforms": "web,tv,android,ios",
+      "status": "active",
+      "created_at": "2026-01-01T12:00:00Z"
+    }
+  ]
+}
+```
+
+### Create API Key
+**Endpoint**: `POST /admin/api-keys` (Protected: Admin)
+**Body**:
+```json
+{
+  "name": "New Application Key"
+}
+```
+
+### Revoke API Key
+**Endpoint**: `DELETE /admin/api-keys/{uuid}` (Protected: Admin)
+
+---
+
 ## System Settings
 
 ### Upload Logo
@@ -494,7 +583,7 @@ Protected endpoints require BOTH the API Key and a Bearer Token.
 
 ### Get Public Settings
 **Endpoint**: `GET /settings/public`
-**Response**: `{ "status": true, "data": { "logo_url": "...", "top_trending_platforms": "web,tv,android,ios" } }`
+**Response**: `{ "status": true, "data": { "logo_url": "...", "app_logo_png_url": "...", "top_trending_platforms": "web,tv,android,ios" } }`
 
 ---
 
@@ -529,4 +618,4 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 
 ---
 
-**Last Updated**: January 10, 2026 | **Version**: 1.16.0
+**Last Updated**: April 14, 2026 | **Version**: 1.20.0

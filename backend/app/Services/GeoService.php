@@ -19,13 +19,33 @@ class GeoService
         return District::all()->toArray();
     }
 
-    public function getLanguages(): array
+    public function getLanguages(string $status = 'active'): array
     {
-        return Language::all()->toArray();
+        $query = Language::query();
+        
+        // If status is empty or 'all', don't filter by status
+        // Status column missing in DB, removing filter
+        // if (!empty($status) && $status !== 'all') {
+        //    $query->where('status', $status);
+        // }
+        
+        return $query->orderBy('order_number', 'ASC')
+            ->get()
+            ->toArray();
     }
 
-    public function getCategories(): array
+    public function getCategories(string $status = 'active'): array
     {
-        return Category::all()->toArray();
+        $query = Category::query();
+        
+        // If status is empty or 'all', don't filter by status
+        // Status column missing in DB, removing filter
+        // if (!empty($status) && $status !== 'all') {
+        //    $query->where('status', $status);
+        // }
+        
+        return $query->orderBy('order_number', 'ASC')
+            ->get()
+            ->toArray();
     }
 }

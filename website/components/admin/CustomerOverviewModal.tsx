@@ -1,0 +1,220 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { Customer } from '@/types';
+import adminApi from '@/lib/adminApi';
+import { X, User, CreditCard, Clock, Calendar, Phone, Mail } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+interface CustomerOverviewModalProps {
+  uuid: string;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function CustomerOverviewModal({ uuid, isOpen, onClose }: CustomerOverviewModalProps) {
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [walletTransactions, setWalletTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (isOpen && uuid) {
+      const fetchCustomer = async () => {
+        setLoading(true);
+        try {
+          const res = await adminApi.get(`/admin/customers/${uuid}`);
+          setCustomer(res.data.data);
+          
+          if ((res.data.data as any).role === 'reseller') {
+              const txRes = await adminApi.get(`/admin/customers/${uuid}/wallet/transactions`);
+              setWalletTransactions(txRes.data.data.data || txRes.data.data);
+          } else {
+              setWalletTransactions([]);
+          }
+        } catch (error: any) {
+          console.error(error);
+          toast.error('Failed to load customer details');
+          onClose();
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchCustomer();
+    } else {
+        setCustomer(null);
+    }
+  }, [isOpen, uuid, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-slate-900 rounded-xl w-full max-w-2xl border border-slate-800 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-slate-800">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <User className="text-primary" size={24} />
+            Customer Overview
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="p-6">
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : customer ? (
+            <div className="space-y-8">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-800/50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-slate-400 mb-4 uppercase tracking-wider">Personal Info</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                        <User size={18} className="text-slate-500 mt-0.5" />
+                        <div>
+                            <p className="text-xs text-slate-500">Name</p>
+                            <p className="text-white font-medium">{customer.name}</p>
+                        </div>
+                    </div>
+                    {customer.email && (
+                        <div className="flex items-start gap-3">
+                            <Mail size={18} className="text-slate-500 mt-0.5" />
+                            <div>
+                                <p className="text-xs text-slate-500">Email</p>
+                                <p className="text-white font-medium">{customer.email}</p>
+                            </div>
+                        </div>
+                    )}
+                    <div className="flex items-start gap-3">
+                        <Phone size={18} className="text-slate-500 mt-0.5" />
+                        <div>
+                            <p className="text-xs text-slate-500">Phone</p>
+                            <p className="text-white font-medium">{customer.phone}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <Calendar size={18} className="text-slate-500 mt-0.5" />
+                        <div>
+                            <p className="text-xs text-slate-500">Joined Date</p>
+                            <p className="text-white font-medium">{new Date(customer.created_at).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subscription Info */}
+                <div className="bg-slate-800/50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-slate-400 mb-4 uppercase tracking-wider">Subscription</h3>
+                   <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                        <CreditCard size={18} className="text-slate-500 mt-0.5" />
+                        <div>
+                            <p className="text-xs text-slate-500">Plan</p>
+                            <p className="text-white font-medium">{customer.plan?.name || 'No Active Subscription'}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                         <div className={`w-4 h-4 rounded-full mt-1 ${((customer as any).status === 'active' && customer.plan) ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <div>
+                            <p className="text-xs text-slate-500">Subscription Status</p>
+                            <p className={`font-medium ${((customer as any).status === 'active' && customer.plan) ? 'text-green-400' : 'text-red-400'}`}>
+                                {((customer as any).status === 'active' && customer.plan) ? 'Active' : 'No Active Subscription'}
+                            </p>
+                        </div>
+                    </div>
+                    {(customer.plan && customer.subscription_expires_at) && (
+                         <div className="flex items-start gap-3">
+                            <Clock size={18} className="text-slate-500 mt-0.5" />
+                            <div>
+                                <p className="text-xs text-slate-500">Expires At</p>
+                                <p className="text-white font-medium">{new Date(customer.subscription_expires_at).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    )}
+                    {customer.plan && (
+                        <div className="pt-2 border-t border-slate-700 mt-2">
+                             <div className="flex justify-between text-xs mb-1">
+                                <span className="text-slate-400">Device Limit</span>
+                                <span className="text-white">{customer.plan.device_limit}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                                <span className="text-slate-400">Platforms</span>
+                                <span className="text-white">
+                                    {Array.isArray(customer.plan.platform_access) 
+                                        ? customer.plan.platform_access.join(', ') 
+                                        : 'All'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                   </div>
+                </div>
+                </div>
+
+              
+              {/* Wallet History (Resellers Only) */}
+              {(customer as any).role === 'reseller' && (
+                  <div className="bg-slate-800/50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider">Wallet History</h3>
+                          <span className="text-green-400 font-bold">Balance: ₹{(customer as any).wallet_balance}</span>
+                      </div>
+                      
+                      {walletTransactions.length > 0 ? (
+                          <div className="overflow-x-auto">
+                              <table className="w-full text-left text-xs">
+                                  <thead className="text-slate-500 border-b border-slate-700">
+                                      <tr>
+                                          <th className="pb-2">Date</th>
+                                          <th className="pb-2">Desc</th>
+                                          <th className="pb-2 text-right">Amount</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-700">
+                                      {walletTransactions.map((tx: any) => (
+                                          <tr key={tx.id}>
+                                              <td className="py-2 text-slate-400">
+                                                  {new Date(tx.created_at).toLocaleDateString()}
+                                              </td>
+                                              <td className="py-2 text-white truncate max-w-[150px]" title={tx.description}>
+                                                  {tx.description}
+                                              </td>
+                                              <td className={`py-2 text-right font-medium ${tx.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
+                                                  {tx.type === 'credit' ? '+' : '-'}₹{Number(tx.amount).toFixed(2)}
+                                              </td>
+                                          </tr>
+                                      ))}
+                                  </tbody>
+                              </table>
+                          </div>
+                      ) : (
+                          <p className="text-slate-500 text-sm italic">No wallet transactions found</p>
+                      )}
+                  </div>
+              )}
+
+            </div>
+          ) : (
+            <div className="text-center text-slate-400 py-12">Customer not found</div>
+          )}
+        </div>
+        
+        <div className="p-6 border-t border-slate-800 flex justify-end">
+            <button
+                onClick={onClose}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+            >
+                Close
+            </button>
+        </div>
+      </div>
+    </div>
+  );
+}

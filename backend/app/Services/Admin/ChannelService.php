@@ -51,6 +51,67 @@ class ChannelService
         return $query->orderBy($sortBy, $sortOrder)->paginate($perPage)->toArray();
     }
 
+    public function export(array $filters = [], array $columns = []): \Generator
+    {
+        $query = Channel::with(['state', 'district', 'language', 'category'])
+            ->withSum('views as calculated_views_count', 'count');
+
+        // Reuse Filter Logic
+        if (isset($filters['search']) && !empty($filters['search'])) {
+            $query->where('name', 'LIKE', '%' . $filters['search'] . '%');
+        } elseif (isset($filters['q']) && !empty($filters['q'])) {
+             $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
+        }
+
+        if (isset($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+        if (isset($filters['state_id'])) {
+            $query->where('state_id', $filters['state_id']);
+        }
+        if (isset($filters['language_id'])) {
+            $query->where('language_id', $filters['language_id']);
+        }
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // Chunking for performance
+        $channels = $query->cursor();
+
+        foreach ($channels as $channel) {
+            $row = [];
+            // Calculate total views if requested (expensive calculation, maybe skip if not needed? 
+            // but we requested it in query withSum)
+            $totalViews = $channel->viewers_count + ($channel->calculated_views_count ?? 0);
+            
+            foreach ($columns as $col) {
+                switch ($col) {
+                    case 'id': $row['ID'] = $channel->id; break;
+                    case 'uuid': $row['UUID'] = $channel->uuid; break;
+                    case 'name': $row['Name'] = $channel->name; break; // Check for CSV injection?
+                    case 'channel_number': $row['Channel Number'] = $channel->channel_number; break;
+                    case 'category': $row['Category'] = $channel->category->name ?? ''; break;
+                    case 'language': $row['Language'] = $channel->language->name ?? ''; break;
+                    case 'state': $row['State'] = $channel->state->name ?? ''; break;
+                    case 'district': $row['District'] = $channel->district->name ?? ''; break;
+                    case 'status': $row['Status'] = ucfirst($channel->status); break;
+                    case 'views': $row['Total Views'] = $totalViews; break;
+                    case 'is_premium': $row['Premium'] = $channel->is_premium ? 'Yes' : 'No'; break;
+                    case 'is_featured': $row['Featured'] = $channel->is_featured ? 'Yes' : 'No'; break;
+                    case 'created_at': 
+                        $row['Created At'] = ($channel->created_at && $channel->created_at->year > 0) 
+                            ? $channel->created_at->format('Y-m-d H:i:s') 
+                            : ''; 
+                        break;
+                    case 'hls_url': $row['Stream URL'] = $channel->hls_url; break;
+                    default: $row[$col] = ''; 
+                }
+            }
+            yield $row;
+        }
+    }
+
     public function create(array $data): Channel
     {
         $channel = new Channel();
@@ -218,9 +279,15 @@ class ChannelService
         }
 
         if ($count < 1000000) {
-            return round($count / 1000, 1) . 'K';
+            $value = floor($count / 100); // 2253 -> 22
+            $normalized = $value / 10;    // 2.2
+            $suffix = ($count > ($value * 100)) ? 'K' : 'K';
+            return $normalized . $suffix;
         }
 
-        return round($count / 1000000, 1) . 'M';
+        $value = floor($count / 100000); // 2253000 -> 22
+        $normalized = $value / 10;       // 2.2
+        $suffix = ($count > ($value * 100000)) ? 'M' : 'M';
+        return $normalized . $suffix;
     }
 }

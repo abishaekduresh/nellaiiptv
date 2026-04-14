@@ -1,0 +1,452 @@
+# Website Changelog
+
+## [1.49.0] - Website - 2026-04-14
+
+### Added
+- **Channel Share Link**: New `/channels/share/[shortCode]` Next.js server-side route that handles smart redirection -- detects Android/iOS devices and issues a deep link Intent URI to open the Nellai IPTV Flutter app directly; falls back to the web preview player after 2.5 seconds.
+- **Share URL in Channel Details Modal**: The admin `ChannelDetailsModal` now displays a one-click copyable Public Share URL block when a channel has a `share_code`.
+- **Share Code in Channel Form**: Admin `ChannelForm` now includes a `Share Code (6 Digits)` input. Auto-populates with a random 6-digit code on new channel creation.
+- **Share Code in Channel Details**: Channel details info grid now shows `Share Code` alongside location metadata.
+
+### Maintenance
+- **Version Sync**: Synchronized with Backend v1.38.0 and App v1.9.1+50.
+## [1.48.4] - 2026-03-14
+
+### Changed
+- **App Sync**: Version bumped in sync with App v1.8.28+48 (AGP 8.9.1 upgrade and dependency updates).
+## [1.48.3] - 2026-03-14
+
+### Changed
+- **App Sync**: Version bumped in sync with App v1.8.27+47 which hides Settings/Category UI on Android TV devices.
+## [1.48.2] - 2026-03-14
+
+### Changed
+- **App Sync**: Version bumped to remain in sync with App v1.8.27+46 which enforced ascending channel number sorting by default and removed the channel order settings option.
+## [1.48.1] - 2026-03-14
+
+### Fixed
+- **App Compatibility**: Backend and website version bumped to stay in sync with App v1.8.27+45 which includes Android TV specific playback fixes.
+All notable changes to the Nellai IPTV Website will be documented in this file.
+
+## [1.48.0] - Website - 2026-02-21
+
+### Added
+- **Scrolling Ads Ticker**: Implemented a gap-free marquee on the player interface (`/channels` and `/channel/{uuid}`) to display scrolling text advertisements.
+- **Admin Ads Management**: Created a full CRUD interface in the Admin Panel for Scrolling Ads, featuring markdown support, scroll velocity control (`scroll_speed`), and play limiters (`repeat_count`).
+ 
+### Maintenance
+- **Version Sync**: Synchronized version with Backend and App updates.
+
+## [1.47.3] - Website - 2026-02-16
+
+### Added
+- **RTMP URL Support**: Added an optional field for RTMP stream URLs in the channel management forms.
+
+### Maintenance
+- **Version Sync**: Synchronized version with Backend and App updates.
+
+## [1.47.2] - Website - 2026-02-16
+ 
+### Added
+- **WebP Image Support**: Full support for `.webp` image uploads for thumbnails and logos in the channel management forms.
+ 
+### Improved
+- **Thumbnail Resolution**: Updated UI help text to recommend **1280x720px** resolution for high-definition channel previews.
+- **Logo Resolution**: Explicitly specified **512x512px** requirement for channel logos in the admin interface.
+- **Accepted Formats**: File inputs now explicitly accept `image/png` and `image/webp`.
+- **Maintenance**: Version synchronized.
+ 
+## [1.47.1] - Website - 2026-02-14
+ 
+### Maintenance
+- **Version Sync**: Synchronized version with App update.
+
+### Added
+- **Enhanced Export Filters**: Added comprehensive filtering support (Search, Category, Language, State, Status) in the Export Channels modal.
+
+### Improvements
+- **Persistent Filter State**: Export modal now automatically inherits and pre-fills active filters from the main channels list.
+- **Header Exposure**: Optimized CORS headers to allow frontend access to download filenames (`Content-Disposition`).
+
+## [1.46.3] - Website - 2026-02-08
+
+### Added
+- **AdSense Integration**: Implemented Google AdSense with global script loading (`GoogleAdSense`) and reusable ad unit component (`AdSenseUnit`).
+- **SEO/Meta**: Added `google-adsense-account` meta tag for verification.
+- **ads.txt**: Added `ads.txt` support with example file and `.gitignore` safety.
+
+## [1.46.2] - Website - 2026-02-08
+
+### Maintenance
+- **Version Sync**: Synchronized version with backend updates for Public API Access support.
+
+## [1.46.1] - Website - 2026-02-07
+
+### Fixed
+- **Player Types**: Resolved TypeScript interface mismatch for `ClapprPlayerProps` where `channelUuid` was missing or incorrectly typed.
+
+## [1.46.0] - Website - 2026-02-07
+
+### Added
+- **Developer Tools Protection**: Implemented comprehensive DevTools blocking system with `DevToolsControl` component.
+  - Disables right-click context menus
+  - Blocks common developer tools keyboard shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
+  - Detects DevTools access via browser menus using window size detection
+  - Disables console methods (log, warn, error, debug, info)
+  - Configurable via `NEXT_PUBLIC_DISABLE_DEVTOOLS` environment variable
+  - Progressive enforcement: redirects to root on first/second attempt, closes tab on third attempt
+- **Platform Availability Settings**: New admin interface for global channel control across platforms.
+  - Emergency "Block All Channels" toggle for maintenance scenarios
+  - Individual platform disable toggles (Website, Android, iOS, TV)
+  - Visual feedback with color-coded states (red for disabled platforms)
+  - Grid layout with platform icons for easy management
+- **Admin Settings UI Modernization**: Complete visual overhaul of `/admin/settings` page.
+  - Color-coded gradient sections (8 distinct themes)
+  - Glassmorphism effects with backdrop blur
+  - Enhanced spacing and typography throughout
+  - Larger, more prominent buttons with hover animations
+  - Improved input fields with focus rings
+  - Section-specific icons and themes
+  - Modern card designs with rounded corners and shadows
+
+### Improved
+- **Settings Page Design**: Applied modern design patterns across all sections:
+  - General Settings: Slate theme with enhanced input cards
+  - Payment Gateway: Emerald theme with provider-specific cards
+  - Branding: Purple theme with improved upload controls
+  - Maintenance Mode: Orange warning theme with larger toggles
+  - Display Settings: Cyan theme with platform selection cards
+  - Platform Availability: Red emergency theme with prominent controls
+  - Contact Settings: Blue theme with enhanced webhook input
+  - Security Settings: Indigo theme with individual password field cards
+- **Visual Hierarchy**: Clear section separation with color psychology (green for payments, red for emergency, etc.)
+- **Responsive Design**: All settings sections adapt seamlessly to mobile, tablet, and desktop
+- **Interactive Elements**: Added hover scale effects, focus rings, and smooth transitions
+
+### Changed
+- **Toggle Switches**: Increased size from 11px to 14px width for better accessibility
+- **Button Styling**: Updated all save buttons with modern rounded corners and shadow effects
+- **Input Fields**: Enhanced with focus states, better borders, and improved padding
+- **Section Headers**: Now include icon containers and descriptive subtitles
+
+## [1.45.0] - Website - 2026-02-06
+
+### Added
+- **Channel Views Report**: New comprehensive analytics page (`/admin/reports/channel-views`) with interactive charts and data tables.
+- **Searchable Channel Filter**: Dynamic dropdown with API fallback for channel selection in reports.
+- **Status Filter**: Dropdown to filter channels by status (All, Active, Inactive, Deleted) with Active as default.
+- **JPEG Export**: Download entire report page as high-quality JPEG image.
+- **CSV Export**: Export channel views data as CSV file.
+- **Serial Numbers**: Added S.No column to customers table with pagination-aware numbering.
+
+### Improved
+- **Reports Sidebar**: Converted "Reports" menu item into collapsible dropdown with sub-items.
+- **Search Optimization**: Implemented debounced API search with caching to prevent redundant calls.
+
+## [1.44.0] - Website - 2026-02-06
+
+### Added
+- **Admin Comments**: New dedicated management page (`/admin/comments`) for viewing, searching, and moderating channel comments.
+- **Status Toggle**: One-click active/inactive status toggle for comments with visual indicators.
+- **Auto-Numbering**: Channel creation form now automatically fetches and pre-fills the next available channel number.
+
+### Fixed
+- **Dropdowns**: Resolved issue where filters and form dropdowns were empty due to backend API parameter mismatch.
+
+## [1.43.0] - Website - 2026-02-03
+
+### Added
+- **Channel Proprietor Details**: Unified section in Channel Form to maintain and display owner contact information and address.
+- **Indian Phone Validation**: Integrated robust regex-based validation for Indian phone numbers with real-time UI feedback (color-coded borders and messages).
+- **Stream Headers Support**: Custom `User-Agent` and `Referer` fields added to Channel Form to support restricted streams.
+
+### Fixed
+- **Admin Filters**: Resolved "Failed to load filter options" error on the channels list by explicitly requesting `status: 'all'`.
+- **Form Options**: Resolved "Failed to load form options" on create/edit pages by standardizing on Admin API endpoints and correct parameters.
+- **UX**: Prevented form submission when an invalid phone number is entered.
+
+## [1.42.1] - Website - 2026-02-03
+- **Maintenance**: Version synchronized with latest App Release (v1.8.8+24).
+- **Security**: Hardcoded secrets removed from codebase history.
+
+## [1.42.0] - Website - 2026-01-30
+
+### Added
+- **Device Profiles**: Smart HLS configuration engine with tier-aware buffering (High-Tier vs. Low-Tier TV).
+- **Navigation**: Home page link integrated into the sidebar branding logo.
+
+### Changed
+- **Ad Experience**: Replaced individual grid ads with high-end full-width banners inserted every 16 channels.
+- **Classic UI**: Enhanced viewport priority with increased video player height and compact comment section.
+
+### Fixed
+- **Stability**: Fixed Hls.js instance cleanup and media detachment to resolve visual hangs during source switches.
+
+## [1.39.0] - 2026-01-30
+
+### Improved
+- **Dynamic Sorting**: Integrated `order_number` support in `ClassicHome` to synchronize category/language ordering with the mobile app and backend.
+
+## [1.38.0] - 2026-01-28
+
+### Added
+- **Kiosk Mode**: Automatically hides "Back" and "Menu" navigation buttons in `ClassicHome.tsx` when `is_open_access` is enabled (evaluated from public settings).
+
+### Improved
+- **Disclaimer Visibility**: Boosted z-index and optimized rendering logic for `DisclaimerModal` to prevent Clipping/Overlapping with playback error screens.
+- **Open Access Logic**: Refined state initialization for `isOpenAccess` across all player components.
+
+## [1.37.0] - 2026-01-28
+
+## [1.36.0] - 2026-01-28
+
+## [1.35.1] - 2026-01-28
+
+### Added
+- **Reseller Dashboard**: Integrated wallet balance/add funds card into the top stats grid.
+
+### Changed
+- **Reseller UI**: Consolidated wallet history to full width in reseller dashboard.
+- **Navbar**: Removed bottom margin for cleaner layout on reseller pages.
+- **Assign Plan Modal**: Optimized date calculation to respect local user timezone and simplified UI (removed manual date input).
+
+### Removed
+- **Reseller Dashboard**: "Active Subscriptions" card removed to prioritize wallet actions.
+
+## [1.35.0] - 2026-01-28
+
+### Added
+- Reseller dashboard page at `/reseller` with stats, quick actions, and recent customers
+- Reseller plans page at `/reseller/plans` showing retail vs reseller pricing with profit margins
+- Customer ownership badges in reseller search results ("Your Customer" / "Other")
+- Phone number validation - numeric input only for customer search
+- Channel access for resellers without subscription requirement
+
+### Changed
+- Sidebar menu for resellers: Shows Dashboard, Plans, and Customers only
+- Navbar: Displays "Reseller" button instead of "Plans" for reseller users
+- AdminLayout: Uses `/customers/profile` endpoint for reseller authentication
+- Plans page: Changed API endpoint from `/admin/plans` to public `/plans`
+- Main content padding reduced from `md:p-8` to `md:p-6`
+- Password field now required for reseller customer creation
+
+### Fixed
+- Reseller logout issue when clicking Plans menu (API endpoint fix)
+- Sidebar active state highlighting multiple items simultaneously
+- Channels page and individual channel pages now accessible to resellers
+
+## [1.34.0] - 2026-01-27
+
+### Added
+- **Reseller Management UI**: Added role selection dropdown to `CustomerForm` for creating/editing customers and resellers.
+- **Role Display**: Added role badge to admin customers table showing "Reseller" (purple) or "Customer" (blue).
+- **Role Filtering**: Added role filter dropdown to customers page for filtering by customer type.
+- **Profile Role Display**: Added role badge to user profile page showing account type.
+- **Transaction Search**: Added search and filter controls (by status, gateway, search term) to admin transactions page.
+- **Transaction Layout**: Created dedicated `layout.tsx` for admin transactions page with consistent AdminLayout.
+
+### Changed
+- **Profile UI**: Adjusted "Subscription Details" section to show "Account Details" for resellers with device limit and no-subscription-required status.
+- **Customer Table**: Extended table to include Role column with sortable display.
+- **Transaction API**: Updated `fetchTransactions` to support filtering parameters.
+
+## [1.33.0] - 2026-01-27
+
+### Added
+- **Authentication Guards**: Implemented automatic redirects for `/register` and `/login` pages; authenticated users are now redirected to the home page (`/`) to prevent duplicate entry attempts.
+
+### Improved
+- **Home UX**: Conditionally hid guest-specific UI elements (Hero "Create Account" button and "Ready to start watching?" CTA section) for logged-in users to provide a cleaner dashboard feel.
+- **State Integration**: Optimized `useAuthStore` usage in guarded components.
+
+## [1.32.0] - 2026-01-27
+
+### Added
+- **SEO Landing Page**: Implemented a rich, multi-section landing page at `/` to improve search indexing and user onboarding.
+- **Community Discussion**: Integrated a new `ChannelComments` component in the player view, enabling real-time user engagement.
+- **Post-Login Redirection**: Added intelligent logic to remember the user's current path and redirect back after a successful login.
+- **TV Optimized Interactions**: Integrated `useTVFocus` across all landing page CTAs and the channel rating system.
+- **User Feedback**: Added global toast notifications for logout actions.
+
+### Changed
+- **Player Access**: Re-routed the main Classic Player to `/channels` to separate standard web content from the immersive TV experience.
+- **Layout Cleanup**: Enabled standard `Navbar` and `Footer` for the root and marketing pages, while maintaining immersive mode for the player.
+- **Header Branding**: Refined the `Navbar` and `Footer` with dynamic, glowing logo support tied to backend settings.
+
+## [1.31.0] - 2026-01-26
+
+### Added
+- **Smart Fallback System**: Implemented automatic fallback to MP4 video for HLS stream errors and connection timeouts (20s).
+- **Auto-Recovery**: Added background monitoring with a 20s countdown for automatic reconnection attempts.
+- **Classic Mode Menu**: TV-optimized side navigation menu featuring Login, Register, Profile, Devices, About, and Contact pages.
+- **Responsive Recovery**: Centered recovery button with real-time countdown for manual and automatic stream restoration.
+
+### Improved
+- **Player Aesthetics**: Removed technical "Playback Error" overlays during fallback playback for a cleaner broadcast experience.
+- **Privacy & Security**: Sanitized client-side logs to prevent exposure of HLS URLs and internal system states.
+
+### Fixed
+- **Cleanup Persistence**: Fixed video element state management when switching between broken HLS streams and fallback MP4.
+
+## [1.30.2] - 2026-01-20
+
+### Maintenance
+- **Backend Sync**: Verified compatibility with Backend v1.20.2 to ensure consistent image loading in production environments.
+
+
+### Changed
+- **URL Resolution**: Removed `resolveImageUrl` logic entirely. The website now consumes fully qualified absolute URLs (`logo_url`, `thumbnail_url`) directly from the backend, improving performance and simplifying the codebase.
+- **Cleanup**: Removed unused relative path properties from `Channel` interfaces (`logo_path`, `thumbnail_path`).
+
+
+### Fixed
+- **Image URL Resolution**: Implemented `resolveImageUrl` to ensure thumbnails, logos, and watermarks load correctly in production by dynamically prepending the backend `API_URL`.
+- **Branding Consistency**: Standardized `useBranding` to support both `logo_path` and `logo_url`, fixing potential breakages after backend schema normalization.
+
+## [1.29.0]
+- **API Key Manager**: GUI for managing secure API access keys.
+
+## [1.28.1] - 2026-01-19
+
+### Fixed
+- **Refresh Flash**: Eliminated the brief "White Flash" or default OTT layout flicker when refreshing the page in Classic Mode. Implemented a strict hydration gate in `LiteRouteGuard` that waits for the view mode to be fully initialized before rendering.
+
+## [1.28.2] - 2026-01-19
+
+### Added
+- **Channel Branding**: Added "Channel Logo" upload support in `ChannelForm`.
+- **Visual Feedback**: Added instant image preview for uploaded channel logos.
+
+### Fixed
+- **Upload Reliability**: Fixed `Content-Type` header issue in `adminApi.ts` that caused silent upload failures.
+
+## [1.28.0] - 2026-01-19
+
+### Added
+- **Hybrid Responsive Player**: 
+    - Implemented a smart hybrid layout for the player overlay.
+    - **Large Screens**: Controls are strictly centered for aesthetics.
+    - **Tablet/Mobile**: Controls switch to a flex layout to guarantee zero overlap.
+    - **Side Constraints**: Added width constraints to side panels to prevent them from bleeding into the playback controls.
+- **Immersive Classic Mode**:
+    - **Layout Cleanup**: Removed the standard web `Navbar` and `Footer` when in 'Classic' mode.
+    - **True Fullscreen**: The application now offers a native TV-like experience without web navigation clutter.
+
+### Fixed
+- **Classic Mode Blank Screen**: Resolved a race condition in `ViewModeContext` where the app initialized in 'OTT' mode before switching to 'Classic', causing a render failure.
+- **State Recovery**: Fixed a bug in `ClassicHome` where it failed to recover from a null channel state on page refresh.
+
+## [1.17.0] - 2026-01-07
+
+### Added
+- **Dynamic Branding**: Implemented Logo Upload feature in Admin Settings.
+- **Dynamic Favicon**: Application favicon now updates automatically based on the uploaded logo.
+- **Trending Channels Graph**: Added a dynamic chart in Admin Dashboard showing trending channels with filters (Category, Language, Limit).
+- **Classic Mode Branding**: Updated Classic Mode to display the custom uploaded logo.
+
+### Fixed
+- **Logo Proxy**: Configured Next.js rewrites to correctly serve uploaded images from the backend.
+
+## [1.16.0] - 2026-01-07
+
+### Added
+- **Smart HLS Optimization**: Integrated an advanced device profiling engine into the video player.
+- **Adaptive Configuration**: The player now automatically detects the device type (TV, Mobile, Desktop) and applies tailored HLS configurations:
+    - **TV Mode**: Aggressive buffering (30s) enabled; `capLevelToPlayerSize` disabled to reduce CPU overhead; 720p cap maintained.
+- **Overlay Performance**: Optimized `PlayerOverlay` to unmount hidden channel lists, reducing DOM nodes by 90% in Classic Mode.
+    - **Mobile Mode**: Balanced settings (up to 1080p, moderate buffer) optimized for battery and stability.
+    - **Desktop Mode**: High-performance settings (up to 4K, large buffer) for maximum quality.
+- **Resolution Capping**: Automatically limits maximum resolution based on device capabilities to ensure smooth playback.
+
+## [1.15.0] - 2026-01-07
+
+### Added
+- **Registration Security**: Implemented Math Challenge Captcha ("5 + 3 = ?") to prevent automated spam on the registration page.
+- **Enhanced Registration UI**: Complete visual redesign of the Sign-Up page with a modern 2-column layout and improved input states.
+- **Strict Validation**: Added real-time client-side regex validation for phone numbers (exact 10 digits) and email addresses.
+
+### Fixed
+- **Admin Login**: Fixed "Duplicate identifier" build error in `admin/page.tsx` that caused compilation failures.
+
+## [1.14.0] - 2026-01-07
+
+### Added
+- **Backend Disconnect Fallback**: Automatic fail-safe that switches from "Classic Mode" to "OTT Mode" if the backend becomes unreachable, ensuring the app remains usable.
+- **Improved Diagnostics**: `BackendHealthCheck` now provides detailed error messages for connection failures (404, Network Error, etc.).
+
+### Fixed
+- **Login Loop**: Resolved an infinite redirect loop in `ClassicModeGuard` and `api.ts` that occurred when a 401 error happened on the login page.
+- **Vercel Deployment**: 
+    - Updated `ClassicModeGuard` to handle trailing slashes and subpaths correctly.
+    - Adjusted `backend/public/index.php` (backend fix) to correctly calculate base paths in production environments.
+
+
+## [1.13.0] - 2026-01-06
+
+### Added
+- **API Key Integration**: Implemented `X-API-KEY` header injection in all Axios requests (`api.ts`, `adminApi.ts`) using `NEXT_PUBLIC_API_SECRET`.
+- **Security Config**: Updated `.env.local` to require `NEXT_PUBLIC_API_SECRET` and match backend WAMP structure (`/backend/api`).
+
+### Fixed
+- **Admin Login**: Resolved 401 Unauthorized errors by ensuring `adminApi.ts` correctly sends the API Key.
+- **Backend Connection**: Fixed "Could not connect to backend" errors caused by incorrect API URL and missing API Key.
+
+## [1.8.0] - 2025-12-25
+
+
+### Added
+- **Premium Video Loader**: Replaced default spinner with a high-end "Dual Ring" animated loader featuring glowing gradients and theme-aligned colors (Cyan & Yellow).
+- **Persistent Watermark**: Added a permanent, responsive watermark logotype (`png_logo.png`) to the video player. It adapts to screen size and remains visible in Fullscreen mode across all player variations (Classic & OTT).
+- **OTT Mode Refinements**:
+    - Reverted the OTT Channel Page player to use **Default Video.js Controls** for a distinctive "Embedded" feel, separating it from the Classic Mode's custom overlay.
+    - Preserved specific custom features (like Watermark) while using native controls.
+
+### Fixed
+- **Trending Viewers Count**: Resolved an issue where "Top Trending" cards in Classic Mode displayed "0" viewers; now correctly pulls live data from the main channel list.
+- **Fullscreen Watermark**: Fixed z-index and context issues that prevented the watermark from appearing when the player entered fullscreen mode.
+- **Visual Contrast**: Improved text visibility for viewer counts and metadata on dark backgrounds.
+
+## [1.7.0] - 2025-12-24
+
+### Added
+- **Advanced Classic Mode**:
+    - Complete mobile interface redesign (compact layout, auto-scroll to player).
+    - TV Native Navigation with directional arrow support and "Cycle Button" filtering.
+    - Enhanced "Top Trending" section with 4-column desktop and 2-column mobile layout.
+    - Flexbox-based player layout for perfect viewport fitting.
+- **Improved Filter System**: 
+    - Added "Group By Category" support with backend integration.
+    - Implemented smart sorting for languages and categories (priority-based).
+- **Responsive Ad Banner**: 
+    - Adaptive ad sizing (90px mobile, 180px desktop).
+    - Removed fixed aspect ratios for better mobile fit.
+
+### Changed
+- **UI/UX Optimizations**:
+    - Unified player/details/ad layout in Classic Mode.
+    - Improved focus visibility for TV users (rings, borders).
+    - Smoother scrolling behaviors.
+- **Dependencies**: Updated `Channel` interface to support categories.
+
+## [1.6.0] - 2024-12-22
+
+### Added
+- **Unlimited Channel Loading**: Removed the hardcoded 100-channel limit. All channels are now fetched without a cap across all modes.
+- **Classic Mode Optimization**: Classic Mode now fetches all available channels using the new `limit=-1` API parameter.
+- **Category Fetching Updates**: Standardized data fetching on Language and State category pages to ensure all relevant channels are displayed.
+- **Sidebar Synchronization**: The related channels sidebar on individual channel pages now uses `-1` limit for a more complete list.
+
+### Fixed
+- **Consistency in Data Fetching**: Replaced varied hardcoded limits with a unified unlimited fetching strategy.
+
+## [1.5.0] - 2024-12-21
+
+### Added
+- **Classic Mode Mobile Responsiveness**: Improved layout for mobile devices in Classic Mode.
+- **Toast Notifications**: Integrated global toast system for connectivity and action feedback.
+- **Channel Reporting UI**: Added interface for users to report stream issues.
+- **Contact Form**: Implemented contact page for user inquiries.
+
+
+
+

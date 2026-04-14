@@ -8,12 +8,39 @@ use App\Models\ChannelView;
 use App\Models\ChannelComment;
 use App\Models\ChannelReport;
 use App\Models\LiveViewer;
+use App\Models\Setting;
 use Ramsey\Uuid\Uuid;
 use Exception;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class ChannelService
 {
+    /**
+     * Check if channels should be blocked globally
+     * @param string $platform The platform making the request (web, android, ios, tv)
+     * @return bool True if channels should be blocked
+     */
+    private function isChannelsBlocked(string $platform): bool
+    {
+        // Check if all channels are blocked globally
+        $blockAll = Setting::where('setting_key', 'block_all_channels')->value('setting_value');
+        if ($blockAll === '1') {
+            return true;
+        }
+
+        // Check if specific platform is disabled
+        $disabledPlatforms = Setting::where('setting_key', 'disabled_platforms')->value('setting_value');
+        if ($disabledPlatforms) {
+            $disabled = explode(',', $disabledPlatforms);
+            $disabled = array_map('trim', $disabled);
+            if (in_array($platform, $disabled)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function formatViewCount($count): string
     {
         $count = (int)$count;
@@ -22,16 +49,52 @@ class ChannelService
         }
 
         if ($count < 1000000) {
-            return round($count / 1000, 1) . 'K';
+            $value = floor($count / 100); // 2253 -> 22
+            $normalized = $value / 10;    // 2.2
+            $suffix = ($count > ($value * 100)) ? 'K' : 'K';
+            return $normalized . $suffix;
         }
 
-        return round($count / 1000000, 1) . 'M';
+        $value = floor($count / 100000); // 2253000 -> 22
+        $normalized = $value / 10;       // 2.2
+        $suffix = ($count > ($value * 100000)) ? 'M' : 'M';
+        return $normalized . $suffix;
     }
 
     private function processChannelOutput($channel, bool $allowPremium = false)
     {
+        // Helper to extract user rating if relation loaded
+        $userRatingVal = 0;
+        
+        // Handle Eloquent Collection vs Array mismatch if relation loaded
+        // When using toArray(), relations become nested arrays
+        $ratings = null;
+        
+        if (is_object($channel)) {
+            if ($channel->relationLoaded('ratings')) {
+                $ratings = $channel->ratings;
+                unset($channel->ratings); // Clean up
+            }
+        } elseif (is_array($channel)) {
+            if (isset($channel['ratings'])) {
+                $ratings = $channel['ratings'];
+                unset($channel['ratings']);
+            }
+        }
+
+        if (!empty($ratings)) {
+            // If it's a collection or array with item
+             $first = is_object($ratings) ? $ratings->first() : ($ratings[0] ?? null);
+             if ($first) {
+                 $userRatingVal = is_object($first) ? $first->rating : $first['rating'];
+             }
+        }
+
         // Handle object vs array
         if (is_array($channel)) {
+            // Set User Rating
+            $channel['user_rating'] = $userRatingVal;
+            
             // Redact Paid URL if not allowed
             if (!empty($channel['is_premium']) && !$allowPremium) {
                 $channel['hls_url'] = 'PAID_RESTRICTED';
@@ -51,6 +114,9 @@ class ChannelService
             }
 
         } elseif (is_object($channel)) {
+            // Set User Rating
+            $channel->user_rating = $userRatingVal;
+
             // Redact Paid URL if not allowed
             if (!empty($channel->is_premium) && !$allowPremium) {
                 $channel->hls_url = 'PAID_RESTRICTED';
@@ -72,15 +138,47 @@ class ChannelService
         return $channel;
     }
 
-    public function getAll(array $filters = []): array
+    public function getAll(array $filters = [], bool $allowPremium = false): array
     {
+        // Check if channels are globally blocked for this platform
+        $platform = $filters['platform'] ?? 'web';
+        if ($this->isChannelsBlocked($platform)) {
+            // Return empty result set
+            return isset($filters['limit']) && (int)$filters['limit'] === -1 
+                ? [] 
+                : [
+                    'current_page' => 1,
+                    'data' => [],
+                    'first_page_url' => null,
+                    'from' => null,
+                    'last_page' => 1,
+                    'last_page_url' => null,
+                    'next_page_url' => null,
+                    'path' => null,
+                    'per_page' => isset($filters['limit']) ? (int)$filters['limit'] : 20,
+                    'prev_page_url' => null,
+                    'to' => null,
+                    'total' => 0
+                ];
+        }
+
         $query = Channel::query()
             ->select('channels.*')
             ->where('status', 'active')
             ->with(['language', 'state', 'district', 'category'])
             // Don't alias as viewers_count to avoid overwriting the manual column
-            ->withSum('views as calculated_views_count', 'count');
+            ->withSum('views as calculated_views_count', 'count')
+            ->withAvg('ratings as average_rating', 'rating')
+            ->withCount('ratings');
 
+        // Eager Load User Rating if Customer ID provided
+        if (isset($filters['customer_id'])) {
+            $customerId = $filters['customer_id'];
+            $query->with(['ratings' => function($q) use ($customerId) {
+                $q->where('customer_id', $customerId);
+            }]);
+        }
+        
         if (isset($filters['language_id'])) {
             $query->where('language_id', $filters['language_id']);
         }
@@ -146,6 +244,8 @@ class ChannelService
             } elseif ($filters['sort'] === 'newest') {
                 $query->orderBy('created_at', 'desc');
             }
+        } else {
+            $query->orderBy('channel_number', 'asc');
         }
 
         $results = [];
@@ -159,30 +259,37 @@ class ChannelService
         // Handle pagination structure or direct array
         if (isset($results['data'])) {
             foreach ($results['data'] as &$item) {
-                $item = $this->processChannelOutput($item);
+                $item = $this->processChannelOutput($item, $allowPremium);
             }
         } else {
             foreach ($results as &$item) {
-                $item = $this->processChannelOutput($item);
+                $item = $this->processChannelOutput($item, $allowPremium);
             }
         }
 
         return $results;
     }
 
-    public function getFeatured(int $limit = 20, string $platform = 'web'): array
+    public function getFeatured(int $limit = 20, string $platform = 'web', bool $allowPremium = false): array
     {
+        // Check if channels are globally blocked for this platform
+        if ($this->isChannelsBlocked($platform)) {
+            return [];
+        }
+
         $channels = Channel::where('status', 'active')
             ->where('is_featured', 1)
             ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
             ->with(['state', 'district', 'language'])
             ->withSum('views as calculated_views_count', 'count')
+            ->withAvg('ratings as average_rating', 'rating')
+            ->withCount('ratings')
             ->limit($limit)
             ->get()
             ->toArray();
 
         foreach ($channels as &$channel) {
-            $channel = $this->processChannelOutput($channel);
+            $channel = $this->processChannelOutput($channel, $allowPremium);
         }
 
         return $channels;
@@ -276,8 +383,13 @@ class ChannelService
             ->toArray();
     }
 
-    public function getRelated(string $uuid, string $platform = 'web'): array
+    public function getRelated(string $uuid, string $platform = 'web', bool $allowPremium = false): array
     {
+        // Check if channels are globally blocked for this platform
+        if ($this->isChannelsBlocked($platform)) {
+            return [];
+        }
+
         $channel = $this->getOne($uuid);
         
         $channels = Channel::where('language_id', $channel->language_id)
@@ -285,29 +397,38 @@ class ChannelService
             ->where('status', 'active')
             ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
             ->withSum('views as calculated_views_count', 'count')
+            ->withAvg('ratings as average_rating', 'rating')
+            ->withCount('ratings')
             ->limit(10)
             ->get()
             ->toArray();
 
         foreach ($channels as &$item) {
-            $item = $this->processChannelOutput($item);
+            $item = $this->processChannelOutput($item, $allowPremium);
         }
 
         return $channels;
     }
 
-    public function getNew(string $platform = 'web'): array
+    public function getNew(string $platform = 'web', bool $allowPremium = false): array
     {
+        // Check if channels are globally blocked for this platform
+        if ($this->isChannelsBlocked($platform)) {
+            return [];
+        }
+
         $channels = Channel::where('status', 'active')
             ->whereRaw("FIND_IN_SET(?, allowed_platforms)", [$platform])
             ->orderBy('created_at', 'desc')
             ->withSum('views as calculated_views_count', 'count')
+            ->withAvg('ratings as average_rating', 'rating')
+            ->withCount('ratings')
             ->limit(10)
             ->get()
             ->toArray();
 
         foreach ($channels as &$item) {
-            $item = $this->processChannelOutput($item);
+            $item = $this->processChannelOutput($item, $allowPremium);
         }
 
         return $channels;

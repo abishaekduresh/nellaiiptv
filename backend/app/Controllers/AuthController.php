@@ -34,6 +34,13 @@ class AuthController
             return ResponseFormatter::error($response, 'Validation failed', 400, $errors);
         }
 
+        // Additional validation: Only allow Gmail addresses
+        if (!empty($data['email']) && !preg_match('/@gmail\.com$/i', $data['email'])) {
+            return ResponseFormatter::error($response, 'Only Gmail addresses are allowed', 400, [
+                'email' => ['Only Gmail addresses (@gmail.com) are allowed']
+            ]);
+        }
+
         try {
             $result = $this->authService->register($data);
             return ResponseFormatter::success($response, $result, 'Registration successful. Please login.', 201);
@@ -54,9 +61,10 @@ class AuthController
             return ResponseFormatter::error($response, 'Validation failed', 400, $errors);
         }
 
-        // Extract device info from headers or body
+        // Extract cross-platform identification headers
         $ipAddress = $request->getAttribute('ip_address') ?? $_SERVER['REMOTE_ADDR'] ?? null;
         $deviceInfo = [
+            'device_id' => $request->getHeaderLine('X-Device-Id') ?: null,
             'device_name' => $data['device_name'] ?? $request->getHeaderLine('User-Agent'),
             'user_agent' => $request->getHeaderLine('User-Agent'),
             'platform' => $request->getHeaderLine('X-Client-Platform') ?: 'web',

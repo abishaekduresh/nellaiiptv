@@ -16,6 +16,9 @@ require __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
+// Set Timezone to IST
+date_default_timezone_set('Asia/Kolkata');
+
 // Create Container
 $container = new Container();
 
@@ -31,6 +34,7 @@ $container->set('db', function () {
         'charset'   => 'utf8mb4',
         'collation' => 'utf8mb4_unicode_ci',
         'prefix'    => '',
+        'timezone'  => '+05:30',
     ]);
 
     $capsule->setEventDispatcher(new Dispatcher(new IlluminateContainer));

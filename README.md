@@ -1,304 +1,401 @@
-# Nellai IPTV
+# Nellai IPTV Project
 
-**Version**: `1.28.1` (Frontend) / `1.17.0` (Backend)
+This repository contains the source code for the Nellai IPTV ecosystem, including the mobile/TV application and backend services.
 
-## 📺 Key Highlights (v1.28.1)
-- **Zero-Flash Refresh**: Fixed UI mismatch on refresh in Classic Mode by implementing strict initialization gates.
-- **Hybrid Responsive Player** (v1.28.0): Safe layout for all screens.
-- **Immersive Classic Mode** (v1.28.0): removed Navigation/Footer.
+## Components
 
-## 📺 Key Highlights (v1.27.0)
-- **Cinematic Lite Player**: Complete UI overhaul for the TV player.
-    - **Visual Error Handling**: Replaced generic alerts with a full-screen, dark-themed "Interrupted" overlay.
-    - **Self-Healing**: Implemented a **6-second auto-retry** mechanism that recovers streams automatically.
-    - **Navigation**: Added a discrete "Home" button and refined the channel info overlay for a polished TV look.
-- **TV Surfing**: Full support for "Channel Up/Down" remote keys and arrow navigation.
+### `website` (Next.js)
+Premium web interface optimized for Browsers and Smart TV.
+- **Version**: 1.49.0
+- **Key Features**: Scrolling Ads Ticker, RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
 
-## Overview
+### `backend` (Slim PHP)
+RESTful API with role-based access control and subscription management.
+- **Version**: 1.38.0
+- **Key Features**: Scrolling Ads API, RTMP URL Support, Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
 
-Nellai IPTV is a full-stack video streaming platform optimized for both web (OTT Mode) and TV (Classic Mode) interfaces. Built with modern technologies, it provides a seamless viewing experience across all devices.
+### `nellai_iptv_app` (Flutter)
+A premium IPTV player built for Android and Android TV.
+- **Version**: 1.8.27+44 (Main) / 1.2.3+4 (Single Channel)
+- **Key Features**: Storage Management, Enhanced Channel Search, Channel Sorting Settings, Focus Persistence.
 
-- **Frontend**: Next.js 14 (React 18) with TypeScript
-- **Backend**: Slim PHP REST API with Eloquent ORM
-- **Database**: MySQL with MyISAM engine
-- **Styling**: Tailwind CSS with custom design system
+## Recent Updates (v1.8.27+44 App / v1.48.1 Website / v1.37.1 Backend)
 
-## Key Features
+### App (Flutter)
+- **Feature**: **Storage Management** - Added a "Clear Image Cache" option in settings allowing users to manually free up device storage used by cached channel logos and thumbnails.
 
-### 🎯 Dual Mode Interface
-- **OTT Mode**: Modern web interface with Netflix-style UI, hero banners, and categorized content
-- **Classic Mode**: TV-optimized interface with channel grid and remote control navigation
+## Recent Updates (v1.8.26+43 App / v1.48.1 Website / v1.37.1 Backend)
 
-### 🛡️ Platform Control
-- **Strict Filtering**: Content is filtered based on the client device (Web, TV, Mobile).
-- **Security**: Request headers (`X-Client-Platform`) enforce platform-specific access rights.
+### App (Flutter)
+- **Feature**: **Enhanced Channel Search** - Implemented robust search capabilities supporting both channel names and numeric IDs. Results dynamically order by channel number for seamless filtering, and contextually revert to user preferences when cleared.
 
-### 📺 Video Streaming
-- **Lite Player (v1.24.0)**: Specialized **Clappr-based** player for low-end Android TVs. Delivers zero-buffering playback with a minimalist, distraction-free UI.
-- HLS video streaming with **Smart Device Profiling** (TV/Mobile/PC optimized)
-- Dynamic Resolution Capping & Buffer Management
-- Quality selector and playback controls
-- **TV Navigation**: Built-in channel surfing (Next/Prev) with remote control support (`Arrow Keys`, `Channel +/-`) in Lite Mode.
-- **Premium UI**: Custom "Dual Ring" animated loader and persistent branding watermark
-- TV remote control support (Play/Pause, Volume, Seek)
+## Recent Updates (v1.8.25+42 App / v1.48.1 Website / v1.37.1 Backend)
 
-### 🔍 Advanced Features
-- **Search**: Search channels by name or channel number
-- **Favorites**: Save and manage favorite channels (persisted in localStorage)
-- **Ratings & Comments**: Rate and comment on channels
-- **Channel Reports**: Report issues with channels (stored in database)
-- **Contact Form**: Submit inquiries via database-backed contact system
-- **Unlimited Browsing**: Support for fetching and browsing thousands of channels without hardcoded limits (v1.6.0)
+### App (Flutter)
+- **Feature**: **Settings Screen & Channel Order** - Implemented a global settings screen configured with D-Pad focus mapping. Users can toggle channel sorting dynamically (Random vs Channel Number order) overriding the default shuffled behavior, with full state persistence locally saved on device.
+- **Optimization**: **TV Playback Stability** - Prevented out-of-memory demuxer crashes on low-end Amlogic/Mediatek Android TVs by converting the channel change logic into a synchronized sequence that fully flushes video streams prior to new connection requests. 
 
-### 🌐 Network & Connectivity
-- Real-time internet connection monitoring
-- Toast notifications for connection status
-- Automatic offline detection and recovery
+## Recent Updates (v1.8.24+41 App / v1.48.0 Website / v1.37.0 Backend)
 
-### 📱 Responsive Design
-- Mobile-first responsive design
-- TV navigation with spatial controls
-- Keyboard and remote control support
+### App (Flutter)
+- **Feature**: **Scrolling Ads Marquee** - Implemented a dynamic scrolling text ticker in the Classic Screen to display server-controlled advertisements with customizable scroll velocity (`scroll_speed`) and repeat limits (`repeat_count`).
 
-### 🔐 Authentication & Security
-- **API Key Security**: Frontend-Backend communication secured via `X-API-KEY`.
-- **JWT Authentication**: Secure user sessions for ratings and comments.
-- **Rate Limiting**: Public endpoints protected against unlimited scraping (100 req/min).
-- **Security Headers**: HSTS, XSS protection, and anti-sniffing headers enabled.
+### Website (Next.js)
+- **Feature**: **Scrolling Ads Ticker** - Integrated a gap-free marquee on the player interface (`/channels` and `/channel/{uuid}`) to display scrolling text advertisements.
+- **Feature**: **Admin Ads Management** - Created a full CRUD interface in the Admin Panel for Scrolling Ads, featuring markdown support, scroll velocity control, and play limiters.
 
-## Project Structure
+### Backend (PHP)
+- **Feature**: **Scrolling Ads API** - Implemented full CRUD REST API for Scrolling Ads (`/admin/scrolling-ads`). Added new `scroll_speed` field and renamed `display_duration` to `repeat_count`. Exposed `/scrolling-ads` public endpoint.
 
-```
-nellai-iptv/
-├── frontend/                 # Next.js application
-│   ├── app/                 # Next.js 14 App Router pages
-│   ├── components/          # React components
-│   ├── hooks/              # Custom React hooks
-│   ├── stores/             # Zustand state management
-│   ├── context/            # React context providers
-│   ├── lib/                # Utilities and API client
-│   └── public/             # Static assets
-│
-├── backend/                 # Slim PHP API
-│   ├── app/
-│   │   ├── Controllers/    # API controllers
-│   │   ├── Models/         # Eloquent models
-│   │   ├── Services/       # Business logic
-│   │   ├── Middleware/     # Request middleware (ApiKey, RateLimit, SecurityHeaders)
-│   │   ├── Routes/         # API routes
-│   │   └── Helpers/        # Utility functions
-│   ├── database/
-│   │   └── migrations/     # SQL migration files
-│   └── public/             # Entry point
-│
-├── CHANGELOG.md            # Version history
-└── README.md              # This file
-```
+## Recent Updates (v1.8.23+40 App / v1.47.3 Website / v1.36.3 Backend)
 
-## Getting Started
+### App (Flutter)
+- **Feature**: **Comment Count Badge** - Added visual notification badge on the channel details comments icon showing the total number of comments for a channel (capped at 99+).
+- **Optimization**: **HD TV Playback** - Added aggressive optimizations to MediaKit/FFmpeg properties (`vd-lavc-skiploopfilter=all`, `vd-lavc-skipidct=all`, `framedrop=vo`) to ensure completely smooth Full HD playback on low-end TV processors.
+- **Fix**: **TV Player Highlight** - Fixed issue where the cyan player focus border wouldn't trigger correctly when navigating the UI with a D-Pad.
 
-### Prerequisites
-- Node.js 18+ and npm
-- PHP 8.1+
-- MySQL 8.0+
-- Composer
+## Recent Updates (v1.8.22+39 App / v1.47.3 Website / v1.36.3 Backend)
 
-### Frontend Setup
+### Website (Next.js)
+- **Feature**: **RTMP URL Support** - Added an optional field for RTMP stream URLs in the Admin Channel Form.
 
-```bash
-cd frontend
-npm install
-cp .env.local.example .env.local
-# Configure NEXT_PUBLIC_API_URL and NEXT_PUBLIC_API_SECRET
-npm run dev
-```
+### Backend (PHP)
+- **Database**: Added `rtmp_url` column to the `channels` table to support RTMP stream URLs.
+- **Model**: Updated the `Channel` model to support mass assignment for the new `rtmp_url` field.
 
-Frontend will be available at `http://localhost:3000`
+### App (Flutter)
+- **Maintenance**: Version synchronized with latest Backend/Website updates.
 
-### Backend Setup
+## Recent Updates (v1.8.21+38 App / v1.47.2 Website / v1.36.2 Backend)
 
-```bash
-cd backend
-composer install
-cp .env.example .env
-# Configure DB and API_SECRET in .env
-php -S localhost:80 -t public
-```
+### Backend (PHP)
+- **Feature**: **WebP Optimization** - Automatic conversion of PNG uploads to `.webp`.
+- **Feature**: **Auto-Resizing** - Thumbnails are now automatically resized to **1280x720px**; Logos to **512x512px**.
+- **Change**: **Clean Names** - Switched to timestamp-based naming for all uploads.
 
-Backend API will be available at `http://localhost:80`
+### Website (Next.js)
+- **UI**: Added explicit resolution guidance for 720p thumbnails and high-res logos.
+- **Format**: Enabled `.webp` support across all admin upload components.
 
-### Database Setup
+## Recent Updates (v1.8.20+37 App / v1.47.1 Website / v1.36.1 Backend)
 
-1. Create MySQL database
-2. Run migration files in order:
-   - `create_channel_reports_table.sql`
-   - `create_contact_messages_table.sql`
-   - `migrate_favorites.php` (Run via PHP: `php backend/migrate_favorites.php`)
-   - (other migration files as needed)
+### App (Flutter)
+- **Feature**: **Focus Auto-Hide** - Integrated a 3-second auto-hide timer for player focus highlights to maintain a clean viewing experience.
+- **Improved**: **TV Focus Highlights** - Added visual selection indicators and inner glows for clearer D-pad navigation on TV.
+- **Hardware-Aware Playback**: Enhanced auto-tuning of FFmpeg properties for devices with limited RAM.
+- **Bug Fix**: Resolved "child != this" focus errors and fixed compilation state issues in the player component.
 
-## API Endpoints
+## Recent Updates (v1.2.3+4 SCPA / v1.47.0 Website / v1.36.1 Backend)
 
-### Public Endpoints (Require X-API-KEY)
-- `GET /api/channels` - List all channels
-- `GET /api/channels/featured` - Get featured channels
-- `GET /api/channels/{uuid}` - Get channel details
-- `POST /api/channels/{uuid}/report` - Report channel issue
-- `POST /api/contact` - Submit contact form
+### App (Single Channel Player)
+- **Added**: **Splash Animation** - Implemented entry animation for the logo on splash screen using `flutter_animate`.
 
-### Protected Endpoints (Require X-API-KEY + JWT)
-- `POST /api/channels/{uuid}/rate` - Rate a channel
-- `POST /api/channels/{uuid}/comment` - Comment on a channel
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/refresh` - Refresh JWT token
+## Recent Updates (v1.2.2+3 SCPA / v1.47.0 Website / v1.36.1 Backend)
 
-## Technologies Used
+### App (Flutter)
+- **Changed**: **Watermark Opacity** - Reduced opacity for a more subtle branding effect.
+
+## Recent Updates (v1.8.18+34 App / v1.47.0 Website / v1.36.0 Backend)
+
+### App (Flutter)
+- **Fix**: **Player Focus** - Resolved issue where first channel was incorrectly selected after fullscreen exit.
+- **UI**: **Selection State** - Fixed visual indicator to correctly highlight the active channel.
+
+## Recent Updates (v1.8.17+33 App / v1.47.0 Website / v1.36.0 Backend)
+
+### Website (Next.js)
+- **Feature**: **Enhanced Export Filters** - Added granular filtering (Search, Category, Language, State, Status) to the channel export utility.
+- **Improvement**: **Auto-Filter Context** - Export modal now inherits active filters from the main channel list automatically.
+
+### Backend (PHP)
+- **Feature**: **Filtered Exports** - Core service updated to support multi-column filtering for CSV generators.
+- **Improvement**: **CORS Exposure** - Exposed `Content-Disposition` header to ensure frontend can resolve download filenames correctly.
+
+## Recent Updates (v1.8.16+32 App / v1.46.3 Website / v1.35.3 Backend)
+
+### App (Flutter)
+- **Feature**: **Smart Retry** - Retries stream 3 times before fallback to prevent false positives.
+- **UX**: **Mobile Fullscreen** - Single tap now opens STB Overlay; Controls stay visible.
+
+## Recent Updates (v1.8.15+31 App / v1.46.3 Website / v1.35.3 Backend)
+
+### App (Flutter)
+- **Feature**: **STB Info Overlay** - Set-Top Box style channel info banner in fullscreen.
+- **Fix**: **TV Focus** - Resolved "OK" button system overlay conflicts.
+
+## Recent Updates (v1.8.14+30 App / v1.46.3 Website / v1.35.3 Backend)
+
+### Website (Next.js)
+- **Feature**: **AdSense Integration** - Full integration of Google AdSense with responsive ad units and `ads.txt` verification support.
+
+### Backend (PHP)
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.14+30 App / v1.46.2 Website / v1.35.2 Backend)
+
+### Backend (PHP)
+- **Feature**: **Public API Access** - Guests can now view `is_preview_public` channels without login.
+- **Security**: Strict access control blocking guests from private channels.
+
+## Recent Updates (v1.8.14+30 App / v1.46.1 Website / v1.35.1 Backend)
+
+### Website (Next.js)
+- **Fix**: **Player Props Types** - Resolved TypeScript compatibility issue for `channelUuid` in player props.
+
+### Backend (PHP)
+- **Fix**: **Access Control Logging** - Enhanced debug logging for channel access control to aid troubleshooting.
+
+## Recent Updates (v1.8.14+30 App / v1.46.0 Website / v1.35.0 Backend)
+
+### Website (Next.js)
+- **Feature**: **Developer Tools Protection** - Comprehensive DevTools blocking system with keyboard shortcut blocking, console disabling, and progressive enforcement.
+- **Feature**: **Platform Availability Settings** - Global channel control interface with emergency block toggle and individual platform disable options.
+- **Feature**: **Admin Settings UI Modernization** - Complete visual overhaul with color-coded gradient sections, glassmorphism effects, and enhanced spacing.
+- **Improvement**: **Visual Design** - Applied modern design patterns across all 8 settings sections with distinct color themes and improved accessibility.
+
+### Backend (PHP)
+- **Feature**: **Platform Blocking System** - Global channel blocking with `block_all_channels` and `disabled_platforms` settings.
+- **Improvement**: **Channel Service** - Enhanced with centralized platform blocking logic across all retrieval methods.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.14+30 App / v1.45.0 Website / v1.34.0 Backend)
+
+### App (Flutter)
+- **Feature**: **Device Utilities** - Centralized device initialization system for improved compatibility across Android devices.
+- **Improvement**: **Startup Flow** - Enhanced splash screen with device-specific initialization logic for better reliability.
+- **Improvement**: **Compatibility** - Refined device detection and initialization sequence for consistent behavior.
+
+## Recent Updates (v1.8.13+29 App / v1.45.0 Frontend / v1.34.0 Backend)
+
+### Frontend (Next.js)
+- **Feature**: **Channel Views Report** - Comprehensive analytics dashboard with interactive charts and data tables.
+- **Feature**: **Export Capabilities** - Download reports as JPEG images or CSV files for offline analysis.
+- **Feature**: **Advanced Filtering** - Searchable channel dropdown with API fallback and status filtering.
+- **Improvement**: **Reports Menu** - Converted to collapsible dropdown for better organization.
+- **Improvement**: **Customer Management** - Added serial numbers to customer table.
+
+### Backend (PHP)
+- **Feature**: **Analytics Endpoint** - New report API with support for channel and status filtering.
+- **Fix**: **Architecture** - Standardized controller structure using ResponseFormatter.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.14+30 App / v1.44.0 Frontend / v1.33.0 Backend)
+
+### Frontend (Next.js)
+- **Feature**: **Admin Comments** - Full moderation interface for channel comments with search and soft-delete support.
+- **Feature**: **Status Toggle** - One-click status updates for comments to quickly managed user content.
+- **Improvement**: **Auto-Numbering** - Smartly fetches next available channel number.
+- **Fix**: **Dropdowns** - Resolved empty filter dropdowns in production environments.
+
+### Backend (PHP)
+- **Feature**: **Moderation APIs** - Dedicated endpoints for comment management and status toggling.
+- **Feature**: **Utilities** - `next-number` endpoint for channel sequencing.
+- **Fix**: **Stability** - Patched `GeoService` to prevent SQL errors on missing columns.
+
+### App (Flutter)
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.13+29 App / v1.43.0 Frontend / v1.32.2 Backend)
+
+### App (Flutter)
+- **Fix**: **Build Repair** - Resolved `Member not found: 'center'` compiler error.
+- **Fix**: **Play Store Rejection** - Solved "Missing DPad functionality" by implementing explicit keyboard activation on "Select" key press for Login/Register screens.
+- **Feature**: **D-Pad Focus Enhancements** - Enhanced focus traversal for Channel Details Modal and Star Rating Dialog.
+
+### Backend & Frontend
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.11+27 App / v1.43.0 Frontend / v1.32.1 Backend)
+
+### App (Flutter)
+- **Feature**: **User Profile Section** - Comprehensive profile screen with user info, subscription details, device management, and logout.
+- **Feature**: **Session Management** - Logout API integration to remove sessions from database.
+- **Feature**: **User Data Persistence** - Login stores user details in SharedPreferences for offline profile access.
+- **Fix**: **Type Conversions** - Resolved "int is not a subtype of String" errors with `.toString()` conversions.
+- **Fix**: **Subscription Display** - Profile correctly reads subscription data from backend 'plan' key.
+- **Fix**: **Orientation Management** - Refined screen orientations (ClassicScreen: landscape only, others: portrait).
+- **Improvement**: **Video Playback Control** - ClassicScreen stops playback when navigating to profile, resumes on return.
+
+### Backend & Frontend
+- **Maintenance**: Version synchronized with latest App release.
+
+## Recent Updates (v1.8.10+26 App / v1.43.0 Frontend / v1.32.1 Backend)
+
+### App (Flutter)
+- **Feature**: **Focus Stability** - Solved "stuck focus" issues in ClassicScreen header buttons.
+- **Feature**: **TV Auth** - Login/Register screens are now fully navigable via Remote Control.
+- **UI**: **Unified Theme** - Consistent dark theming for Rate/Logout dialogs.
+- **Logic**: **Ratings** - Switched to server-authoritative rating data.
+
+### Backend (PHP)
+- **Fix**: **GeoService** - Fixed "Column not found" error by removing invalid `status` filter.
+- **Feature**: **Rating APIs** - Exposed real-time average rating and count in channel responses.
 
 ### Frontend
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: Zustand
-- **HTTP Client**: Axios (configured with automated `X-API-KEY` injection)
-- **Video Player**: Video.js with HLS support
-- **UI Components**: Custom components with Lucide icons
-- **Notifications**: react-hot-toast
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.8+24 App / v1.42.1 Frontend / v1.31.1 Backend)
+- **Feature**: **Channel Proprietor Details** - Full lifecycle management for channel owner metadata.
+- **Feature**: **Proprietor Phone Validation** - Real-time Indian phone format verification.
+- **Fix**: **API Reliability** - Resolved critical filter and form option loading errors by standardizing Admin API parameters.
+- **Improvement**: Added support for custom `User-Agent` and `Referer` headers per stream.
+
+## Recent Updates (v1.8.8+24 App / v1.42.1 Frontend / v1.31.1 Backend)
+
+### App (Flutter)
+- **Fix**: **Device Support** - Marked hardware features optional to support 2,300+ more devices.
+- **Fix**: **Legacy** - Pinned min SDK to 21.
+- **Security**: **Remediation** - Removed exposed secrets from history.
+
+### Frontend & Backend
+- **Maintenance**: Version synchronized and security hardening.
+
+## Recent Updates (v1.8.7+23 App / v1.42.1 Frontend / v1.31.1 Backend)
+
+### App (Flutter)
+- **Feature**: **Premium Exit Dialog** - Dark-themed, focus-aware confirmation dialog.
+- **Fix**: **TV Navigation** - Fixed broken D-Pad navigation in Classic Mode (Grid & Player focus).
+- **Fix**: **Stability** - Resolved syntax errors and focus traps.
+
+### Frontend & Backend
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.6+22 App / v1.42.1 Frontend / v1.31.1 Backend)
+
+### App (Flutter)
+- **Fix**: **Build Stability** - fixed critical syntax errors and duplicate class definitions in Classic Mode.
+- **Fix**: **Compilation** - Removed invalid key bindings.
+
+### Frontend & Backend
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.5+21 App / v1.42.1 Frontend / v1.31.1 Backend)
+
+### App (Flutter)
+- **Feature**: **Channel Report System** - Users can report stream issues (buffering, audio problems, etc.) via Flag button in player with TV-friendly dialog.
+- **Feature**: **Fullscreen Channel Zapping** - D-pad Up/Down switches to previous/next channel while in fullscreen mode.
+- **Feature**: **Overlay Navigation** - D-pad Left/Right toggles channel list overlay in fullscreen.
+- **Improvement**: **Faster Error Recovery** - Reduced auto-retry countdown from 20s to 10s.
+- **Fix**: **Focus Behavior** - Disabled player autofocus to prevent focus stealing from channel list.
+
+### Frontend & Backend
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.4+20 App / v1.42.1 Frontend / v1.31.1 Backend)
+
+### App (Flutter)
+- **Feature**: **Remote Shortcuts** - Added "Menu"/"Info" key support for STB Channel List.
+- **Improvement**: **Visuals** - Cleaned up player UI (removed black borders).
+- **Fix**: **Stability** - Fixed native crash on hot restart.
+
+### Frontend & Backend
+- **Maintenance**: Version synchronized.
+
+## Recent Updates (v1.8.3+19 App / v1.42.0 Frontend / v1.31.0 Backend)
+
+### App (Flutter)
+- **Feature**: **Android TV Compliance** - Successfully addressed Play Store rejections by installing high-res 320x180 banners and 512x512 full-bleed icons.
+- **Feature**: **Easy Navigation** - Added dedicated "Channel List" and "Mute" buttons to player controls for deliberate remote-control access.
+- **Fix**: **Mute Sync** - Real-time synchronization with hardware volume buttons.
+- **Fix**: **FFI Crash Stability** - Eliminated `SIGABRT` crashes during hot restarts through synchronous resource disposal.
+- **Improvement**: **Single-Click Fullscreen** - Faster transition into immersive viewing.
 
 ### Backend
-- **Framework**: Slim PHP 4
-- **ORM**: Eloquent (Laravel)
-- **Authentication**: Firebase JWT
-- **Validation**: Valitron
-- **Database**: MySQL with MyISAM engine
-- **Security Middleware**: Custom Stack (Cors, ApiKey, RateLimit, SecurityHeaders)
+- **Feature**: **Geo Filtering** - Categories and Languages APIs now support `status` parameter (active/inactive).
 
-## Environment Variables
+### App (Flutter)
+- **Fix**: **TV Search** - Solved text input issues on Android TV by forcing keyboard on Select.
+- **Fix**: **Fullscreen Exit** - Reliable exit from fullscreen using Back/Escape keys.
+- **Feature**: **Focusable Ads** - Added DPad support for ad banners.
 
-### Frontend (.env.local)
-```
-NEXT_PUBLIC_API_URL=http://localhost:8080/api
-NEXT_PUBLIC_API_SECRET=your_backend_secret
-```
+## Recent Updates (v1.8.1+17 App / v1.41.0 Frontend / v1.30.0 Backend)
 
-### Backend (.env)
-```
-API_SECRET=your_backend_secret
-JWT_SECRET=your_jwt_secret
-```
+## Recent Updates (v1.7.1+15 App / v1.39.0 Frontend / v1.28.0 Backend)
 
-## Latest Updates
+### App (Flutter)
+- **Feature**: **Full-Screen TV Toggle** - Dedicated focusable button in playback controls.
+- **Fix**: **Volume Consistency** - Volume and Mute states now persist across channel switches.
+- **Improvement**: **System UI** - Enhanced immersive mode management for TV boxes.
 
-### Frontend (v1.23.0)
-- 🚀 **HLS Engine 2.0**: Massive performance boost for older TVs using a new "Safe Start" profile with conservative 20MB buffering and optimized ABR settings.
-- 📱 **Device Profiling**: Intelligent hardware detection for TV, Mobile, and PC to apply the perfect buffer strategy for each.
+## Recent Updates (v1.7.0+14 App / v1.39.0 Frontend / v1.28.0 Backend)
 
-### Backend (v1.16.0) | Frontend (v1.20.0)
-- ⚙️ **Platform Control**: Admins can now granularly toggle "Top Trending" visibility for Web, TV, Android, and iOS platforms.
-- 🎨 **Modern Admin UI**: Completely redesigned Channel Form with interactive card-based inputs for better usability.
-- ⚡ **Optimized UX**: Fixed UI lag in Maintenance Mode toggles with optimistic state updates.
+### App (Flutter)
+- **Feature**: **TV Focus** - Full D-Pad "Select" support for all interactive player elements.
+- **Feature**: **Dynamic UI** - Adaptive player height based on ad availability.
+- **Feature**: **Stats** - Real-time View Count and Star Ratings in Classic Mode.
 
-### Backend (v1.14.0) | Frontend (v1.18.0)
-- 🔐 **Session Security**:
-  - **Auto-Logout**: Instant logout on all devices when a session is revoked or deleted.
-  - **Device Manager**: Users can view and revoke specific login sessions from their profile.
-  - **Activity Log**: Comprehensive audit trail of Logins, Logouts, and Device Revocations.
-- 🔄 **Conditional Auto-Login**: Smart re-authentication logic when managing device limits.
-- 🗄️ **Database Refactor**: [BREAKING] Schema now uses integer IDs for foreign key relationships.
-- 🛠️ **Build Optimization**: Fixed Vercel deployment issues by implementing proper Suspense boundaries.
-- 🚧 **Maintenance Mode**: Global "Under Construction" system with configurable message and Admin-only access.
-- 📧 **Enhanced Email System**:
-  - **Forgot Password**: Secure reset flow using Resend API.
-  - **Email Logging**: Complete audit trail with webhook status tracking (Sent, Delivered, Bounced).
+## Recent Updates (v1.6.2+12 App / v1.38.0 Frontend / v1.27.0 Backend)
 
-### Backend (v1.13.0) | Frontend (v1.17.4)
-- 🐛 **Critical Fix**: Resolved namespace conflict in `Admin\ChannelController` causing Fatal Errors.
-- 🐛 **CORS Refactor**: Corrected middleware order in `index.php` to ensure CORS headers are sent on all responses.
-- **Security Refactor**: (Frontend v1.17.4)
-  - Extracted Admin API logic to dedicated secure client with automatic session management.
-  - Improved handling of 401 Unauthorized states with auto-redirects.
+### App (Flutter)
+- **Feature**: **Force Update** - Strict version enforcement logic.
+- **Fix**: **Build Stability** - Fixed Android TV resource errors.
 
-- **Platform Control**: (Backend v1.13.0, Frontend v1.17.3)
-  - Implemented strict platform-based content filtering (Web/Android/iOS/TV).
-  - Enforced `X-Client-Platform` header for all API interactions.
-  - Added native support for 'TV' platform restrictions.
+## Recent Updates (v1.6.1+11 App / v1.38.0 Frontend / v1.27.0 Backend)
 
-- **Premium Ecosystem**: (Backend v1.12.3, Frontend v1.17.2)
-  - **Secure HLS**: Premium channel URLs are now automatically redacted in the API for unauthorized users.
-  - **Refactored Logic**: Transitioned from `is_paid` to `is_premium` for better semantic clarity.
-  - **Visual Polishing**: Added gold "Premium" badges and restricted access overlays in the UI.
-- 🐛 **Stability**: Fixed logo URL generation in `SettingController` to ensure fully qualified URLs.
+### Frontend
+- **Kiosk Mode**: Automatically hides "Back" and "Menu" buttons in Classic Mode when Open Access is active.
+- **Disclaimer**: Enhanced visibility and z-index management for cross-component overlays.
+- **Open Access**: Guests can watch channels without login if enabled in backend.
 
-### Backend (v1.11.0) | Frontend (v1.16.0)
-- 🚀 **Smart HLS Engine**: Ultra-optimized video player with **Aggressive Buffering** for TVs, hardware-based resolution capping, and **Zero-Overhead Classic Mode** (optimized DOM rendering).
-- 🔒 **Registration Security**: Complete overhaul of registration flow with Math Captcha, strict regex validation, and improved UI.
-- 🐛 **Critical Fix**: Resolved JSON body parsing issues in backend and admin login compilation errors in frontend.
+### Backend
+- **Error Tracking**: Implemented detailed try-catch logging for customer management debugging.
+- **Subscription Bypass**: Robust support for Open Access mode in `JwtMiddleware` and `AuthService`.
+- **Sanitization**: Fixed toggle save issues for Featured, Premium, and Open Access settings.
 
-### Backend (v1.10.1) | Frontend (v1.14.0)
-- 🛡️ **Stability & Resilience**: Implemented automatic Backend Disconnect Fallback (Classic -> OTT) and resolved infinite Login Loops.
-- 🔧 **Connection Fixes**: Corrected Backend Base Path calculation and Frontend Health Check diagnostics for reliable production deployments (Vercel/WAMP).
+## Recent Updates (v1.6.1+10 App / v1.37.0 Frontend / v1.26.0 Backend)
 
-### Backend (v1.10.0) | Frontend (v1.13.0)
-- 🔒 **Security Suite**: Implemented `ApiKeyMiddleware`, `RateLimitMiddleware`, and `SecurityHeadersMiddleware`.
-- 🔧 **CORS Overhaul**: Fixed Preflight OPTION handling for robust cross-origin support.
-- 🐛 **Deletion Fixes**: Corrected Channel Hard Delete and Customer Soft Delete logic.
+## Recent Updates (v1.35.1 Frontend / v1.24.1 Backend)
+- **Reseller Stats**: Fixed database migrations for customer ownership tracking.
+- **Wallet Integration**: Consolidated wallet card and history in reseller dashboard.
+- **Timezone**: System-wide IST synchronization for backend and frontend expiry calculations.
 
-### Frontend (v1.12.0)
-- ✅ **Dynamic Titles**: Browser tab shows playing channel name.
-- ✅ **Performance**: Lazy loading for thumbnails.
-- ❌ **Clean UI**: Removed online/offline status badges.
+## Recent Updates (v1.33.0 Frontend / v1.22.0 Backend)
 
-### Backend (v1.9.0)
-- ✅ **Compatibility**: PHP 8.3 support (upgraded dependencies).
-- ❌ **Cleanup**: Removed unused status check endpoints.
+## Recent Updates (v1.32.0 Frontend / v1.21.0 Backend)
 
-### Frontend (v1.11.0)
-- ✅ **Classic Mode Expiry**: Automatically reverts to OTT Mode after 24 hours.
+- **SEO & Landing Page**: Full-featured root page with optimized metadata and rich brand storytelling.
+- **Community Engagement**: Integrated real-time channel comments for interactive surf sessions.
+- **TV-First Navigation**: Global D-pad support across all web and player interfaces.
+- **Redirection Logic**: Seamless post-login return to previous context.
+- **Dynamic Branding**: Polished footer with glowing gradients and setting-aware logos.
 
-### Frontend (v1.10.0)
-- ✅ **Watch History**: "Continue Watching" row on Dashboard.
-- ✅ **Picture-in-Picture (PiP)**: Floating video support.
-- ✅ **AirPlay Support**: Added AirPlay casting support for Apple devices.
-- ✅ **Auto-Retry**: Implemented auto-refresh mechanism (10s countdown) when playback errors occur.
+## Recent Updates (v1.31.0 Frontend)
+- **Smart Fallback**: Automatic recovery system for broken streams with centered countdown UI.
+- **Classic Menu**: Integrated TV-optimized side menu for user accounts and information.
 
-## Recent Updates (v1.7.0)
-- ✅ **Advanced Classic Mode**: Complete mobile redesign and TV navigation improvements.
-- ✅ **Enhanced Filtering**: Grouping by Language and Category with improved sorting.
-- ✅ **Performance**: Optimized channel loading and rendering.
-- ✅ **IP Tracking**: Implemented channel view tracking with client IPs.
+## Recent Updates (v1.5.3+8 App)
 
-## Previous Updates (v1.6.0)
-- ✅ Global removal of the 100-channel limit
-- ✅ Integrated `limit=-1` API support for unlimited data fetching
-- ✅ Full synchronization of "no limit" behavior across all modes and categories
-- ✅ Updated documentation and changelogs for v1.6.0
+- **TV Focus**: Full D-Pad navigation support for ads and interactive elements.
+- **Auto-Focus**: Intelligent focus snapping for error screens.
 
-## Previous Updates (v1.5.0)
-- ✅ Channel reporting system with database storage
-- ✅ Contact form backend integration
-- ✅ Real-time stream status monitoring
-- ✅ Classic Mode navigation guard
-- ✅ Network status monitoring with toast notifications
-- ✅ Improved UI spacing and skeleton loading
-- ✅ Enhanced error handling and validation
+## Recent Updates (v1.5.2+7)
 
-See [CHANGELOG.md](CHANGELOG.md) for complete version history.
+- **MP4 Fallback**: Replaced HLS fallback with instant-loading MP4.
+- **Clickable Ads**: Banner ads now support external redirection.
+- **UI Refinement**: Cyan accent theming and balanced layout.
 
-## Contributing
+## Recent Updates (v1.5.1+6)
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- **Device Compatibility**: Restored support for Ethernet-only and non-GPS devices.
+- **Available Fallback**: Player automatically switches to a backup stream when the main channel is down.
+- **Connectivity Alerts**: Animated Toasts notify users of internet loss and restoration.
+- **TV Store Ready**: Fully compliant with Google Play Store Android TV requirements.
 
-## License
 
-This project is proprietary software. All rights reserved.
+- **Persistent Navigation**: STB Menu remembers your last category for faster browsing.
+- **Refined Player UI**: Minimalist stats overlay and improved gesture reliability.
+- **Full-Screen STB Overlay**: Intuitive channel browsing without exiting full-screen mode (Left-side).
+- **TV UX Overhaul**: "All Channels" prioritized and autofocus implemented for remotes.
+- **Persistent Information**: View counts and ratings always visible in the player.
+- **Android 15 Compatibility**: Support for Target SDK 35 with native Edge-to-Edge display.
+- **Performance**: Parallel loading logic and session-based caching.
 
-## Support
+## Setup
 
-For issues, questions, or feature requests, please use the contact form in the application or open an issue on the repository.
-
----
-
-**Nellai IPTV** - Premium Entertainment, Anytime, Anywhere
+1.  Navigate to `nellai_iptv_app`.
+2.  Create `.env` with API keys.
+3.  Run `flutter run`.

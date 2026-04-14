@@ -1,0 +1,561 @@
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' hide Category;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../models/channel.dart';
+import '../models/ad.dart';
+import '../models/category.dart';
+import '../models/language.dart';
+import '../models/public_settings.dart';
+import '../models/comment.dart';
+import '../models/scrolling_ad.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AuthException implements Exception {
+  final String message;
+  final Map<String, dynamic>? errors;
+  AuthException(this.message, [this.errors]);
+  @override
+  String toString() => message;
+}
+
+class ApiService {
+  late Dio _dio;
+  late String _currentHost;
+  final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
+  String? _cachedDeviceId;
+  String? _cachedPlatform;
+
+  ApiService() {
+    String baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:8000/api';
+    
+    // Android Emulator specific fix for localhost
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android && baseUrl.contains('localhost')) {
+       baseUrl = baseUrl.replaceFirst('localhost', '10.0.2.2');
+    }
+
+    try {
+      _currentHost = Uri.parse(baseUrl).host;
+    } catch (_) {
+      _currentHost = '10.0.2.2'; 
+    }
+
+    BaseOptions options = BaseOptions(
+      baseUrl: baseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      validateStatus: (status) => true,
+      headers: {
+        'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+        'Accept': 'application/json',
+      },
+    );
+
+    _dio = Dio(options);
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        options.headers['X-Client-Platform'] = await _getPlatform();
+        options.headers['X-Device-Id'] = await _getDeviceId();
+        
+        // Attach auth token if available (for authenticated endpoints)
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final token = prefs.getString('auth_token');
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+        } catch (e) {
+          debugPrint('Error loading auth token: $e');
+        }
+        
+        debugPrint('--- API Request ---');
+        debugPrint('Method: ${options.method}');
+        debugPrint('URL: ${options.baseUrl}${options.path}');
+        debugPrint('Headers: ${options.headers}');
+        if (options.data != null) {
+          debugPrint('Body: ${options.data}');
+        }
+        debugPrint('-------------------');
+        
+        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        debugPrint('--- API Response ---');
+        debugPrint('Status: ${response.statusCode}');
+        debugPrint('URL: ${response.requestOptions.baseUrl}${response.requestOptions.path}');
+        debugPrint('Data: ${response.data}');
+        debugPrint('--------------------');
+        return handler.next(response);
+      },
+      onError: (DioException e, handler) async {
+        debugPrint('--- API Error ---');
+        debugPrint('Message: ${e.message}');
+        debugPrint('URL: ${e.requestOptions.baseUrl}${e.requestOptions.path}');
+        if (e.response != null) {
+           debugPrint('Status: ${e.response?.statusCode}');
+           debugPrint('Data: ${e.response?.data}');
+           
+           // Handle 401 Unauthorized - Session expired or device removed
+           if (e.response?.statusCode == 401) {
+              debugPrint('401 Unauthorized - Clearing session');
+              try {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('auth_token');
+                debugPrint('Auth token cleared due to 401');
+              } catch (error) {
+                debugPrint('Error clearing token: $error');
+              }
+           }
+        }
+        debugPrint('-----------------');
+        return handler.next(e);
+      },
+    ));
+  }
+
+  // Platform Detection: Distinguishes between Mobile and TV (Leanback)
+  Future<String> _getPlatform() async {
+    if (_cachedPlatform != null) return _cachedPlatform!;
+    
+    if (kIsWeb) {
+      _cachedPlatform = 'web';
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
+      // Industry Standard: Check for Leanback feature to identify Android TV devices
+      bool isTV = androidInfo.systemFeatures.contains('android.software.leanback') || 
+                  androidInfo.host.toLowerCase().contains('tv') ||
+                  androidInfo.model.toLowerCase().contains('tv');
+      _cachedPlatform = isTV ? 'tv' : 'android'; // Changed 'mobile' to 'android'
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      _cachedPlatform = 'ios'; // Changed 'mobile' to 'ios'
+    } else {
+      _cachedPlatform = 'unknown';
+    }
+    return _cachedPlatform!;
+  }
+
+  // Persistent Device Identification: Retrieves hardware IDs (Android ID or IdentifierForVendor)
+  // to ensure one physical device only ever consumes one subscription slot.
+  Future<String> _getDeviceId() async {
+    if (_cachedDeviceId != null) return _cachedDeviceId!;
+
+    try {
+      if (kIsWeb) {
+        _cachedDeviceId = 'web-session'; // Basic fallback for web if needed
+      } else if (defaultTargetPlatform == TargetPlatform.android) {
+        AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
+        _cachedDeviceId = androidInfo.id; // Persistent Android ID
+      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+        IosDeviceInfo iosInfo = await _deviceInfo.iosInfo;
+        _cachedDeviceId = iosInfo.identifierForVendor; // Persistent iOS ID
+      }
+    } catch (e) {
+      _cachedDeviceId = 'unknown-device';
+    }
+    return _cachedDeviceId ?? 'unknown-device';
+  }
+  Future<List<Channel>> getChannels({int limit = -1}) async {
+    final response = await _dio.get('/channels', queryParameters: {'limit': limit});
+    
+    if (response.statusCode == 200 && response.data['status'] == true) {
+      final List data = response.data['data'];
+      return data.map((json) => Channel.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load channels: ${response.data['message']}');
+    }
+  }
+
+
+  Future<Channel?> getChannelByShareCode(String shareCode) async {
+    try {
+      final response = await _dio.get('/channels/share/$shareCode');
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        return Channel.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching channel by share code: $e');
+      return null;
+    }
+  }
+
+  Future<void> incrementView(String uuid) async {
+    try {
+      await _dio.post('/channels/$uuid/view');
+    } catch (e) {
+      print("Increment View Error: $e");
+    }
+  }
+
+  // --- AUTHENTICATION ---
+  
+  Future<Map<String, dynamic>> login(String phone, String password) async {
+    try {
+      final response = await _dio.post('/customers/login', data: {
+        'phone': phone,
+        'password': password,
+      });
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+         return response.data['data']; // Returns { token: "...", user: { ... } }
+      } else {
+         throw AuthException(
+           response.data['message'] ?? 'Login failed',
+           response.data['errors']
+         );
+      }
+    } on DioException catch (e) {
+       if (e.response != null && e.response?.data != null) {
+          throw AuthException(
+            e.response?.data['message'] ?? 'Login failed',
+            e.response?.data['errors']
+          );
+       }
+       rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> register(String name, String phone, String email, String password) async {
+    try {
+      final response = await _dio.post('/customers/register', data: {
+        'name': name,
+        'phone': phone,
+        'email': email,
+        'password': password,
+      });
+
+      if (response.statusCode == 201 && response.data['status'] == true) {
+         return response.data['data']; // Returns { uuid: "..." }
+      } else {
+         throw Exception(response.data['message'] ?? 'Registration failed');
+      }
+    } on DioException catch (e) {
+       if (e.response != null && e.response?.data != null) {
+          throw Exception(e.response?.data['message'] ?? 'Registration failed');
+       }
+       rethrow;
+    }
+  }
+
+  Future<List<dynamic>> getSessions(String token) async {
+    try {
+       final response = await _dio.get('/customers/sessions', 
+         options: Options(headers: {
+           'Authorization': 'Bearer $token',
+         })
+       );
+       
+       if (response.statusCode == 200 && response.data['status'] == true) {
+         return response.data['data'] ?? [];
+       }
+       return [];
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+          throw Exception(e.response?.data['message'] ?? 'Failed to fetch sessions');
+       }
+       rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteSession(int id, String token) async {
+    try {
+       // Enable auto_login=true to get new token if limit allows
+       final response = await _dio.delete('/customers/sessions/$id?auto_login=true', 
+         options: Options(headers: {
+           'Authorization': 'Bearer $token',
+         })
+       );
+       
+       if (response.statusCode == 200 && response.data['status'] == true) {
+         return {
+           'success': true,
+           'data': response.data['data']
+         };
+       }
+       throw Exception(response.data['message'] ?? 'Failed to remove device');
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+          throw Exception(e.response?.data['message'] ?? 'Failed to remove device');
+       }
+       rethrow;
+    }
+  }
+
+  Future<bool> validateSession(String token) async {
+    try {
+       // Using getSessions as a lightweight validation check since we know it exists and requires auth
+       final response = await _dio.get('/customers/sessions', 
+         queryParameters: {'limit': 1},
+         options: Options(headers: {
+           'Authorization': 'Bearer $token',
+         })
+       );
+       
+       if (response.statusCode == 200 && response.data['status'] == true) {
+         return true;
+       }
+       return false;
+    } catch (e) {
+       return false;
+    }
+  }
+
+  // --- END AUTHENTICATION ---
+
+  Future<Channel> getChannelDetails(String uuid) async {
+      final response = await _dio.get('/channels/$uuid');
+      
+      if (response.statusCode == 200 && response.data['status'] == true) {
+         return Channel.fromJson(response.data['data']);
+      } else {
+        throw Exception('Failed to load channel details');
+      }
+  }
+  Future<List<Ad>> getAds() async {
+    try {
+      final platform = await _getPlatform();
+      final response = await _dio.get('/ads', options: Options(headers: {
+        'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+        'X-Client-Platform': platform,
+        'Accept': 'application/json',
+      }));
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        final adsList = response.data['data']['ads'];
+        if (adsList != null && adsList is List) {
+          return adsList.map((e) => Ad.fromJson(e)).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching ads: $e');
+      return [];
+    }
+  }
+
+  Future<List<ScrollingAd>> getScrollingAds() async {
+    try {
+      final platform = await _getPlatform();
+      final response = await _dio.get('/scrolling-ads', options: Options(headers: {
+        'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+        'X-Client-Platform': platform,
+        'Accept': 'application/json',
+      }));
+      debugPrint('SCROLLING ADS RESPONSE: ${response.data}');
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        // The API returns an array directly in the 'data' field
+        final adsList = response.data['data'];
+        if (adsList is List) {
+           return adsList.map((e) => ScrollingAd.fromJson(e)).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching scrolling ads: $e');
+      return [];
+    }
+  }
+
+  Future<void> recordAdImpression(String adUuid) async {
+    try {
+      await _dio.post('/ads/$adUuid/impression', options: Options(headers: {
+        'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+        'Accept': 'application/json',
+      }));
+    } catch (e) {
+      debugPrint('Error recording impression: $e');
+    }
+  }
+
+  Future<List<Category>> getCategories() async {
+    try {
+      final response = await _dio.get('/categories', options: Options(headers: {
+        'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+        'Accept': 'application/json',
+      }));
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        return (response.data['data'] as List).map((e) => Category.fromJson(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching categories: $e');
+      return [];
+    }
+  }
+
+  Future<List<Language>> getLanguages() async {
+    try {
+      final response = await _dio.get('/languages', options: Options(headers: {
+        'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+        'Accept': 'application/json',
+      }));
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        return (response.data['data'] as List).map((e) => Language.fromJson(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching languages: $e');
+      return [];
+    }
+  }
+
+  Future<PublicSettings?> getPublicSettings() async {
+    try {
+      final response = await _dio.get('/settings/public', options: Options(headers: {
+        'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+        'Accept': 'application/json',
+      }));
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        return PublicSettings.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching public settings: $e');
+      return null;
+    }
+  }
+
+  Future<void> reportChannelIssue(String channelUuid, String issueType, {String? description}) async {
+    try {
+      await _dio.post('/channels/$channelUuid/report', 
+        data: {
+          'issue_type': issueType,
+          if (description != null && description.isNotEmpty) 'description': description,
+        },
+        options: Options(headers: {
+          'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+          'Accept': 'application/json',
+        })
+      );
+    } catch (e) {
+      debugPrint('Error reporting channel issue: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> checkHealth() async {
+    try {
+      debugPrint('=== Health Check Started ===');
+      debugPrint('API Base URL: ${_dio.options.baseUrl}');
+      debugPrint('Endpoint: /health');
+      
+      final response = await _dio.get('/health', options: Options(headers: {
+        'Accept': 'application/json',
+      }));
+      
+      debugPrint('Health Check Response Status: ${response.statusCode}');
+      debugPrint('Health Check Response Data: ${response.data}');
+      debugPrint('=== Health Check Success ===');
+      
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      debugPrint('=== Health Check DioException ===');
+      debugPrint('Error Type: ${e.type}');
+      debugPrint('Error Message: ${e.message}');
+      
+      if (e.response != null) {
+        debugPrint('Response Status Code: ${e.response?.statusCode}');
+        debugPrint('Response Data: ${e.response?.data}');
+        debugPrint('Response Headers: ${e.response?.headers}');
+      } else {
+        debugPrint('No response received from server');
+        debugPrint('Request Options:');
+        debugPrint('  - Base URL: ${e.requestOptions.baseUrl}');
+        debugPrint('  - Path: ${e.requestOptions.path}');
+        debugPrint('  - Method: ${e.requestOptions.method}');
+        debugPrint('  - Headers: ${e.requestOptions.headers}');
+      }
+      
+      debugPrint('Stack Trace: ${e.stackTrace}');
+      debugPrint('=== Health Check Failed ===');
+      return false;
+    } catch (e, stackTrace) {
+      debugPrint('=== Health Check Generic Exception ===');
+      debugPrint('Error: $e');
+      debugPrint('Stack Trace: $stackTrace');
+      debugPrint('=== Health Check Failed ===');
+      return false;
+    }
+  }
+  Future<Map<String, dynamic>?> rateChannel(String channelUuid, int rating) async {
+    try {
+      final response = await _dio.post('/channels/$channelUuid/rate',
+        data: {'rating': rating},
+        options: Options(headers: {
+          'X-API-KEY': dotenv.env['API_KEY'] ?? '',
+          'Accept': 'application/json',
+        })
+      );
+      return response.data;
+    } catch (e) {
+      debugPrint('Error rating channel: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile() async {
+    try {
+      final response = await _dio.get('/customers/profile', options: Options(headers: {
+        'Accept': 'application/json',
+      }));
+      
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        return response.data['data'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching user profile: $e');
+      return null;
+    }
+  }
+
+  Future<bool> logout() async {
+    try {
+      final response = await _dio.post('/customers/logout', options: Options(headers: {
+        'Accept': 'application/json',
+      }));
+      
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        debugPrint('Logout successful: Session removed from database');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error during logout: $e');
+      return false;
+    }
+  }
+
+  Future<List<Comment>> getChannelComments(String channelUuid) async {
+    try {
+      final response = await _dio.get('/channels/$channelUuid/comments', options: Options(headers: {
+        'Accept': 'application/json',
+      }));
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        final data = response.data['data'];
+        final List<dynamic> commentsJson = data['data'] ?? []; // Pagination wrapper
+        return commentsJson.map((json) => Comment.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching channel comments: $e');
+      return [];
+    }
+  }
+
+  Future<bool> addChannelComment(String channelUuid, String comment) async {
+    try {
+      final response = await _dio.post('/channels/$channelUuid/comments', 
+        data: {'comment': comment},
+        options: Options(headers: {
+          'Accept': 'application/json',
+        })
+      );
+
+      return (response.statusCode == 200 || response.statusCode == 201) && response.data['status'] == true;
+    } catch (e) {
+      debugPrint('Error adding comment: $e');
+      return false;
+    }
+  }
+}

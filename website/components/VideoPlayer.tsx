@@ -1,0 +1,1109 @@
+'use client';
+
+import React, { useEffect, useRef, useCallback, useState } from 'react';
+import { createPortal } from 'react-dom';
+import Hls from 'hls.js';
+import { useTVFocus } from '@/hooks/useTVFocus';
+import { useRouter } from 'next/navigation';
+import ReportModal from './ReportModal';
+import { AlertTriangle, RefreshCw, Lock, Crown } from 'lucide-react';
+import PlayerOverlay from './PlayerOverlay';
+import { Channel } from '@/types';
+import { useViewMode } from '@/context/ViewModeContext';
+import { useWatchHistory } from '@/hooks/useWatchHistory';
+import { useBranding } from '@/hooks/useBranding';
+
+interface Props {
+  src: string;
+  poster?: string;
+  // Output Events
+  onVideoPlay?: () => void;
+  onVideoPause?: () => void;
+  // onReady removed as it was specific to video.js player instance
+  channelUuid?: string;
+  channelName?: string;
+  // Overlay / STB Features
+  channels?: Channel[];
+  topTrending?: Channel[]; 
+  viewersCount?: number;   
+  currentGroup?: string;
+  onChannelSelect?: (c: Channel) => void;
+  onNextGroup?: () => void;
+  onPrevGroup?: () => void;
+  useCustomOverlay?: boolean;
+  
+  // Advanced Grouping
+  allGroupedChannels?: { [key: string]: Channel[] };
+  groupKeys?: string[];
+  currentGroupType?: 'all' | 'language' | 'category';
+  onGroupTypeChange?: (type: 'all' | 'language' | 'category') => void;
+  onGroupSelect?: (group: string) => void;
+}
+
+// Helper to extract video ID and create embed URL
+const getYoutubeEmbedUrl = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    const id = (match && match[2].length === 11) ? match[2] : null;
+    return id ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=0&enablejsapi=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0` : url;
+};
+
+// Internal TV-Focusable Report Button
+function TVReportButton({ onClick, className }: { onClick: (e: any) => void; className: string }) {
+    const { focusProps, isFocused } = useTVFocus({
+        // BUGFIX: Passing the actual event 'e' to the onClick handler.
+        // This ensures e.stopPropagation() works correctly within the handler.
+        onEnter: (e) => onClick(e), 
+        className: className,
+        focusClassName: 'ring-2 ring-red-500 scale-110 bg-red-600'
+    });
+
+    return (
+        <button 
+            {...focusProps} 
+            className={`${className} ${isFocused ? 'ring-2 ring-red-500 scale-110 bg-red-600' : ''}`}
+            title="Report Stream Issue"
+        >
+            <AlertTriangle size={20} />
+        </button>
+    );
+}
+
+function VideoPlayer({ 
+  src, poster, channelUuid, channelName, 
+  channels, topTrending, viewersCount = 0, currentGroup, onChannelSelect, onNextGroup, onPrevGroup,
+  useCustomOverlay = true,
+  allGroupedChannels, groupKeys, currentGroupType, onGroupTypeChange, onGroupSelect
+}: Props) {
+  const router = useRouter();
+  
+  // Detect Media Type
+  const isYoutube = src && (src.includes('youtube.com') || src.includes('youtu.be'));
+  const isPaidRestricted = src === 'PAID_RESTRICTED';
+  const isPlatformRestricted = src && src.startsWith('RESTRICTED:');
+  const platformRestrictionMessage = isPlatformRestricted ? src.replace('RESTRICTED:', '').trim() : '';
+
+  // Refs
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  const [showReport, setShowReport] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+  const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
+  const [isFallbackPlaying, setIsFallbackPlaying] = useState(false);
+  const [nextRetryIn, setNextRetryIn] = useState(30);
+
+  // Fetch Settings for Fallback
+  useEffect(() => {
+        import('@/lib/api').then(({ default: api }) => {
+            api.get('/settings/public').then(res => {
+                if(res.data.status && res.data.data.fallback_404_mp4_url) {
+                    setFallbackUrl(res.data.data.fallback_404_mp4_url);
+                }
+            }).catch(() => {});
+        });
+  }, []);
+  
+  const playFallback = useCallback(() => {
+        if (fallbackUrl && videoRef.current && !isFallbackPlaying) {
+            if (hlsRef.current) {
+                hlsRef.current.destroy();
+                hlsRef.current = null;
+            }
+            
+            // Critical: Ensure clean slate
+            const video = videoRef.current;
+            video.removeAttribute('src'); // Detach old
+            video.load();
+
+            setTimeout(() => {
+                video.src = fallbackUrl;
+                video.loop = true;
+                video.playsInline = true;
+                video.load();
+                video.play().catch(() => {});
+            }, 50); // Small yield to ensure DOM update
+
+            setIsFallbackPlaying(true);
+            setIsLoading(false);
+            setErrorMessage(null); 
+        } else if (!fallbackUrl) {
+           setErrorMessage("Stream temporarily unavailable");
+           setIsLoading(false); 
+        }
+  }, [fallbackUrl, isFallbackPlaying]);
+
+  const handleRetry = useCallback(() => {
+      setErrorMessage(null);
+      setIsLoading(true);
+      setIsFallbackPlaying(false); // Reset fallback on manual retry
+      setNextRetryIn(30); // Reset countdown
+      setRetryKey(prev => prev + 1);
+  }, []);
+
+  // Auto-Retry Logic when Fallback is playing
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isFallbackPlaying) {
+        setNextRetryIn(20); // Start fresh
+        interval = setInterval(() => {
+            setNextRetryIn(prev => {
+                if (prev <= 1) {
+                    handleRetry();
+                    return 20;
+                }
+                return prev - 1;
+            });
+        }, 1000); 
+    }
+    return () => {
+        if (interval) clearInterval(interval);
+    };
+  }, [isFallbackPlaying, handleRetry]);
+  
+  // YouTube Command Helper
+  const sendYoutubeCommand = useCallback((func: string, args: any[] = []) => {
+      const iframe = containerRef.current?.querySelector('iframe');
+      if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage(JSON.stringify({
+              'event': 'command',
+              'func': func,
+              'args': args
+          }), '*');
+      }
+  }, []);
+
+  // History Hook
+  const { addToHistory } = useWatchHistory();
+  const { app_logo_png_url } = useBranding();
+  // Alias for backward compatibility if needed, but we should use path
+  const app_logo_path = app_logo_png_url; 
+  const historyTrackedRef = useRef(false);
+
+  // Picture in Picture State
+  const [isPiP, setIsPiP] = useState(false);
+  const [showAirPlay, setShowAirPlay] = useState(false);
+
+  useEffect(() => {
+    // Reset tracked state on channel change
+    historyTrackedRef.current = false;
+  }, [channelUuid]);
+  
+  // Reset Fallback on Channel Change
+  useEffect(() => {
+      setIsFallbackPlaying(false);
+      setErrorMessage(null);
+  }, [src, channelUuid]);
+
+  // Create AirPlay availability listener
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).WebKitPlaybackTargetAvailabilityEvent) {
+        const video = videoRef.current;
+        if (video) {
+            video.addEventListener('webkitplaybacktargetavailabilitychanged', (event: any) => {
+                if (event.availability === 'available') {
+                    setShowAirPlay(true);
+                }
+            });
+        }
+    }
+  }, []);
+
+  // Controls Visibility State
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Player State
+  const [isPlaying, setIsPlaying] = useState(true); // Default to playing for auto-play
+  const [isMuted, setIsMuted] = useState(false); 
+  const [volume, setVolume] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Preloader State (Youtube handles its own mostly)
+  const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
+
+  // Quality State
+  interface VideoQuality {
+      index: number;
+      label: string;
+  }
+  const [qualities, setQualities] = useState<VideoQuality[]>([]);
+  const [currentQuality, setCurrentQuality] = useState(-1); // -1 = Auto
+
+  const handleQualityChange = useCallback((index: number) => {
+      if (hlsRef.current) {
+          hlsRef.current.currentLevel = index;
+          setCurrentQuality(index);
+      }
+  }, []);
+
+  // Sync current channel for overlay display
+  useEffect(() => {
+     if (channels && channelUuid) {
+         const found = channels.find(c => c.uuid === channelUuid);
+         if (found) setCurrentChannel(found);
+         else if (topTrending) {
+             const foundTrending = topTrending.find(c => c.uuid === channelUuid);
+             if (foundTrending) setCurrentChannel(foundTrending);
+         }
+     }
+  }, [channels, topTrending, channelUuid]);
+
+
+  // User Activity / Interaction Handler
+  const showControls = useCallback(() => {
+     setControlsVisible(true);
+     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+     controlsTimeoutRef.current = setTimeout(() => {
+         // Only hide if playing
+         const vid = videoRef.current;
+         if (isPlaying) {
+             setControlsVisible(false);
+         }
+     }, 4000);
+  }, [isYoutube]);
+
+  const toggleControls = useCallback(() => {
+      setControlsVisible(prev => {
+          if (!prev) {
+              showControls(); // Show and start timer
+              return true;
+          }
+           // If hiding, clear timer
+           if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+           return false;
+      });
+  }, [showControls]);
+
+  // Focus Handling
+  const { focusProps: containerFocusProps, isFocused: isContainerFocused } = useTVFocus({
+    onEnter: toggleControls,
+    className: 'relative w-full h-full outline-none transition-all duration-200',
+    focusClassName: 'ring-4 ring-primary z-20'
+  });
+
+  const { focusProps: retryFocus } = useTVFocus({
+    onEnter: handleRetry,
+    className: "flex-1 bg-white hover:bg-slate-200 text-black px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg flex items-center justify-center gap-2"
+  });
+
+  const { focusProps: fallbackFocus } = useTVFocus({
+    onEnter: handleRetry,
+    className: "bg-primary/90 hover:bg-primary text-white px-8 py-3 rounded-full font-bold flex items-center gap-3 border border-primary/20 backdrop-blur-md transition-all shadow-xl transform hover:scale-105 active:scale-95"
+  });
+
+  const { focusProps: homeFocus } = useTVFocus({
+    onEnter: () => router.push('/'),
+    className: "bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+  });
+
+  const { focusProps: reportFocus } = useTVFocus({
+    onEnter: () => setShowReport(true),
+    className: "flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg hover:shadow-red-600/20"
+  });
+
+  // Handle Mouse Move 
+  const handleMouseMove = useCallback(() => {
+      // Ignore mouse move on touch devices to prevent conflict with click toggle
+      if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) return;
+
+      if (!controlsVisible) showControls();
+      else {
+          // Reset timer
+          if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+          controlsTimeoutRef.current = setTimeout(() => {
+             const vid = videoRef.current;
+             if ((isYoutube || (vid && !vid.paused))) setControlsVisible(false);
+          }, 4000);
+      }
+  }, [controlsVisible, showControls, isYoutube]);
+
+
+  // Track history when playing starts
+  useEffect(() => {
+    if (isPlaying && channelUuid && channelName && !historyTrackedRef.current && !isPaidRestricted && !isPlatformRestricted) {
+        addToHistory({
+            uuid: channelUuid,
+            name: channelName,
+            thumbnail_url: poster || '',
+            channel_number: currentChannel?.channel_number || 0,
+            id: 0, stream_url: src, village: '', state_id: 0, language_id: 0, district_id: 0, viewers_count: 0, expiry_at: '', status: 'active', created_at: ''
+        });
+        historyTrackedRef.current = true;
+    }
+  }, [isPlaying, channelUuid, channelName, poster, currentChannel, src, addToHistory]);
+
+  // Controls Logic
+  const handlePlayPause = useCallback(() => {
+      if (isPaidRestricted) return;
+
+      if (isYoutube) {
+          const action = isPlaying ? 'pauseVideo' : 'playVideo';
+          sendYoutubeCommand(action);
+          setIsPlaying(!isPlaying);
+          showControls();
+          return;
+      }
+
+      const vid = videoRef.current;
+      if (!vid) return;
+      
+      if (vid.paused) {
+          vid.play().catch(() => {});
+      } else {
+          vid.pause();
+      }
+      
+      // Update controls visibility
+      if (!vid.paused) {
+          setControlsVisible(true);
+          if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      } else {
+          showControls();
+      }
+  }, [showControls, isYoutube, isPlaying, sendYoutubeCommand]);
+
+
+
+  // PiP Handler
+  const togglePiP = useCallback(async () => {
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPiP(false);
+      } else if (videoRef.current) {
+        await videoRef.current.requestPictureInPicture();
+        setIsPiP(true);
+      }
+    } catch (err) {
+      console.error("PiP failed", err);
+    }
+  }, []);
+
+  // AirPlay Handler
+  const triggerAirPlay = useCallback(() => {
+     if (videoRef.current && (videoRef.current as any).webkitShowPlaybackTargetPicker) {
+         (videoRef.current as any).webkitShowPlaybackTargetPicker();
+     }
+  }, []);
+  
+  const handleToggleMute = useCallback(() => {
+      if (isYoutube) {
+          const action = isMuted ? 'unMute' : 'mute';
+          sendYoutubeCommand(action);
+          setIsMuted(!isMuted);
+          showControls();
+          return;
+      }
+
+      const vid = videoRef.current;
+      if (!vid) return;
+      vid.muted = !vid.muted;
+      setIsMuted(vid.muted);
+      showControls();
+  }, [showControls, isYoutube, isMuted, sendYoutubeCommand]);
+
+  const handleVolumeChange = useCallback((newVol: number) => {
+      const vol = Math.max(0, Math.min(1, newVol));
+      setVolume(vol);
+
+      if (isYoutube) {
+          sendYoutubeCommand('setVolume', [vol * 100]);
+          if (vol > 0 && isMuted) {
+             sendYoutubeCommand('unMute');
+             setIsMuted(false);
+          }
+          showControls();
+          return;
+      }
+
+      const vid = videoRef.current;
+      if (!vid) return;
+      
+      vid.volume = vol;
+      
+      if (vol > 0 && vid.muted) {
+          vid.muted = false;
+          setIsMuted(false);
+      }
+      showControls();
+  }, [showControls, isYoutube, isMuted, sendYoutubeCommand]);
+
+  const handleNextChannel = useCallback(() => {
+      showControls();
+      if (!channels || !onChannelSelect || !currentChannel) return;
+      const idx = channels.findIndex(c => c.uuid === currentChannel.uuid);
+      if (idx !== -1) {
+          const nextIdx = (idx + 1) % channels.length;
+          onChannelSelect(channels[nextIdx]);
+      } else if (channels.length > 0) {
+          onChannelSelect(channels[0]);
+      }
+  }, [channels, currentChannel, onChannelSelect, showControls]);
+
+  const handlePrevChannel = useCallback(() => {
+      showControls();
+      if (!channels || !onChannelSelect || !currentChannel) return;
+      const idx = channels.findIndex(c => c.uuid === currentChannel.uuid);
+      if (idx !== -1) {
+          const prevIdx = (idx - 1 + channels.length) % channels.length;
+          onChannelSelect(channels[prevIdx]);
+      } else if (channels.length > 0) {
+          onChannelSelect(channels[channels.length - 1]);
+      }
+  }, [channels, currentChannel, onChannelSelect, showControls]);
+
+  const toggleFullscreen = useCallback(() => {
+      const el = containerRef.current;
+      if (!el) return;
+      
+      if (!document.fullscreenElement) {
+          el.requestFullscreen().catch(err => console.log(err));
+      } else {
+          document.exitFullscreen();
+      }
+  }, []);
+
+  const handleDoubleClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+      toggleFullscreen();
+  }, [toggleFullscreen]);
+
+
+  // Custom key handler for player
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    showControls(); 
+    
+    switch (e.key) {
+      case 'Enter':
+      case ' ': 
+        if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'BUTTON') return; 
+        e.preventDefault();
+        handlePlayPause();
+        break;
+      case 'ArrowUp':
+        if (document.activeElement?.tagName === 'BUTTON') return;
+        e.preventDefault();
+        handleNextChannel();
+        break;
+      case 'ArrowDown':
+        if (document.activeElement?.tagName === 'BUTTON') return;
+        e.preventDefault();
+        handlePrevChannel();
+        break;
+      case 'ArrowRight':
+         if (document.activeElement?.tagName === 'BUTTON') return;
+         e.preventDefault();
+         handleVolumeChange(volume + 0.1);
+        break;
+      case 'ArrowLeft':
+         if (document.activeElement?.tagName === 'BUTTON') return;
+         e.preventDefault();
+         handleVolumeChange(volume - 0.1);
+        break;
+      case 'Backspace':
+      case 'Escape':
+        e.preventDefault();
+        router.back();
+        break;
+    }
+  }, [router, handlePlayPause, handleVolumeChange, volume, showControls, handleNextChannel, handlePrevChannel, isYoutube]);
+
+  // -- Hls.js Logic --
+  useEffect(() => {
+    // Skip HLS logic if youtube OR restricted OR playing fallback
+    // Note: handleRetry resets isFallbackPlaying to false, allowing retry.
+    if (isYoutube || isPaidRestricted || isPlatformRestricted) {
+        setIsLoading(false);
+        return;
+    }
+
+    // Only skip if fallback is actually playing AND we haven't changed channel (src)
+    // Actually this effect re-runs on 'src' change.
+    // So we should Reset fallback status on mount of this effect.
+    if (isFallbackPlaying && retryKey === 0) { 
+        // If we are playing fallback, do not re-init HLS? 
+        // But HLS effect runs on 'src' or 'retryKey'. 
+        // If we switch channel, 'src' changes. 
+        // We need to set isFallbackPlaying(false) when src changes.
+        // We can do that by adding a separate effect or handling it here.
+    }
+    
+    // Reset Fallback on new source load 
+    // (We can't update state here synchronously without triggering re-render loop if we are not careful)
+    // But since 'src' changed, we WANT to reset.
+    // However, playFallback sets src manually on the video element, but the PROP src hasn't changed.
+    // Wait, playFallback sets video.src. Does it change the prop? No.
+    // So if the user changes channel, prop src changes -> Effect runs -> we init HLS.
+    // So we just need to ensure we don't init HLS if we INTEND to play fallback for THIS src.
+    // But we only play fallback AFTER error.
+    // So initially we ALWAYS want HLS.
+    
+    // Therefore, we should NOT check isFallbackPlaying in the dependency array or early return?
+    // If we return, we keep playing fallback.
+    // Correct. But if 'src' changes, state 'isFallbackPlaying' is still 'true' from previous channel?
+    // WE NEED TO RESET IT.
+    
+    // Let's use a separate effect to reset on channel change
+    
+    let hls: Hls | null = null;
+    const video = videoRef.current;
+    
+    // Reset State on source change
+    setErrorMessage(null);
+    setIsLoading(true);
+
+    if (!video) return;
+
+// Device Profile & HLS Optimization
+    // Device Profile
+    // Device Profile
+    const getDeviceProfile = () => {
+        if (typeof navigator === 'undefined') return { isTV: false, isMobile: false, tier: 'low' };
+        
+        const ua = navigator.userAgent.toLowerCase();
+        const nav = navigator as any; 
+        const cores = nav.hardwareConcurrency || 2;
+        const memory = nav.deviceMemory || 1;
+
+        const isTV =
+            ua.includes("android tv") ||
+            ua.includes("smarttv") ||
+            ua.includes("tizen") ||
+            ua.includes("webos") ||
+            ua.includes("tv");
+
+        const isMobile = /android|iphone|ipad|ipod/.test(ua);
+
+        // Tier Logic
+        let tier = 'low';
+        if (cores >= 4 && memory >= 2) tier = 'high';
+        if (isTV && (cores < 4 || memory < 2)) tier = 'low'; // Force low for weak TVs
+
+        return { isTV, isMobile, tier, cores, memory };
+    };
+
+    const buildHlsConfig = (profile: any) => {
+        const base = {
+            lowLatencyMode: false,
+            // ✅ Enable Worker for React Apps (Offloads parsing from Main Thread)
+            enableWorker: true,
+            // ❌ Prevent TV from forcing low res
+            capLevelToPlayerSize: false,
+            // ❌ Avoid aggressive prefetch
+            startFragPrefetch: false,
+            progressive: true,
+            testBandwidth: true,
+            // ABR stability
+            abrEwmaFastLive: 5,
+            abrEwmaSlowLive: 12,
+            // 🚀 START AT SAFE QUALITY (KEY FIX)
+            startLevel: -1, // Auto-quality start for best compatibility
+            // 🎯 Allow quality upgrade
+            abrBandWidthFactor: 0.9,
+            abrBandWidthUpFactor: 0.7,
+            // Prevent constant downscale
+            abrMaxWithRealBitrate: true,
+            // 🛡️ LOADING TIMEOUTS (REDUCE HANGING)
+            manifestLoadingTimeOut: 10000,
+            levelLoadingTimeOut: 10000,
+            fragLoadingTimeOut: 20000,
+            manifestLoadingMaxRetry: 3,
+            levelLoadingMaxRetry: 3,
+            fragLoadingMaxRetry: 6,
+        };
+
+        /* 📺 TV PROFILES */
+        if (profile.isTV) {
+            if (profile.tier === 'low') {
+                // 🛑 LOW TIER TV (Old Android / Tizen / WebOS)
+                return {
+                    ...base,
+                    startLevel: 0, 
+                    maxBufferLength: 8, // Very small for limited RAM
+                    maxMaxBufferLength: 15,
+                    backBufferLength: 0, 
+                    maxBufferSize: 8 * 1024 * 1024,
+                    abrBandWidthFactor: 0.6, 
+                    abrBandWidthUpFactor: 0.4,
+                    maxStarvationDelay: 2,
+                    maxLoadingDelay: 2
+                };  
+            }
+
+            // 🚀 HIGH TIER TV (Shield / Fire TV 4K)
+            return {
+                ...base,
+                maxBufferLength: 30, // Increased for smoother playback
+                maxMaxBufferLength: 60,
+                backBufferLength: 10,
+                maxBufferSize: 40 * 1024 * 1024, // 40MB
+                maxStarvationDelay: 6,
+                maxLoadingDelay: 4
+            };
+        }
+
+        /* 📱 MOBILE */
+        if (profile.isMobile) {
+            return {
+                ...base,
+                maxBufferLength: 40,
+                maxMaxBufferLength: 80,
+                backBufferLength: 15,
+                maxBufferSize: 60 * 1024 * 1024 // 60MB
+            };
+        }
+
+        /* 💻 PC */
+        return {
+            ...base,
+            maxBufferLength: 60,
+            maxMaxBufferLength: 120,
+            backBufferLength: 30,
+            maxBufferSize: 120 * 1024 * 1024 // 120MB
+        };
+    };
+
+        // 🛑 CRITICAL: Shared Video Element Reset for both HLS.js and Native paths
+        video.pause();
+        video.currentTime = 0;
+        video.removeAttribute('src'); 
+        video.load();
+        
+        // Ensure critical attributes for mobile/TV
+        video.setAttribute("playsinline", "true");
+        video.setAttribute("webkit-playsinline", "true");
+        video.style.imageRendering = "auto";
+
+        const profile = getDeviceProfile();
+
+        // 🚀 LITE MODE REDIRECT (For Low-End TVs)
+        if (profile.isTV && profile.tier === 'low' && channelUuid) {
+            window.location.href = `/lite?channel=${channelUuid}`;
+            return; // Stop execution
+        }
+
+        if (Hls.isSupported()) {
+            const hlsConfig = buildHlsConfig(profile);
+
+            // Destroy previous instance
+            if (hlsRef.current) {
+                hlsRef.current.detachMedia();
+                hlsRef.current.destroy();
+                hlsRef.current = null;
+            }
+
+            hls = new Hls({
+                 debug: false,
+                 ...hlsConfig
+            });
+            hlsRef.current = hls;
+
+            hls.attachMedia(video);
+            hls.loadSource(src);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            const levels = hls?.levels || [];
+            
+            const mappedLevels = levels.map((level, index) => {
+                let label = '';
+                if (level.height) {
+                    label = `${level.height}p`;
+                } else if (level.bitrate) {
+                    const kbps = Math.round(level.bitrate / 1000);
+                    label = `${kbps} Kbps`;
+                } else {
+                    label = `Stream ${index + 1}`;
+                }
+                return { index, label, height: level.height };
+            });
+            
+            setQualities([{ index: -1, label: 'Auto' }, ...mappedLevels.reverse()]); 
+            
+            video.play().catch(() => {});
+            setIsPlaying(true);
+        });
+
+        hls.on(Hls.Events.FRAG_BUFFERED, () => {
+             setIsLoading(false);
+        });
+
+        hls.on(Hls.Events.ERROR, function (event, data) {
+            if (data.fatal) {
+                switch (data.type) {
+                  case Hls.ErrorTypes.NETWORK_ERROR:
+                    playFallback();
+                    break;
+                  case Hls.ErrorTypes.MEDIA_ERROR:
+                    hls?.recoverMediaError();
+                    break;
+                  default:
+                    hls?.destroy();
+                    playFallback();
+                    break;
+              }
+            }
+        });
+    } 
+    // Fallback: Native HLS (iOS / Safari / Very Old TVs without MSE)
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = src;
+        video.addEventListener('loadedmetadata', () => {
+            video.play().catch(() => {});
+            setIsPlaying(true);
+        });
+        video.addEventListener('canplay', () => setIsLoading(false));
+        video.addEventListener('error', () => {
+             setIsLoading(false);
+             playFallback();
+        });
+    } else {
+        setIsLoading(false);
+        setErrorMessage("HLS not supported on this browser.");
+    } 
+
+
+    return () => {
+        if (hls) {
+            hls.destroy();
+        }
+        hlsRef.current = null;
+    };
+  }, [src, isYoutube, retryKey, isPaidRestricted]);
+
+  // Auto Retry Logic
+  const [retryCountdown, setRetryCountdown] = useState<number | null>(null);
+
+  useEffect(() => {
+      let interval: NodeJS.Timeout;
+      if (errorMessage) {
+          setRetryCountdown(10);
+          interval = setInterval(() => {
+              setRetryCountdown(prev => {
+                  if (prev === null || prev <= 1) {
+                      handleRetry();
+                      return 0;
+                  }
+                  return prev - 1;
+              });
+          }, 1000);
+      } else {
+          setRetryCountdown(null);
+      }
+      return () => clearInterval(interval);
+  }, [errorMessage, handleRetry]);
+
+  // Loading Timeout Logic
+  useEffect(() => {
+    // Skip timeout if youtube OR restricted
+    if (isYoutube || isPaidRestricted || isPlatformRestricted) return;
+
+    let timeout: NodeJS.Timeout;
+    if (isLoading && !errorMessage) {
+        timeout = setTimeout(() => {
+            console.warn("Connection Timeout - Triggering Fallback");
+            playFallback(); 
+            // setErrorMessage("Connection Timeout");
+            // setIsLoading(false); // playFallback handles this
+        }, 20000); // 20s Timeout
+    }
+    return () => clearTimeout(timeout);
+  }, [isLoading, errorMessage, isYoutube]);
+
+  // Handle native video events for state sync
+  useEffect(() => {
+      // Skip if youtube
+      if (isYoutube) return;
+
+      const vid = videoRef.current;
+      if (!vid) return;
+
+      const onPlay = () => setIsPlaying(true);
+      const onPause = () => setIsPlaying(false);
+      const onVolChange = () => {
+          setVolume(vid.volume);
+          setIsMuted(vid.muted);
+      };
+      const onFSChange = () => {
+          setIsFullscreen(document.fullscreenElement === containerRef.current);
+      }
+      
+      const onWaiting = () => setIsLoading(true);
+      const onPlaying = () => setIsLoading(false);
+      
+      // Initialize state from video element defaults
+      setVolume(vid.volume);
+      setIsMuted(vid.muted);
+
+      vid.addEventListener('play', onPlay);
+      vid.addEventListener('pause', onPause);
+      vid.addEventListener('volumechange', onVolChange);
+      vid.addEventListener('waiting', onWaiting);
+      vid.addEventListener('playing', onPlaying);
+      document.addEventListener('fullscreenchange', onFSChange);
+
+      return () => {
+          vid.removeEventListener('play', onPlay);
+          vid.removeEventListener('pause', onPause);
+          vid.removeEventListener('volumechange', onVolChange);
+          vid.removeEventListener('waiting', onWaiting);
+          vid.removeEventListener('playing', onPlaying);
+          document.removeEventListener('fullscreenchange', onFSChange);
+      }
+  }, [isYoutube]); // Run once on mount to attach listeners
+
+  // Portal Target
+  const mountTarget = overlayRef.current || containerRef.current;
+
+  const overlayPortal = (useCustomOverlay && channels && mountTarget && !isPaidRestricted && !isPlatformRestricted && !isFallbackPlaying) ? createPortal(
+    <PlayerOverlay
+      visible={controlsVisible}
+      channels={channels}
+      topTrending={topTrending}
+      currentGroup={currentGroup || ''}
+      currentChannel={currentChannel}
+      viewersCount={viewersCount}
+      
+      isPlaying={isPlaying}
+      isMuted={isMuted}
+      volume={volume}
+      onPlayPause={handlePlayPause}
+      onToggleMute={handleToggleMute}
+      onVolumeChange={handleVolumeChange}
+      onNextChannel={handleNextChannel}
+      onPrevChannel={handlePrevChannel}
+      isFullscreen={isFullscreen}
+      onToggleFullscreen={toggleFullscreen}
+      
+      onSelect={(c) => {
+          if (onChannelSelect) onChannelSelect(c);
+      }}
+      onNextGroup={onNextGroup || (() => {})}
+      onPrevGroup={onPrevGroup || (() => {})}
+      onClose={() => setControlsVisible(false)}
+
+      // Grouping
+      groupedChannels={allGroupedChannels}
+      groupKeys={groupKeys}
+      currentGroupType={currentGroupType}
+      onGroupTypeChange={onGroupTypeChange}
+      onGroupSelect={onGroupSelect}
+      
+      // Quality Props
+      qualities={qualities}
+      currentQuality={currentQuality}
+      onQualityChange={handleQualityChange}
+      
+      // New Features
+      onTogglePiP={!isYoutube ? togglePiP : undefined}
+      isPiP={isPiP}
+      onAirPlay={showAirPlay ? triggerAirPlay : undefined}
+      
+
+    />,
+    mountTarget as Element
+  ) : null;
+
+  return (
+    <>
+    <div
+      ref={containerRef}
+      style={{ maxWidth: '1920px', width: '100%', height: '100%', margin: '0 auto', position: 'relative', overflow: 'hidden' }}
+      {...containerFocusProps}
+      onKeyDown={(e) => {
+        handleKeyDown(e);
+        if (containerFocusProps.onKeyDown) containerFocusProps.onKeyDown(e);
+      }}
+      // Mouse/Touch Handlers for Visibility
+      onMouseMove={handleMouseMove}
+      onDoubleClick={handleDoubleClick}
+      className={`${containerFocusProps.className} ${isContainerFocused ? 'ring-4 ring-white z-20 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : ''} cursor-pointer bg-black`} 
+    >
+      {/* RENDER LOGIC SWITCH */}
+      {isPlatformRestricted ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-slate-900/90 text-center z-10">
+              <div className="bg-red-500/20 p-6 rounded-full mb-4 animate-pulse">
+                  <Lock size={48} className="text-red-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Unavailable on Device</h2>
+              <p className="text-slate-400 max-w-md mx-auto mb-6">
+                  {platformRestrictionMessage || 'This channel does not support the current platform.'}
+              </p>
+              <button 
+                {...homeFocus}
+              >
+                  Back to Home
+              </button>
+          </div>
+      ) : isPaidRestricted ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-slate-900/90 text-center z-10">
+              <div className="bg-yellow-500/20 p-6 rounded-full mb-4 animate-pulse">
+                  <Lock size={48} className="text-yellow-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">{channelName} - Premium Content</h2>
+              <p className="text-slate-300 max-w-md">
+                  This channel is available exclusively for premium subscribers. Please subscribe to access this content.
+              </p>
+          </div>
+      ) : isYoutube ? (
+          <div className="relative w-full h-full">
+              <iframe 
+                src={getYoutubeEmbedUrl(src)} 
+                className="absolute inset-0 w-full h-full border-none"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
+                loading="eager"
+                title={channelName}
+                style={{ pointerEvents: 'none' }} // Ensure clicks go to shim
+              />
+              {/* Interaction Overlay Shim for YouTube */}
+              <div 
+                  className="absolute inset-0 z-10 w-full h-full bg-transparent cursor-pointer"
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      handlePlayPause();
+                  }}
+                  onDoubleClick={(e) => {
+                      // Pass double click up or handle it
+                      // Double click naturally bubbles if not stopped here, but we might want to ensure it works
+                      // But let's let standard bubbling handle dblclick if we don't stop it.
+                      // Note: We are stopping Click propagation, not dblclick.
+                  }}
+              />
+          </div>
+      ) : (
+          /* Video Element (Direct HLS) */
+          <video
+              ref={videoRef}
+              className="w-full h-full object-fill"
+              playsInline
+              crossOrigin="anonymous"
+              autoPlay
+          />
+      )}
+
+      {/* Overlay Mount Point - Always Render */}
+      {/* BUGFIX: Increased z-index to 50 to ensure overlay is always visible across all player states */}
+      <div ref={overlayRef} className="absolute inset-0 w-full h-full pointer-events-none z-50" />
+
+      {/* Loading Spinner */}
+      {isLoading && !errorMessage && !isPaidRestricted && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
+              <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
+                  <p className="text-white font-medium animate-pulse">Loading...</p>
+              </div>
+          </div>
+      )}
+
+      {/* Playback Error Overlay */}
+      {errorMessage && !isPaidRestricted && !isFallbackPlaying && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black">
+          <div className="text-center px-6 max-w-md">
+            <div className="inline-flex p-3 rounded-full bg-red-500/20 text-red-500 mb-4">
+                 <AlertTriangle size={32} />
+            </div>
+            <p className="text-white text-xl font-bold mb-2">
+              Playback Error
+            </p>
+            <p className="text-slate-400 text-sm mb-6">{errorMessage}</p>
+
+            <div className="flex items-center gap-3">
+                <button
+                    {...retryFocus}
+                >
+                    <RefreshCw size={18} className={retryCountdown ? 'animate-spin' : ''} />
+                    {retryCountdown ? `${retryCountdown}` : 'Retry'}
+                </button>
+                <button
+                    {...reportFocus}
+                >
+                    Report
+                </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fallback Mode UI (Manual Retry) */}
+      {isFallbackPlaying && (
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[65] flex flex-col items-center gap-4 pointer-events-auto">
+                <button
+                    {...fallbackFocus}
+                >
+                  <RefreshCw size={22} className="animate-spin-slow" />
+                  <span>Re-connecting in {nextRetryIn}s</span>
+                </button>
+          </div>
+      )}
+
+      {/* Manual Report Button */}
+      {!errorMessage && (controlsVisible || !isPlaying || isLoading || isFallbackPlaying) && !isPaidRestricted && (
+        <TVReportButton 
+            onClick={(e) => {
+                e.stopPropagation();
+                setShowReport(true);
+            }}
+            className="absolute top-4 right-4 z-[60] bg-black/40 hover:bg-red-600 text-white p-2.5 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto"
+        />
+      )}
+
+      {/* Inject Portal */}
+      {/* Premium Restriction Overlay */}
+      {isPaidRestricted && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
+          <div className="text-center px-6 max-w-md">
+            <div className="inline-flex p-4 rounded-full bg-yellow-500/20 text-yellow-500 mb-6 ring-1 ring-yellow-500/50 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+                 <Crown size={48} fill="currentColor" />
+            </div>
+            <h2 className="text-white text-2xl font-bold mb-3">
+              Premium Content
+            </h2>
+            <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+              This channel is available exclusively for Premium subscribers. Please upgrade your plan to watch.
+            </p>
+
+            <button
+                onClick={() => router.push('/profile')}
+                className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-black font-bold text-lg px-8 py-4 rounded-xl transition-all shadow-lg hover:shadow-yellow-500/20 transform hover:-translate-y-0.5"
+            >
+                Upgrade Now
+            </button>
+            <button 
+                onClick={() => router.back()}
+                className="mt-4 text-slate-500 hover:text-white font-medium text-sm transition-colors"
+            >
+                Go Back
+            </button>
+          </div>
+        </div>
+      )}
+
+      {overlayPortal}
+      
+      {/* Watermark */}
+      {app_logo_png_url && (
+        <img 
+            src={app_logo_png_url} 
+            alt="Watermark" 
+            onError={(e) => console.error("Watermark Load Error", app_logo_png_url, e)}
+            className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 w-16 sm:w-24 md:w-32 lg:w-40 opacity-60 pointer-events-none select-none z-20 drop-shadow-md transition-all duration-300"
+        />
+      )}
+    </div>
+
+    <ReportModal
+      isOpen={showReport}
+      onClose={() => setShowReport(false)}
+      channelUuid={channelUuid}
+      channelName={channelName}
+      // BUGFIX: Passing the containerRef to ensure the modal portals into the player's context.
+      // This is essential for visibility when the video player is in Fullscreen mode.
+      container={containerRef.current}
+    />
+    </>
+  );
+}
+
+export default React.memo(VideoPlayer);

@@ -29,9 +29,218 @@ class ChannelController
         }
     }
 
+    public function export(Request $request, Response $response): Response
+    {
+        $filters = $request->getQueryParams();
+        $columnsParam = $filters['columns'] ?? '';
+        $columns = !empty($columnsParam) ? explode(',', $columnsParam) : [];
+
+        if (empty($columns)) {
+             return ResponseFormatter::error($response, 'No columns selected for export', 400);
+        }
+
+        // Validate Columns (Security)
+        $allowedColumns = [
+            'id', 'uuid', 'name', 'channel_number', 'category', 'language', 
+            'state', 'district', 'status', 'views', 'is_premium', 'is_featured', 
+            'created_at', 'hls_url'
+        ];
+
+        $validColumns = array_intersect($columns, $allowedColumns);
+        
+        if (empty($validColumns)) {
+            return ResponseFormatter::error($response, 'Invalid columns selected', 400);
+        }
+
+        // Header Mapping (for display)
+        $headerMap = [
+            'id' => 'ID',
+            'uuid' => 'UUID',
+            'name' => 'Name',
+            'channel_number' => 'Channel Number',
+            'category' => 'Category',
+            'language' => 'Language',
+            'state' => 'State',
+            'district' => 'District',
+            'status' => 'Status',
+            'views' => 'Total Views',
+            'is_premium' => 'Premium',
+            'is_featured' => 'Featured',
+            'created_at' => 'Created At',
+            'hls_url' => 'Stream URL'
+        ];
+
+        try {
+            $generator = $this->channelService->export($filters, $validColumns);
+            
+            $response = $response
+                ->withHeader('Content-Type', 'text/csv')
+                ->withHeader('Content-Disposition', 'attachment; filename="channels_export_' . date('Y-m-d_H-i-s') . '.csv"')
+                ->withHeader('Pragma', 'no-cache')
+                ->withHeader('Expires', '0');
+
+            $body = $response->getBody();
+            
+            // Write Headers
+            $csvHeaders = [];
+            foreach ($validColumns as $col) {
+                $csvHeaders[] = $headerMap[$col] ?? ucfirst($col);
+            }
+            
+            $handle = fopen('php://temp', 'r+');
+            fputcsv($handle, $csvHeaders, ",", "\"", "\\"); // Explicitly set defaults for PHP 8.1+
+            rewind($handle);
+            $body->write(stream_get_contents($handle));
+            ftruncate($handle, 0); // Clear for reuse
+            
+            foreach ($generator as $row) {
+                // Resetting handle is faster than closing/opening
+                rewind($handle);
+                fputcsv($handle, array_values($row), ",", "\"", "\\"); // Explicitly set defaults for PHP 8.1+
+                rewind($handle);
+                $body->write(stream_get_contents($handle));
+                ftruncate($handle, 0);
+            }
+            
+            fclose($handle);
+
+            return $response;
+
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
+        }
+    }
+
+    private function handleUpload($file, $directory, $allowedExtensions = [], $convertToWebp = false, $channelName = null, $resizeDimensions = [])
+    {
+        if ($file->getError() === UPLOAD_ERR_OK) {
+            $extension = strtolower(pathinfo($file->getClientFilename(), PATHINFO_EXTENSION));
+
+            // Validate Extension
+            if (!empty($allowedExtensions)) {
+                if (!in_array($extension, $allowedExtensions)) {
+                    throw new Exception("Invalid file type for $directory. Allowed: " . implode(', ', $allowedExtensions));
+                }
+            }
+
+            // Determine Target Extension
+            $targetExtension = $convertToWebp ? 'webp' : $extension;
+            
+            // Construct Filename
+            $prefix = '';
+            if (!empty($channelName)) {
+                $cleanName = preg_replace('/[^a-zA-Z0-9]+/', '_', strtolower($channelName));
+                $cleanName = trim($cleanName, '_');
+                if (!empty($cleanName)) {
+                    $prefix = $cleanName . '_';
+                }
+            }
+            
+            // $filename = $prefix . time() . '.' . $targetExtension;
+            $filename = time() . '.' . $targetExtension;
+            
+            // Ensure directory exists
+            $path = __DIR__ . '/../../../public' . $directory;
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $targetPath = $path . '/' . $filename;
+            
+            $shouldProcess = $convertToWebp || !empty($resizeDimensions);
+
+            if ($shouldProcess && ($extension === 'png' || $extension === 'webp')) {
+                // Move to temp path first to handle safely
+                $tempPath = $path . '/' . time() . '_temp.' . $extension;
+                $file->moveTo($tempPath);
+
+                if ($extension === 'png') {
+                    $sourceImage = imagecreatefrompng($tempPath);
+                } else {
+                    $sourceImage = imagecreatefromwebp($tempPath);
+                }
+
+                if ($sourceImage) {
+                    // Get current dimensions
+                    $width = imagesx($sourceImage);
+                    $height = imagesy($sourceImage);
+                    
+                    // Determine new dimensions
+                    $newWidth = !empty($resizeDimensions) ? $resizeDimensions[0] : $width;
+                    $newHeight = !empty($resizeDimensions) ? $resizeDimensions[1] : $height;
+
+                    // Create destination image
+                    $destImage = imagecreatetruecolor($newWidth, $newHeight);
+                    
+                    // Handle Transparency
+                    imagepalettetotruecolor($destImage);
+                    imagealphablending($destImage, false);
+                    imagesavealpha($destImage, true);
+                    $transparent = imagecolorallocatealpha($destImage, 255, 255, 255, 127);
+                    
+                    // Apply transparency background
+                    imagefilledrectangle($destImage, 0, 0, $newWidth, $newHeight, $transparent);
+                    
+                    // Resample (Resize)
+                    imagecopyresampled($destImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+                    
+                    // Save
+                    if ($convertToWebp) {
+                         imagewebp($destImage, $targetPath, 80); // 80% quality
+                    } else if ($extension === 'png') {
+                         imagepng($destImage, $targetPath, 9);
+                    } else {
+                         imagewebp($destImage, $targetPath, 80);
+                    }
+                    
+                    imagedestroy($sourceImage);
+                    imagedestroy($destImage);
+                    
+                    // Remove temp file
+                    if (file_exists($tempPath)) {
+                        unlink($tempPath);
+                    }
+                } else {
+                    // Fallback if GD fails
+                    rename($tempPath, $targetPath);
+                }
+            } else {
+                $file->moveTo($targetPath);
+            }
+            
+            // Return relative path for database storage
+            return "$directory/$filename";
+        }
+        return null;
+    }
+
     public function create(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody() ?? [];
+        $uploadedFiles = $request->getUploadedFiles();
+
+        // Handle Boolean fields from FormData
+        $data['is_featured'] = filter_var($data['is_featured'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $data['is_premium'] = filter_var($data['is_premium'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $data['is_ad_enabled'] = filter_var($data['is_ad_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $data['is_preview_public'] = filter_var($data['is_preview_public'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        try {
+            // Handle File Uploads
+            $channelName = $data['name'] ?? null;
+            
+            if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
+                // Allow png/webp, convert to webp, resize to 1280x720
+                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails', ['png', 'webp'], true, $channelName, [1280, 720]);
+            }
+            
+            if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
+                // Allow png/webp, convert to webp, resize to 512x512
+                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos', ['png', 'webp'], true, $channelName, [512, 512]);
+            }
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 400);
+        }
 
         $rules = [
             'required' => [['name'], ['hls_url']],
@@ -59,14 +268,83 @@ class ChannelController
         }
     }
 
+    private function deleteFile($relativePath)
+    {
+        if (empty($relativePath)) return;
+        
+        $baseDir = __DIR__ . '/../../../public';
+        // Construct full path - simplistic check, realpath better but just use known structure
+        $fullPath = $baseDir . $relativePath;
+        
+        if (file_exists($fullPath) && is_file($fullPath)) {
+            @unlink($fullPath);
+        }
+    }
+
     public function update(Request $request, Response $response, string $uuid): Response
     {
         $data = $request->getParsedBody() ?? [];
+        $uploadedFiles = $request->getUploadedFiles();
+
+        // Handle Boolean fields from FormData
+        if (isset($data['is_featured'])) $data['is_featured'] = filter_var($data['is_featured'], FILTER_VALIDATE_BOOLEAN);
+        if (isset($data['is_premium'])) $data['is_premium'] = filter_var($data['is_premium'], FILTER_VALIDATE_BOOLEAN);
+        if (isset($data['is_ad_enabled'])) $data['is_ad_enabled'] = filter_var($data['is_ad_enabled'], FILTER_VALIDATE_BOOLEAN);
+        if (isset($data['is_preview_public'])) $data['is_preview_public'] = filter_var($data['is_preview_public'], FILTER_VALIDATE_BOOLEAN);
+
+        unset($data['thumbnail_url']); // Frontend might send this
+        unset($data['logo_url']);      // Frontend might send this
+        unset($data['thumbnail_path']);
+        unset($data['logo_path']);
+
+        // Fetch old data for cleanup
+        try {
+            $oldChannel = $this->channelService->getOne($uuid);
+            // Access raw attributes directly
+            $oldThumbnail = $oldChannel->getAttributes()['thumbnail_path'] ?? null;
+            $oldLogo = $oldChannel->getAttributes()['logo_path'] ?? null;
+            $oldName = $oldChannel->name ?? null; 
+        } catch (\Exception $e) {
+            $oldThumbnail = null;
+            $oldLogo = null;
+            $oldName = null;
+        }
 
         try {
-            $channel = $this->channelService->update($uuid, $data);
-            return ResponseFormatter::success($response, $channel, 'Channel updated successfully');
+            // Handle File Uploads
+            // Use new name if provided, otherwise old name
+            $channelName = $data['name'] ?? $oldName;
+
+            if (isset($uploadedFiles['thumbnail']) && $uploadedFiles['thumbnail']->getError() === UPLOAD_ERR_OK) {
+                // Allow png/webp, convert to webp, resize to 1280x720
+                $data['thumbnail_path'] = $this->handleUpload($uploadedFiles['thumbnail'], '/uploads/channel/thumbnails', ['png', 'webp'], true, $channelName, [1280, 720]);
+            }
+            
+            if (isset($uploadedFiles['logo']) && $uploadedFiles['logo']->getError() === UPLOAD_ERR_OK) {
+                // Allow png/webp, convert to webp, resize to 512x512
+                $data['logo_path'] = $this->handleUpload($uploadedFiles['logo'], '/uploads/channel/logos', ['png', 'webp'], true, $channelName, [512, 512]);
+            }
         } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 400);
+        }
+
+        try {
+            // Update Channel
+            $channel = $this->channelService->update($uuid, $data);
+
+            error_log("DEBUG: Channel Updated Successfully. New State: is_featured=" . ($channel->is_featured ? 'true' : 'false') . ", is_premium=" . ($channel->is_premium ? 'true' : 'false'));
+
+            // Cleanup Old Files if replaced
+            if (isset($data['thumbnail_path']) && $oldThumbnail && $oldThumbnail !== $data['thumbnail_path']) {
+                $this->deleteFile($oldThumbnail);
+            }
+            if (isset($data['logo_path']) && $oldLogo && $oldLogo !== $data['logo_path']) {
+                $this->deleteFile($oldLogo);
+            }
+
+            return ResponseFormatter::success($response, $channel, 'Channel updated successfully');
+        } catch (\Throwable $e) {
+            error_log("DEBUG: Update Failed: " . $e->getMessage());
             return ResponseFormatter::error($response, $e->getMessage(), 500);
         }
     }
@@ -85,6 +363,18 @@ class ChannelController
         try {
             $data = $this->channelService->getAnalytics($uuid);
             return ResponseFormatter::success($response, $data, 'Channel analytics retrieved successfully');
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
+        }
+    }
+
+    public function getNextChannelNumber(Request $request, Response $response): Response
+    {
+        try {
+            $maxNumber = \App\Models\Channel::max('channel_number');
+            $nextNumber = $maxNumber ? ((int)$maxNumber + 1) : 1;
+
+            return ResponseFormatter::success($response, ['next_number' => $nextNumber], 'Next channel number retrieved');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 500);
         }

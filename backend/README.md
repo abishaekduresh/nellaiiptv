@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.17.0)
+# Nellai IPTV - Backend API (v1.38.0)
 
-**Version 1.17.0** | RESTful API built with Slim PHP Framework
+**Version 1.38.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -61,7 +61,7 @@ JWT_SECRET=your_jwt_secret_here
 API_SECRET=your_strong_api_secret_here
 
 # General
-APP_URL=https://api.yoursite.com  # Required for correct logo URL generation behind proxies
+APP_URL=https://api.yoursite.com/backend/public  # Required for correct absolute URL generation (supports subdirectories)
 ```
 
 ### 4. Start Development Server
@@ -152,8 +152,108 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
+## Latest Updates (v1.37.1)
+- **Sync**: Version synchronized with Frontend v1.48.1 and App v1.8.25+42.
+
+## Latest Updates (v1.37.0)
+- **Scrolling Ads API**: Implemented full CRUD REST API for managing Scrolling Ads (`/admin/scrolling-ads`).
+- **Database Fields**: Added `repeat_count` and `scroll_speed` to support advanced ad playback logic.
+- **Public Endpoint**: Exposed public `/scrolling-ads` endpoint for apps and websites to fetch active ads.
+- **Sync**: Version synchronized with Frontend v1.48.0 and App v1.8.24+41.
+
+## Latest Updates (v1.36.3)
+- **RTMP URL Support**: Added a new `rtmp_url` column to the `channels` table.
+- **Mass Assignment**: Updated `Channel` model to allow mass assignment for the `rtmp_url` field.
+- **Auto-WebP Conversion**: Implemented server-side conversion of `.png` uploads to optimized `.webp`.
+- **Image Resizing**: Enforced target resolutions for channel thumbnails (**1280x720px**) and logos (**512x512px**).
+- **Clean Naming**: Switched to timestamp-only filenames for all image uploads.
+- **Sync**: Version synchronized with Frontend v1.47.2.
+
+## Latest Updates (v1.36.1)
+- **Maintenance**: Version synchronized with App update.
+
+## Latest Updates (v1.36.0)
+
+## Latest Updates (v1.35.3)
+
+## Latest Updates (v1.35.2)
+- **Public API**: Enabled conditional access for guests on public preview channels.
+
+## Latest Updates (v1.35.1)
+- **Diagnostic Logging**: Enhanced `ChannelController` with comprehensive debug logs for access control verification.
+
+## Latest Updates (v1.33.0)
+- **Comment Moderation**: Full CRUD capabilities for `ChannelCommentController` including soft-deletes and status toggling.
+- **Auto-Numbering**: New `getNextChannelNumber` utility to streamline channel creation workflows.
+- **GeoService Stability**: Fixed critical SQL errors in filter endpoints by removing legacy column constraints.
+
+## Latest Updates (v1.32.0)
+- **Proprietor Metadata**: Expanded `Channel` model and schema to store channel owner contact details (Name, Phone, Email, Address).
+- **Stream Headers**: Added `user_agent` and `referer` fields to the `channels` table for specialized stream access control.
+- **Admin Districts API**: Registered new route `GET /admin/districts` to facilitate district selection in administrative forms.
+- **Admin Geo API**: Updated `getCategories` and `getLanguages` in `GeoService` to support `status='all'`, allowing admins to manage inactive items.
+
+## Latest Updates (v1.31.0)
+- **Geo Filtering**: Enhanced Categories and Languages APIs with optional `status` parameter (active/inactive).
+- **Sorting Logic**: Standardized priority-weighted ordering (`order_number`) for all metadata services.
+
+## Latest Updates (v1.30.0)
+- **Status Filtering**: Categories and Languages APIs now support `status` filtering (active/inactive).
+- **Sorting Logic**: Standardized priority-weighted ordering for all metadata services.
+
+## Latest Updates (v1.27.0)
+
+## Latest Updates (v1.26.0)
+- **Open Access Support**: Logic to bypass subscription checks for unauthenticated requests when enabled.
+- **Unified Reporting**: New administrative logs combining Gateway payments and Wallet transactions.
+- **Settings Stability**: Fixed type-strictness bug when reading boolean settings from database.
+
+## Latest Updates (v1.24.1)
+
+## Latest Updates (v1.23.0)
+- **Reseller System**: Added role-based customer management with 'customer' and 'reseller' roles.
+- **Device Limits**: Resellers fixed at 1 device; customers use plan limits.
+- **Subscription Bypass**: Resellers no longer require active subscriptions.
+- **Transaction Filters**: Enhanced admin transaction endpoint with search and filtering.
+- **Payment Flow**: Fixed blocking issue preventing subscription purchases for users without plans.
+
+## Latest Updates (v1.22.0)
+- **Route Conflict Fix**: Resolved critical 500 error on `/api/plans`.
+- **Security**: Enhanced OptionalAuthMiddleware to handle malformed tokens.
+
+## Latest Updates (v1.21.0)
+- **Settings**: Added `fallback_404_mp4_url` support for compatible fallback playback.
+- **Ads**: Enabled `redirect_url` support for clickable banner ads.
+
+## Latest Updates (v1.20.3)
+- **Math Logic**: Switched to integer-based view count formatting for precision.
+- **Production URL Fix**: Robust `APP_URL` detection supporting `getenv` and `$_SERVER` fallbacks.
+- **Admin**: Updated settings resolution logic.
+
+## Latest Updates (v1.20.2)
+- **Production URL Fix**: Enhanced `APP_URL` detection supporting `getenv` and `$_SERVER` fallbacks.
+- **Admin**: Updated settings resolution logic.
+
+## Latest Updates (v1.20.1)
+- **Security**: Removed `_path` fields from API responses.
+- **Architecture**: Enforced absolute URL usage for all media assets.
+
+## Latest Updates (v1.20.0)
+- **Production URL Fixes**: Refactored `Channel` and `Settings` models to prioritize `APP_URL` from environment to generate correct absolute URLs for images in production.
+- **Env Configuration**: Clarified `APP_URL` usage in `README` to prevent localhost leakages.
+
+## Latest Updates (v1.19.0)
+- **API Key System**: Database-backed API key management with expiry, soft-delete, and Platform Restrictions.
+- 🔐 **Security**: Legacy `.env` API secrets supported alongside new DB keys.
+
+## Latest Updates (v1.18.0)
+- 🖼️ **Logo System Refactor**: Settings now store relative paths and dynamically resolve URLs based on `APP_URL` or Proxy headers (`X-Forwarded-*`).
+- 📁 **Subdirectory Support**: Fixed asset URL generation for backends deployed in subfolders (e.g., `/nellaiiptv/backend`).
+- 💧 **Watermark Setting**: Added dedicated `app_logo_png_path` setting for the video player's transparent overlay.
+
 ## Latest Updates (v1.17.0)
-- 💳 **Subscription Engine**: Full CRUD endpoints for managing subscription plans (`SubscriptionPlanController`) and identifying customer subscriptions.
+- **API Key System**: Database-backed API key management with expiry and soft-delete support (`api_keys` table).
+- 💳 **Subscription Engine**: Flexible plan management and validation logic. subscription plans (`SubscriptionPlanController`) and identifying customer subscriptions.
 - ⚙️ **Public Settings**: Expose `top_trending_platforms` configuration to control trending section visibility.
 
 ## Latest Updates (v1.15.0)

@@ -30,11 +30,15 @@ class SubscriptionPlanController
             $plan->uuid = Uuid::uuid4()->toString();
             $plan->name = $data['name'];
             $plan->price = $data['price'];
+            $plan->reseller_price = $data['reseller_price'] ?? 0;
             $plan->duration = $data['duration'];
             $plan->device_limit = $data['device_limit'] ?? 1;
             $plan->platform_access = $data['platform_access'] ?? []; // Array
+            $plan->features = $data['features'] ?? []; // Array
             $plan->description = $data['description'] ?? null;
             $plan->status = $data['status'] ?? 'active';
+            $plan->is_popular = $data['is_popular'] ?? false;
+            $plan->show_to = $data['show_to'] ?? 'both';
             $plan->save();
 
             return ResponseFormatter::success($response, $plan, 'Subscription plan created successfully', 201);
@@ -64,11 +68,15 @@ class SubscriptionPlanController
         try {
             if (isset($data['name'])) $plan->name = $data['name'];
             if (isset($data['price'])) $plan->price = $data['price'];
+            if (isset($data['reseller_price'])) $plan->reseller_price = $data['reseller_price'];
             if (isset($data['duration'])) $plan->duration = $data['duration'];
             if (isset($data['device_limit'])) $plan->device_limit = $data['device_limit'];
             if (isset($data['platform_access'])) $plan->platform_access = $data['platform_access'];
+            if (isset($data['features'])) $plan->features = $data['features'];
             if (isset($data['description'])) $plan->description = $data['description'];
             if (isset($data['status'])) $plan->status = $data['status'];
+            if (isset($data['is_popular'])) $plan->is_popular = (bool)$data['is_popular'];
+            if (isset($data['show_to'])) $plan->show_to = $data['show_to'];
             
             $plan->save();
 

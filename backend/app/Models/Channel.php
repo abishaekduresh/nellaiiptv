@@ -8,12 +8,37 @@ class Channel extends Model
 {
     protected $table = 'channels';
     protected $fillable = [
-        'uuid', 'name', 'channel_number', 'hls_url', 'village', 
-        'category_id', 'state_id', 'language_id', 'district_id', 'thumbnail_url', 
-        'is_featured', 'expiry_at', 'status', 'created_at', 'is_premium', 'allowed_platforms'
+        'uuid', 'name', 'channel_number', 'share_code', 'hls_url', 'rtmp_url', 'village', 
+        'category_id', 'state_id', 'language_id', 'district_id', 'thumbnail_path', 'logo_path',
+        'is_featured', 'expiry_at', 'status', 'created_at', 'is_premium', 'allowed_platforms',
+        'proprietor_name', 'proprietor_phone', 'proprietor_email', 'proprietor_address',
+        'user_agent', 'referer', 'is_preview_public'
     ];
+
+
+    protected $casts = [
+        'is_featured' => 'boolean',
+        'is_premium' => 'boolean',
+        'is_ad_enabled' => 'boolean',
+        'is_preview_public' => 'boolean',
+    ];
+    
+    protected $hidden = ['thumbnail_path', 'logo_path'];
+    protected $appends = ['thumbnail_url', 'logo_url', 'viewers_count_formatted', 'average_rating'];
+
     public $timestamps = true;
     const UPDATED_AT = null;
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->share_code)) {
+                $model->share_code = str_pad(mt_rand(100000, 999999), 6, '0', STR_PAD_LEFT);
+            }
+        });
+    }
 
     public function state()
     {
@@ -48,5 +73,51 @@ class Channel extends Model
     public function views()
     {
         return $this->hasMany(ChannelView::class);
+    }
+
+    public function getThumbnailUrlAttribute()
+    {
+        $path = $this->attributes['thumbnail_path'] ?? null;
+        if (empty($path)) {
+            $path = $this->attributes['logo_path'] ?? null;
+        }
+        return $this->formatUrl($path);
+    }
+
+    public function getLogoUrlAttribute()
+    {
+        return $this->formatUrl($this->attributes['logo_path'] ?? null);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        // Laravel's withAvg() returns a string like "5.0000"
+        // Cast to float to ensure numeric type for app compatibility
+        $value = $this->attributes['average_rating'] ?? 0;
+        return $value ? (float)$value : 0.0;
+    }
+
+    public function getViewersCountFormattedAttribute()
+    {
+        return $this->attributes['viewers_count_formatted'] ?? '';
+    }
+
+    private function formatUrl($value)
+    {
+        if (empty($value)) return $value;
+        if (strpos($value, 'http') === 0) return $value;
+        
+        // Robust Env Fetch
+        $appUrl = $_ENV['APP_URL'] ?? getenv('APP_URL') ?? $_SERVER['APP_URL'] ?? null;
+        
+        if (!empty($appUrl)) {
+            return rtrim($appUrl, '/') . $value;
+        }
+        
+        // Dynamic fallback
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        
+        return "$protocol://$host" . $value;
     }
 }
