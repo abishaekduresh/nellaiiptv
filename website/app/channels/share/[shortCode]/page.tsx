@@ -81,24 +81,31 @@ export default async function SharePage({ params }: { params: { shortCode: strin
                   </a>
 
                   <script dangerouslySetInnerHTML={{ __html: `
-                      var isAndroid = /android/i.test(navigator.userAgent);
-                      var intentUrl = "${intentUrl}";
-                      var iosUrl = "nellaiiptv://channels/share/${shortCode}";
+                      // Register timers first so they aren't blocked by the intent navigation
                       
-                      // Try to open the app (OS specific intent)
-                      window.location.href = isAndroid ? intentUrl : iosUrl;
-
-                      // Start the 3-second fallback countdown
+                      // UI Countdown (setInterval)
                       var count = 3;
                       var countdownEl = document.getElementById("countdown");
                       var timer = setInterval(function() {
                           count--;
-                          if (countdownEl) countdownEl.innerText = count;
-                          if (count <= 0) {
-                              clearInterval(timer);
-                              window.location.replace("${previewUrl}");
+                          if (countdownEl && count > 0) {
+                              countdownEl.innerText = count;
                           }
                       }, 1000);
+
+                      // Automatic Redirect (setTimeout)
+                      setTimeout(function() {
+                          clearInterval(timer);
+                          window.location.replace("${previewUrl}");
+                      }, 3000);
+
+                      // Fire Intent slightly after to ensure UI paints and timers start
+                      setTimeout(function() {
+                          var isAndroid = /android/i.test(navigator.userAgent);
+                          var intentUrl = "${intentUrl}";
+                          var iosUrl = "nellaiiptv://channels/share/${shortCode}";
+                          window.location.href = isAndroid ? intentUrl : iosUrl;
+                      }, 50);
                   `}} />
               </body>
           </html>
