@@ -72,6 +72,51 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
 
     playerRef.current = new window.Clappr.Player(playerConfig);
 
+    // 🖥️ SD → HD STRETCH: Force the internal <video> element to fill the entire
+    // player container regardless of source resolution (object-fit: fill stretches
+    // SD content to full HD without black bars).
+    const applyStretchStyle = () => {
+      const container = document.getElementById('player-container');
+      if (!container) return;
+      // Target every video element Clappr renders inside the container
+      container.querySelectorAll('video').forEach((vid: HTMLVideoElement) => {
+        vid.style.width      = '100%';
+        vid.style.height     = '100%';
+        vid.style.objectFit  = 'fill'; // "fill" = stretch; change to "cover" for crop-to-fit
+        vid.style.display    = 'block';
+      });
+    };
+
+    // Apply immediately and again shortly after (Clappr may render async)
+    applyStretchStyle();
+    const stretchTimer = setTimeout(applyStretchStyle, 500);
+    const stretchTimer2 = setTimeout(applyStretchStyle, 1500);
+
+    // Also inject a persistent <style> rule so Clappr can't override it
+    const styleId = 'clappr-stretch-style';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        #player-container video {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: fill !important;
+        }
+        #player-container .player-poster {
+          background-size: cover !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // MutationObserver: re-apply stretch if Clappr ever recreates the video element
+    const observer = new MutationObserver(() => applyStretchStyle());
+    const container = document.getElementById('player-container');
+    if (container) {
+      observer.observe(container, { childList: true, subtree: true });
+    }
+
     // Auto reconnect logic
     const reconnectInterval = setInterval(() => {
       const player = playerRef.current;
@@ -112,11 +157,16 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
     // Cleanup
     return () => {
       clearInterval(reconnectInterval);
+      clearTimeout(stretchTimer);
+      clearTimeout(stretchTimer2);
+      observer.disconnect();
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('click', handleClick);
       if (playerRef.current) {
         playerRef.current.destroy();
       }
+      // Remove injected stretch style on unmount
+      document.getElementById('clappr-stretch-style')?.remove();
     };
   }, [streamUrl, posterUrl, isClapprLoaded]);
 

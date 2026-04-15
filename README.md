@@ -6,8 +6,8 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.49.0
-- **Key Features**: Scrolling Ads Ticker, RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
+- **Version**: 1.50.0
+- **Key Features**: HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
@@ -16,26 +16,16 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.8.27+44 (Main) / 1.2.3+4 (Single Channel)
+- **Version**: 1.9.2+51 (Main) / 1.2.3+4 (Single Channel)
 - **Key Features**: Storage Management, Enhanced Channel Search, Channel Sorting Settings, Focus Persistence.
 
-## Recent Updates (v1.8.27+44 App / v1.48.1 Website / v1.37.1 Backend)
+## Recent Updates (v1.9.2+51 App / v1.50.0 Website / v1.38.0 Backend)
 
-### App (Flutter)
-- **Feature**: **Storage Management** - Added a "Clear Image Cache" option in settings allowing users to manually free up device storage used by cached channel logos and thumbnails.
+### Website (Next.js)
+- **Fix**: **Mixed Content / HTTPS Playback** - Added `resolveStreamUrl()` helper in `VideoPlayer.tsx` that upgrades `http://` stream URLs to `https://` when the site is hosted over HTTPS. Resolves the "Your browser does not support the playback of this video" error caused by browser Mixed Content blocking on production servers.
+- **Improved**: **ClapprPlayer SD→HD Stretch** - Forces Clappr's internal `<video>` element to fill the full HD player area via `object-fit: fill`, stretching SD content to full resolution. Enforced via three layers (inline styles, persistent `<style>` tag, `MutationObserver`) for resilience against Clappr's internal DOM rebuilds.
 
-## Recent Updates (v1.8.26+43 App / v1.48.1 Website / v1.37.1 Backend)
-
-### App (Flutter)
-- **Feature**: **Enhanced Channel Search** - Implemented robust search capabilities supporting both channel names and numeric IDs. Results dynamically order by channel number for seamless filtering, and contextually revert to user preferences when cleared.
-
-## Recent Updates (v1.8.25+42 App / v1.48.1 Website / v1.37.1 Backend)
-
-### App (Flutter)
-- **Feature**: **Settings Screen & Channel Order** - Implemented a global settings screen configured with D-Pad focus mapping. Users can toggle channel sorting dynamically (Random vs Channel Number order) overriding the default shuffled behavior, with full state persistence locally saved on device.
-- **Optimization**: **TV Playback Stability** - Prevented out-of-memory demuxer crashes on low-end Amlogic/Mediatek Android TVs by converting the channel change logic into a synchronized sequence that fully flushes video streams prior to new connection requests. 
-
-## Recent Updates (v1.8.24+41 App / v1.48.0 Website / v1.37.0 Backend)
+## Recent Updates (v1.9.2+51 App / v1.49.0 Website / v1.38.0 Backend)
 
 ### App (Flutter)
 - **Feature**: **Scrolling Ads Marquee** - Implemented a dynamic scrolling text ticker in the Classic Screen to display server-controlled advertisements with customizable scroll velocity (`scroll_speed`) and repeat limits (`repeat_count`).

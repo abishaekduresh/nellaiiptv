@@ -1,5 +1,16 @@
 # Website Changelog
 
+## [1.50.0] - Website - 2026-04-15
+
+### Fixed
+- **Mixed Content / HTTPS Playback**: Added `resolveStreamUrl()` helper in `VideoPlayer.tsx` that automatically upgrades `http://` HLS stream URLs to `https://` when the website is served over HTTPS. Eliminates the "Your browser does not support the playback of this video" error seen on hosted (HTTPS) servers caused by browser Mixed Content blocking. Applied to both the Hls.js path and the native Safari/iOS fallback path.
+
+### Improved
+- **ClapprPlayer SD→HD Stretch**: `ClapprPlayer.tsx` now forces Clappr's internal `<video>` element to fill the full player container regardless of source resolution (`object-fit: fill`). Implemented via three layers: inline style injection on init, a persistent `<style>` tag with `!important` rules, and a `MutationObserver` that re-applies stretch styles if Clappr internally recreates the video element. Cleans up the injected style tag on component unmount.
+
+### Maintenance
+- **Version Sync**: Synchronized with Backend v1.38.0 and App v1.9.2+51.
+
 ## [1.49.0] - Website - 2026-04-14
 
 ### Added

@@ -40,6 +40,17 @@ interface Props {
   onGroupSelect?: (group: string) => void;
 }
 
+// Helper: Upgrade http:// stream URLs to https:// when page is served over HTTPS.
+// This fixes the "Mixed Content" browser block that occurs on hosted (HTTPS) servers
+// when HLS stream URLs stored in the DB still use http://.
+const resolveStreamUrl = (url: string): string => {
+    if (typeof window === 'undefined') return url;
+    if (window.location.protocol === 'https:' && url.startsWith('http://')) {
+        return url.replace(/^http:\/\//, 'https://');
+    }
+    return url;
+};
+
 // Helper to extract video ID and create embed URL
 const getYoutubeEmbedUrl = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -701,7 +712,8 @@ function VideoPlayer({
             hlsRef.current = hls;
 
             hls.attachMedia(video);
-            hls.loadSource(src);
+            // 🔒 Resolve stream URL: upgrades http:// → https:// when on HTTPS to prevent Mixed Content blocking
+            hls.loadSource(resolveStreamUrl(src));
         
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
             const levels = hls?.levels || [];
@@ -748,7 +760,8 @@ function VideoPlayer({
     } 
     // Fallback: Native HLS (iOS / Safari / Very Old TVs without MSE)
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = src;
+        // 🔒 Resolve stream URL: upgrades http:// → https:// when on HTTPS to prevent Mixed Content blocking
+        video.src = resolveStreamUrl(src);
         video.addEventListener('loadedmetadata', () => {
             video.play().catch(() => {});
             setIsPlaying(true);

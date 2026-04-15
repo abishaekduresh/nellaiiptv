@@ -1,26 +1,12 @@
-# Nellai IPTV - Frontend v1.49.0
+# Nellai IPTV - Frontend v1.50.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.49.0)**
-- **Scrolling Ads Ticker**: Integrated a seamless, gap-free scrolling text ticker below the video player on channel pages.
-- **Admin Ads Management**: Added a full Admin UI for managing scrolling ads, supporting markdown, custom scroll speeds, and repeat counts.
-- **Sync**: Version synchronized with Backend v1.37.0 and App v1.8.24+41.
-
-### **Previous Updates (v1.49.0)**
-- **RTMP URL Support**: Added an optional field for RTMP stream URLs in the channel management forms.
-
-### **Previous Updates (v1.49.0)**
-- **WebP Support**: Added full support for `.webp` image uploads across all channel management forms.
-- **HD Previews**: Updated UI guidance to recommend **1280x720px** for high-quality channel thumbnails.
-- **Sync**: Version synchronized with Backend v1.36.2.
-
-### **Previous Updates (v1.49.0)**
-- **Maintenance**: Version synchronized with root release.
-
-### **Previous Updates (v1.49.0)**
+### **Latest Updates (v1.50.0)**
+- **Mixed Content / HTTPS Playback Fix**: Added `resolveStreamUrl()` helper in `VideoPlayer.tsx` that automatically upgrades `http://` HLS stream URLs to `https://` when the page is served over HTTPS. Fixes "Your browser does not support the playback of this video" error on hosted (HTTPS) servers caused by browser Mixed Content blocking.
+- **ClapprPlayer SD→HD Stretch**: `ClapprPlayer.tsx` now forces Clappr's internal `<video>` element to fill the full player container with `object-fit: fill`, stretching SD content to full HD. Enforced via inline styles, a persistent `<style>` tag, and a `MutationObserver` for resilience against Clappr's internal reflows.
 
 ### **Previous Updates (v1.49.0)**
 - **Type Safety**: Verified and fixed `channelUuid` prop propagation to video players, ensuring strict TypeScript compliance.

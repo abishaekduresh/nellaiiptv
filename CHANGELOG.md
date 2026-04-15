@@ -1,3 +1,9 @@
+## [1.9.2+51] - App | [1.50.0] - Website | [1.38.0] - Backend - 2026-04-15
+
+### Website (Next.js)
+- **Fix**: **Mixed Content / HTTPS Playback** - Added `resolveStreamUrl()` helper in `VideoPlayer.tsx` that automatically upgrades `http://` HLS stream URLs to `https://` when the site is hosted over HTTPS. Resolves the "Your browser does not support the playback of this video" error caused by browser Mixed Content blocking on production servers.
+- **Improved**: **ClapprPlayer SD→HD Stretch** - `ClapprPlayer.tsx` now forces Clappr's internal `<video>` element to stretch SD streams to fill the full HD player container using `object-fit: fill`. Three-layer enforcement (inline styles + persistent `<style>` tag + `MutationObserver`) ensures the style survives Clappr's internal DOM rebuilds.
+
 ## [1.9.2+51] - App | [1.49.0] - Website | [1.38.0] - Backend - 2026-04-14
 
 ### App (Flutter)
