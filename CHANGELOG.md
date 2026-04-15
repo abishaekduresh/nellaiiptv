@@ -1,3 +1,9 @@
+## [1.9.5+54] - App | [1.50.3] - Website | [1.38.3] - Backend - 2026-04-15
+
+### Website (Next.js)
+- **Feature**: **Share Link Visual Countdown** - Transformed the silent redirect upon mobile app failure into an interactive, beautifully themed Javascript 3-second explicit countdown screen before triggering the web-player fallback.
+- **Fix**: **Cross-Platform Deep Linking** - Added strict OS-detection logic into the Share Link page router to appropriately fire the iOS specific custom URI (`nellaiiptv://`) or Android intent URI (`intent://`), fixing iOS native app launch failures.
+
 ## [1.9.4+53] - App | [1.50.2] - Website | [1.38.2] - Backend - 2026-04-15
 
 ### Website (Next.js)

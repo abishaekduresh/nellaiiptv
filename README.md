@@ -6,18 +6,24 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.50.2
+- **Version**: 1.50.3
 - **Key Features**: HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.38.2
+- **Version**: 1.38.3
 - **Key Features**: Scrolling Ads API, RTMP URL Support, Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.9.4+53 (Main) / 1.2.3+4 (Single Channel)
+- **Version**: 1.9.5+54 (Main) / 1.2.3+4 (Single Channel)
 - **Key Features**: Storage Management, Enhanced Channel Search, Channel Sorting Settings, Focus Persistence.
+
+## Recent Updates (v1.9.5+54 App / v1.50.3 Website / v1.38.3 Backend)
+
+### Website (Next.js)
+- **Feature**: **Share Link Visual Countdown** - Transformed the silent redirect upon mobile app failure into an interactive, beautifully themed Javascript 3-second explicit countdown screen before triggering the web-player fallback.
+- **Fix**: **Cross-Platform Deep Linking** - Added strict OS-detection logic into the Share Link page router to appropriately fire the iOS specific custom URI (`nellaiiptv://`) or Android intent URI (`intent://`), fixing iOS native app launch failures.
 
 ## Recent Updates (v1.9.4+53 App / v1.50.2 Website / v1.38.2 Backend)
 

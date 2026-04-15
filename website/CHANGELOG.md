@@ -1,5 +1,16 @@
 # Website Changelog
 
+## [1.50.3] - Website - 2026-04-15
+
+### Added
+- **Share Link Visual Countdown**: Reworked the `/channels/share/[shortCode]` routing redirect page into a structured, dark-themed UI. Added a live Javascript-powered 3-second visual countdown timer that actively ticks down on the screen before falling back to the Web Preview.
+
+### Fixed
+- **Cross-Platform Deep Linking**: Updated the mobile app detection inside the Share Link router. It now conditionally uses the `nellaiiptv://` custom URI scheme for iOS to ensure proper app launching, while retaining the stricter `intent://` scheme for Android targets.
+
+### Maintenance
+- **Version Sync**: Synchronized with Backend v1.38.3 and App v1.9.5+54.
+
 ## [1.50.2] - Website - 2026-04-15
 
 ### Fixed

@@ -1,10 +1,14 @@
-# Nellai IPTV - Frontend v1.50.2
+# Nellai IPTV - Frontend v1.50.3
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.50.2)**
+### **Latest Updates (v1.50.3)**
+- **Share Link Visual Countdown**: Reworked the mobile fallback UI for channel sharing. Replaced silent redirects with a structured, dark-themed UI featuring a live Javascript-powered 3-second visual countdown that explicitly warns users before falling back to the Web Preview via `window.location.replace`.
+- **Cross-Platform Deep Linking**: Injected an OS detection script into the routing boundary. Ensures iOS effectively routes to the app via its custom `nellaiiptv://` scheme while retaining the required `intent://` target for Android devices.
+
+### **Previous Updates (v1.50.2)**
 - **Admin Player Native Video Fallback Fix**: Properly registered `@clappr/hlsjs-playback` in the Admin preview player (`ClapprPlayer.tsx`). This resolves a silent failure where Clappr dropped to the native HTML5 `<video>` element on Chrome (throwing "browser does not support" errors) because it didn't inherently know how to bridge to `Hls.js` without the plugin.
 
 ### **Previous Updates (v1.50.1)**
