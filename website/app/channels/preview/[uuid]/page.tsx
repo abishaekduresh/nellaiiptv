@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Script from 'next/script';
 import ClapprPlayer from '@/components/ClapprPlayer';
+import { useBranding } from '@/hooks/useBranding';
 
 interface Channel {
   uuid: string;
@@ -15,6 +16,7 @@ interface Channel {
 export default function PreviewPage({ params }: { params: { uuid: string } }) {
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const branding = useBranding();
   const [errorHeader, setErrorHeader] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -143,6 +145,7 @@ export default function PreviewPage({ params }: { params: { uuid: string } }) {
           channelName={channel.name}
           posterUrl={channel.thumbnail_url}
           channelUuid={channel.uuid}
+          watermarkUrl={branding.app_logo_png_url || undefined}
         />
       </div>
     </>

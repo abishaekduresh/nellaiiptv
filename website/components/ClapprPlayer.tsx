@@ -8,6 +8,7 @@ interface ClapprPlayerProps {
   channelName: string;
   posterUrl?: string;
   channelUuid: string;
+  watermarkUrl?: string;
 }
 
 declare global {
@@ -19,7 +20,7 @@ declare global {
   }
 }
 
-export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channelUuid }: ClapprPlayerProps) {
+export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channelUuid, watermarkUrl }: ClapprPlayerProps) {
   const playerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bufferSecondsRef = useRef(0);
@@ -64,6 +65,8 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
         buttons: '#d9d9d9'
       },
       plugins: plugins,
+      watermark: watermarkUrl || '',
+      position: 'bottom-left',
       clapprStats: {
         runEach: 5000,
         uriToMeasureLatency: 'https://www.google.com/favicon.ico'
@@ -117,6 +120,12 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
         }
         #player-container .player-poster {
           background-size: cover !important;
+        }
+        #player-container .player-watermark {
+          opacity: 0.6 !important;
+          width: 80px !important;
+          margin: 20px !important;
+          pointer-events: none !important;
         }
       `;
       document.head.appendChild(style);
@@ -180,7 +189,7 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
       // Remove injected stretch style on unmount
       document.getElementById('clappr-stretch-style')?.remove();
     };
-  }, [streamUrl, posterUrl, isClapprLoaded]);
+  }, [streamUrl, posterUrl, isClapprLoaded, watermarkUrl]);
 
   useEffect(() => {
     // Dynamically import disable-devtool to ensure it runs on the client side
