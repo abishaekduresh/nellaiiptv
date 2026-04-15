@@ -122,7 +122,7 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
           background-size: cover !important;
         }
         #player-container .player-watermark {
-          opacity: 0.6 !important;
+          opacity: 0.4 !important;
           width: 80px !important;
           margin: 20px !important;
           pointer-events: none !important;
