@@ -1,3 +1,8 @@
+## [1.9.7+56] - App | [1.50.5] - Website | [1.38.5] - Backend - 2026-04-15
+
+### Website (Next.js)
+- **Feature**: **Admin Player Watermark** - Implemented automatic watermark injection into the channel preview player. Fetches the `app_logo_png_path` from settings and displays it at the bottom-left with 60% opacity.
+
 ## [1.9.6+55] - App | [1.50.4] - Website | [1.38.4] - Backend - 2026-04-15
 
 ### Website (Next.js)

@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.50.4
+# Nellai IPTV - Frontend v1.50.5
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.50.4)**
+### **Latest Updates (v1.50.5)**
+- **Admin Player Watermark**: Added an automated watermark system to the admin preview player (`ClapprPlayer.tsx`). The player now pulls the `app_logo_png_path` from settings and overlays it at the bottom-left with 60% opacity.
+
+### **Previous Updates (v1.50.4)**
 - **Universal Share Link Fallback**: Overhauled the share link routing to be truly universal. The 3-second visual countdown now appears on both Desktop and Mobile devices, resolving issues where Desktop users were being instantly redirected without seeing the UI. Deep-link triggers are now handled safely on the client-side.
 
 ### **Previous Updates (v1.50.3)**

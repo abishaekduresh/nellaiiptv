@@ -1,5 +1,13 @@
 # Website Changelog
 
+## [1.50.5] - Website - 2026-04-15
+
+### Added
+- **Admin Player Watermark**: Integrated an automated watermark system in the channel preview player (`ClapprPlayer.tsx`). The player now dynamically fetches the app logo (PNG) from global settings and displays it in the bottom-left corner with 60% opacity, ensuring brand persistence during preview sessions.
+
+### Fixed
+- **Universal Share Link Fallback**: Removed the conditional server-side restrictor that bypassed the visual HTML countdown on non-mobile devices. The 3-second explicit countdown page now elegantly displays for all users (Desktop, Mobile, TV), guaranteeing a consistent transition experience. App intent deep linking is now dynamically isolated within the client-side JS payload to strictly fire only on Mobile user-agents.
+
 ## [1.50.4] - Website - 2026-04-15
 
 ### Fixed
