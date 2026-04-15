@@ -1,3 +1,9 @@
+## [1.9.3+52] - App | [1.50.1] - Website | [1.38.1] - Backend - 2026-04-15
+
+### Website (Next.js)
+- **Fix**: **Admin Player Mixed Content** - Applied the `resolveStreamUrl()` helper to `ClapprPlayer.tsx` to automatically upgrade HTTP streams to HTTPS on the secure admin preview page (`/channels/preview/[uuid]`).
+- **Fix**: **Admin Player HLS Parsing** - Explicitly defined `mimeType: 'application/x-mpegURL'` in Clappr configuration to guarantee HLS module loading for streams with URL tokens or unclear extensions, eliminating "browser does not support" playback errors.
+
 ## [1.9.2+51] - App | [1.50.0] - Website | [1.38.0] - Backend - 2026-04-15
 
 ### Website (Next.js)

@@ -34,13 +34,23 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
     if (typeof window === 'undefined' || !window.Clappr) {
       return;
     }
+
+    // Helper: Upgrade http:// stream URLs to https:// when page is served over HTTPS
+    const resolveStreamUrl = (url: string): string => {
+        if (typeof window === 'undefined') return url;
+        if (window.location.protocol === 'https:' && url.startsWith('http://')) {
+            return url.replace(/^http:\/\//, 'https://');
+        }
+        return url;
+    };
     
     const plugins = [];
     if (window.PlaybackRatePlugin) plugins.push(window.PlaybackRatePlugin);
     if (window.ClapprStats) plugins.push(window.ClapprStats);
 
     const playerConfig: any = {
-      source: streamUrl,
+      source: resolveStreamUrl(streamUrl),
+      mimeType: 'application/x-mpegURL',
       parentId: '#player-container',
       autoPlay: true,
       mute: false,

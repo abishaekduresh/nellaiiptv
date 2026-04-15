@@ -6,18 +6,24 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.50.0
+- **Version**: 1.50.1
 - **Key Features**: HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.38.0
+- **Version**: 1.38.1
 - **Key Features**: Scrolling Ads API, RTMP URL Support, Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.9.2+51 (Main) / 1.2.3+4 (Single Channel)
+- **Version**: 1.9.3+52 (Main) / 1.2.3+4 (Single Channel)
 - **Key Features**: Storage Management, Enhanced Channel Search, Channel Sorting Settings, Focus Persistence.
+
+## Recent Updates (v1.9.3+52 App / v1.50.1 Website / v1.38.1 Backend)
+
+### Website (Next.js)
+- **Fix**: **Admin Player Mixed Content** - Applied the `resolveStreamUrl()` helper to `ClapprPlayer.tsx` to automatically upgrade HTTP streams to HTTPS on the secure admin preview page.
+- **Fix**: **Admin Player HLS Parsing** - Added explicit `mimeType: 'application/x-mpegURL'` to Clappr configuration to guarantee HLS module loading for streams with URL tokens.
 
 ## Recent Updates (v1.9.2+51 App / v1.50.0 Website / v1.38.0 Backend)
 

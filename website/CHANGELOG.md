@@ -1,5 +1,14 @@
 # Website Changelog
 
+## [1.50.1] - Website - 2026-04-15
+
+### Fixed
+- **Admin Player Mixed Content**: Applied `resolveStreamUrl()` to `ClapprPlayer.tsx` (used in `/channels/preview/[uuid]`) to automatically upgrade `http://` stream URLs to `https://` when the site is served securely, matching the behavior of the main `VideoPlayer`.
+- **Admin Player HLS Parsing**: Added explicit `mimeType: 'application/x-mpegURL'` to Clappr configuration to guarantee HLS module loading, resolving "browser does not support" errors when stream URLs have tokens or unusual extensions.
+
+### Maintenance
+- **Version Sync**: Synchronized with Backend v1.38.1 and App v1.9.3+52.
+
 ## [1.50.0] - Website - 2026-04-15
 
 ### Fixed

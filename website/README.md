@@ -1,10 +1,14 @@
-# Nellai IPTV - Frontend v1.50.0
+# Nellai IPTV - Frontend v1.50.1
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.50.0)**
+### **Latest Updates (v1.50.1)**
+- **Admin Player Mixed Content Fix**: Applied `resolveStreamUrl()` to `ClapprPlayer.tsx` to automatically upgrade `http://` streams to `https://` on secure admin pages, mirroring the behavior of the main player.
+- **Admin Player HLS Parsing**: Enforced `mimeType: 'application/x-mpegURL'` in Clappr configuration, ensuring robust HLS stream detection even when URLs contain tokens or lack clear extensions.
+
+### **Previous Updates (v1.50.0)**
 - **Mixed Content / HTTPS Playback Fix**: Added `resolveStreamUrl()` helper in `VideoPlayer.tsx` that automatically upgrades `http://` HLS stream URLs to `https://` when the page is served over HTTPS. Fixes "Your browser does not support the playback of this video" error on hosted (HTTPS) servers caused by browser Mixed Content blocking.
 - **ClapprPlayer SD→HD Stretch**: `ClapprPlayer.tsx` now forces Clappr's internal `<video>` element to fill the full player container with `object-fit: fill`, stretching SD content to full HD. Enforced via inline styles, a persistent `<style>` tag, and a `MutationObserver` for resilience against Clappr's internal reflows.
 
