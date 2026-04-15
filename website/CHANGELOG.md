@@ -1,5 +1,13 @@
 # Website Changelog
 
+## [1.50.2] - Website - 2026-04-15
+
+### Fixed
+- **Admin Player Native Video Fallback**: Added and explicitly registered the `@clappr/hlsjs-playback` plugin in `ClapprPlayer.tsx`. Since Clappr decoupled HLS.js from its core, failing to register the plugin caused the player to fall back to the native HTML5 `<video>` element. This caused HLS playback to silently crash on Windows Chrome ("Your browser does not support..."), while appearing to work perfectly on Safari/iOS.
+
+### Maintenance
+- **Version Sync**: Synchronized with Backend v1.38.2 and App v1.9.4+53.
+
 ## [1.50.1] - Website - 2026-04-15
 
 ### Fixed

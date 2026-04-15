@@ -1,3 +1,8 @@
+## [1.9.4+53] - App | [1.50.2] - Website | [1.38.2] - Backend - 2026-04-15
+
+### Website (Next.js)
+- **Fix**: **Admin Player Native Video Fallback** - Included and registered the `@clappr/hlsjs-playback` plugin within `ClapprPlayer.tsx`. Since Clappr decoupled HLS.js natively, missing this plugin caused the player to fall back directly to internal HTML5 `<video>`, which silently crashes on Windows Chrome ("browser does not support" error) while appearing to work properly on Safari/MacOS.
+
 ## [1.9.3+52] - App | [1.50.1] - Website | [1.38.1] - Backend - 2026-04-15
 
 ### Website (Next.js)
