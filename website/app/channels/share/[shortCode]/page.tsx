@@ -50,67 +50,62 @@ export default async function SharePage({ params }: { params: { shortCode: strin
 
   const headersList = headers();
   const userAgent = headersList.get('user-agent') || '';
-  const isMobile = /android|ipad|iphone|ipod/i.test(userAgent);
   const previewUrl = `/channels/preview/${channelUuid}`;
+  const intentUrl = `intent://channels/share/${shortCode}#Intent;scheme=nellaiiptv;package=com.nellaiiptv;end;`;
 
-  if (isMobile) {
-      const intentUrl = `intent://channels/share/${shortCode}#Intent;scheme=nellaiiptv;package=com.nellaiiptv;end;`;
-      
-      return (
-          <html lang="en">
-              <body style={{ background: '#0f1729', color: 'white', padding: '40px 20px', fontFamily: 'sans-serif', margin: 0, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-                  <div style={{ fontSize: '64px', marginBottom: '20px' }}>📱</div>
-                  <h2 style={{ marginBottom: '10px' }}>Opening Nellai IPTV...</h2>
-                  <p style={{ color: '#94a3b8', fontSize: '18px', maxWidth: '400px' }}>
-                      Redirecting to web preview in <strong id="countdown" style={{ color: '#00d2ff', fontSize: '24px' }}>3</strong> seconds...
-                  </p>
-                  
-                  <a href={previewUrl} style={{ 
-                      display: 'inline-block', 
-                      marginTop: '30px', 
-                      padding: '12px 24px', 
-                      background: '#1e293b', 
-                      color: 'white', 
-                      textDecoration: 'none', 
-                      borderRadius: '8px',
-                      fontWeight: 'bold',
-                      border: '1px solid #334155',
-                      backdropFilter: 'blur(10px)'
-                  }}>
-                      Open in Browser Now
-                  </a>
+  return (
+      <html lang="en">
+          <body style={{ background: '#0f1729', color: 'white', padding: '40px 20px', fontFamily: 'sans-serif', margin: 0, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+              <div style={{ fontSize: '64px', marginBottom: '20px' }}>📺</div>
+              <h2 style={{ marginBottom: '10px' }}>Loading Nellai IPTV...</h2>
+              <p style={{ color: '#94a3b8', fontSize: '18px', maxWidth: '400px' }}>
+                  Redirecting to your stream in <strong id="countdown" style={{ color: '#00d2ff', fontSize: '24px' }}>3</strong> seconds...
+              </p>
+              
+              <a href={previewUrl} style={{ 
+                  display: 'inline-block', 
+                  marginTop: '30px', 
+                  padding: '12px 24px', 
+                  background: '#1e293b', 
+                  color: 'white', 
+                  textDecoration: 'none', 
+                  borderRadius: '8px',
+                  fontWeight: 'bold',
+                  border: '1px solid #334155',
+                  backdropFilter: 'blur(10px)'
+              }}>
+                  Watch in Browser Now
+              </a>
 
-                  <script dangerouslySetInnerHTML={{ __html: `
-                      // Register timers first so they aren't blocked by the intent navigation
-                      
-                      // UI Countdown (setInterval)
-                      var count = 3;
-                      var countdownEl = document.getElementById("countdown");
-                      var timer = setInterval(function() {
-                          count--;
-                          if (countdownEl && count > 0) {
-                              countdownEl.innerText = count;
-                          }
-                      }, 1000);
+              <script dangerouslySetInnerHTML={{ __html: `
+                  // UI Countdown (setInterval)
+                  var count = 3;
+                  var countdownEl = document.getElementById("countdown");
+                  var timer = setInterval(function() {
+                      count--;
+                      if (countdownEl && count > 0) {
+                          countdownEl.innerText = count;
+                      }
+                  }, 1000);
 
-                      // Automatic Redirect (setTimeout)
-                      setTimeout(function() {
-                          clearInterval(timer);
-                          window.location.replace("${previewUrl}");
-                      }, 3000);
+                  // Automatic Redirect to Web Preview (setTimeout)
+                  setTimeout(function() {
+                      clearInterval(timer);
+                      window.location.replace("${previewUrl}");
+                  }, 3000);
 
-                      // Fire Intent slightly after to ensure UI paints and timers start
-                      setTimeout(function() {
+                  // Deep linking logic for Mobile Devices
+                  setTimeout(function() {
+                      var isMobile = /android|ipad|iphone|ipod/i.test(navigator.userAgent);
+                      if (isMobile) {
                           var isAndroid = /android/i.test(navigator.userAgent);
                           var intentUrl = "${intentUrl}";
                           var iosUrl = "nellaiiptv://channels/share/${shortCode}";
                           window.location.href = isAndroid ? intentUrl : iosUrl;
-                      }, 50);
-                  `}} />
-              </body>
-          </html>
-      );
-  }
-
-  redirect(previewUrl);
+                      }
+                  }, 50);
+              `}} />
+          </body>
+      </html>
+  );
 }
