@@ -15,6 +15,7 @@ declare global {
     Clappr: any;
     PlaybackRatePlugin: any;
     ClapprStats: any;
+    HlsjsPlayback: any;
   }
 }
 
@@ -47,6 +48,7 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
     const plugins = [];
     if (window.PlaybackRatePlugin) plugins.push(window.PlaybackRatePlugin);
     if (window.ClapprStats) plugins.push(window.ClapprStats);
+    if (window.HlsjsPlayback) plugins.push(window.HlsjsPlayback);
 
     const playerConfig: any = {
       source: resolveStreamUrl(streamUrl),
@@ -206,6 +208,10 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
       />
       <Script
         src="https://cdn.jsdelivr.net/npm/hls.js@latest"
+        strategy="beforeInteractive"
+      />
+      <Script
+        src="https://cdn.jsdelivr.net/npm/@clappr/hlsjs-playback@latest/dist/hlsjs-playback.min.js"
         strategy="beforeInteractive"
       />
       <Script
