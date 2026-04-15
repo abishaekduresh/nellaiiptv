@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.50.3
+# Nellai IPTV - Frontend v1.50.4
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.50.3)**
+### **Latest Updates (v1.50.4)**
+- **Universal Share Link Fallback**: Overhauled the share link routing to be truly universal. The 3-second visual countdown now appears on both Desktop and Mobile devices, resolving issues where Desktop users were being instantly redirected without seeing the UI. Deep-link triggers are now handled safely on the client-side.
+
+### **Previous Updates (v1.50.3)**
 - **Share Link Visual Countdown**: Reworked the mobile fallback UI for channel sharing. Replaced silent redirects with a structured, dark-themed UI featuring a live Javascript-powered 3-second visual countdown that explicitly warns users before falling back to the Web Preview via `window.location.replace`.
 - **Cross-Platform Deep Linking**: Injected an OS detection script into the routing boundary. Ensures iOS effectively routes to the app via its custom `nellaiiptv://` scheme while retaining the required `intent://` target for Android devices.
 

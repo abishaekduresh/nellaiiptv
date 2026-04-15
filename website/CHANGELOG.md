@@ -1,5 +1,13 @@
 # Website Changelog
 
+## [1.50.4] - Website - 2026-04-15
+
+### Fixed
+- **Universal Share Link Fallback**: Removed the conditional server-side restrictor that bypassed the visual HTML countdown on non-mobile devices. The 3-second explicit countdown page now elegantly displays for all users (Desktop, Mobile, TV), guaranteeing a consistent transition experience. App intent deep linking is now dynamically isolated within the client-side JS payload to strictly fire only on Mobile user-agents.
+
+### Maintenance
+- **Version Sync**: Synchronized with Backend v1.38.4 and App v1.9.6+55.
+
 ## [1.50.3] - Website - 2026-04-15
 
 ### Added

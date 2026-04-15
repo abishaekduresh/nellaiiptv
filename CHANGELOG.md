@@ -1,3 +1,8 @@
+## [1.9.6+55] - App | [1.50.4] - Website | [1.38.4] - Backend - 2026-04-15
+
+### Website (Next.js)
+- **Fix**: **Universal Share Link Fallback** - Removed server-side mobile-only redirect logic. The 3-second visual countdown is now enabled for all devices (Desktop, Mobile, TV), ensuring consistent behavior when testing or accessing shared links. App-specific intent logic moved to client-side callback.
+
 ## [1.9.5+54] - App | [1.50.3] - Website | [1.38.3] - Backend - 2026-04-15
 
 ### Website (Next.js)
