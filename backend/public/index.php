@@ -101,4 +101,9 @@ $app->options('/{routes:.+}', function ($request, $response) {
     return $response;
 });
 
+// Explicit options route for the reset-password endpoint
+$app->options('/api/customers/reset-password', function ($request, $response) {
+    return $response;
+});
+
 $app->run();
