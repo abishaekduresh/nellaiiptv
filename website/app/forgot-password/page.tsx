@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Loader2, ArrowLeft, Mail } from 'lucide-react';
+import { Loader2, ArrowLeft, Mail, RefreshCw } from 'lucide-react';
 
 const isDev = process.env.NEXT_PUBLIC_APP_ENV === 'development';
 
@@ -12,9 +12,30 @@ export default function ForgotPasswordPage() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [debug, setDebug] = useState<Record<string, any> | null>(null);
+  const [captcha, setCaptcha] = useState({ num1: 0, num2: 0, answer: 0 });
+  const [userCaptcha, setUserCaptcha] = useState('');
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
+
+  const generateCaptcha = () => {
+    const num1 = Math.floor(Math.random() * 10) + 1;
+    const num2 = Math.floor(Math.random() * 10) + 1;
+    setCaptcha({ num1, num2, answer: num1 + num2 });
+    setUserCaptcha('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (parseInt(userCaptcha) !== captcha.answer) {
+      setStatus('error');
+      setMessage('Incorrect verification code. Please try again.');
+      generateCaptcha();
+      return;
+    }
+
     setLoading(true);
     setStatus('idle');
     setMessage('');
@@ -37,10 +58,12 @@ export default function ForgotPasswordPage() {
       } else {
         setStatus('error');
         setMessage(data.message || 'Failed to send reset email.');
+        generateCaptcha();
       }
     } catch {
       setStatus('error');
       setMessage('An error occurred. Please try again.');
+      generateCaptcha();
     } finally {
       setLoading(false);
     }
@@ -106,6 +129,34 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
+            </div>
+
+            {/* Captcha */}
+            <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+              <label className="block text-sm font-medium text-slate-300 mb-2">Security Check</label>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded text-white font-mono text-lg border border-slate-600">
+                  <span>{captcha.num1}</span>
+                  <span>+</span>
+                  <span>{captcha.num2}</span>
+                  <span>=</span>
+                </div>
+                <input
+                  type="number"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="?"
+                  value={userCaptcha}
+                  onChange={(e) => setUserCaptcha(e.target.value)}
+                />
+                <button 
+                  type="button" 
+                  onClick={generateCaptcha}
+                  className="p-2 text-slate-400 hover:text-white transition-colors"
+                  title="Refresh Captcha"
+                >
+                  <RefreshCw size={20} />
+                </button>
+              </div>
             </div>
 
             <button
