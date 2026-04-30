@@ -3,15 +3,17 @@
 import { useEffect, useRef } from 'react';
 import api from '@/lib/api';
 import { toast } from 'react-hot-toast';
+import { usePathname } from 'next/navigation';
 
 import { useViewMode } from '@/context/ViewModeContext';
 
 export default function BackendHealthCheck() {
   const hasChecked = useRef(false);
   const { mode, setMode } = useViewMode();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (hasChecked.current) return;
+    if (hasChecked.current || pathname?.startsWith('/system-error')) return;
     hasChecked.current = true;
 
     const checkHealth = async () => {

@@ -13,7 +13,7 @@ export default function LiteRouteGuard({ children }: { children: React.ReactNode
     const isAdmin = pathname?.startsWith('/admin');
     
     // Immersive paths (No Navbar/Footer)
-    const isPlayerPage = pathname?.startsWith('/channels') || pathname?.startsWith('/channel/') || isLite;
+    const isPlayerPage = pathname?.startsWith('/channels') || pathname?.startsWith('/channel/') || isLite || pathname?.startsWith('/system-error');
 
     // Prevent hydration mismatch / flash of wrong mode
     if (!isInitialized) {

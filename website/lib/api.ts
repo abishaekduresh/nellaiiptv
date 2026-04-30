@@ -46,7 +46,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Handle Network Errors or Server/Database Errors
+    if (!error.response || error.response?.status >= 500) {
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/system-error')) {
+          const msg = encodeURIComponent(error.response?.data?.message || error.message || 'System offline or network error');
+          window.location.href = `/system-error?message=${msg}`;
+          // Return a pending promise so the rest of the app stops executing while we redirect
+          return new Promise(() => {});
+      }
+    } else if (error.response?.status === 401) {
       // Only redirect if we are NOT already on the login page
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
          useAuthStore.getState().logout(true);
