@@ -10,6 +10,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [debugInfo, setDebugInfo] = useState<{ error?: string; trace?: string } | null>(null);
   const [captcha, setCaptcha] = useState({ num1: 0, num2: 0, answer: 0 });
   const [userCaptcha, setUserCaptcha] = useState('');
 
@@ -37,6 +38,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setStatus('idle');
     setMessage('');
+    setDebugInfo(null);
 
     try {
       const res = await api.post('/customers/forgot-password', {
@@ -49,11 +51,19 @@ export default function ForgotPasswordPage() {
       } else {
         setStatus('error');
         setMessage(res.data.message || 'Failed to send reset email.');
+        if (res.data.error || res.data.trace) {
+            setDebugInfo({ error: res.data.error, trace: res.data.trace });
+        }
         generateCaptcha();
       }
     } catch (err: any) {
       setStatus('error');
-      setMessage(err.response?.data?.message || 'An error occurred. Please try again.');
+      const errorData = err.response?.data;
+      setMessage(errorData?.message || err.message || 'An error occurred. Please try again.');
+      
+      if (errorData?.error || errorData?.trace) {
+        setDebugInfo({ error: errorData.error, trace: errorData.trace });
+      }
       generateCaptcha();
     } finally {
       setLoading(false);
@@ -91,7 +101,15 @@ export default function ForgotPasswordPage() {
             {status === 'error' && (
               <div className="space-y-2">
                 <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
-                  {message}
+                  <p className="font-bold mb-1">Error</p>
+                  <p className="break-words">{message}</p>
+                  
+                  {debugInfo && (
+                    <div className="mt-3 p-3 bg-black/40 rounded border border-red-500/20 font-mono text-[10px] overflow-x-auto max-h-60">
+                      {debugInfo.error && <p className="text-red-300 mb-2 font-bold">{debugInfo.error}</p>}
+                      {debugInfo.trace && <pre className="text-slate-400 whitespace-pre-wrap">{debugInfo.trace}</pre>}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

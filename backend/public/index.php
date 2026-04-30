@@ -53,6 +53,7 @@ require $rootDir . '/app/Routes/admin.php';
  */
 // Security Middleware
 $app->add(new \App\Middleware\SecurityHeadersMiddleware());
+$app->add(new \App\Middleware\ErrorHandlerMiddleware()); // Catch and format errors
 $app->add(new \App\Middleware\RateLimitMiddleware(500, 60)); // 1000 reqs/min global
 $app->add(new \App\Middleware\ApiKeyMiddleware());
 $app->add(new \App\Middleware\PlatformMiddleware());

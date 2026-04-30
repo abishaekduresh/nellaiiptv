@@ -19,6 +19,16 @@ $dotenv->load();
 // Set Timezone to IST
 date_default_timezone_set('Asia/Kolkata');
 
+// Local Development SSL Fix (WAMP/Windows)
+// If cacert.pem exists in backend root, use it to fix cURL error 77
+$caCertPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'cacert.pem';
+if (file_exists($caCertPath)) {
+    ini_set('curl.cainfo', $caCertPath);
+    ini_set('openssl.cafile', $caCertPath);
+    // Also set env for Guzzle/cURL fallback
+    putenv("CURL_CA_BUNDLE=$caCertPath");
+}
+
 // Create Container
 $container = new Container();
 

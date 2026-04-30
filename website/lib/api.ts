@@ -48,7 +48,10 @@ api.interceptors.response.use(
   (error) => {
     // Handle Network Errors or Server/Database Errors
     if (!error.response || error.response?.status >= 500) {
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/system-error')) {
+      // In development, let the error propagate so the page can show details
+      const isDev = process.env.NEXT_PUBLIC_APP_ENV === 'development' || process.env.APP_ENV === 'development';
+      
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/system-error') && !isDev) {
           const msg = encodeURIComponent(error.response?.data?.message || error.message || 'System offline or network error');
           window.location.href = `/system-error?message=${msg}`;
           // Return a pending promise so the rest of the app stops executing while we redirect

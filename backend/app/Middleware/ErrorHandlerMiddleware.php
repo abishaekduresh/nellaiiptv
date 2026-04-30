@@ -28,7 +28,8 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
                 'message' => 'Internal Server Error',
             ];
             
-            if ($_ENV['APP_DEBUG'] === 'true') {
+            $isDebug = (($_ENV['APP_DEBUG'] ?? 'false') === 'true' || ($_ENV['APP_DEBUG'] ?? false) === true);
+            if ($isDebug) {
                 $payload['error'] = $e->getMessage();
                 $payload['trace'] = $e->getTraceAsString();
             }

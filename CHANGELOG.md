@@ -3,7 +3,7 @@
 ### Backend (PHP/Slim)
 - **Feature**: **Backend-Only Password Reset** - Migrated the complete password reset architecture from Next.js to the PHP backend service.
 - **Feature**: **Email Templates** - Implemented a dedicated view-based email template system (`app/Templates/Emails`) for professional password reset notifications.
-- **Fix**: **SSL Verification (WAMP)** - Added automatic CA certificate bundle detection to resolve cURL error 77 on Windows/WAMP environments.
+- **Fix**: **SSL/cURL Resilience** - Implemented a direct cURL fallback with an SSL verification toggle (`RESEND_SKIP_SSL`) to resolve persistent cURL error 77 issues on local WAMP/Windows environments.
 - **Fix**: **PSR-7 Compatibility** - Resolved `getBasePath()` unknown method errors across all controllers by implementing proper `RouteContext` retrieval.
 - **Fix**: **Eloquent Capsule Stability** - Fixed `DB::raw()` errors by switching to the connection-authoritative `DB::connection()->raw()` method.
 

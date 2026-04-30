@@ -44,6 +44,7 @@ class AuthService
             return $token;
         }
 
+        error_log("AuthService: Preparing email for " . $email);
         $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:3000', '/');
         $resetLink = $frontendUrl . "/reset-password?token={$token}";
         $year = date('Y');
@@ -52,11 +53,14 @@ class AuthService
         include __DIR__ . '/../Templates/Emails/reset_password.php';
         $html = ob_get_clean();
 
+        error_log("AuthService: Sending email via service...");
         try {
             $this->emailService->send($email, 'Reset your password — Nellai IPTV', $html);
+            error_log("AuthService: Email sent successfully.");
             return true;
         } catch (Exception $e) {
-            $isDev = ($_ENV['APP_ENV'] ?? 'production') === 'development' || ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
+            error_log("AuthService: Email sending failed: " . $e->getMessage());
+            $isDev = (($_ENV['APP_ENV'] ?? 'production') === 'development' || ($_ENV['APP_DEBUG'] ?? 'false') === 'true' || ($_ENV['APP_DEBUG'] ?? false) === true);
             if ($isDev) {
                 throw new Exception('Email failed: ' . $e->getMessage());
             }
