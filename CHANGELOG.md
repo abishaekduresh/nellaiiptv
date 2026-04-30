@@ -1,3 +1,11 @@
+## [1.9.8+57] - App | [1.51.1] - Website | [1.39.1] - Backend - 2026-05-01
+
+### Backend (PHP/Slim)
+- **Fix**: **Environment Variable Stability** - Refined `getenv()` logic in `ResendEmailService` to correctly handle `false` returns, ensuring robust API key and fallback email detection.
+
+### Website (Next.js)
+- **Fix**: **Environment Detection** - Expanded `isDev` check in the API interceptor to support both `NEXT_PUBLIC_APP_ENV` and `APP_ENV` for more reliable debug error displays.
+
 ## [1.9.8+57] - App | [1.51.0] - Website | [1.39.0] - Backend - 2026-05-01
 
 ### Backend (PHP/Slim)

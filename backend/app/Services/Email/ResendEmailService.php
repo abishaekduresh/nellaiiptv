@@ -14,7 +14,8 @@ class ResendEmailService implements EmailServiceInterface
 
     public function __construct()
     {
-        $apiKey = $_ENV['RESEND_EMAIL_API_KEY'] ?? $_ENV['RESEND_API_KEY'] ?? getenv('RESEND_EMAIL_API_KEY') ?? getenv('RESEND_API_KEY') ?? null;
+        // getenv() returns false (not null) when missing — use ?: to catch both null and false
+        $apiKey = $_ENV['RESEND_EMAIL_API_KEY'] ?? $_ENV['RESEND_API_KEY'] ?? (getenv('RESEND_EMAIL_API_KEY') ?: null) ?? (getenv('RESEND_API_KEY') ?: null);
         if (!$apiKey) {
             throw new Exception("Resend API Key is not set in environment (Checked RESEND_EMAIL_API_KEY and RESEND_API_KEY)");
         }
@@ -32,7 +33,8 @@ class ResendEmailService implements EmailServiceInterface
         $this->skipSsl = $skipSsl;
         $this->apiKey  = $apiKey;
         
-        $this->fromEmail = $_ENV['MAIL_FROM_ADDRESS'] ?? getenv('MAIL_FROM_ADDRESS') ?? 'onboarding@resend.dev';
+        // getenv() returns false (not null) when missing — use ?: so the fallback fires on false too
+        $this->fromEmail = $_ENV['MAIL_FROM_ADDRESS'] ?? (getenv('MAIL_FROM_ADDRESS') ?: 'onboarding@resend.dev');
     }
 
     // Calls the Resend REST API directly via cURL (SSL verification disabled).

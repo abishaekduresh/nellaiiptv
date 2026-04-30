@@ -6,12 +6,12 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.51.0
+- **Version**: 1.51.1
 - **Key Features**: Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.39.0
+- **Version**: 1.39.1
 - **Key Features**: Password Reset Service, Email Templates, WAMP SSL Fix, Scrolling Ads API, RTMP URL Support.
 
 ### `nellai_iptv_app` (Flutter)
@@ -19,17 +19,17 @@ A premium IPTV player built for Android and Android TV.
 - **Version**: 1.9.8+57 (Main) / 1.2.3+4 (Single Channel)
 - **Key Features**: Storage Management, Enhanced Channel Search, Channel Sorting Settings, Focus Persistence.
 
-## Recent Updates (v1.9.8+57 App / v1.51.0 Website / v1.39.0 Backend)
+## Recent Updates
+
+## [1.9.8+57] - App | [1.51.1] - Website | [1.39.1] - Backend - 2026-05-01
 
 ### Backend (PHP/Slim)
-- **Feature**: **Password Reset Migration** - Full backend-only auth workflow with professional email templates.
-- **Fix**: **SSL/cURL Resilience** - Implemented direct cURL fallback with SSL verification toggle to bypass broken CA certificate configurations on local WAMP environments.
-- **Fix**: **Stability & Compatibility** - Resolved critical PSR-7 and Eloquent method errors across all controllers.
+- **Fix**: **Environment Variable Stability** - Refined `getenv()` logic in `ResendEmailService` to correctly handle `false` returns, ensuring robust API key and fallback email detection.
 
 ### Website (Next.js)
-- **Feature**: **Auth Refactor** - Updated frontend to leverage backend-only password reset service for improved security.
+- **Fix**: **Environment Detection** - Expanded `isDev` check in the API interceptor to support both `NEXT_PUBLIC_APP_ENV` and `APP_ENV` for more reliable debug error displays.
 
-## Recent Updates (v1.9.8+57 App / v1.51.0 Website / v1.39.0 Backend)
+## [1.9.8+57] - App | [1.51.0] - Website | [1.39.0] - Backend - 2026-05-01
 
 ### Backend (PHP/Slim)
 - **Feature**: **Password Reset Migration** - Full backend-only auth workflow with professional email templates.
