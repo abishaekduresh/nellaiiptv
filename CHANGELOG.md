@@ -38,6 +38,16 @@
 ### Backend (PHP/Slim)
 - **Feature**: **Database Health Verification** - Enhanced the `/health` endpoint in `SystemController` to actively verify the PDO database connection via Capsule on every ping, reliably triggering a 503 response if the backend loses database connectivity.
 
+## [1.9.7+56] - App | [1.50.6] - Website | [1.38.6] - Backend - 2026-04-30
+
+### Website (Next.js)
+- **Feature**: **Global System Error Handling** - Implemented a global Axios interceptor (`lib/api.ts`) that catches 500+ and Network Errors, halting current view execution and immediately redirecting to a dedicated, immersive `/system-error` page.
+- **Feature**: **System Offline UI** - Created a modern, full-screen `System Offline / Connection Lost` page layout, dynamically displaying the backend failure reason and offering a "Try Again" recovery button.
+- **Fix**: **Redundant Toasts** - Suppressed duplicate backend health check toast notifications from triggering once the user has already been redirected to the system error page.
+
+### Backend (PHP/Slim)
+- **Feature**: **Database Health Verification** - Enhanced the `/health` endpoint in `SystemController` to actively verify the PDO database connection via Capsule on every ping, reliably triggering a 503 response if the backend loses database connectivity.
+
 ## [1.9.7+56] - App | [1.50.5] - Website | [1.38.5] - Backend - 2026-04-15
 
 ### Website (Next.js)
