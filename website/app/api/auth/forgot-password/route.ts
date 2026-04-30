@@ -45,8 +45,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ status: false, message: 'A valid email address is required.' }, { status: 400 });
         }
 
-        const backendUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
-        const apiSecret = process.env.API_SECRET || process.env.NEXT_PUBLIC_API_SECRET;
+        const backendUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || '';
+        const apiSecret = process.env.API_SECRET || process.env.NEXT_PUBLIC_API_SECRET || '';
 
         // Call the backend forgot-password endpoint.
         // It confirms the user exists and generates a reset token stored in its DB.
