@@ -6,20 +6,24 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.51.1
+- **Version**: 1.51.2
 - **Key Features**: Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.39.1
-- **Key Features**: Password Reset Service, Email Templates, WAMP SSL Fix, Scrolling Ads API, RTMP URL Support.
+- **Version**: 1.39.2
+- **Key Features**: Password Reset Service, Email Templates, CORS/OPTIONS Stability, WAMP SSL Fix, Scrolling Ads API.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
 - **Version**: 1.9.8+57 (Main) / 1.2.3+4 (Single Channel)
 - **Key Features**: Storage Management, Enhanced Channel Search, Channel Sorting Settings, Focus Persistence.
 
-## Recent Updates
+## Recent Updates (v1.9.8+57 App / v1.51.2 Website / v1.39.2 Backend)
+
+### Backend (PHP/Slim)
+- **Fix**: **CORS & OPTIONS Handling** - Hardened the API for cross-subdomain requests with dynamic origin detection and global preflight support.
+- **Fix**: **Stability & Resilience** - Finalized `getenv()` logic and direct cURL fallback for maximum reliability.
 
 ## [1.9.8+57] - App | [1.51.1] - Website | [1.39.1] - Backend - 2026-05-01
 

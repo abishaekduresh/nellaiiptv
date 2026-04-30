@@ -1,3 +1,9 @@
+## [1.9.8+57] - App | [1.51.2] - Website | [1.39.2] - Backend - 2026-05-01
+
+### Backend (PHP/Slim)
+- **Fix**: **CORS & Preflight Stability** - Implemented dynamic origin handling and a global OPTIONS catch-all route to ensure seamless cross-subdomain authentication and password resets.
+- **Fix**: **Header Compatibility** - Expanded allowed CORS headers to include `Accept` and `Origin` for improved browser compatibility.
+
 ## [1.9.8+57] - App | [1.51.1] - Website | [1.39.1] - Backend - 2026-05-01
 
 ### Backend (PHP/Slim)
