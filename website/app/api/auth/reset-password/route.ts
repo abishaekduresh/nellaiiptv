@@ -103,8 +103,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const backendUrl = process.env.API_URL!;
-        const apiSecret = process.env.API_SECRET!;
+        const backendUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+        const apiSecret = process.env.API_SECRET || process.env.NEXT_PUBLIC_API_SECRET;
 
         // Use the backend token embedded in the HMAC payload (captured at forgot-password time).
         // If null (old link), re-trigger forgot-password to get a fresh token right now.

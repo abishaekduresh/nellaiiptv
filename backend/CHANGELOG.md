@@ -7,6 +7,9 @@
 ## [1.38.6] - 2026-04-30
 - **Feature**: **Database Health Verification** - Enhanced the `/health` endpoint in `SystemController` to actively verify the PDO database connection via Capsule on every ping, reliably triggering a 503 response if the backend loses database connectivity.
 
+## [1.38.6] - 2026-04-30
+- **Feature**: **Database Health Verification** - Enhanced the `/health` endpoint in `SystemController` to actively verify the PDO database connection via Capsule on every ping, reliably triggering a 503 response if the backend loses database connectivity.
+
 # Backend Changelog
 
 ## [1.38.0] - Backend - 2026-04-14
