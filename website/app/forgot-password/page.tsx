@@ -2,34 +2,45 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import api from '@/lib/api';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Mail } from 'lucide-react';
+
+const isDev = process.env.NEXT_PUBLIC_APP_ENV === 'development';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [debug, setDebug] = useState<Record<string, any> | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setStatus('idle');
     setMessage('');
+    setDebug(null);
 
     try {
-      const response = await api.post('/customers/forgot-password', { email });
-      
-      if (response.data.status) {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+
+      const data = await res.json();
+
+      if (isDev && data.debug) setDebug(data.debug);
+
+      if (data.status) {
         setStatus('success');
-        setMessage('Password reset instructions have been sent to your email.');
+        setMessage(data.message);
       } else {
         setStatus('error');
-        setMessage(response.data.message || 'Failed to send reset email.');
+        setMessage(data.message || 'Failed to send reset email.');
       }
-    } catch (err: any) {
+    } catch {
       setStatus('error');
-      setMessage(err.response?.data?.message || 'An error occurred. Please try again.');
+      setMessage('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -38,7 +49,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl p-8 shadow-2xl">
-        <Link 
+        <Link
           href="/login"
           className="inline-flex items-center text-slate-400 hover:text-white mb-6 transition-colors"
         >
@@ -48,21 +59,38 @@ export default function ForgotPasswordPage() {
 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Forgot Password?</h1>
-          <p className="text-slate-400">Enter your email to reset your password</p>
+          <p className="text-slate-400">Enter your email to receive a reset link</p>
         </div>
 
         {status === 'success' ? (
-          <div className="bg-green-500/10 border border-green-500/50 text-green-400 px-6 py-8 rounded-lg text-center">
-            <p className="mb-4">{message}</p>
-            <p className="text-sm text-slate-400">
-              Check your email inbox and spam folder.
-            </p>
+          <div className="space-y-4">
+            <div className="bg-green-500/10 border border-green-500/50 text-green-400 px-6 py-8 rounded-lg text-center space-y-3">
+              <Mail size={36} className="mx-auto" />
+              <p className="font-medium">{message}</p>
+              <p className="text-sm text-slate-400">
+                The link expires in <strong className="text-slate-300">10 minutes</strong>. Check your spam folder if you don't see it.
+              </p>
+            </div>
+            {isDev && debug && (
+              <div className="bg-slate-800 border border-yellow-500/40 rounded-lg p-4">
+                <p className="text-xs font-mono text-yellow-400 mb-2">DEV — debug info</p>
+                <pre className="text-xs text-slate-300 whitespace-pre-wrap break-all">{JSON.stringify(debug, null, 2)}</pre>
+              </div>
+            )}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             {status === 'error' && (
-              <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded-lg text-sm">
-                {message}
+              <div className="space-y-2">
+                <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
+                  {message}
+                </div>
+                {isDev && debug && (
+                  <div className="bg-slate-800 border border-yellow-500/40 rounded-lg p-4">
+                    <p className="text-xs font-mono text-yellow-400 mb-2">DEV — debug info</p>
+                    <pre className="text-xs text-slate-300 whitespace-pre-wrap break-all">{JSON.stringify(debug, null, 2)}</pre>
+                  </div>
+                )}
               </div>
             )}
 

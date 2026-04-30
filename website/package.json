@@ -30,6 +30,7 @@
     "rehype-raw": "^7.0.0",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
+    "resend": "^6.12.2",
     "tailwind-merge": "^2.0.0",
     "video.js": "^8.6.0",
     "videojs-contrib-quality-levels": "^3.0.0",

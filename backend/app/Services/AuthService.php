@@ -23,19 +23,26 @@ class AuthService
 
     // ... (keep existing methods until forgotPassword) ...
 
-    public function forgotPassword(string $email): bool
+    public function forgotPassword(string $email, bool $skipEmail = false)
     {
         $customer = Customer::where('email', $email)->first();
 
-        // Prevent enumeration
         if (!$customer) {
-            return true;
+            throw new Exception('No account found with this email address.');
+        }
+        
+        if ($customer->status !== 'active') {
+            throw new Exception('This account is not active. Please contact support.');
         }
 
         $token = bin2hex(random_bytes(32));
         $customer->reset_token = $token;
         $customer->reset_token_expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
         $customer->save();
+
+        if ($skipEmail) {
+            return $token;
+        }
 
         $resetLink = $_ENV['APP_URL'] . "/reset-password?token={$token}";
         

@@ -57,8 +57,13 @@ api.interceptors.response.use(
     } else if (error.response?.status === 401) {
       // Only redirect if we are NOT already on the login page
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-         useAuthStore.getState().logout(true);
-         window.location.href = '/login?error=session_expired';
+         const { token, tempToken } = useAuthStore.getState();
+         // Only force logout/redirect if the user had an active token (real session expiry).
+         // Guest users in open-access mode will naturally get 401s — don't redirect them.
+         if (token || tempToken) {
+             useAuthStore.getState().logout(true);
+             window.location.href = '/login?error=session_expired';
+         }
       }
     } else if (error.response?.status === 403 && error.response?.data?.error === 'device_limit_reached') {
         // Handle global device limit enforcement

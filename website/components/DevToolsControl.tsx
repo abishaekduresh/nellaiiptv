@@ -4,10 +4,13 @@ import { useEffect } from 'react';
 
 export default function DevToolsControl() {
   useEffect(() => {
-    // Check if developer tools should be disabled
+    // Allow Developer tools automatically if we are in development environment
+    const isDevelopment = process.env.APP_ENV === 'development' || process.env.NEXT_PUBLIC_APP_ENV === 'development';
+    
+    // Otherwise check the specific toggle
     const disableDevTools = (process.env.NEXT_PUBLIC_DISABLE_DEVTOOLS ?? 'true') === 'true';
 
-    if (!disableDevTools) {
+    if (isDevelopment || !disableDevTools) {
       return; // Developer tools are allowed
     }
 
