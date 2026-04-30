@@ -33,36 +33,36 @@ class AdminTransactionController
             ->join('customers as c', 't.customer_id', '=', 'c.id')
             ->leftJoin('subscription_plans as p', 't.plan_id', '=', 'p.id')
             ->select([
-                DB::raw("'payment' as source_type"),
-                DB::raw("CAST(t.uuid AS CHAR) as id"),
+                DB::connection()->raw("'payment' as source_type"),
+                DB::connection()->raw("CAST(t.uuid AS CHAR) as id"),
                 't.created_at',
                 't.amount',
                 't.currency',
-                DB::raw("CAST(t.status AS CHAR) as status"),
-                DB::raw("CAST(t.gateway AS CHAR) as method"), // razorpay, etc
-                DB::raw("CAST(t.gateway_order_id AS CHAR) as reference"),
-                DB::raw("CAST(CONCAT('Plan: ', COALESCE(p.name, 'Unknown')) AS CHAR) as description"),
-                DB::raw("CAST(c.name AS CHAR) as customer_name"),
-                DB::raw("CAST(c.phone AS CHAR) as customer_phone"),
-                DB::raw("CAST(c.uuid AS CHAR) as customer_uuid")
+                DB::connection()->raw("CAST(t.status AS CHAR) as status"),
+                DB::connection()->raw("CAST(t.gateway AS CHAR) as method"), // razorpay, etc
+                DB::connection()->raw("CAST(t.gateway_order_id AS CHAR) as reference"),
+                DB::connection()->raw("CAST(CONCAT('Plan: ', COALESCE(p.name, 'Unknown')) AS CHAR) as description"),
+                DB::connection()->raw("CAST(c.name AS CHAR) as customer_name"),
+                DB::connection()->raw("CAST(c.phone AS CHAR) as customer_phone"),
+                DB::connection()->raw("CAST(c.uuid AS CHAR) as customer_uuid")
             ]);
 
         // Subquery for Wallet Transactions
         $walletQuery = DB::table('wallet_transactions as wt')
             ->join('customers as c', 'wt.customer_id', '=', 'c.id')
             ->select([
-                DB::raw("'wallet' as source_type"),
-                DB::raw("CAST(wt.id AS CHAR) as id"), // Cast ID to string to match UUID type approx
+                DB::connection()->raw("'wallet' as source_type"),
+                DB::connection()->raw("CAST(wt.id AS CHAR) as id"), // Cast ID to string to match UUID type approx
                 'wt.created_at',
                 'wt.amount',
-                DB::raw("'INR' as currency"),
-                DB::raw("'success' as status"), // Wallet txns are usually immediate success
-                DB::raw("CAST(wt.type AS CHAR) as method"), // credit, debit
-                DB::raw("CAST(wt.reference_id AS CHAR) as reference"),
-                DB::raw("CAST(wt.description AS CHAR) as description"),
-                DB::raw("CAST(c.name AS CHAR) as customer_name"),
-                DB::raw("CAST(c.phone AS CHAR) as customer_phone"),
-                DB::raw("CAST(c.uuid AS CHAR) as customer_uuid")
+                DB::connection()->raw("'INR' as currency"),
+                DB::connection()->raw("'success' as status"), // Wallet txns are usually immediate success
+                DB::connection()->raw("CAST(wt.type AS CHAR) as method"), // credit, debit
+                DB::connection()->raw("CAST(wt.reference_id AS CHAR) as reference"),
+                DB::connection()->raw("CAST(wt.description AS CHAR) as description"),
+                DB::connection()->raw("CAST(c.name AS CHAR) as customer_name"),
+                DB::connection()->raw("CAST(c.phone AS CHAR) as customer_phone"),
+                DB::connection()->raw("CAST(c.uuid AS CHAR) as customer_uuid")
             ]);
 
         // Apply Search

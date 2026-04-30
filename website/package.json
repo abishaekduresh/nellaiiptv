@@ -1,6 +1,6 @@
 {
   "name": "nellai-iptv-frontend",
-  "version": "1.48.4",
+  "version": "1.51.0",
   "private": true,
   "scripts": {
     "dev": "next dev",

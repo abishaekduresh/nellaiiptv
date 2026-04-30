@@ -6,6 +6,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Models\Setting;
 use App\Helpers\ResponseFormatter;
+use Slim\Routing\RouteContext;
 use Exception;
 
 class SettingController
@@ -25,7 +26,8 @@ class SettingController
                 } else {
                     // Fallback to auto-detection (best effort for admin)
                     $uri = $request->getUri();
-                    $basePath = $uri->getBasePath();
+                    $routeContext = RouteContext::fromRequest($request);
+                    $basePath = $routeContext->getBasePath();
                     $scheme = $uri->getScheme();
                     $authority = $uri->getAuthority();
                     $base = ($basePath === '/' || $basePath === '') ? '' : $basePath;
@@ -106,9 +108,10 @@ class SettingController
                 $logoUrl = $baseUrl . $relativeUrl;
             } else {
                  $uri = $request->getUri();
+                 $routeContext = RouteContext::fromRequest($request);
+                 $basePath = $routeContext->getBasePath();
                  $scheme = $request->getHeaderLine('X-Forwarded-Proto') ?: $uri->getScheme();
                  $authority = $request->getHeaderLine('X-Forwarded-Host') ?: $uri->getAuthority();
-                 $basePath = $uri->getBasePath();
                  $base = ($basePath === '/' || $basePath === '') ? '' : $basePath;
                  if (empty($authority)) $authority = 'localhost';
                  
@@ -160,9 +163,10 @@ class SettingController
                 $logoUrl = $baseUrl . $relativeUrl;
             } else {
                  $uri = $request->getUri();
+                 $routeContext = RouteContext::fromRequest($request);
+                 $basePath = $routeContext->getBasePath();
                  $scheme = $request->getHeaderLine('X-Forwarded-Proto') ?: $uri->getScheme();
                  $authority = $request->getHeaderLine('X-Forwarded-Host') ?: $uri->getAuthority();
-                 $basePath = $uri->getBasePath();
                  $base = ($basePath === '/' || $basePath === '') ? '' : $basePath;
                  
                  // If authority is empty (CLI context?), fallback to localhost

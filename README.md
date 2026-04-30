@@ -6,25 +6,38 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.50.5
-- **Key Features**: Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support, WebP Support, Auto-Resizing UI, Enhanced Export Filters.
+- **Version**: 1.52.0
+- **Key Features**: Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.38.5
-- **Key Features**: Scrolling Ads API, RTMP URL Support, Auto-WebP Conversion, Image Resizing Engine, Platform Blocking.
+- **Version**: 1.40.0
+- **Key Features**: Password Reset Service, Email Templates, WAMP SSL Fix, Scrolling Ads API, RTMP URL Support.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.9.7+56 (Main) / 1.2.3+4 (Single Channel)
+- **Version**: 1.9.9+58 (Main) / 1.2.4+5 (Single Channel)
 - **Key Features**: Storage Management, Enhanced Channel Search, Channel Sorting Settings, Focus Persistence.
 
-## Recent Updates (v1.9.7+56 App / v1.50.5 Website / v1.38.5 Backend)
+## Recent Updates (v1.9.9+58 App / v1.52.0 Website / v1.40.0 Backend)
+
+### Backend (PHP/Slim)
+- **Feature**: **Password Reset Migration** - Full backend-only auth workflow with professional email templates.
+- **Fix**: **Stability & Compatibility** - Resolved SSL verification issues on WAMP and critical PSR-7/Eloquent method errors across all controllers.
 
 ### Website (Next.js)
-- **Feature**: **Admin Player Watermark** - Implemented automatic watermark injection into the channel preview player. Fetches the `app_logo_png_path` from settings and displays it at the bottom-left with 60% opacity.
+- **Feature**: **Auth Refactor** - Updated frontend to leverage backend-only password reset service for improved security.
 
-## Recent Updates (v1.9.6+55 App / v1.50.4 Website / v1.38.4 Backend)
+## Recent Updates (v1.9.8+57 App / v1.51.0 Website / v1.39.0 Backend)
+
+### Backend (PHP/Slim)
+- **Feature**: **Password Reset Migration** - Full backend-only auth workflow with professional email templates.
+- **Fix**: **Stability & Compatibility** - Resolved SSL verification issues on WAMP and critical PSR-7/Eloquent method errors across all controllers.
+
+### Website (Next.js)
+- **Feature**: **Auth Refactor** - Updated frontend to leverage backend-only password reset service for improved security.
+
+## Recent Updates (v1.9.7+56 App / v1.50.6 Website / v1.38.6 Backend)
 
 ### Website (Next.js)
 - **Fix**: **Universal Share Link Fallback** - Removed server-side mobile-only redirect logic. The 3-second visual countdown is now enabled for all devices (Desktop, Mobile, TV), ensuring consistent behavior when testing or accessing shared links. App-specific intent logic moved to client-side callback.

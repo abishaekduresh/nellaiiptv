@@ -19,7 +19,7 @@ class ReportController
 
         // Base Query
         $dailyViewsQuery = DB::table('channel_views')
-            ->select(DB::raw('DATE(view_date) as date'), DB::raw('SUM(count) as total_views'))
+            ->select(DB::connection()->raw('DATE(view_date) as date'), DB::connection()->raw('SUM(count) as total_views'))
             ->whereBetween('view_date', [$startDate, $endDate]);
             
         $channelStatsQuery = DB::table('channel_views')
@@ -27,7 +27,7 @@ class ReportController
             ->select(
                 'channels.name as channel_name',
                 'channels.channel_number',
-                DB::raw('SUM(channel_views.count) as total_views')
+                DB::connection()->raw('SUM(channel_views.count) as total_views')
             )
             ->whereBetween('view_date', [$startDate, $endDate]);
 

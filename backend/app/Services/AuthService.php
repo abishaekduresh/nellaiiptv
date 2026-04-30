@@ -52,13 +52,16 @@ class AuthService
         include __DIR__ . '/../Templates/Emails/reset_password.php';
         $html = ob_get_clean();
 
-        $emailSent = $this->emailService->send($email, 'Reset your password — Nellai IPTV', $html);
-
-        if (!$emailSent) {
+        try {
+            $this->emailService->send($email, 'Reset your password — Nellai IPTV', $html);
+            return true;
+        } catch (Exception $e) {
+            $isDev = ($_ENV['APP_ENV'] ?? 'production') === 'development' || ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
+            if ($isDev) {
+                throw new Exception('Email failed: ' . $e->getMessage());
+            }
             throw new Exception('Failed to send reset email. Please try again later.');
         }
-
-        return true;
     }
 
     public function register(array $data): array

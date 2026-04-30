@@ -226,7 +226,7 @@ class ChannelService
                     $join->on('channels.id', '=', 'channel_views.channel_id')
                          ->where('channel_views.view_date', '=', $today);
                 })
-                ->addSelect(DB::raw('SUM(channel_views.count) as daily_views'))
+                ->addSelect(DB::connection()->raw('SUM(channel_views.count) as daily_views'))
                 ->groupBy('channels.id')
                 ->orderBy('daily_views', 'desc');
             } elseif ($filters['sort'] === 'top_trending') {
@@ -236,7 +236,7 @@ class ChannelService
                     $join->on('channels.id', '=', 'channel_views.channel_id')
                          ->where('channel_views.view_date', '>=', $statsDate);
                 })
-                ->addSelect(DB::raw('SUM(channel_views.count) as daily_views'))
+                ->addSelect(DB::connection()->raw('SUM(channel_views.count) as daily_views'))
                 ->groupBy('channels.id')
                 ->orderBy('daily_views', 'desc');
             } elseif ($filters['sort'] === 'top_all_time') {

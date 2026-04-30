@@ -6,6 +6,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Models\Setting;
 use App\Helpers\ResponseFormatter;
+use Slim\Routing\RouteContext;
 
 class PublicSettingController
 {
@@ -31,9 +32,10 @@ class PublicSettingController
                 }
                  // Fallback with Proxy Support
                 $uri = $request->getUri();
+                $routeContext = RouteContext::fromRequest($request);
+                $basePath = $routeContext->getBasePath();
                 $scheme = $request->getHeaderLine('X-Forwarded-Proto') ?: $uri->getScheme();
                 $authority = $request->getHeaderLine('X-Forwarded-Host') ?: $uri->getAuthority();
-                $basePath = $uri->getBasePath();
                 $base = ($basePath === '/' || $basePath === '') ? '' : $basePath;
                 
                 if (empty($authority)) $authority = 'localhost';

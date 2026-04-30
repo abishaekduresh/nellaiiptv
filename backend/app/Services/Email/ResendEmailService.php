@@ -16,7 +16,7 @@ class ResendEmailService implements EmailServiceInterface
         if (!$apiKey) {
             throw new Exception("RESEND_EMAIL_API_KEY is not set in environment");
         }
-        $this->resend = \Resend::client($apiKey);
+        $this->resend = Resend::client($apiKey);
         $this->fromEmail = $_ENV['MAIL_FROM_ADDRESS'] ?? 'onboarding@resend.dev';
     }
 
@@ -60,7 +60,8 @@ class ResendEmailService implements EmailServiceInterface
                 'metadata' => ['error' => $e->getMessage()]
             ]);
 
-            return false;
+            // Rethrow so the caller can see the actual error message
+            throw $e;
         }
     }
 }
