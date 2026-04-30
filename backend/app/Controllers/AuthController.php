@@ -189,13 +189,7 @@ class AuthController
         }
 
         try {
-            $returnToken = filter_var($data['return_token'] ?? false, FILTER_VALIDATE_BOOLEAN);
-            $result = $this->authService->forgotPassword($data['email'], $returnToken);
-            
-            if ($returnToken && is_string($result)) {
-                return ResponseFormatter::success($response, ['token' => $result], 'Password reset link has been sent to your email');
-            }
-            
+            $this->authService->forgotPassword($data['email']);
             return ResponseFormatter::success($response, null, 'Password reset link has been sent to your email');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 400);

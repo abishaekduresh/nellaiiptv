@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, ArrowLeft, Eye, EyeOff, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import api from '@/lib/api';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -17,10 +18,8 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
-  const [debug, setDebug] = useState<Record<string, any> | null>(null);
   const [captcha, setCaptcha] = useState({ num1: 0, num2: 0, answer: 0 });
   const [userCaptcha, setUserCaptcha] = useState('');
-  const isDev = process.env.NEXT_PUBLIC_APP_ENV === 'development';
 
   useEffect(() => {
     generateCaptcha();
@@ -71,31 +70,26 @@ function ResetPasswordForm() {
     setLoading(true);
     setStatus('idle');
     setMessage('');
-    setDebug(null);
 
     try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password }),
+      const res = await api.post('/customers/reset-password', {
+        token, 
+        password,
+        password_confirmation: password
       });
 
-      const data = await res.json();
-
-      if (isDev && data.debug) setDebug(data.debug);
-
-      if (data.status) {
+      if (res.data.status) {
         setStatus('success');
-        setMessage(data.message);
+        setMessage(res.data.message || 'Password successfully reset.');
         setTimeout(() => router.push('/login'), 2500);
       } else {
         setStatus('error');
-        setMessage(data.message || 'Failed to reset password.');
+        setMessage(res.data.message || 'Failed to reset password.');
         generateCaptcha();
       }
-    } catch {
+    } catch (err: any) {
       setStatus('error');
-      setMessage('An error occurred. Please try again.');
+      setMessage(err.response?.data?.message || 'An error occurred. Please try again.');
       generateCaptcha();
     } finally {
       setLoading(false);
@@ -124,12 +118,6 @@ function ResetPasswordForm() {
               <Link href="/forgot-password" className="inline-block w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-2.5 px-6 rounded-lg transition-colors border border-slate-700">
                 Back to Forgot Password
               </Link>
-            </div>
-          )}
-          {isDev && debug && (
-            <div className="bg-slate-800 border border-yellow-500/40 rounded-lg p-4">
-              <p className="text-xs font-mono text-yellow-400 mb-2">DEV — debug info</p>
-              <pre className="text-xs text-slate-300 whitespace-pre-wrap break-all">{JSON.stringify(debug, null, 2)}</pre>
             </div>
           )}
         </div>

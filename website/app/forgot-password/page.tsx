@@ -3,15 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Loader2, ArrowLeft, Mail, RefreshCw } from 'lucide-react';
-
-const isDev = process.env.NEXT_PUBLIC_APP_ENV === 'development';
+import api from '@/lib/api';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
-  const [debug, setDebug] = useState<Record<string, any> | null>(null);
   const [captcha, setCaptcha] = useState({ num1: 0, num2: 0, answer: 0 });
   const [userCaptcha, setUserCaptcha] = useState('');
 
@@ -39,30 +37,23 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setStatus('idle');
     setMessage('');
-    setDebug(null);
 
     try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      const res = await api.post('/customers/forgot-password', {
+        email: email.trim().toLowerCase()
       });
 
-      const data = await res.json();
-
-      if (isDev && data.debug) setDebug(data.debug);
-
-      if (data.status) {
+      if (res.data.status) {
         setStatus('success');
-        setMessage(data.message);
+        setMessage(res.data.message || 'Password reset link has been sent to your email.');
       } else {
         setStatus('error');
-        setMessage(data.message || 'Failed to send reset email.');
+        setMessage(res.data.message || 'Failed to send reset email.');
         generateCaptcha();
       }
-    } catch {
+    } catch (err: any) {
       setStatus('error');
-      setMessage('An error occurred. Please try again.');
+      setMessage(err.response?.data?.message || 'An error occurred. Please try again.');
       generateCaptcha();
     } finally {
       setLoading(false);
@@ -91,15 +82,9 @@ export default function ForgotPasswordPage() {
               <Mail size={36} className="mx-auto" />
               <p className="font-medium">{message}</p>
               <p className="text-sm text-slate-400">
-                The link expires in <strong className="text-slate-300">10 minutes</strong>. Check your spam folder if you don't see it.
+                The link expires in <strong className="text-slate-300">1 hour</strong>. Check your spam folder if you don't see it.
               </p>
             </div>
-            {isDev && debug && (
-              <div className="bg-slate-800 border border-yellow-500/40 rounded-lg p-4">
-                <p className="text-xs font-mono text-yellow-400 mb-2">DEV — debug info</p>
-                <pre className="text-xs text-slate-300 whitespace-pre-wrap break-all">{JSON.stringify(debug, null, 2)}</pre>
-              </div>
-            )}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -108,12 +93,6 @@ export default function ForgotPasswordPage() {
                 <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
                   {message}
                 </div>
-                {isDev && debug && (
-                  <div className="bg-slate-800 border border-yellow-500/40 rounded-lg p-4">
-                    <p className="text-xs font-mono text-yellow-400 mb-2">DEV — debug info</p>
-                    <pre className="text-xs text-slate-300 whitespace-pre-wrap break-all">{JSON.stringify(debug, null, 2)}</pre>
-                  </div>
-                )}
               </div>
             )}
 
