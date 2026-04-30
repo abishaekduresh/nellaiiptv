@@ -96,4 +96,9 @@ $errorMiddleware->setErrorHandler(HttpNotFoundException::class, function (Reques
     return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
 });
 
+// Catch-all route to serve a 200 OK response for OPTIONS (CORS preflight)
+$app->options('/{routes:.+}', function ($request, $response) {
+    return $response;
+});
+
 $app->run();
