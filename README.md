@@ -11,7 +11,7 @@ Premium web interface optimized for Browsers and Smart TV.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.40.0
+- **Version**: 1.40.1
 - **Key Features**: Feedback API, Admin Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, WAMP SSL Fix, Scrolling Ads API.
 
 ### `nellai_iptv_app` (Flutter)
@@ -19,7 +19,7 @@ A premium IPTV player built for Android and Android TV.
 - **Version**: 1.10.0+58
 - **Key Features**: Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
-## Recent Updates (v1.10.0+58 App / v1.52.0 Website / v1.40.0 Backend)
+## Recent Updates (v1.10.0+58 App / v1.52.0 Website / v1.40.1 Backend)
 
 ### Website (Next.js)
 - **Feature**: **Feedback Page** - New `/feedback` public page with feedback type selector, 1–5 star rating, issue type picker (channel issues), and message field. Authenticated users see their name pre-filled.

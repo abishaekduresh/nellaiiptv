@@ -18,11 +18,24 @@ class ApiKeyMiddleware implements MiddlewareInterface
         $this->apiSecret = $_ENV['API_SECRET'] ?? '';
     }
 
+    // Routes that do not require an API key (fully public endpoints)
+    private const PUBLIC_PATHS = [
+        '/api/feedback',
+    ];
+
     public function process(Request $request, RequestHandler $handler): Response
     {
         // Skip for OPTION requests (CORS preflight)
         if ($request->getMethod() === 'OPTIONS') {
             return $handler->handle($request);
+        }
+
+        // Skip API key check for public paths (match by suffix to support subdirectory installs)
+        $path = $request->getUri()->getPath();
+        foreach (self::PUBLIC_PATHS as $publicPath) {
+            if (str_ends_with($path, $publicPath) || str_contains($path, $publicPath . '/')) {
+                return $handler->handle($request);
+            }
         }
 
         $apiKey = $request->getHeaderLine('X-API-KEY');

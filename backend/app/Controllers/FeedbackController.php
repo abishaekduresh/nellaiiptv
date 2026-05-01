@@ -93,7 +93,15 @@ class FeedbackController
             $feedback->created_at  = date('Y-m-d H:i:s');
             $feedback->save();
 
-            return ResponseFormatter::success($response, null, 'Thank you for your feedback!', 201);
+            return ResponseFormatter::success($response, [
+                'uuid'          => $feedback->uuid,
+                'feedback_type' => $feedback->feedback_type,
+                'rating'        => $feedback->rating,
+                'issue_type'    => $feedback->issue_type,
+                'platform'      => $feedback->platform,
+                'status'        => $feedback->status,
+                'created_at'    => $feedback->created_at,
+            ], 'Thank you for your feedback!', 201);
         } catch (Exception $e) {
             return ResponseFormatter::error($response, 'Failed to submit feedback. Please try again.', 500);
         }

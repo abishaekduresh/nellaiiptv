@@ -1,3 +1,9 @@
+## [1.10.0+58] - App | [1.52.0] - Website | [1.40.1] - Backend - 2026-05-01
+
+### Backend (PHP/Slim)
+- **Fix**: **Feedback Public Access** - `/api/feedback` now bypasses `ApiKeyMiddleware` using suffix/contains path matching, supporting subdirectory server installs.
+- **Fix**: **Feedback Response Data** - Submission response now returns created feedback record instead of `null`.
+
 ## [1.10.0+58] - App | [1.52.0] - Website | [1.40.0] - Backend - 2026-05-01
 
 ### Website (Next.js)

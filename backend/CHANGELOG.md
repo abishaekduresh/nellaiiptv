@@ -1,3 +1,7 @@
+## [1.40.1] - 2026-05-01
+- **Fix**: **Feedback Public Access** - Added `/api/feedback` to `ApiKeyMiddleware` public bypass list using suffix/contains matching to support subdirectory installs (e.g. `/nellaiiptv/backend/public/api/feedback`).
+- **Fix**: **Feedback Response Data** - `POST /api/feedback` now returns the created feedback record (`uuid`, `feedback_type`, `rating`, `issue_type`, `platform`, `status`, `created_at`) instead of `null`.
+
 ## [1.40.0] - 2026-05-01
 - **Feature**: **Feedback API** - New `POST /api/feedback` public endpoint (optional auth) accepting `feedback_type`, `rating` (1–5), `issue_type` (for channel issues), and `message`. Platform resolved from `X-Client-Platform` header; `customer_id` auto-resolved from JWT when authenticated.
 - **Feature**: **Admin Feedback API** - New admin endpoints: `GET /api/admin/feedback` (paginated, filterable by type/status/platform/rating), `PUT /api/admin/feedback/{uuid}/status`, `DELETE /api/admin/feedback/{uuid}`.
