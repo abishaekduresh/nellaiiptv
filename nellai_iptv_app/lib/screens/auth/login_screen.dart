@@ -14,6 +14,7 @@ import 'package:cached_network_image/cached_network_image.dart'; // For displayi
 import 'package:url_launcher/url_launcher.dart'; // For ad click
 import '../../models/ad.dart'; // Import Ad model
 import 'manage_devices_screen.dart'; // Import ManageDevicesScreen
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -263,8 +264,21 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                         
-                        const SizedBox(height: 40),
-        
+                        // Forgot Password
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                              );
+                            },
+                            child: const Text('Forgot Password?', style: TextStyle(color: Colors.cyan)),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
                         // Login Button
                         SizedBox(
                           height: 50,

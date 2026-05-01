@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.38.0)
+# Nellai IPTV - Backend API (v1.39.2)
 
-**Version 1.38.0** | RESTful API built with Slim PHP Framework
+**Version 1.39.2** | RESTful API built with Slim PHP Framework
 
 ## Overview
 

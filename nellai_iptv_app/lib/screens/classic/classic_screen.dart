@@ -1085,389 +1085,330 @@ class _ClassicScreenState extends State<ClassicScreen> {
             child: Column( // Removed FocusTraversalGroup to allow manual D-Pad control
               children: [
                    Consumer<ChannelProvider>(
-                     builder: (context, provider, _) { 
-// ... (Keeping the rest context, but I need to jump to the class definitions)
-                        // Always Show Logo and App Name layout
-                        Widget titleWidget = Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 12.0),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: (_settings != null && _settings!.logoUrl != null && _settings!.logoUrl!.isNotEmpty)
-                                      ? Image.network(
-                                          _settings!.logoUrl!,
-                                          height: 42, 
-                                          width: 42,
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (_,__,___) => Image.asset(
-                                            'assets/img/logo.png',
-                                            height: 42,
-                                            width: 42,
-                                            fit: BoxFit.contain,
-                                          ),
-                                        )
-                                      : Image.asset(
-                                          'assets/img/logo.png',
-                                          height: 42,
-                                          width: 42,
-                                          fit: BoxFit.contain,
-                                        ),
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _settings?.appName ?? dotenv.env['APP_TITLE'] ?? "Nellai IPTV",
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)
-                                    ),
-                                    const Text(
-                                      "CLASSIC",
-                                      style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1.2)
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1, end: 0);
+                     builder: (context, provider, _) {
+                       return LayoutBuilder(
+                         builder: (context, constraints) {
+                           // Responsive breakpoints based on available panel width
+                           final panelWidth = constraints.maxWidth;
+                           final isCompact = panelWidth < 260;
+                           final isMedium = panelWidth < 340;
+                           final logoSize = isCompact ? 28.0 : (isMedium ? 32.0 : 36.0);
+                           final titleFontSize = isCompact ? 13.0 : (isMedium ? 15.0 : 16.0);
 
-                       return Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: const BoxDecoration(
-                          border: Border(bottom: BorderSide(color: Colors.white10)),
-                        ),
-                        child: Column(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
-                               Row(
-                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                 children: [
-                                   // Title or Search Bar
-                                   Expanded(
-                                     child: _isSearching 
-                                     ? Padding(
-                                         padding: const EdgeInsets.only(right: 16.0),
-                                           child: Actions(
-                                             actions: {
-                                               ActivateIntent: CallbackAction<ActivateIntent>(
-                                                 onInvoke: (intent) {
-                                                   SystemChannels.textInput.invokeMethod('TextInput.show');
-                                                   return null;
-                                                 },
-                                               ),
-                                             },
-                                             child: TextField(
-                                               controller: _searchController,
-                                               focusNode: _searchFocusNode,
-                                               autofocus: true, // Auto focus when searching starts
-                                               textInputAction: TextInputAction.search, // Show search button on keyboard
-                                               style: const TextStyle(color: Colors.white),
-                                               decoration: InputDecoration(
-                                                 hintText: "Search channels...",
-                                                 hintStyle: const TextStyle(color: Colors.white54),
-                                                 border: OutlineInputBorder(
-                                                   borderRadius: BorderRadius.circular(8),
-                                                   borderSide: const BorderSide(color: Color(0xFF06B6D4)),
-                                                 ),
-                                                 enabledBorder: OutlineInputBorder(
-                                                   borderRadius: BorderRadius.circular(8),
-                                                   borderSide: const BorderSide(color: Colors.white24),
-                                                 ),
-                                                 focusedBorder: OutlineInputBorder(
-                                                   borderRadius: BorderRadius.circular(8),
-                                                   borderSide: const BorderSide(color: Color(0xFF06B6D4)),
-                                                 ),
-                                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                                                 prefixIcon: const Icon(Icons.search, color: Color(0xFF06B6D4)),
-                                                 suffixIcon: IconButton(
-                                                   icon: const Icon(Icons.close, color: Colors.white54),
-                                                   onPressed: () {
-                                                     _searchController.clear();
-                                                     setState(() {
-                                                       _isSearching = false;
-                                                     });
-                                                     provider.search(''); // Clear filter
+                           Widget titleWidget = Row(
+                             mainAxisSize: MainAxisSize.min,
+                             children: [
+                               ClipRRect(
+                                 borderRadius: BorderRadius.circular(6),
+                                 child: (_settings != null && _settings!.logoUrl != null && _settings!.logoUrl!.isNotEmpty)
+                                   ? Image.network(
+                                       _settings!.logoUrl!,
+                                       height: logoSize,
+                                       width: logoSize,
+                                       fit: BoxFit.contain,
+                                       errorBuilder: (_,__,___) => Image.asset(
+                                         'assets/img/logo.png',
+                                         height: logoSize, width: logoSize, fit: BoxFit.contain,
+                                       ),
+                                     )
+                                   : Image.asset(
+                                       'assets/img/logo.png',
+                                       height: logoSize, width: logoSize, fit: BoxFit.contain,
+                                     ),
+                               ),
+                               SizedBox(width: isCompact ? 6 : 8),
+                               Flexible(
+                                 child: Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   mainAxisSize: MainAxisSize.min,
+                                   children: [
+                                     Text(
+                                       _settings?.appName ?? dotenv.env['APP_TITLE'] ?? "Nellai IPTV",
+                                       style: TextStyle(
+                                         color: Colors.white,
+                                         fontWeight: FontWeight.bold,
+                                         fontSize: titleFontSize,
+                                       ),
+                                       maxLines: 1,
+                                       overflow: TextOverflow.ellipsis,
+                                     ),
+                                     if (!isCompact)
+                                       const Text(
+                                         "CLASSIC",
+                                         style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold, fontSize: 9, letterSpacing: 1.2),
+                                       ),
+                                   ],
+                                 ),
+                               ),
+                             ],
+                           ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1, end: 0);
+
+                           // Compact icon button builder to reduce repetition
+                           Widget _iconBtn({
+                             required FocusNode focusNode,
+                             required IconData icon,
+                             required VoidCallback onTap,
+                             Color? activeColor,
+                             Color iconColor = Colors.white70,
+                             String? tooltip,
+                           }) {
+                             return Tooltip(
+                               message: tooltip ?? '',
+                               child: InkWell(
+                                 focusNode: focusNode,
+                                 onTap: onTap,
+                                 borderRadius: BorderRadius.circular(4),
+                                 child: AnimatedBuilder(
+                                   animation: focusNode,
+                                   builder: (context, _) {
+                                     final focused = focusNode.hasFocus;
+                                     return Container(
+                                       height: 28,
+                                       width: 28,
+                                       decoration: BoxDecoration(
+                                         color: focused ? (activeColor ?? const Color(0xFF0EA5E9)) : const Color(0xFF1E293B),
+                                         border: Border.all(color: Colors.white24),
+                                         borderRadius: BorderRadius.circular(4),
+                                       ),
+                                       child: Icon(
+                                         icon,
+                                         size: 16,
+                                         color: focused ? Colors.white : iconColor,
+                                       ),
+                                     );
+                                   },
+                                 ),
+                               ),
+                             );
+                           }
+
+                           final gap = SizedBox(width: isCompact ? 4 : 6);
+
+                           return Container(
+                             padding: EdgeInsets.symmetric(
+                               horizontal: isCompact ? 8 : 10,
+                               vertical: isCompact ? 8 : 10,
+                             ),
+                             decoration: const BoxDecoration(
+                               border: Border(bottom: BorderSide(color: Colors.white10)),
+                             ),
+                             child: Column(
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               children: [
+                                 Row(
+                                   children: [
+                                     // Title or Search Bar
+                                     Expanded(
+                                       child: _isSearching
+                                         ? Padding(
+                                             padding: const EdgeInsets.only(right: 8.0),
+                                             child: Actions(
+                                               actions: {
+                                                 ActivateIntent: CallbackAction<ActivateIntent>(
+                                                   onInvoke: (intent) {
+                                                     SystemChannels.textInput.invokeMethod('TextInput.show');
+                                                     return null;
                                                    },
                                                  ),
+                                               },
+                                               child: TextField(
+                                                 controller: _searchController,
+                                                 focusNode: _searchFocusNode,
+                                                 autofocus: true,
+                                                 textInputAction: TextInputAction.search,
+                                                 style: const TextStyle(color: Colors.white, fontSize: 13),
+                                                 decoration: InputDecoration(
+                                                   hintText: "Search channels...",
+                                                   hintStyle: const TextStyle(color: Colors.white54, fontSize: 13),
+                                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF06B6D4))),
+                                                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                                                   focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF06B6D4))),
+                                                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                                                   prefixIcon: const Icon(Icons.search, color: Color(0xFF06B6D4), size: 18),
+                                                   suffixIcon: IconButton(
+                                                     icon: const Icon(Icons.close, color: Colors.white54, size: 16),
+                                                     onPressed: () {
+                                                       _searchController.clear();
+                                                       setState(() => _isSearching = false);
+                                                       provider.search('');
+                                                     },
+                                                   ),
+                                                 ),
+                                                 onTap: () => SystemChannels.textInput.invokeMethod('TextInput.show'),
+                                                 onChanged: (value) => provider.search(value),
+                                                 onSubmitted: (value) => provider.search(value),
                                                ),
+                                             ),
+                                           )
+                                         : titleWidget,
+                                     ),
+
+                                     // Action buttons row
+                                     Row(
+                                       mainAxisSize: MainAxisSize.min,
+                                       children: [
+                                         // Search button (only when not searching)
+                                         if (!_isSearching) ...[
+                                           _iconBtn(
+                                             focusNode: _searchBtnFocusNode,
+                                             icon: Icons.search,
+                                             tooltip: 'Search',
+                                             onTap: () {
+                                               setState(() {
+                                                 _isSearching = true;
+                                                 provider.selectCategory(null);
+                                                 provider.selectLanguage(null);
+                                               });
+                                               WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                 _searchFocusNode.requestFocus();
+                                               });
+                                             },
+                                           ),
+                                           gap,
+                                         ],
+
+                                         // Settings (hidden on TV)
+                                         if (!DeviceUtils.isTV) ...[
+                                           _iconBtn(
+                                             focusNode: _settingsBtnFocusNode,
+                                             icon: Icons.settings,
+                                             tooltip: 'Settings',
+                                             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                                           ),
+                                           gap,
+                                         ],
+
+                                         // Refresh
+                                         _iconBtn(
+                                           focusNode: _refreshBtnFocusNode,
+                                           icon: Icons.refresh,
+                                           tooltip: 'Refresh',
+                                           onTap: _handleRefresh,
+                                         ),
+
+                                         // Group-by toggle (hidden on TV) — icon only with tooltip
+                                         if (!DeviceUtils.isTV) ...[
+                                           gap,
+                                           Tooltip(
+                                             message: 'Group by: $_groupBy (tap to switch)',
+                                             child: InkWell(
+                                               focusNode: _groupBtnFocusNode,
                                                onTap: () {
-                                                  // Explicitly request keyboard on tap (which Select key simulates in some environments)
-                                                  SystemChannels.textInput.invokeMethod('TextInput.show');
+                                                 setState(() {
+                                                   _groupBy = _groupBy == 'Categories' ? 'Languages' : 'Categories';
+                                                   provider.selectCategory(null);
+                                                 });
                                                },
-                                               onChanged: (value) => provider.search(value),
-                                               onSubmitted: (value) {
-                                                 // Ensure search is triggered on keyboard "Search" button press
-                                                 provider.search(value);
-                                                 // Optionally keep focus or move focus elsewhere if needed
-                                               },
+                                               borderRadius: BorderRadius.circular(4),
+                                               child: AnimatedBuilder(
+                                                 animation: _groupBtnFocusNode,
+                                                 builder: (context, _) {
+                                                   final focused = _groupBtnFocusNode.hasFocus;
+                                                   return Container(
+                                                     height: 28,
+                                                     decoration: BoxDecoration(
+                                                       color: const Color(0xFF1E293B),
+                                                       border: focused
+                                                           ? Border.all(color: const Color(0xFF06B6D4), width: 2)
+                                                           : Border.all(color: Colors.white24),
+                                                       borderRadius: BorderRadius.circular(4),
+                                                       boxShadow: focused ? [BoxShadow(color: const Color(0xFF06B6D4).withOpacity(0.4), blurRadius: 6)] : [],
+                                                     ),
+                                                     padding: EdgeInsets.symmetric(horizontal: isMedium ? 6 : 8),
+                                                     child: Row(
+                                                       mainAxisSize: MainAxisSize.min,
+                                                       children: [
+                                                         if (!isMedium)
+                                                           Text(
+                                                             _groupBy == 'Categories' ? '' : '', //Cat, Lang
+                                                             style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                                           ),
+                                                         if (!isMedium) const SizedBox(width: 3),
+                                                         const Icon(Icons.swap_horiz, color: Colors.white70, size: 15),
+                                                       ],
+                                                     ),
+                                                   );
+                                                 },
+                                               ),
                                              ),
                                            ),
-                                       )
-                                     : titleWidget,
-                                   ),
+                                         ],
 
-                                   Row(
-                                     children: [
-                                       // Search Trigger Button (Only show if not searching)
-                                       if (!_isSearching) ...[
-                                            InkWell(
-                                              focusNode: _searchBtnFocusNode,
-                                              onTap: () {
-                                                setState(() {
-                                                  _isSearching = true;
-                                                  // Global search: Reset other filters
-                                                  provider.selectCategory(null);
-                                                  provider.selectLanguage(null);
-                                                });
-                                                // Request focus after rebuild
-                                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                                  _searchFocusNode.requestFocus();
-                                                });
-                                              },
-                                              borderRadius: BorderRadius.circular(4),
-                                              child: AnimatedBuilder(
-                                                animation: _searchBtnFocusNode,
-                                                builder: (context, _) {
-                                                  return Container(
-                                                    height: 30,
-                                                    width: 30,
-                                                    decoration: BoxDecoration(
-                                                      color: _searchBtnFocusNode.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
-                                                      border: Border.all(color: Colors.white24),
-                                                      borderRadius: BorderRadius.circular(4),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.search,
-                                                      size: 18,
-                                                      color: _searchBtnFocusNode.hasFocus ? Colors.white : Colors.white70,
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          const SizedBox(width: 8),
+                                         // Auth button (hidden on TV)
+                                         if (!DeviceUtils.isTV) ...[
+                                           gap,
+                                           if (_isLoggedIn)
+                                             _iconBtn(
+                                               focusNode: _authBtnFocusNode,
+                                               icon: Icons.person,
+                                               tooltip: 'Profile',
+                                               iconColor: const Color(0xFF06B6D4),
+                                               onTap: () async {
+                                                 await _stopPlayerCompletely();
+                                                 SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+                                                 await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
+                                                 SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+                                                 _resumePlayback();
+                                               },
+                                             )
+                                           else
+                                             _iconBtn(
+                                               focusNode: _authBtnFocusNode,
+                                               icon: Icons.login,
+                                               tooltip: 'Login',
+                                               activeColor: const Color(0xFF10B981),
+                                               iconColor: const Color(0xFF10B981),
+                                               onTap: _handleLogin,
+                                             ),
+                                         ],
                                        ],
+                                     ),
+                                   ],
+                                 ),
 
-                                       // Settings Button (Hidden on TV)
-                                       if (!DeviceUtils.isTV)
-                                       InkWell(
-                                         focusNode: _settingsBtnFocusNode,
-                                         onTap: () {
-                                            Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
-                                         },
-                                         borderRadius: BorderRadius.circular(4),
-                                         child: AnimatedBuilder(
-                                           animation: _settingsBtnFocusNode,
-                                           builder: (context, _) {
-                                             return Container(
-                                               height: 30,
-                                               width: 30,
-                                               decoration: BoxDecoration(
-                                                 color: _settingsBtnFocusNode.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
-                                                 border: Border.all(color: Colors.white24),
-                                                 borderRadius: BorderRadius.circular(4),
-                                               ),
-                                               child: Icon(
-                                                 Icons.settings,
-                                                 size: 18,
-                                                 color: _settingsBtnFocusNode.hasFocus ? Colors.white : Colors.white70,
-                                               ),
-                                             );
-                                           },
-                                         ),
-                                       ),
-                                       const SizedBox(width: 8),
-                                       // Refresh Button
-                                       InkWell(
-                                         focusNode: _refreshBtnFocusNode,
-                                         onTap: () => _handleRefresh(), // Reloads channels + banner ads + scrolling ads
-                                         borderRadius: BorderRadius.circular(4),
-                                         child: AnimatedBuilder(
-                                           animation: _refreshBtnFocusNode,
-                                           builder: (context, _) {
-                                             return Container(
-                                               height: 30,
-                                               width: 30, // Square button
-                                               decoration: BoxDecoration(
-                                                 color: _refreshBtnFocusNode.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
-                                                 border: Border.all(color: Colors.white24),
-                                                 borderRadius: BorderRadius.circular(4),
-                                               ),
-                                               child: Icon(
-                                                 Icons.refresh,
-                                                 size: 18,
-                                                 color: _refreshBtnFocusNode.hasFocus ? Colors.white : Colors.white70,
-                                               ),
-                                             );
-                                           },
-                                         ),
-                                       ),
-                                       const SizedBox(width: 8),
-                                       // Toggle Button to switch Group Mode (Categories / Languages) - Hidden on TV
-                                       if (!DeviceUtils.isTV)
-                                       InkWell(
-                                          focusNode: _groupBtnFocusNode,
-                                          onTap: () {
-                                             setState(() {
-                                                _groupBy = _groupBy == 'Categories' ? 'Languages' : 'Categories';
-                                                provider.selectCategory(null); // Reset filters
-                                             });
-                                          },
-                                          borderRadius: BorderRadius.circular(4),
-                                          child: AnimatedBuilder(
-                                            animation: _groupBtnFocusNode,
-                                            builder: (context, _) {
-                                              return Container(
-                                               height: 30,
-                                               padding: const EdgeInsets.symmetric(horizontal: 12),
-                                               decoration: BoxDecoration(
-                                                  color: const Color(0xFF1E293B),
-                                                  border: _groupBtnFocusNode.hasFocus 
-                                                      ? Border.all(color: const Color(0xFF06B6D4), width: 2)
-                                                      : Border.all(color: Colors.white24), 
-                                                  borderRadius: BorderRadius.circular(4),
-                                                  boxShadow: _groupBtnFocusNode.hasFocus ? [
-                                                     BoxShadow(color: const Color(0xFF06B6D4).withOpacity(0.4), blurRadius: 6)
-                                                  ] : [],
-                                               ),
-                                               alignment: Alignment.center,
-                                               child: Row(
-                                                  children: [
-                                                     Text(
-                                                        "Group by: $_groupBy",
-                                                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                                     ),
-                                                     const SizedBox(width: 4),
-                                                     const Icon(Icons.swap_horiz, color: Colors.white54, size: 16),
-                                                  ],
-                                               ),
-                                              );
-                                            }
-                                          ),
-                                       ),
-
-                                      if (_isLoggedIn && !DeviceUtils.isTV) ...[
-                                        const SizedBox(width: 8),
-                                        InkWell(
-                                          focusNode: _authBtnFocusNode,
-                                          onTap: () async {
-
-                                            // FULL PLAYER STOP BEFORE PROFILE
-                                            await _stopPlayerCompletely();
-
-                                            // Switch to portrait if profile is mobile style
-                                            SystemChrome.setPreferredOrientations([
-                                              DeviceOrientation.portraitUp,
-                                            ]);
-
-                                            await Navigator.of(context).push(
-                                              MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                                            );
-
-                                            // Restore landscape when coming back
-                                            SystemChrome.setPreferredOrientations([
-                                              DeviceOrientation.landscapeLeft,
-                                              DeviceOrientation.landscapeRight,
-                                            ]);
-                                            // ✅ Restart video when back
-                                            _resumePlayback();
-                                          },
-                                              borderRadius: BorderRadius.circular(4),
-                                              child: AnimatedBuilder(
-                                                animation: _authBtnFocusNode,
-                                                builder: (context, _) {
-                                                  return Container(
-                                                    height: 30,
-                                                    width: 30,
-                                                    decoration: BoxDecoration(
-                                                      color: _authBtnFocusNode.hasFocus ? const Color(0xFF0EA5E9) : const Color(0xFF1E293B),
-                                                      border: Border.all(color: Colors.white24),
-                                                      borderRadius: BorderRadius.circular(4),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.person,
-                                                      size: 18,
-                                                      color: _authBtnFocusNode.hasFocus ? Colors.white : const Color(0xFF06B6D4),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                       ] else if (!DeviceUtils.isTV) ...[
-                                            const SizedBox(width: 8),
-                                            InkWell(
-                                              focusNode: _authBtnFocusNode,
-                                              onTap: _handleLogin,
-                                              borderRadius: BorderRadius.circular(4),
-                                              child: AnimatedBuilder(
-                                                animation: _authBtnFocusNode,
-                                                builder: (context, _) {
-                                                  return Container(
-                                                    height: 30,
-                                                    width: 30,
-                                                    decoration: BoxDecoration(
-                                                      color: _authBtnFocusNode.hasFocus ? const Color(0xFF10B981) : const Color(0xFF1E293B), // Green for Login
-                                                      border: Border.all(color: Colors.white24),
-                                                      borderRadius: BorderRadius.circular(4),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.login,
-                                                      size: 18,
-                                                      color: _authBtnFocusNode.hasFocus ? Colors.white : const Color(0xFF10B981),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                       ],
-                                     ],
+                                 // Filter chips (hidden on TV)
+                                 if (!DeviceUtils.isTV) ...[
+                                   const SizedBox(height: 10),
+                                   SizedBox(
+                                     height: 30,
+                                     child: ListView.separated(
+                                       scrollDirection: Axis.horizontal,
+                                       itemCount: _groupBy == 'Categories'
+                                           ? provider.categories.length + 1
+                                           : provider.languages.length + 1,
+                                       separatorBuilder: (_, __) => const SizedBox(width: 6),
+                                       itemBuilder: (context, index) {
+                                         if (index == 0) {
+                                           return FocusableCategoryChip(
+                                             label: "All",
+                                             isSelected: provider.selectedCategory == null && provider.selectedLanguage == null,
+                                             onTap: () => provider.selectCategory(null),
+                                           );
+                                         }
+                                         if (_groupBy == 'Categories') {
+                                           final cat = provider.categories[index - 1];
+                                           return FocusableCategoryChip(
+                                             label: cat.name,
+                                             isSelected: provider.selectedCategory == cat,
+                                             onTap: () => provider.selectCategory(cat),
+                                           );
+                                         } else {
+                                           final lang = provider.languages[index - 1];
+                                           return FocusableCategoryChip(
+                                             label: lang.name,
+                                             isSelected: provider.selectedLanguage == lang,
+                                             onTap: () => provider.selectLanguage(lang),
+                                           );
+                                         }
+                                       },
+                                     ),
                                    ),
                                  ],
-                               ),
-                             if (!DeviceUtils.isTV) ...[
-                              const SizedBox(height: 12),
-                              
-                              // Horizontal Filter List (Hidden on TV)
-                              SizedBox(
-                                height: 32,
-                                child: ListView.separated(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: _groupBy == 'Categories' 
-                                      ? provider.categories.length + 1 
-                                      : provider.languages.length + 1,
-                                  separatorBuilder: (_,__) => const SizedBox(width: 8),
-                                   itemBuilder: (context, index) {
-                                    if (index == 0) {
-                                       final isAllSelected = provider.selectedCategory == null && provider.selectedLanguage == null;
-                                       return FocusableCategoryChip(
-                                         label: "All", 
-                                         isSelected: isAllSelected, 
-                                         onTap: () => provider.selectCategory(null)
-                                       );
-                                    }
-                                    
-                                    if (_groupBy == 'Categories') {
-                                       final cat = provider.categories[index - 1];
-                                       return FocusableCategoryChip(
-                                         label: cat.name, 
-                                         isSelected: provider.selectedCategory == cat, 
-                                         onTap: () => provider.selectCategory(cat)
-                                       );
-                                    } else {
-                                       final lang = provider.languages[index - 1];
-                                       return FocusableCategoryChip(
-                                         label: lang.name, 
-                                         isSelected: provider.selectedLanguage == lang, 
-                                         onTap: () => provider.selectLanguage(lang)
-                                       );
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                           ],
-                        ),
-                      );
+                               ],
+                             ),
+                           );
+                         },
+                       );
                      },
                    ),
 

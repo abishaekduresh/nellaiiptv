@@ -1,3 +1,16 @@
+## [1.10.0+58] - 2026-05-01
+
+### Added
+- **Forgot Password Screen**: New `ForgotPasswordScreen` (`screens/auth/forgot_password_screen.dart`) with email input, math captcha security check, loading state, error banner, and success confirmation view.
+- **Login → Forgot Password Link**: "Forgot Password?" `TextButton` added to `LoginScreen` below the password field, navigating to `ForgotPasswordScreen`.
+- **`forgotPassword` API Method**: Added `ApiService.forgotPassword(String email)` method that POSTs to `/customers/forgot-password` and throws a descriptive `Exception` if `status != true`.
+
+### Fixed
+- **Responsive Classic Screen Header**: Refactored the header in `ClassicScreen` using `LayoutBuilder` to eliminate element overlap on small-screen devices. Logo now scales dynamically (28–36px), title font size adapts, the "Group by" button uses abbreviated labels or icon-only on narrow panels, and all action buttons are uniformly 28px with tighter spacing.
+
+### Chore
+- **Version Sync**: Bumped `pubspec.yaml` from `1.9.2+51` to `1.10.0+58` to align with actual release history.
+
 ## [1.9.2+51] - 2026-04-14
 
 ### Added

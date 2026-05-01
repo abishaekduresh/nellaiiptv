@@ -1,3 +1,12 @@
+## [1.10.0+58] - App | [1.51.2] - Website | [1.39.2] - Backend - 2026-05-01
+
+### App (Flutter)
+- **Feature**: **Forgot Password** - Full forgot password flow added to the mobile app. New `ForgotPasswordScreen` with email input, math captcha security check, loading states, success/error display, and auto-navigation back to login on success.
+- **Feature**: **Login → Forgot Password Link** - Added "Forgot Password?" `TextButton` on the `LoginScreen` (right-aligned, below password field) that navigates to `ForgotPasswordScreen`.
+- **Feature**: **`forgotPassword` API Method** - Added `ApiService.forgotPassword(String email)` that POSTs to `/customers/forgot-password` and throws a descriptive `Exception` on failure.
+- **Fix**: **Responsive Header** - The Classic Screen header (logo, app name, action buttons) now uses `LayoutBuilder` with three responsive breakpoints (`isCompact`/`isMedium`/normal). Logo scales from 42→36→32→28px, title font adapts, "Group by" button shows abbreviated text or icon-only, all buttons shrink to 28px, spacing tightens — eliminating overlap on small-screen devices.
+- **Chore**: **Version Bump** - Synchronized `pubspec.yaml` version from `1.9.2+51` to `1.10.0+58`.
+
 ## [1.9.8+57] - App | [1.51.2] - Website | [1.39.2] - Backend - 2026-05-01
 
 ### Backend (PHP/Slim)

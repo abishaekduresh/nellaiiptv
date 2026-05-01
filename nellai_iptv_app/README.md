@@ -11,6 +11,13 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.10.0+58
+- **Key Features**: Forgot Password Flow, Responsive Classic Screen Header.
+- **Added**: **Forgot Password Screen** - New `ForgotPasswordScreen` with email input, math captcha security check, loading state, success confirmation, and error display.
+- **Added**: **Login → Forgot Password Link** - "Forgot Password?" `TextButton` on `LoginScreen`, right-aligned below the password field.
+- **Added**: **`forgotPassword` API Method** - `ApiService.forgotPassword(String email)` POSTs to `/customers/forgot-password`.
+- **Fixed**: **Responsive Classic Screen Header** - `LayoutBuilder` with `isCompact`/`isMedium`/normal breakpoints eliminates header element overlap on small devices. Logo, fonts, and button labels all scale down gracefully.
+
 ## Version: 1.9.2+51
 - **Key Features**: App Version Display in Settings, Deep Link Share Code Support, Bug Fix.
 - **Added**: **App Version Display** - Settings screen now shows the running app version pinned at the bottom center in a subtle muted style.

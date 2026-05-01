@@ -300,6 +300,20 @@ class ApiService {
     }
   }
 
+  Future<void> forgotPassword(String email) async {
+    try {
+      final response = await _dio.post('/customers/forgot-password', data: {'email': email});
+      if (response.data['status'] != true) {
+        throw Exception(response.data['message'] ?? 'Failed to send reset email');
+      }
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        throw Exception(e.response?.data['message'] ?? 'Failed to send reset email');
+      }
+      rethrow;
+    }
+  }
+
   // --- END AUTHENTICATION ---
 
   Future<Channel> getChannelDetails(String uuid) async {
