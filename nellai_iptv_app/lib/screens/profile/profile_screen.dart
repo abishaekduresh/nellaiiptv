@@ -5,6 +5,7 @@ import '../../core/api_service.dart';
 import '../auth/manage_devices_screen.dart';
 import '../auth/login_screen.dart';
 import '../../core/toast_service.dart';
+import 'feedback_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   
   // Focus Nodes
   late FocusNode _manageDevicesFocusNode;
+  late FocusNode _feedbackFocusNode;
   late FocusNode _logoutFocusNode;
 
   @override
@@ -33,6 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ]);
     
     _manageDevicesFocusNode = FocusNode();
+    _feedbackFocusNode = FocusNode();
     _logoutFocusNode = FocusNode();
     _loadProfile();
   }
@@ -49,6 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
     
     _manageDevicesFocusNode.dispose();
+    _feedbackFocusNode.dispose();
     _logoutFocusNode.dispose();
     super.dispose();
   }
@@ -180,7 +184,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       // Manage Devices Button
                       _buildManageDevicesButton(),
                       const SizedBox(height: 16),
-                      
+
+                      // Feedback Button
+                      _buildFeedbackButton(),
+                      const SizedBox(height: 16),
+
                       // Logout Button
                       _buildLogoutButton(),
                     ],
@@ -396,6 +404,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
         minimumSize: const Size(double.infinity, 56),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 4,
+      ),
+    );
+  }
+
+  Widget _buildFeedbackButton() {
+    return ElevatedButton.icon(
+      focusNode: _feedbackFocusNode,
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const FeedbackScreen()),
+        );
+      },
+      icon: const Icon(Icons.thumb_up_alt_outlined),
+      label: const Text('Share Feedback'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF334155),
+        foregroundColor: Colors.white,
+        minimumSize: const Size(double.infinity, 56),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 2,
       ),
     );
   }

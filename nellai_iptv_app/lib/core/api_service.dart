@@ -559,7 +559,7 @@ class ApiService {
 
   Future<bool> addChannelComment(String channelUuid, String comment) async {
     try {
-      final response = await _dio.post('/channels/$channelUuid/comments', 
+      final response = await _dio.post('/channels/$channelUuid/comments',
         data: {'comment': comment},
         options: Options(headers: {
           'Accept': 'application/json',
@@ -570,6 +570,26 @@ class ApiService {
     } catch (e) {
       debugPrint('Error adding comment: $e');
       return false;
+    }
+  }
+
+  Future<void> submitFeedback({
+    required String feedbackType,
+    int? rating,
+    String? issueType,
+    required String message,
+  }) async {
+    final data = <String, dynamic>{
+      'feedback_type': feedbackType,
+      'message': message,
+      if (rating != null) 'rating': rating,
+      if (issueType != null && issueType.isNotEmpty) 'issue_type': issueType,
+    };
+
+    final response = await _dio.post('/feedback', data: data);
+
+    if (response.statusCode != 201 || response.data['status'] != true) {
+      throw Exception(response.data['message'] ?? 'Failed to submit feedback');
     }
   }
 }

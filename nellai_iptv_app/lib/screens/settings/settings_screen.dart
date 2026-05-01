@@ -6,6 +6,7 @@ import '../../providers/settings_provider.dart';
 import '../../core/device_utils.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../core/toast_service.dart';
+import '../profile/feedback_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -16,6 +17,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final FocusNode _clearCacheFocusNode = FocusNode();
+  final FocusNode _feedbackFocusNode = FocusNode();
 
   bool _isClearingCache = false;
   String _appVersion = '';
@@ -71,6 +73,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
     ]);
+    _feedbackFocusNode.dispose();
     super.dispose();
   }
 
@@ -91,6 +94,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(16.0),
                   children: [
+                  const Text(
+                    'Feedback',
+                    style: TextStyle(
+                      color: Colors.cyan,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: _buildActionOption(
+                      focusNode: _feedbackFocusNode,
+                      title: 'Share Feedback',
+                      icon: Icons.thumb_up_alt_outlined,
+                      iconColor: Colors.cyan,
+                      onSelect: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const FeedbackScreen()),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   const Text(
                     'Storage',
                     style: TextStyle(

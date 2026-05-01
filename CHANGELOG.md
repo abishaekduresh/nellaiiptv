@@ -1,3 +1,11 @@
+## [1.11.0+59] - App | [1.52.0] - Website | [1.40.1] - Backend - 2026-05-01
+
+### App (Flutter)
+- **Feature**: **Feedback Screen** - New `FeedbackScreen` with feedback type selector, 1–5 star rating, issue type picker (channel issues), message textarea, and submit. Full TV D-Pad support.
+- **Feature**: **`submitFeedback` API** - `ApiService.submitFeedback()` posts to `POST /feedback`; auth token attached automatically via Dio interceptor.
+- **Feature**: **Profile Screen Feedback Button** - "Share Feedback" button added between Manage Devices and Logout.
+- **Feature**: **Settings Screen Feedback Section** - Feedback section added at top of Settings (above Storage) with tile navigating to `FeedbackScreen`.
+
 ## [1.10.0+58] - App | [1.52.0] - Website | [1.40.1] - Backend - 2026-05-01
 
 ### Backend (PHP/Slim)

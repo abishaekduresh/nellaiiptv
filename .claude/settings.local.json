@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find c:/wamp64/www/nellaiiptv/website -name Footer* -o -name footer*)",
+      "Read(//c/wamp64/logs/**)",
+      "Bash(php -r \":*)",
+      "Bash(xargs ls:*)",
+      "Bash(grep -rn ApiKeyMiddleware c:/wamp64/www/nellaiiptv/backend/ --include=*.php)"
+    ]
+  }
+}

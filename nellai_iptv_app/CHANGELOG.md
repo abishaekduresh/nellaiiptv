@@ -1,3 +1,11 @@
+## [1.11.0+59] - 2026-05-01
+
+### Added
+- **Feedback Screen**: New `FeedbackScreen` with feedback type selector (General, Bug Report, Feature Request, Channel Issue, Subscription), 1–5 star rating with labels, issue type radio list (for Channel Issue), message textarea, and submit button. Full TV D-Pad support with `FocusNode` on every interactive element.
+- **`submitFeedback` API Method**: Added `ApiService.submitFeedback()` posting to `POST /feedback` with `feedback_type`, `rating`, `issue_type`, and `message`. Auth token attached automatically.
+- **Profile Screen — Feedback Button**: "Share Feedback" button added between Manage Devices and Logout.
+- **Settings Screen — Feedback Section**: Feedback section added at the top of Settings (above Storage) with a "Share Feedback" tile navigating to `FeedbackScreen`.
+
 ## [1.10.0+58] - 2026-05-01
 
 ### Added

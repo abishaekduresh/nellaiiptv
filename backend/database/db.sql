@@ -14,6 +14,11 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+
+-- Dumping database structure for nellaiiptv
+CREATE DATABASE IF NOT EXISTS `nellaiiptv` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `nellaiiptv`;
+
 -- Dumping structure for table nellaiiptv.ads
 CREATE TABLE IF NOT EXISTS `ads` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -73,8 +78,7 @@ CREATE TABLE IF NOT EXISTS `channels` (
   `uuid` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `channel_number` int NOT NULL,
-  `share_code` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-
+  `share_code` varchar(6) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `hls_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `rtmp_url` text COLLATE utf8mb4_unicode_ci,
   `village` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -307,6 +311,28 @@ CREATE TABLE IF NOT EXISTS `favorites` (
   KEY `fk_favorites_customer` (`customer_id`),
   CONSTRAINT `fk_favorites_channel` FOREIGN KEY (`channel_id`) REFERENCES `channels` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_favorites_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table nellaiiptv.feedback
+CREATE TABLE IF NOT EXISTS `feedback` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `customer_id` int unsigned DEFAULT NULL,
+  `feedback_type` enum('general','bug','feature_request','channel_issue','subscription') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'general',
+  `rating` tinyint(1) DEFAULT NULL COMMENT '1-5 star rating',
+  `issue_type` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'For channel_issue type: stream_not_working, buffering_frequently, audio_issue, video_quality_issue, wrong_channel, other',
+  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `platform` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'web' COMMENT 'From X-Client-Platform header: web, android, ios, tv, mobile',
+  `status` enum('new','reviewed','resolved') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'new',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  KEY `idx_feedback_customer` (`customer_id`),
+  KEY `idx_feedback_status` (`status`),
+  KEY `idx_feedback_type` (`feedback_type`),
+  CONSTRAINT `fk_feedback_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.

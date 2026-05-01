@@ -16,10 +16,10 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
-- **Version**: 1.10.0+58
-- **Key Features**: Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
+- **Version**: 1.11.0+59
+- **Key Features**: Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
-## Recent Updates (v1.10.0+58 App / v1.52.0 Website / v1.40.1 Backend)
+## Recent Updates (v1.11.0+59 App / v1.52.0 Website / v1.40.1 Backend)
 
 ### Website (Next.js)
 - **Feature**: **Feedback Page** - New `/feedback` public page with feedback type selector, 1–5 star rating, issue type picker (channel issues), and message field. Authenticated users see their name pre-filled.
