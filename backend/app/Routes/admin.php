@@ -74,6 +74,11 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/contacts', [\App\Controllers\Admin\ContactController::class, 'index']);
         $group->delete('/contacts/{uuid}', [\App\Controllers\Admin\ContactController::class, 'delete']);
 
+        // Feedback
+        $group->get('/feedback', [\App\Controllers\Admin\FeedbackController::class, 'index']);
+        $group->put('/feedback/{uuid}/status', [\App\Controllers\Admin\FeedbackController::class, 'updateStatus']);
+        $group->delete('/feedback/{uuid}', [\App\Controllers\Admin\FeedbackController::class, 'delete']);
+
         // Dashboard Stats
         $group->get('/dashboard/stats', [\App\Controllers\Admin\DashboardController::class, 'getStats']);
         $group->get('/dashboard/trending', [\App\Controllers\Admin\DashboardController::class, 'getTrendingStats']);

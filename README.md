@@ -6,25 +6,30 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.51.2
-- **Key Features**: Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support.
+- **Version**: 1.52.0
+- **Key Features**: Feedback System, Admin Feedback Management, Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.39.2
-- **Key Features**: Password Reset Service, Email Templates, CORS/OPTIONS Stability, WAMP SSL Fix, Scrolling Ads API.
+- **Version**: 1.40.0
+- **Key Features**: Feedback API, Admin Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, WAMP SSL Fix, Scrolling Ads API.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
 - **Version**: 1.10.0+58
 - **Key Features**: Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
-## Recent Updates (v1.10.0+58 App / v1.51.2 Website / v1.39.2 Backend)
+## Recent Updates (v1.10.0+58 App / v1.52.0 Website / v1.40.0 Backend)
 
-### App (Flutter)
-- **Feature**: **Forgot Password** - Complete forgot password flow in the mobile app: new `ForgotPasswordScreen` with email input, math captcha, success/error states, and `ApiService.forgotPassword()` method.
-- **Feature**: **Login → Forgot Password Link** - "Forgot Password?" button added to `LoginScreen`.
-- **Fix**: **Responsive Classic Screen Header** - Header uses `LayoutBuilder` breakpoints to scale logo, fonts, and buttons — eliminates element overlap on small-screen devices.
+### Website (Next.js)
+- **Feature**: **Feedback Page** - New `/feedback` public page with feedback type selector, 1–5 star rating, issue type picker (channel issues), and message field. Authenticated users see their name pre-filled.
+- **Feature**: **Admin Feedback Management** - New `/admin/feedback` page with inline status updates (New → Reviewed → Resolved), filter bar (type, status, platform), expandable messages, and delete. Added "Feedback" to admin sidebar.
+- **Feature**: **Footer Feedback Link** - Feedback link added under Quick Links in the website footer.
+
+### Backend (PHP/Slim)
+- **Feature**: **Feedback API** - New `POST /api/feedback` endpoint (optional auth) accepting `feedback_type`, `rating` (1–5), `issue_type`, and `message`. Platform from `X-Client-Platform` header; `customer_id` auto-resolved from JWT.
+- **Feature**: **Admin Feedback API** - `GET /api/admin/feedback` (paginated, filterable), `PUT /api/admin/feedback/{uuid}/status`, `DELETE /api/admin/feedback/{uuid}`.
+- **Feature**: **Feedback Table** - New `feedback` DB table with customer FK, type, rating, issue type, message, platform, and status columns.
 
 ## [1.9.8+57] - App | [1.51.1] - Website | [1.39.1] - Backend - 2026-05-01
 

@@ -246,8 +246,8 @@ export default function Navbar() {
                   Subscription Plans
                 </Link>
               )}
-              <Link 
-                href="/about" 
+              <Link
+                href="/about"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block text-lg font-medium text-slate-300 hover:text-white hover:bg-slate-800 px-4 py-3 rounded-lg transition-all"
               >

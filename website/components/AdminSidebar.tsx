@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen, CreditCard, Mail, MessageSquare, BarChart, ChevronDown, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen, CreditCard, Mail, MessageSquare, BarChart, ChevronDown, ChevronRight, ThumbsUp } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 const menuItems = [
@@ -45,6 +45,11 @@ const menuItems = [
     title: 'Messages',
     icon: Mail,
     href: '/admin/contacts',
+  },
+  {
+    title: 'Feedback',
+    icon: ThumbsUp,
+    href: '/admin/feedback',
   },
   {
     title: 'Transactions',

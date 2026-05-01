@@ -1,3 +1,15 @@
+## [1.10.0+58] - App | [1.52.0] - Website | [1.40.0] - Backend - 2026-05-01
+
+### Website (Next.js)
+- **Feature**: **Feedback Page** - New `/feedback` public page with feedback type selector (General, Bug, Channel Issue, Feature Request, Subscription), 1–5 star rating with hover, issue type picker (for channel issues: stream, buffering, audio, video quality, wrong channel, other), and message field. Displays logged-in user's name when authenticated.
+- **Feature**: **Admin Feedback Management** - New `/admin/feedback` page listing all submissions with inline status dropdown (New → Reviewed → Resolved), filter bar (type, status, platform), expandable long messages, star rating display, platform icon, and delete. "Feedback" added to admin sidebar nav with `ThumbsUp` icon.
+- **Feature**: **Footer Feedback Link** - Feedback link added under Quick Links in the website footer.
+
+### Backend (PHP/Slim)
+- **Feature**: **Feedback API** - New `POST /api/feedback` public endpoint in `OptionalAuthMiddleware` group. Accepts `feedback_type`, `rating` (1–5, optional), `issue_type` (required for `channel_issue` type), `message`. Platform resolved from `X-Client-Platform` header; `customer_id` auto-resolved from JWT when authenticated.
+- **Feature**: **Admin Feedback API** - Three new admin routes: `GET /api/admin/feedback` (paginated, filterable by type/status/platform/rating with customer eager-loading), `PUT /api/admin/feedback/{uuid}/status`, `DELETE /api/admin/feedback/{uuid}`.
+- **Feature**: **Feedback Model & Migration** - `Feedback` Eloquent model and `create_feedback_table.sql` migration. Table: `customer_id` (nullable `int unsigned` FK → `customers.id`), `feedback_type` enum, `rating` tinyint, `issue_type` varchar, `message` text, `platform` varchar, `status` enum.
+
 ## [1.10.0+58] - App | [1.51.2] - Website | [1.39.2] - Backend - 2026-05-01
 
 ### App (Flutter)

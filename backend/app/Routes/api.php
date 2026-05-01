@@ -46,6 +46,9 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         // Contact
         $group->post('/contact', [\App\Controllers\ContactController::class, 'submit']);
 
+        // Feedback
+        $group->post('/feedback', [\App\Controllers\FeedbackController::class, 'submit']);
+
         // Settings (Public)
         $group->get('/settings/disclaimer', [\App\Controllers\Admin\SettingController::class, 'getDisclaimer']);
         $group->get('/settings/public', [\App\Controllers\Api\PublicSettingController::class, 'getPublicSettings']);
@@ -120,7 +123,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
             $group->get('/wallet/transactions', [\App\Controllers\Reseller\ResellerWalletController::class, 'getTransactions']);
             $group->post('/wallet/add-funds', [\App\Controllers\Reseller\ResellerWalletController::class, 'addFunds']);
             $group->post('/wallet/verify', [\App\Controllers\Reseller\ResellerWalletController::class, 'verifyPayment']);
-            
+
             // Dashboard
             $group->get('/dashboard/stats', [\App\Controllers\Reseller\ResellerDashboardController::class, 'getStats']);
         })->add(new \App\Middleware\ResellerAuthMiddleware());

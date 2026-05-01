@@ -1,3 +1,8 @@
+## [1.52.0] - 2026-05-01
+- **Feature**: **Feedback Page** - New `/feedback` public page with feedback type selector (General, Bug, Channel Issue, Feature Request, Subscription), 1–5 star rating, issue type picker (for channel issues), and message field. Displays logged-in user's name when authenticated.
+- **Feature**: **Admin Feedback Management** - New `/admin/feedback` page with table view, inline status updates (New → Reviewed → Resolved), filter bar (type, status, platform), expandable messages, and delete. Added "Feedback" to admin sidebar.
+- **Feature**: **Footer Feedback Link** - Added Feedback link under Quick Links in the website footer.
+
 ## [1.51.2] - 2026-05-01
 - No code changes. Versioned alongside backend CORS/OPTIONS stability fix release.
 

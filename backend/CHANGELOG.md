@@ -1,3 +1,8 @@
+## [1.40.0] - 2026-05-01
+- **Feature**: **Feedback API** - New `POST /api/feedback` public endpoint (optional auth) accepting `feedback_type`, `rating` (1–5), `issue_type` (for channel issues), and `message`. Platform resolved from `X-Client-Platform` header; `customer_id` auto-resolved from JWT when authenticated.
+- **Feature**: **Admin Feedback API** - New admin endpoints: `GET /api/admin/feedback` (paginated, filterable by type/status/platform/rating), `PUT /api/admin/feedback/{uuid}/status`, `DELETE /api/admin/feedback/{uuid}`.
+- **Feature**: **Feedback Model & Migration** - Added `Feedback` Eloquent model and `create_feedback_table.sql` migration with `customer_id` (nullable FK), `feedback_type`, `rating`, `issue_type`, `message`, `platform`, `status` columns.
+
 ## [1.39.2] - 2026-05-01
 - **Fix**: **CORS & Preflight Stability** - Implemented dynamic origin handling and a global OPTIONS catch-all route to ensure seamless cross-subdomain authentication and password resets.
 - **Fix**: **Header Compatibility** - Expanded allowed CORS headers to include `Accept` and `Origin` for improved browser compatibility.
