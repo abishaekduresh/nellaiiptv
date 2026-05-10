@@ -6,8 +6,8 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.53.0
-- **Key Features**: Stream Servers Admin CRUD, Feedback System, Admin Feedback Management, Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support.
+- **Version**: 1.54.0
+- **Key Features**: Stream Server 360° View, Stream Servers Admin CRUD, Feedback System, Admin Feedback Management, Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.

@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Search, Server, Wifi, WifiOff, AlertTriangle, Wrench } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Server, Wifi, WifiOff, AlertTriangle, Wrench, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
+import StreamServerDetailsModal from '@/components/admin/StreamServerDetailsModal';
 
 interface StreamServer {
   uuid: string;
@@ -51,6 +52,8 @@ export default function StreamServersPage() {
   const [filterHealth, setFilterHealth] = useState('');
   const [filterType, setFilterType] = useState('');
 
+  const [viewUuid, setViewUuid] = useState<string | null>(null);
+
   const fetchServers = async () => {
     setLoading(true);
     try {
@@ -96,6 +99,11 @@ export default function StreamServersPage() {
 
   return (
     <div>
+      <StreamServerDetailsModal
+        uuid={viewUuid ?? ''}
+        isOpen={!!viewUuid}
+        onClose={() => setViewUuid(null)}
+      />
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
@@ -253,6 +261,13 @@ export default function StreamServersPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setViewUuid(server.uuid)}
+                            className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 p-2 rounded transition-colors"
+                            title="View Details"
+                          >
+                            <Eye size={16} />
+                          </button>
                           <Link
                             href={`/admin/stream-servers/${server.uuid}`}
                             className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 p-2 rounded transition-colors"

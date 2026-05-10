@@ -1,3 +1,7 @@
+## [1.54.0] - 2026-05-11
+
+- **Feature**: **Stream Server 360° View** - New `StreamServerDetailsModal` component providing a full read-only detail view of any stream server. Triggered by a purple Eye button in the stream servers list. Sections: identity/host badges, live capacity cards (streams & viewers with % usage), MistServer API credentials with last-validated challenge/hash copy blocks, all 6 streaming endpoint URLs (copyable), hardware specs, feature flag pills, system & lifecycle timestamps, and notes.
+
 ## [1.53.0] - 2026-05-10
 
 - **Feature**: **Stream Servers Admin CRUD** - New `/admin/stream-servers` section with paginated list, create, and edit pages. List includes search bar and filters (status, health, server type). Health status shown with colour-coded badges and icons (Online/Offline/Warning/Maintenance). Admin status, SSL indicator, current streams/max display.

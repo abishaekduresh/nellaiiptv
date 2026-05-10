@@ -1,3 +1,8 @@
+## [1.11.0+59] - App | [1.54.0] - Website | [1.41.0] - Backend - 2026-05-11
+
+### Website (Next.js)
+- **Feature**: **Stream Server 360° View** - `StreamServerDetailsModal` with purple Eye button in the list. Read-only full-detail modal: identity/host, live capacity cards (streams & viewers), MistServer API auth state (challenge/hash with copy), all 6 streaming endpoint URLs, hardware specs, feature flag pills, system & lifecycle timestamps, notes.
+
 ## [1.11.0+59] - App | [1.53.0] - Website | [1.41.0] - Backend - 2026-05-10
 
 ### Website (Next.js)

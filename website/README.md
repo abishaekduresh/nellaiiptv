@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.53.0
+# Nellai IPTV - Frontend v1.54.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.53.0)**
+### **Latest Updates (v1.54.0)**
+- **Stream Server 360° View**: New `StreamServerDetailsModal` with a purple Eye button in the list. Full read-only detail view covering all server fields: identity, host, live capacity, MistServer API auth state, all 6 streaming endpoints (copyable), hardware specs, feature flag pills, system & lifecycle info.
+
+### **Previous Updates (v1.53.0)**
 - **Stream Servers Admin CRUD**: New `/admin/stream-servers` with list, create, and edit pages. Filters: status, health (Online/Offline/Warning/Maintenance), server type. Colour-coded health badges with icons.
 - **StreamServerForm**: 9-section form covering all server properties — identity, host, MistServer API (protocol/host/port/username/password), streaming endpoints, infrastructure, hardware specs, capacity, feature flags (HLS/RTMP/CMAF/WebRTC/SRT/Transcoding), security & status.
 - **MistServer Auth State Panel**: Read-only panel on edit page showing last validated `mist_challenge` and `mist_final_hash` with copy buttons.
