@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.39.2)
+# Nellai IPTV - Backend API (v1.41.0)
 
-**Version 1.39.2** | RESTful API built with Slim PHP Framework
+**Version 1.41.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -137,7 +137,7 @@ For **root folder deployments**, the application automatically detects the base 
 ## Database Schema
 
 ### Main Tables
-- `channels`, `customers`, `ads`, `channel_views`, `contact_messages`
+- `channels`, `customers`, `subscription_plans`, `transactions`, `channel_views`, `contact_messages`, `feedback`, `stream_servers`
 
 ## Authentication
 
@@ -152,7 +152,10 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
-## Latest Updates (v1.37.1)
+## Latest Updates (v1.41.0)
+- **Stream Servers**: Full admin CRUD API (`/api/admin/stream-servers`). MistServer API authentication with challenge-response flow. AES-256-CBC password encryption via `EncryptionHelper`. `mist_challenge` and `mist_final_hash` stored per record after successful validation. `MIST_ENCRYPTION_KEY` env variable required.
+
+## Latest Updates (v1.40.0–1.40.1)
 - **Sync**: Version synchronized with Frontend v1.48.1 and App v1.8.25+42.
 
 ## Latest Updates (v1.37.0)

@@ -1,3 +1,13 @@
+## [1.41.0] - 2026-05-10
+
+- **Feature**: **Stream Servers CRUD API** - Full admin CRUD for `stream_servers` table: `GET/POST /api/admin/stream-servers`, `GET/PUT/DELETE /api/admin/stream-servers/{uuid}`. Supports filters: `search`, `status`, `health_status`, `server_type`, `provider_name`.
+- **Feature**: **MistServer Authentication Service** - New `MistAuthService` implementing the official MistServer challenge-response auth flow (`POST /api2`). Step 1 requests challenge with empty password; Step 2 computes `MD5(MD5(password) + challenge)`; Step 3 sends authenticated request. Credentials validated against live MistServer on every create/update before persisting.
+- **Feature**: **AES-256 Password Encryption** - New `EncryptionHelper` encrypts `mist_server_password` at rest using AES-256-CBC with a random IV per encryption. Key from `MIST_ENCRYPTION_KEY` env variable. Decrypted only at runtime inside `MistAuthService`.
+- **Feature**: **MistServer Auth State Persistence** - `mist_challenge` (VARCHAR 64) and `mist_final_hash` (VARCHAR 32) stored per server record after each successful credential validation, enabling admin visibility of last known auth state.
+- **Database**: **`stream_servers` Table** - New table with 60+ columns: server identity, host (IPv4/IPv6/domain), MistServer API config, streaming endpoints (RTMP, HLS, HTTPS-HLS, CMAF, WebRTC, SRT), infrastructure (type, provider, datacenter, OS, kernel), hardware specs (CPU, RAM, disk, bandwidth, GPU), capacity/monitoring, lifecycle timestamps, feature flags, security flags, admin status.
+- **Database**: **Migration Files** - `create_stream_servers_table.sql` (fresh install) and `add_mist_auth_fields_to_stream_servers.sql` (ALTER for existing installs).
+- **Config**: **`MIST_ENCRYPTION_KEY`** - New required env variable for AES-256 MistServer password encryption. Added to `.env` and `.env.example`.
+
 ## [1.40.1] - 2026-05-01
 - **Fix**: **Feedback Public Access** - Added `/api/feedback` to `ApiKeyMiddleware` public bypass list using suffix/contains matching to support subdirectory installs (e.g. `/nellaiiptv/backend/public/api/feedback`).
 - **Fix**: **Feedback Response Data** - `POST /api/feedback` now returns the created feedback record (`uuid`, `feedback_type`, `rating`, `issue_type`, `platform`, `status`, `created_at`) instead of `null`.

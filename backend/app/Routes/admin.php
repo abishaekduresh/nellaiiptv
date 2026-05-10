@@ -88,6 +88,13 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/languages', [\App\Controllers\GeoController::class, 'getLanguages']);
         $group->get('/states', [\App\Controllers\GeoController::class, 'getStates']);
 
+        // Stream Servers Management
+        $group->get('/stream-servers', [\App\Controllers\Admin\StreamServerController::class, 'index']);
+        $group->post('/stream-servers', [\App\Controllers\Admin\StreamServerController::class, 'create']);
+        $group->get('/stream-servers/{uuid}', [\App\Controllers\Admin\StreamServerController::class, 'show']);
+        $group->put('/stream-servers/{uuid}', [\App\Controllers\Admin\StreamServerController::class, 'update']);
+        $group->delete('/stream-servers/{uuid}', [\App\Controllers\Admin\StreamServerController::class, 'delete']);
+
         // Reports
         $group->group('/reports', function (RouteCollectorProxy $group) {
             $group->get('/channel-views', [\App\Controllers\Admin\ReportController::class, 'getChannelViews']);

@@ -1,14 +1,20 @@
-# Nellai IPTV - Frontend v1.51.2
+# Nellai IPTV - Frontend v1.53.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.51.0–1.51.2)**
+### **Latest Updates (v1.53.0)**
+- **Stream Servers Admin CRUD**: New `/admin/stream-servers` with list, create, and edit pages. Filters: status, health (Online/Offline/Warning/Maintenance), server type. Colour-coded health badges with icons.
+- **StreamServerForm**: 9-section form covering all server properties — identity, host, MistServer API (protocol/host/port/username/password), streaming endpoints, infrastructure, hardware specs, capacity, feature flags (HLS/RTMP/CMAF/WebRTC/SRT/Transcoding), security & status.
+- **MistServer Auth State Panel**: Read-only panel on edit page showing last validated `mist_challenge` and `mist_final_hash` with copy buttons.
+- **Sidebar**: "Stream Servers" link added with `Server` icon.
+
+### **Previous Updates (v1.51.0–1.52.0)**
 - **Direct Backend Auth Integration**: Forgot/reset password pages now call the backend directly, removing redundant Next.js API middleware routes.
 - **Scrolling Ads Admin Sidebar**: Added `AdminLayout` wrapper to `/admin/scrolling-ads`.
 - **Guest Redirect Fix**: 401 Axios interceptor now only redirects to login when an active session token exists — guest channel browsing no longer triggers "Session expired" errors.
-- **CORS/OPTIONS Stability**: Backend hardened for cross-subdomain auth with dynamic origin detection and global preflight support (v1.39.2).
+- **Feedback System**: Public `/feedback` page, admin `/admin/feedback` management page, sidebar link.
 
 ### **Previous Updates (v1.50.5)**
 - **Admin Player Watermark**: Added an automated watermark system to the admin preview player (`ClapprPlayer.tsx`). The player now pulls the `app_logo_png_path` from settings and overlays it at the bottom-left with 60% opacity.

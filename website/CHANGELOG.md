@@ -1,3 +1,10 @@
+## [1.53.0] - 2026-05-10
+
+- **Feature**: **Stream Servers Admin CRUD** - New `/admin/stream-servers` section with paginated list, create, and edit pages. List includes search bar and filters (status, health, server type). Health status shown with colour-coded badges and icons (Online/Offline/Warning/Maintenance). Admin status, SSL indicator, current streams/max display.
+- **Feature**: **StreamServerForm Component** - Comprehensive create/edit form organised into 9 sections: Server Identity, Host/Connection, MistServer API, Streaming Endpoints (RTMP/HLS/HTTPS-HLS/CMAF/WebRTC/SRT), Infrastructure, Hardware Specs, Capacity & Lifecycle, Feature Flags (HLS, RTMP, CMAF, WebRTC, SRT, Transcoding), Security & Status. Toggle switches for all boolean fields.
+- **Feature**: **MistServer Auth State Panel** - Edit form shows a read-only "Last Validated Auth State" panel (visible when data exists) displaying `mist_challenge` (yellow) and `mist_final_hash` (green) with individual Copy buttons. Refreshes automatically when password is re-saved.
+- **Feature**: **Admin Sidebar** - Added "Stream Servers" entry with `Server` icon between Channels and Scrolling Ads.
+
 ## [1.52.0] - 2026-05-01
 - **Feature**: **Feedback Page** - New `/feedback` public page with feedback type selector (General, Bug, Channel Issue, Feature Request, Subscription), 1–5 star rating, issue type picker (for channel issues), and message field. Displays logged-in user's name when authenticated.
 - **Feature**: **Admin Feedback Management** - New `/admin/feedback` page with table view, inline status updates (New → Reviewed → Resolved), filter bar (type, status, platform), expandable messages, and delete. Added "Feedback" to admin sidebar.

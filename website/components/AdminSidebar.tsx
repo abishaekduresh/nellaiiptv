@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen, CreditCard, Mail, MessageSquare, BarChart, ChevronDown, ChevronRight, ThumbsUp } from 'lucide-react';
+import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen, CreditCard, Mail, MessageSquare, BarChart, ChevronDown, ChevronRight, ThumbsUp, Server } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 const menuItems = [
@@ -14,6 +14,11 @@ const menuItems = [
     title: 'Channels',
     icon: Tv,
     href: '/admin/channels',
+  },
+  {
+    title: 'Stream Servers',
+    icon: Server,
+    href: '/admin/stream-servers',
   },
   {
     title: 'Scrolling Ads',

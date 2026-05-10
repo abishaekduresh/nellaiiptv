@@ -1,3 +1,19 @@
+## [1.11.0+59] - App | [1.53.0] - Website | [1.41.0] - Backend - 2026-05-10
+
+### Website (Next.js)
+- **Feature**: **Stream Servers Admin CRUD** - New `/admin/stream-servers` section with paginated list, create, and edit pages. Filters: status, health (Online/Offline/Warning/Maintenance), server type. Colour-coded health badges with icons.
+- **Feature**: **StreamServerForm Component** - Comprehensive 9-section form: Server Identity, Host/Connection, MistServer API, Streaming Endpoints (RTMP/HLS/HTTPS-HLS/CMAF/WebRTC/SRT), Infrastructure, Hardware Specs, Capacity & Lifecycle, Feature Flags (HLS/RTMP/CMAF/WebRTC/SRT/Transcoding toggle switches), Security & Status.
+- **Feature**: **MistServer Auth State Panel** - Edit form read-only panel showing last known `mist_challenge` (yellow) and `mist_final_hash` (green) with copy buttons. Auto-refreshes on password save.
+- **Feature**: **Admin Sidebar** - "Stream Servers" link added with `Server` icon between Channels and Scrolling Ads.
+
+### Backend (PHP/Slim)
+- **Feature**: **Stream Servers CRUD API** - Full admin REST API: `GET/POST /api/admin/stream-servers`, `GET/PUT/DELETE /api/admin/stream-servers/{uuid}`. Paginated, filterable by search/status/health/type/provider.
+- **Feature**: **MistServer Authentication Service** - `MistAuthService` implements official MistServer challenge-response flow: sends `{"authorize":{"username":"...","password":""}}` to get challenge, computes `MD5(MD5(password)+challenge)`, sends authenticated request. Validates live credentials on every create/update.
+- **Feature**: **AES-256 Password Encryption** - `EncryptionHelper` encrypts `mist_server_password` at rest (random IV per encryption, base64 stored). Decrypted only in memory at auth time. Requires `MIST_ENCRYPTION_KEY` env variable.
+- **Feature**: **Auth State Persistence** - `mist_challenge` and `mist_final_hash` columns stored after each successful credential validation.
+- **Database**: **`stream_servers` Table** - New table with 60+ columns covering server identity, networking, MistServer API config, streaming endpoints, infrastructure info, hardware specs, capacity/monitoring, feature flags, security, and lifecycle timestamps.
+- **Config**: **`MIST_ENCRYPTION_KEY`** - New env variable required for MistServer password encryption. Added to `.env` and `.env.example`.
+
 ## [1.11.0+59] - App | [1.52.0] - Website | [1.40.1] - Backend - 2026-05-01
 
 ### App (Flutter)

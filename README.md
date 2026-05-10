@@ -6,30 +6,32 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.52.0
-- **Key Features**: Feedback System, Admin Feedback Management, Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support.
+- **Version**: 1.53.0
+- **Key Features**: Stream Servers Admin CRUD, Feedback System, Admin Feedback Management, Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.40.1
-- **Key Features**: Feedback API, Admin Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, WAMP SSL Fix, Scrolling Ads API.
+- **Version**: 1.41.0
+- **Key Features**: Stream Servers API, MistServer Auth (challenge-response), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API.
 
 ### `nellai_iptv_app` (Flutter)
 A premium IPTV player built for Android and Android TV.
 - **Version**: 1.11.0+59
 - **Key Features**: Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
-## Recent Updates (v1.11.0+59 App / v1.52.0 Website / v1.40.1 Backend)
+## Recent Updates (v1.11.0+59 App / v1.53.0 Website / v1.41.0 Backend) — 2026-05-10
 
 ### Website (Next.js)
-- **Feature**: **Feedback Page** - New `/feedback` public page with feedback type selector, 1–5 star rating, issue type picker (channel issues), and message field. Authenticated users see their name pre-filled.
-- **Feature**: **Admin Feedback Management** - New `/admin/feedback` page with inline status updates (New → Reviewed → Resolved), filter bar (type, status, platform), expandable messages, and delete. Added "Feedback" to admin sidebar.
-- **Feature**: **Footer Feedback Link** - Feedback link added under Quick Links in the website footer.
+- **Feature**: **Stream Servers Admin CRUD** - New `/admin/stream-servers` section with paginated list, create, and edit pages. Filters: status, health, server type. Colour-coded health badges.
+- **Feature**: **StreamServerForm** - 9-section form covering all server, MistServer API, hardware, endpoint, and feature flag fields.
+- **Feature**: **MistServer Auth State Panel** - Read-only edit panel showing last `mist_challenge` and `mist_final_hash` with copy buttons.
+- **Feature**: **Sidebar** - "Stream Servers" link added with `Server` icon.
 
 ### Backend (PHP/Slim)
-- **Feature**: **Feedback API** - New `POST /api/feedback` endpoint (optional auth) accepting `feedback_type`, `rating` (1–5), `issue_type`, and `message`. Platform from `X-Client-Platform` header; `customer_id` auto-resolved from JWT.
-- **Feature**: **Admin Feedback API** - `GET /api/admin/feedback` (paginated, filterable), `PUT /api/admin/feedback/{uuid}/status`, `DELETE /api/admin/feedback/{uuid}`.
-- **Feature**: **Feedback Table** - New `feedback` DB table with customer FK, type, rating, issue type, message, platform, and status columns.
+- **Feature**: **Stream Servers CRUD API** - Full admin REST API for `stream_servers` table with pagination and filters.
+- **Feature**: **MistServer Authentication** - `MistAuthService` implements official challenge-response flow. Hash: `MD5(MD5(password) + challenge)`. Validates live credentials on create/update.
+- **Feature**: **AES-256 Password Encryption** - `EncryptionHelper` encrypts passwords at rest with random IV. `MIST_ENCRYPTION_KEY` env variable required.
+- **Feature**: **Auth State Columns** - `mist_challenge` and `mist_final_hash` stored per server after each successful validation.
 
 ## [1.9.8+57] - App | [1.51.1] - Website | [1.39.1] - Backend - 2026-05-01
 
