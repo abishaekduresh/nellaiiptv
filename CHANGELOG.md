@@ -1,3 +1,19 @@
+## [1.3.1] - SCPA | [1.11.0+59] - App | [1.54.0] - Website | [1.41.0] - Backend - 2026-05-14
+
+### Single Channel Player App (Flutter)
+- **Feature**: **Auto-Reconnect** - Connectivity listener automatically retries stream on internet restoration — no manual retry needed.
+- **Feature**: **Double-Tap to Mute** - Double-tapping the video toggles mute with overlay feedback without toggling the control bar.
+
+## [1.3.0] - SCPA | [1.11.0+59] - App | [1.54.0] - Website | [1.41.0] - Backend - 2026-05-14
+
+### Single Channel Player App (Flutter)
+- **Feature**: **Android TV Launcher** - Added `LEANBACK_LAUNCHER` intent filter — app now appears on Android TV home screen.
+- **Feature**: **TV Runtime Detection** - Detects Android TV via Leanback feature flag at runtime; hides PiP button on TV.
+- **Feature**: **Media Key Support** - TV remote Play / Pause / PlayPause keys now control stream playback.
+- **Feature**: **D-pad Controls** - Left/Right arrows show/hide control bar; Select/Enter/GameButtonA toggle controls.
+- **Feature**: **Focusable Dialogs** - Exit and error dialogs are D-pad navigable with `autofocus` on the default action.
+- **Fix**: **Splash Orientation** - Removed portrait-only lock from splash screen; compatible with Android TV landscape-only displays.
+
 ## [1.11.0+59] - App | [1.54.0] - Website | [1.41.0] - Backend - 2026-05-11
 
 ### Website (Next.js)

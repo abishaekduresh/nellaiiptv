@@ -1,9 +1,9 @@
 # Single Channel Player App
 
-**Version**: `1.2.3`
+**Version**: `1.3.1`
 **Framework**: Flutter 3.x
 
-A high-performance, native Android application for streaming HLS content, optimized for both Mobile and TV interfaces.
+A high-performance, native Android application for streaming HLS content, optimized for both Mobile and Android TV interfaces.
 
 ## 🔗 Compatibility
 - **Backend API**: v1.20.2+ (Required for correct image resolution)
@@ -12,16 +12,23 @@ A high-performance, native Android application for streaming HLS content, optimi
 ## 🚀 Features
 
 - **Intelligent Analytics**: Mirroring web logic with 10s watch-time delay and session-guarded increments.
-- **Native Playback**: Hardware-accelerated HLS streaming via `video_player`.
+- **Native Playback**: Hardware-accelerated HLS streaming via `media_kit`.
+- **Android TV Ready**:
+    - **TV Launcher**: `LEANBACK_LAUNCHER` intent — appears on Android TV home screen.
+    - **Remote Control**: D-pad volume (Up/Down), controls toggle (Left/Right/Select), media Play/Pause keys.
+    - **TV Detection**: Runtime detection via Leanback feature flag — hides inapplicable UI (PiP) on TV.
+    - **Focusable Dialogs**: Exit confirmation and error Retry button auto-focused for D-pad navigation.
 - **Smart UI**:
     - **Splash Screen**: Professional startup with versioning and asset-optimized logo.
     - **Auto-Landscape**: Forces landscape mode for immersive viewing.
     - **Consolidated Stats**: Real-time Viewer Counts and Star Ratings (hidden in PiP).
 - **Pro Experience**:
-    - **Refined PiP**: Floating video with zero-pause entry and auto-hidden UI.
+    - **Auto-Reconnect**: Silently re-connects stream when internet is restored after a loss.
+    - **Double-Tap to Mute**: Double-tap anywhere on video to toggle mute with overlay feedback.
+    - **Refined PiP**: Floating video with zero-pause entry and auto-hidden UI (mobile only).
     - **Stability**: Single-instance enforcement and hard process termination on exit.
     - **Session Volume**: Restores system audio settings on exit.
-    - **Safe Gestures**: Center-weighted tap-to-mute.
+    - **Safe Gestures**: Center-weighted tap-to-mute; swipe left/right for brightness/volume.
 - **Production Ready**: Sub-24MB APK size with R8 shrinking.
 
 ## 🛠️ Setup & Development

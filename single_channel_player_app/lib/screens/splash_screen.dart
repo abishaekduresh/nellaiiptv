@@ -21,7 +21,12 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     if (!kIsWeb) {
-      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
     }
     _startTimer();
     _initPackageInfo();

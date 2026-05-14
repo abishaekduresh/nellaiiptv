@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.3.1] - 2026-05-14
+
+### Added
+- **Auto-Reconnect**: Connectivity listener in `VideoPlayerScreen` automatically retries stream when internet is restored after a loss — no manual retry needed.
+- **Double-Tap to Mute**: Double-tapping the video now toggles mute with overlay feedback, without toggling the control bar.
+
+## [1.3.0] - 2026-05-14
+
+### Added
+- **Android TV Launcher**: Added `LEANBACK_LAUNCHER` intent filter — app now appears in Android TV home screen.
+- **TV Detection**: Runtime detection of Android TV via Leanback feature flag (`_detectTV()`), used to conditionally hide phone-only UI.
+- **Media Key Support**: TV remote Play / Pause / PlayPause keys now toggle stream playback.
+- **D-pad Left/Right**: Arrow left/right now shows/hides the control bar (consistent with Select/Enter).
+- **Focusable Exit Dialog**: Exit confirmation buttons wrapped in `FocusTraversalGroup` with `autofocus` on Cancel — navigable via TV remote D-pad.
+- **Focusable Retry Button**: Error screen Retry button gets `autofocus: true` so TV remote can press it immediately.
+
+### Fixed
+- **Splash Orientation**: Removed portrait-only lock from splash screen — Android TV has no portrait mode and the lock caused compatibility issues.
+- **PiP on TV**: PiP button is now hidden when running on Android TV where PiP is not applicable.
+
 ## [1.2.3] - 2026-02-12
 
 ### Added

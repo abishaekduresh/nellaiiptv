@@ -16,6 +16,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/audio_manager.dart';
 import 'dart:async';
 import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 
 
 class VideoPlayerScreen extends StatefulWidget {
@@ -38,6 +39,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   StreamSubscription<String?>? _errorSubscription;
   StreamSubscription<int?>? _widthSubscription; // Listen for video dimensions
   StreamSubscription<double>? _volumeSubscription; // Listen for System Volume changes
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  bool _wasOffline = false;
   
   // PiP Controller
   late SimplePip _simplePip;
@@ -47,7 +50,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   String _errorMessage = '';
   String? _appLogoUrl;
   Channel? _channel;
-  
+
+  // TV Detection
+  bool _isTV = false;
+
   // UI State
   bool _showControls = false;
   Timer? _hideTimer;
@@ -82,9 +88,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
       },
     );
 
+    // Detect Android TV
+    _detectTV();
+
     // Initialize Audio Manager
     AudioManager().init();
-    
+
     // Listen to System Volume Changes (e.g. Hardware Buttons or Gestures)
     // If user increases volume, ensure Player is unmuted
     _volumeSubscription = AudioManager().volumeStream.listen((volume) {
@@ -92,6 +101,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
           _player.setVolume(100.0); // Unmute Player
        }
     });
+
+    // Auto-reconnect on network restore
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen(_onConnectivityChanged);
 
     _fetchAppLogo();
     _fetchChannel();
@@ -136,6 +148,42 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
         setState(() { _showControls = false; });
       }
     });
+  }
+
+  void _onConnectivityChanged(List<ConnectivityResult> results) {
+    final isOnline = results.any((r) => r != ConnectivityResult.none);
+    if (isOnline && _wasOffline) {
+      _wasOffline = false;
+      if (_hasError || !_player.state.playing) {
+        setState(() {
+          _hasError = false;
+          _isLoading = true;
+        });
+        ToastService().show("Connection restored. Reconnecting...", type: ToastType.info);
+        _fetchChannel();
+      }
+    } else if (!isOnline) {
+      _wasOffline = true;
+    }
+  }
+
+  Future<void> _detectTV() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      final isTV = androidInfo.systemFeatures.contains('android.software.leanback') ||
+                   androidInfo.host.toLowerCase().contains('tv') ||
+                   androidInfo.model.toLowerCase().contains('tv');
+      if (mounted) setState(() { _isTV = isTV; });
+    } catch (_) {}
+  }
+
+  void _togglePlayPause() {
+    if (_player.state.playing) {
+      _player.pause();
+    } else {
+      _player.play();
+    }
   }
 
   Future<double> _toggleMute() async {
@@ -310,6 +358,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _connectivitySubscription?.cancel();
     _disposeControllers();
     _player.dispose(); // Dispose the final player instance
     WakelockPlus.disable();
@@ -347,6 +396,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
           GestureOverlay(
             onTap: _toggleControls,
             onToggleMute: _toggleMute,
+            onPlayPause: _togglePlayPause,
             child: Container(
               color: Colors.black, // Ensure black background
               child: Video(
@@ -402,13 +452,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                    ),
                    const SizedBox(height: 10),
                    ElevatedButton(
+                     autofocus: true,
                      onPressed: () {
                        setState(() {
                          _hasError = false;
                          _isLoading = true;
                        });
                        _fetchChannel();
-                     }, 
+                     },
                      child: const Text("Retry"),
                    )
                  ],
@@ -479,8 +530,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                 ),
               ),
 
-            // 7. Cast & PiP Buttons (Top Right)
-            if (!kIsWeb && !_isPipMode)
+            // 7. Cast & PiP Buttons (Top Right) — hidden on TV (PiP not applicable)
+            if (!kIsWeb && !_isPipMode && !_isTV)
               Positioned(
                 top: 20,
                 right: 20,
@@ -569,47 +620,51 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
               ),
               const SizedBox(height: 30),
               
-              // Buttons
-              Row(
-                children: [
-                  // Cancel Button
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.white.withOpacity(0.1)),
+              // Buttons — autofocus on Cancel so TV remote lands here first
+              FocusTraversalGroup(
+                policy: OrderedTraversalPolicy(),
+                child: Row(
+                  children: [
+                    // Cancel Button
+                    Expanded(
+                      child: TextButton(
+                        autofocus: true,
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                          ),
+                        ),
+                        child: const Text(
+                          "Cancel",
+                          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
                         ),
                       ),
-                      child: const Text(
-                        "Cancel", 
-                        style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
-                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  
-                  // Exit Button
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red, // Prominent color for destructive action
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    const SizedBox(width: 16),
+
+                    // Exit Button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          "Exit",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      child: const Text(
-                        "Exit", 
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

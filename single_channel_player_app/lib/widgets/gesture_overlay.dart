@@ -9,11 +9,14 @@ class GestureOverlay extends StatefulWidget {
   final Widget child;
   // Callback when user taps center (e.g. to toggle controls)
   final VoidCallback? onTap;
-  
+
   // Custom Mute Handler (Returns new volume)
   final Future<double> Function()? onToggleMute;
 
-  const GestureOverlay({super.key, required this.child, this.onTap, this.onToggleMute});
+  // Play/Pause callback for TV remote media keys
+  final VoidCallback? onPlayPause;
+
+  const GestureOverlay({super.key, required this.child, this.onTap, this.onToggleMute, this.onPlayPause});
 
   @override
   State<GestureOverlay> createState() => _GestureOverlayState();
@@ -48,6 +51,25 @@ class _GestureOverlayState extends State<GestureOverlay> {
          });
       }
     });
+  }
+
+  Future<void> _handleDoubleTap() async {
+    if (widget.onToggleMute != null) {
+      try {
+        double newVol = await widget.onToggleMute!();
+        _showOverlay(newVol == 0 ? Icons.volume_off : Icons.volume_up, newVol);
+      } catch (e) {
+        print("Double-tap Mute Error: $e");
+      }
+    } else {
+      try {
+        await AudioManager().toggleMute();
+        double newVol = AudioManager().currentVolume;
+        _showOverlay(newVol == 0 ? Icons.volume_off : Icons.volume_up, newVol);
+      } catch (e) {
+        print("Double-tap Volume Error: $e");
+      }
+    }
   }
 
   Future<void> _handleTap({TapUpDetails? details, BoxConstraints? constraints}) async {
@@ -126,22 +148,45 @@ class _GestureOverlayState extends State<GestureOverlay> {
             if (event is RawKeyDownEvent) {
                final key = event.logicalKey;
                
-               // TV Remote: Volume Control
-               if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.audioVolumeUp) {
+               // TV Remote: Volume Control (dedicated volume keys)
+               if (key == LogicalKeyboardKey.audioVolumeUp) {
                   double current = AudioManager().currentVolume;
                   double target = (current + 0.1).clamp(0.0, 1.0);
                   AudioManager().setVolume(target);
                   _showOverlay(Icons.volume_up, target);
-               } 
-               else if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.audioVolumeDown) {
+               }
+               else if (key == LogicalKeyboardKey.audioVolumeDown) {
                   double current = AudioManager().currentVolume;
                   double target = (current - 0.1).clamp(0.0, 1.0);
                   AudioManager().setVolume(target);
                   _showOverlay(target == 0 ? Icons.volume_off : Icons.volume_up, target);
                }
-               // TV Remote: Select / Enter
+               // TV Remote: D-pad Up/Down → Volume
+               else if (key == LogicalKeyboardKey.arrowUp) {
+                  double current = AudioManager().currentVolume;
+                  double target = (current + 0.1).clamp(0.0, 1.0);
+                  AudioManager().setVolume(target);
+                  _showOverlay(Icons.volume_up, target);
+               }
+               else if (key == LogicalKeyboardKey.arrowDown) {
+                  double current = AudioManager().currentVolume;
+                  double target = (current - 0.1).clamp(0.0, 1.0);
+                  AudioManager().setVolume(target);
+                  _showOverlay(target == 0 ? Icons.volume_off : Icons.volume_up, target);
+               }
+               // TV Remote: D-pad Left/Right → Show controls
+               else if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.arrowRight) {
+                 widget.onTap?.call();
+               }
+               // TV Remote: Select / Enter / Center D-pad
                else if (key == LogicalKeyboardKey.select || key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.gameButtonA) {
                  _handleTap();
+               }
+               // TV Remote: Media Play/Pause keys
+               else if (key == LogicalKeyboardKey.mediaPlay ||
+                        key == LogicalKeyboardKey.mediaPlayPause ||
+                        key == LogicalKeyboardKey.mediaPause) {
+                 widget.onPlayPause?.call();
                }
             }
           },
@@ -155,9 +200,7 @@ class _GestureOverlayState extends State<GestureOverlay> {
               child: GestureDetector(
                 onTapUp: (details) => _handleTap(details: details, constraints: constraints),
                 onVerticalDragUpdate: (details) => _handleVerticalDragUpdate(details, constraints),
-                onDoubleTap: () {
-                   // Double tap to play/pause could be handled here or passed up
-                },
+                onDoubleTap: () => _handleDoubleTap(),
               ),
             ),
 
