@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.2] - 2026-05-15
+
+### Changed
+- **Package Identity**: Updated app package name to `com.nellaiiptv.buddhatv` across all platforms (Android, iOS, macOS, Windows, Linux).
+
 ## [1.3.1] - 2026-05-14
 
 ### Added

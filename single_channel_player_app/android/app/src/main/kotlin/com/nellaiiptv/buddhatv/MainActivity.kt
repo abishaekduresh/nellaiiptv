@@ -1,4 +1,4 @@
-package com.nellaiiptv.smstv
+package com.nellaiiptv.buddhatv
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine

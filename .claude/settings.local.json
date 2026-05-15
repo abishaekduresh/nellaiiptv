@@ -5,7 +5,8 @@
       "Read(//c/wamp64/logs/**)",
       "Bash(php -r \":*)",
       "Bash(xargs ls:*)",
-      "Bash(grep -rn ApiKeyMiddleware c:/wamp64/www/nellaiiptv/backend/ --include=*.php)"
+      "Bash(grep -rn ApiKeyMiddleware c:/wamp64/www/nellaiiptv/backend/ --include=*.php)",
+      "Bash(flutter analyze:*)"
     ]
   }
 }

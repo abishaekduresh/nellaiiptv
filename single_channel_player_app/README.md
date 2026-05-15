@@ -1,6 +1,6 @@
 # Single Channel Player App
 
-**Version**: `1.3.1`
+**Version**: `1.3.2`
 **Framework**: Flutter 3.x
 
 A high-performance, native Android application for streaming HLS content, optimized for both Mobile and Android TV interfaces.
@@ -83,7 +83,7 @@ To build a production-ready APK optimized for size (< 20MB):
 
 ## 🔒 Security
 
-- **Package Name**: `com.nellaiiptv.royaltv`
+- **Package Name**: `com.nellaiiptv.buddhatv`
 - **Permissions**:
     - `INTERNET`: For streaming.
     - `WAKE_LOCK`: To keep screen on during playback.

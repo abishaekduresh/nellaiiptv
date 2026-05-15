@@ -1,3 +1,8 @@
+## [1.3.2] - SCPA | [1.11.0+59] - App | [1.54.0] - Website | [1.41.0] - Backend - 2026-05-15
+
+### Single Channel Player App (Flutter)
+- **Feature**: **Package Identity** - Rebranded app package name to `com.nellaiiptv.buddhatv` across all platforms (Android, iOS, macOS, Windows, Linux) to maintain consistency with Buddha TV ecosystem.
+
 ## [1.3.1] - SCPA | [1.11.0+59] - App | [1.54.0] - Website | [1.41.0] - Backend - 2026-05-14
 
 ### Single Channel Player App (Flutter)

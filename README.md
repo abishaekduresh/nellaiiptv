@@ -21,8 +21,13 @@ A premium multi-channel IPTV player built for Android and Android TV.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
-- **Version**: 1.3.1+6
+- **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
+
+## Recent Updates (v1.3.2 SCPA) — 2026-05-15
+
+### Single Channel Player App (Flutter)
+- **Feature**: **Package Identity** - Rebranded app package name to `com.nellaiiptv.buddhatv` for Android, iOS, macOS, Windows, and Linux to align with Buddha TV branding.
 
 ## Recent Updates (v1.3.1 SCPA) — 2026-05-14
 
