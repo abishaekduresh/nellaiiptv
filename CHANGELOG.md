@@ -1,3 +1,15 @@
+## [1.12.0+60] - App - 2026-05-18
+
+### App (Flutter)
+- **Changed**: **Player Engine** — Re-migrated from `video_player` back to **MediaKit** (`media_kit` + `media_kit_video` + `media_kit_libs_android_video`) for full MPV-level HLS control.
+- **Added**: **API-Gated Hardware Decoding** — `hwdec=auto` on Android 8+ (API 26+), `hwdec=mediacodec-copy` on Android 6–7 (API 23–25), software fallback on API < 23. Each property individually try-caught so one unsupported option cannot abort the rest.
+- **Added**: **Demuxer Cache** — 64 MB on Android TV, 32 MB on Mobile. `hls-bitrate=max` applied before `Player.open()` to lock the initial HLS variant to the highest available rendition.
+- **Added**: **Network Stability** — `cache-secs=30/20` and `network-timeout=30` for Indian mobile network conditions.
+- **Added**: **Flutter-Level Quality Boost** — `ColorFiltered` 1.08× RGB contrast matrix wrapping the `Video` widget; `FilterQuality.high` for sharper GPU texture sampling.
+- **Added**: **First-Frame Preloader** — `stream.width` listener keeps the loading spinner visible until the first decoded video frame is ready, preventing a blank flash.
+- **Added**: **Stall / Fallback Timer** — 15-second timer triggers `_handlePlaybackError` when an HLS stream stalls silently without emitting a MediaKit error event, switching to the fallback MP4 URL.
+- **Fixed**: **Dispose Cleanup** — `_stallTimer`, `_playerWidthSub`, `_hideTimer`, `_infoTimer`, and `_focusHighlightTimer` now all cancelled in `EmbeddedPlayerState.dispose()`.
+
 ## [1.3.2] - SCPA | [1.11.0+59] - App | [1.54.0] - Website | [1.41.0] - Backend - 2026-05-15
 
 ### Single Channel Player App (Flutter)

@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 
 class DeviceUtils {
   static bool _isTV = false;
-  static bool _isHighPerformance = true; // Default to true
+  static bool _isHighPerformance = true;
+  static int _androidSdkInt = 26; // Default to a safe modern API level
   static bool _initialized = false;
 
   /// Initialize device info check. Should be called at app startup.
@@ -20,6 +21,9 @@ class DeviceUtils {
       
       // Check for leanback feature which is standard for Android TV
       _isTV = androidInfo.systemFeatures.contains('android.software.leanback');
+
+      // Capture the Android SDK API level for feature-gating (e.g. hwdec strategy)
+      _androidSdkInt = androidInfo.version.sdkInt;
       
       // RAM Check (Total Memory in Bytes)
       // 2GB = 2 * 1024 * 1024 * 1024 = 2,147,483,648 bytes
@@ -40,7 +44,7 @@ class DeviceUtils {
         _isHighPerformance = true; // Fallback to true
       }
       
-      debugPrint("📱 Device Info: Model=${androidInfo.model}, TV=$_isTV, HighPerf=$_isHighPerformance");
+      debugPrint("📱 Device Info: Model=${androidInfo.model}, TV=$_isTV, HighPerf=$_isHighPerformance, SDK=$_androidSdkInt");
 
     } else {
       // Add iOS/other platform TV checks if needed
@@ -56,4 +60,8 @@ class DeviceUtils {
 
   /// Returns true if device has > ~2GB RAM
   static bool get isHighPerformance => _isHighPerformance;
+
+  /// Android SDK API level (e.g. 21 = Android 5, 26 = Android 8, 29 = Android 10).
+  /// Used to gate features that have known issues on older OS versions.
+  static int get androidSdkInt => _androidSdkInt;
 }

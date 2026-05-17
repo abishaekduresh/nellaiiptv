@@ -4,12 +4,28 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 
 ## Features
 
-- **Live TV Streaming**: High-quality streaming with ExoPlayer (via video_player).
-- **Classic TV Interface**: Grid-based channel selection optimized for Remote controls.
+- **Live TV Streaming**: High-quality HLS streaming via MediaKit (MPV/ExoPlayer pipeline) with hardware decoding.
+- **Classic TV Interface**: Grid-based channel selection optimized for D-pad remote controls.
 - **Premium Content**: Secure handling of premium channels with status indicators.
 - **Security**: Built-in screenshot and screen recording prevention.
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
+
+## Version: 1.12.0+60
+- **Key Features**: MediaKit re-migration, API-gated hardware decoding, quality boost, first-frame preloader, stall-triggered fallback.
+- **Changed**: **Player Engine** — Re-migrated from `video_player` back to **MediaKit** for full MPV-level HLS control.
+- **Added**: **Hardware Decoding** — `hwdec=auto` (API 26+), `hwdec=mediacodec-copy` (API 23–25), software fallback (API < 23). Each property is individually try-caught.
+- **Added**: **Buffer Tuning** — 64 MB demuxer cache on TV, 32 MB on Mobile; `hls-bitrate=max` before `open()` for best HLS variant selection.
+- **Added**: **Quality Boost** — `ColorFiltered` 1.08× contrast matrix + `FilterQuality.high` at the Flutter compositor level.
+- **Added**: **First-Frame Preloader** — Loading spinner stays until `stream.width > 0` (first decoded frame).
+- **Added**: **Stall Timer Fallback** — 15-second timer triggers fallback MP4 when HLS stalls silently.
+- **Fixed**: **Dispose Cleanup** — All timers and stream subscriptions cancelled in `dispose()`.
+
+## Version: 1.11.0+59
+- **Key Features**: Feedback System.
+- **Added**: **Feedback Screen** - Full feedback UI with type selector, star rating, issue type, and message. TV D-Pad support.
+- **Added**: **`submitFeedback` API** - Posts to `POST /feedback` with auth token.
+- **Added**: **Profile → Feedback Button** and **Settings → Feedback Section**.
 
 ## Version: 1.10.0+58
 - **Key Features**: Forgot Password Flow, Responsive Classic Screen Header.
@@ -173,7 +189,7 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 ## Tech Stack
 
 - **Flutter**: ^3.32.6
-- **Player**: VideoPlayer (ExoPlayer)
+- **Player**: MediaKit (MPV / ExoPlayer pipeline via `media_kit`, `media_kit_video`, `media_kit_libs_android_video`)
 - **State Management**: Provider
 - **Networking**: Dio
 - **Animation**: Flutter Animate

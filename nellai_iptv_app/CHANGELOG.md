@@ -1,3 +1,22 @@
+## [1.12.0+60] - 2026-05-18
+
+### Changed
+- **Player Engine**: Re-migrated from `video_player` (ExoPlayer) back to **MediaKit** (`media_kit` + `media_kit_video` + `media_kit_libs_android_video`) for full MPV-level control over HLS bitrate selection, demuxer cache, and hardware decoding strategy.
+
+### Added
+- **Hardware Decoding (API-gated)**: `hwdec=auto` on Android 8+ (API 26+); `hwdec=mediacodec-copy` on Android 6–7 (API 23–25); software fallback on API < 23. Each property set in its own try-catch so a single unsupported option on an older device cannot abort the entire configuration.
+- **Demuxer Cache**: 64 MB on Android TV, 32 MB on Mobile — configured in `TVPlayerController` via `PlayerConfiguration(bufferSize: ...)`.
+- **HLS Bitrate Lock**: `hls-bitrate=max` applied *before* `Player.open()` so the initial HLS variant selection always targets the highest available rendition.
+- **Network Stability**: `cache-secs=30` (TV) / `20` (mobile), `network-timeout=30` for Indian mobile network resilience.
+- **Flutter-Level Quality Boost**: `ColorFiltered` matrix (1.08× RGB, −10 bias) wrapping the `Video` widget adds a crisp contrast lift at the Flutter compositor level — no MPV VF filters needed.
+- **High-Quality Texture Sampling**: `FilterQuality.high` on the `Video` widget for sharper GPU texture interpolation.
+- **First-Frame Preloader**: `stream.width` listener hides the loading spinner only after the first decoded frame is ready (`width > 0`), preventing a blank flash before video appears.
+- **Stall / Fallback Timer**: 15-second `Timer` fires `_handlePlaybackError` if no first frame appears, triggering the fallback MP4 URL for HLS streams that stall silently without emitting a MediaKit error event.
+
+### Fixed
+- **Dispose Cleanup**: `_stallTimer`, `_playerWidthSub`, `_hideTimer`, `_infoTimer`, and `_focusHighlightTimer` are now all cancelled in `EmbeddedPlayerState.dispose()` to prevent timer leaks after navigation.
+- **VO/VF Safety**: Removed all `vo`, `scale`, `cscale`, and `vf` MPV properties — setting VO before the Video widget's SurfaceTexture is attached causes a native `WinID` assertion crash in `android_common.c`; `lavfi` is not compiled in `media_kit_libs_android_video` and causes a native SIGABRT.
+
 ## [1.11.0+59] - 2026-05-01
 
 ### Added
