@@ -11,6 +11,13 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.12.2+62
+- **Fixed**: **TV Fast Start** — `cache-secs` 30 s → 5 s on TV; `cache-pause-initial=no`; first frame renders immediately without waiting to fill the cache.
+- **Fixed**: **SD Green Lines** — Black background on player container; raw OpenGL surface no longer shows green behind 4:3 content.
+- **Fixed**: **SD Stretching** — `video-aspect-override=-1` strips codec DAR so `BoxFit.fill` stretches SD content to fill the screen.
+- **Fixed**: **HD / FHD Fallback** — Restored `cache-pause` default so buffer underruns pause and rebuffer instead of triggering stall-timer fallback. Buffer sizes raised to 96 MB (TV) / 64 MB (Mobile); `cache-secs` 15 s / 10 s; `demuxer-readahead-secs` 15 s / 10 s.
+- **Fixed**: **Stall Timer** — TV 15 s → 30 s, Mobile 30 s → 45 s; prevents premature fallback during HD rebuffering.
+
 ## Version: 1.12.1+61
 - **Fixed**: **HLS ABR** — Removed `hls-bitrate=max` for all devices; MPV default ABR now used on both TV (WiFi at distance) and mobile (cellular) to prevent stalls and failed starts.
 - **Fixed**: **Mobile Cache** — Reverted mobile `cache-secs` to 20 s; 40 s caused slow perceived start due to aggressive pre-buffering.

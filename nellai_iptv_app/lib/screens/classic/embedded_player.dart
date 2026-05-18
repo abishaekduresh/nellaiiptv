@@ -413,7 +413,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     try {
       if (mounted) {
         setState(() {
-          _isLoading = true;   // Show preloader immediately
+          _isLoading = true;
           _isBuffering = false;
           _hasError = false;
         });
@@ -445,10 +445,11 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
       });
 
       // ── Stall / fallback timer ─────────────────────────────────────────
-      // Mobile gets a longer grace period (30 s) because cellular networks
-      // can take more time to negotiate the first HLS segment.
-      // TV stays at 15 s — fixed broadband connections are faster.
-      final int stallSecs = DeviceUtils.isTV ? 15 : 30;
+      // Grace period before triggering fallback.
+      // Raised from 15 s → 30 s on TV and 30 s → 45 s on Mobile so that
+      // legitimate HD/FHD rebuffering events (large segments, slow WiFi/LTE)
+      // are not mistaken for a broken stream and sent to fallback.
+      final int stallSecs = DeviceUtils.isTV ? 30 : 45;
       _stallTimer = Timer(Duration(seconds: stallSecs), () {
         if (!mounted || _isDisposed) return;
         if (_isLoading || _isBuffering) {
@@ -713,6 +714,10 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
+                    // Black fill ensures the hardware-decoder surface never
+                    // shows its raw green initialisation colour behind SD
+                    // (4:3) or pillarboxed content on 16:9 TV screens.
+                    color: Colors.black,
                     border: Border.all(
                       color: hasFocus
                           ? const Color(0xFF06B6D4).withOpacity(0.5)

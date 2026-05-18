@@ -1,3 +1,12 @@
+## [1.12.2+62] - App - 2026-05-18
+
+### App (Flutter)
+- **Fix**: **TV Fast Start** — `cache-secs` reduced from 30 s → 5 s on TV; `cache-pause-initial=no` added so playback begins as soon as the demuxer has any data; `demuxer-readahead-secs=3` keeps the pre-buffer shallow for live IPTV.
+- **Fix**: **SD Green Lines** — Added `color: Colors.black` to the player `AnimatedContainer` decoration; the raw OpenGL surface no longer bleeds green behind 4:3 / pillarboxed content on TV screens.
+- **Fix**: **SD Video Stretching** — Set MPV `video-aspect-override=-1` (square-pixel mode) to strip the codec's embedded display aspect ratio; Flutter's `BoxFit.fill` on the `Video` widget is now the sole authority on final scaling.
+- **Fix**: **HD / FHD Stream Fallback** — Removed `cache-pause=no`; buffer underruns on high-bitrate streams now pause + rebuffer (spinner shown) instead of continuing with no data and triggering the stall timer as a false failure. Demuxer buffer raised: TV 64 MB → 96 MB, Mobile 32 MB → 64 MB. `cache-secs` raised to 15 s (TV) / 10 s (Mobile). `demuxer-readahead-secs` raised to 15 s (TV) / 10 s (Mobile) to cover large FHD HLS segments.
+- **Fix**: **Stall Timer** — TV grace period raised 15 s → 30 s; Mobile raised 30 s → 45 s. Previous thresholds fired fallback during legitimate HD rebuffering, not genuine stream failures.
+
 ## [1.12.1+61] - App - 2026-05-18
 
 ### App (Flutter)

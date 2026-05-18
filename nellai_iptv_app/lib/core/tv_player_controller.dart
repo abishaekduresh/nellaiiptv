@@ -29,10 +29,12 @@ class TVPlayerController {
   // ── Internal setup ─────────────────────────────────────────────────────────
 
   void _createPlayer() {
-    // Buffer size: larger on TV for uninterrupted 1080p/4K IPTV streams.
+    // Buffer size scaled for FHD/HD IPTV bitrates:
+    //   TV    : 96 MB — covers ~50 s of 15 Mbps FHD on Android TV WiFi
+    //   Mobile: 64 MB — covers ~30 s of 15 Mbps FHD on LTE/5G
     final int bufferBytes = DeviceUtils.isTV
-        ? 64 * 1024 * 1024 // 64 MB — Android TV
-        : 32 * 1024 * 1024; // 32 MB — Mobile
+        ? 96 * 1024 * 1024 // 96 MB — Android TV
+        : 64 * 1024 * 1024; // 64 MB — Mobile
 
     _player = Player(
       configuration: PlayerConfiguration(
@@ -110,9 +112,32 @@ class TVPlayerController {
     // sustain it. Forcing 'max' on WiFi TVs (often at distance from router)
     // causes the same stalls and failed starts seen on cellular mobile.
 
+    // ── Aspect ratio ──────────────────────────────────────────────────────
+    // Strip the codec's stored aspect ratio so the Flutter Video widget's
+    // BoxFit.fill is the sole authority on how the frame fills the screen.
+    // Without this, SD streams (4:3 DAR) leave pillarbox bars even when
+    // fit: BoxFit.fill is set, because MPV pre-scales the frame before
+    // handing it to the Flutter compositor.
+    await _trySetProperty(native, 'video-aspect-override', '-1');
+
     // ── Cache / buffer depth ───────────────────────────────────────────────
-    final String cacheSecs = DeviceUtils.isTV ? '30' : '20';
+    // Deeper cache for HD/FHD stability — a single FHD HLS segment can be
+    // 5–10 s; 3 s was too shallow and caused constant fallback on HD streams.
+    final String cacheSecs = DeviceUtils.isTV ? '15' : '10';
     await _trySetProperty(native, 'cache-secs', cacheSecs);
+
+    // Skip the initial fill-wait so the first frame renders immediately;
+    // mid-stream rebuffering (cache-pause default=yes) still protects HD.
+    await _trySetProperty(native, 'cache-pause-initial', 'no');
+
+    // INTENTIONALLY NOT setting cache-pause=no — restoring MPV default (yes).
+    // With cache-pause=no, HD buffer underruns kept playing with no data,
+    // looked like a stall to the timer, and triggered unnecessary fallback.
+    // Default behaviour: player pauses + shows spinner, then resumes cleanly.
+
+    // Allow demuxer to read far enough ahead for large HD/FHD segments.
+    final String readahead = DeviceUtils.isTV ? '15' : '10';
+    await _trySetProperty(native, 'demuxer-readahead-secs', readahead);
 
     // ── Network stability (Indian mobile networks) ─────────────────────────
     // Mobile timeout doubled (60 s) — cellular streams can be slow to start.
