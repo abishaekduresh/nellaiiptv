@@ -16,23 +16,29 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
-- **Version**: 1.12.0+60
-- **Key Features**: MediaKit player engine (MPV pipeline), API-gated hardware decoding, 64/32 MB demuxer cache, `hls-bitrate=max`, ColorFiltered contrast boost, `FilterQuality.high`, first-frame preloader, 15s stall-triggered fallback, Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
+- **Version**: 1.12.1+61
+- **Key Features**: MediaKit player engine (MPV pipeline), API-gated hardware decoding, 64/32 MB demuxer cache, MPV default ABR (TV + mobile), ColorFiltered contrast boost, `FilterQuality.high`, first-frame preloader, stall-triggered fallback, Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
+## Recent Updates (v1.12.1+61 App) — 2026-05-18
+
+### App (Flutter)
+- **Fixed**: **HLS ABR** — Removed `hls-bitrate=max` for all devices (TV + mobile). MPV default ABR prevents stalls on WiFi-at-distance TVs and cellular mobile by starting at a lower rendition and scaling up.
+- **Fixed**: **Mobile Cache** — Reverted `cache-secs` to 20 s on mobile; 40 s caused slow start due to aggressive pre-buffering.
+
 ## Recent Updates (v1.12.0+60 App) — 2026-05-18
 
 ### App (Flutter)
-- **Changed**: **Player Engine** — Re-migrated to **MediaKit** (MPV/ExoPlayer) for full HLS bitrate control, demuxer cache tuning, and MPV property access.
-- **Added**: **Hardware Decoding** — API-gated `hwdec` strategy: `auto` (API 26+), `mediacodec-copy` (API 23–25), software (API < 23).
-- **Added**: **Buffer Tuning** — 64 MB TV / 32 MB Mobile demuxer cache; `hls-bitrate=max` before stream open; `cache-secs` and `network-timeout` for Indian networks.
+- **Changed**: **Player Engine** — Re-migrated to **MediaKit** (MPV/ExoPlayer) for full HLS control, demuxer cache tuning, and MPV property access.
+- **Added**: **Hardware Decoding** — API-gated `hwdec`: `auto` (API 26+), `mediacodec-copy` (API 23–25), software (API < 23).
+- **Added**: **Buffer Tuning** — 64 MB TV / 32 MB Mobile demuxer cache; mobile timeout 60 s; stall timer 30 s mobile / 15 s TV.
 - **Added**: **Quality Boost** — `ColorFiltered` 1.08× contrast matrix + `FilterQuality.high` at the Flutter compositor level.
-- **Added**: **First-Frame Preloader** — Spinner hides only after `stream.width > 0` (first decoded frame detected).
-- **Added**: **Stall Fallback Timer** — 15-second timer triggers fallback MP4 when HLS stalls silently.
+- **Added**: **First-Frame Preloader** — Spinner hides only after `stream.width > 0` (first decoded frame).
+- **Added**: **Stall Fallback Timer** — Triggers fallback MP4 when HLS stalls silently.
 - **Fixed**: **Dispose Cleanup** — All timers and subscriptions properly cancelled in `dispose()`.
 
 ## Recent Updates (v1.3.2 SCPA) — 2026-05-15

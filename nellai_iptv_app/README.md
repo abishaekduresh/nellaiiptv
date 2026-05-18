@@ -11,14 +11,18 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.12.1+61
+- **Fixed**: **HLS ABR** — Removed `hls-bitrate=max` for all devices; MPV default ABR now used on both TV (WiFi at distance) and mobile (cellular) to prevent stalls and failed starts.
+- **Fixed**: **Mobile Cache** — Reverted mobile `cache-secs` to 20 s; 40 s caused slow perceived start due to aggressive pre-buffering.
+
 ## Version: 1.12.0+60
 - **Key Features**: MediaKit re-migration, API-gated hardware decoding, quality boost, first-frame preloader, stall-triggered fallback.
 - **Changed**: **Player Engine** — Re-migrated from `video_player` back to **MediaKit** for full MPV-level HLS control.
 - **Added**: **Hardware Decoding** — `hwdec=auto` (API 26+), `hwdec=mediacodec-copy` (API 23–25), software fallback (API < 23). Each property is individually try-caught.
-- **Added**: **Buffer Tuning** — 64 MB demuxer cache on TV, 32 MB on Mobile; `hls-bitrate=max` before `open()` for best HLS variant selection.
+- **Added**: **Buffer Tuning** — 64 MB demuxer cache on TV, 32 MB on Mobile; mobile timeout 60 s, stall timer 30 s.
 - **Added**: **Quality Boost** — `ColorFiltered` 1.08× contrast matrix + `FilterQuality.high` at the Flutter compositor level.
 - **Added**: **First-Frame Preloader** — Loading spinner stays until `stream.width > 0` (first decoded frame).
-- **Added**: **Stall Timer Fallback** — 15-second timer triggers fallback MP4 when HLS stalls silently.
+- **Added**: **Stall Timer Fallback** — 30 s mobile / 15 s TV timer triggers fallback MP4 when HLS stalls silently.
 - **Fixed**: **Dispose Cleanup** — All timers and stream subscriptions cancelled in `dispose()`.
 
 ## Version: 1.11.0+59

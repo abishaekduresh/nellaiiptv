@@ -1,3 +1,9 @@
+## [1.12.1+61] - 2026-05-18
+
+### Fixed
+- **HLS ABR on All Devices** — Removed `hls-bitrate=max` entirely (was TV-only after the previous fix). Android TVs connected via WiFi at a distance suffer the same stalls as cellular mobile when forced to the highest bitrate variant. MPV's default ABR now applies to both TV and mobile — it starts conservatively and scales up only once the connection proves it can sustain higher quality.
+- **Mobile Cache Depth** — Reverted mobile `cache-secs` from 40 s back to 20 s; the deeper buffer caused MPV to pre-download aggressively, making playback feel slow to start.
+
 ## [1.12.0+60] - 2026-05-18
 
 ### Changed

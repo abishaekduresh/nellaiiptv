@@ -6,8 +6,8 @@ import 'device_utils.dart';
 /// TVPlayerController wraps MediaKit's Player + VideoController for IPTV playback.
 ///
 /// Platform strategy:
-///   - Android TV  : 64 MB demuxer cache, lock to highest available HLS bitrate
-///   - Mobile       : 32 MB demuxer cache, start high then allow intelligent ABR
+///   - Android TV  : 64 MB demuxer cache, default ABR (WiFi distance-safe)
+///   - Mobile       : 32 MB demuxer cache, default ABR (cellular-safe)
 ///   - Both          : API-gated hwdec (auto / mediacodec-copy / software)
 class TVPlayerController {
   Player? _player;
@@ -105,16 +105,13 @@ class TVPlayerController {
     // API < 23: leave hwdec unset (software decode). Extremely rare.
 
     // ── HLS variant / bitrate selection ───────────────────────────────────
-    // Use 'max' on ALL devices so MPV always picks the highest quality
-    // rendition from the HLS manifest. This must be set BEFORE open() so
-    // the initial playlist request selects the best variant immediately.
-    // The ABR algorithm still adjusts down if bandwidth genuinely cannot
-    // sustain the chosen bitrate.
-    await _trySetProperty(native, 'hls-bitrate', 'max');
+    // Leave unset on ALL devices — MPV's default ABR algorithm starts at a
+    // lower rendition and scales up once it confirms the connection can
+    // sustain it. Forcing 'max' on WiFi TVs (often at distance from router)
+    // causes the same stalls and failed starts seen on cellular mobile.
 
     // ── Cache / buffer depth ───────────────────────────────────────────────
-    // Mobile gets a deeper buffer (40 s) to absorb cellular jitter.
-    final String cacheSecs = DeviceUtils.isTV ? '30' : '40';
+    final String cacheSecs = DeviceUtils.isTV ? '30' : '20';
     await _trySetProperty(native, 'cache-secs', cacheSecs);
 
     // ── Network stability (Indian mobile networks) ─────────────────────────

@@ -1,3 +1,9 @@
+## [1.12.1+61] - App - 2026-05-18
+
+### App (Flutter)
+- **Fix**: **HLS ABR on All Devices** — Removed `hls-bitrate=max` entirely. Android TVs on WiFi at distance stall just like cellular mobile when forced to the highest bitrate variant. MPV default ABR now applies to both platforms.
+- **Fix**: **Mobile Cache Depth** — Reverted mobile `cache-secs` from 40 s to 20 s; deeper cache caused aggressive pre-buffering that slowed perceived playback start.
+
 ## [1.12.0+60] - App - 2026-05-18
 
 ### App (Flutter)
