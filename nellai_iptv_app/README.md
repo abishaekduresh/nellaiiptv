@@ -11,6 +11,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.12.3+63
+- **Added**: **Contact Us** — Settings section with a contact form (Name, Email, Subject, Message) posting to `POST /contact`; toast reflects exact API response.
+- **Fixed**: **Contact Validation** — Per-field error messages replace the generic fallback.
+- **Changed**: **Settings Order** — Feedback → Contact Us → Storage.
+
 ## Version: 1.12.2+62
 - **Fixed**: **TV Fast Start** — `cache-secs` 30 s → 5 s on TV; `cache-pause-initial=no`; first frame renders immediately without waiting to fill the cache.
 - **Fixed**: **SD Green Lines** — Black background on player container; raw OpenGL surface no longer shows green behind 4:3 content.

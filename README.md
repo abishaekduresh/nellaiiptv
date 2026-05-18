@@ -16,22 +16,20 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
-- **Version**: 1.12.2+62
-- **Key Features**: MediaKit player engine (MPV pipeline), API-gated hardware decoding, 96/64 MB demuxer cache (TV/Mobile), MPV default ABR, `cache-pause-initial=no` fast start, SD stretch (`video-aspect-override=-1`), HD/FHD buffer stability, ColorFiltered contrast boost, `FilterQuality.high`, first-frame preloader, stall-triggered fallback, Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
+- **Version**: 1.12.3+63
+- **Key Features**: MediaKit player engine (MPV pipeline), API-gated hardware decoding, 96/64 MB demuxer cache (TV/Mobile), MPV default ABR, `cache-pause-initial=no` fast start, SD stretch (`video-aspect-override=-1`), HD/FHD buffer stability, ColorFiltered contrast boost, `FilterQuality.high`, first-frame preloader, stall-triggered fallback, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.12.2+62 App) — 2026-05-18
+## Recent Updates (v1.12.3+63 App) — 2026-05-18
 
 ### App (Flutter)
-- **Fixed**: **TV Fast Start** — `cache-secs` 30 s → 5 s on TV; `cache-pause-initial=no` so first frame renders without waiting to fill cache.
-- **Fixed**: **SD Green Lines** — Black background on player container eliminates raw OpenGL surface green artefacts behind 4:3 content.
-- **Fixed**: **SD Stretching** — `video-aspect-override=-1` strips codec DAR; `BoxFit.fill` is now the sole authority on aspect ratio.
-- **Fixed**: **HD / FHD Fallback** — Restored `cache-pause` default; buffer underruns now pause + rebuffer (spinner) instead of triggering false stall-timer fallback. Buffer 96 MB (TV) / 64 MB (Mobile); `cache-secs` 15 s / 10 s; `demuxer-readahead-secs` 15 s / 10 s.
-- **Fixed**: **Stall Timer** — TV 15 s → 30 s, Mobile 30 s → 45 s; prevents premature fallback during HD rebuffering.
+- **Added**: **Contact Us** — Settings section with contact form (Name, Email, Subject, Message) posting to `POST /contact`; toast reflects exact API response message.
+- **Fixed**: **Contact Validation** — Per-field error messages (name, email, subject, message) replace the generic fallback.
+- **Changed**: **Settings Order** — Sections reordered to Feedback → Contact Us → Storage.
 
 ## Recent Updates (v1.12.0+60 App) — 2026-05-18
 

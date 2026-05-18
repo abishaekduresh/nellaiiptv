@@ -7,6 +7,7 @@ import '../../core/device_utils.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../core/toast_service.dart';
 import '../profile/feedback_screen.dart';
+import 'contact_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,6 +19,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final FocusNode _clearCacheFocusNode = FocusNode();
   final FocusNode _feedbackFocusNode = FocusNode();
+  final FocusNode _contactFocusNode = FocusNode();
 
   bool _isClearingCache = false;
   String _appVersion = '';
@@ -74,6 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         DeviceOrientation.landscapeRight,
     ]);
     _feedbackFocusNode.dispose();
+    _contactFocusNode.dispose();
     super.dispose();
   }
 
@@ -115,6 +118,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       iconColor: Colors.cyan,
                       onSelect: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const FeedbackScreen()),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Contact Us',
+                    style: TextStyle(
+                      color: Colors.cyan,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: _buildActionOption(
+                      focusNode: _contactFocusNode,
+                      title: 'Send a Message',
+                      icon: Icons.support_agent_outlined,
+                      iconColor: Colors.cyan,
+                      onSelect: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ContactScreen()),
                       ),
                     ),
                   ),

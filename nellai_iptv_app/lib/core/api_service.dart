@@ -573,6 +573,26 @@ class ApiService {
     }
   }
 
+  /// POST /contact — public endpoint, no auth required.
+  /// Throws [Exception] with the API message on validation (400) or server (500) errors.
+  Future<void> submitContact({
+    required String name,
+    required String email,
+    required String subject,
+    required String message,
+  }) async {
+    final response = await _dio.post('/contact', data: {
+      'name': name,
+      'email': email,
+      'subject': subject,
+      'message': message,
+    });
+
+    if (response.statusCode != 201 || response.data['status'] != true) {
+      throw Exception(response.data['message'] ?? 'Failed to send message. Please try again.');
+    }
+  }
+
   Future<void> submitFeedback({
     required String feedbackType,
     int? rating,

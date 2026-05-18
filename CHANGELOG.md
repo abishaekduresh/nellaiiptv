@@ -1,3 +1,10 @@
+## [1.12.3+63] - App - 2026-05-18
+
+### App (Flutter)
+- **Added**: **Contact Us** — New Settings section with "Send a Message" tile opening a contact form (Name, Email, Subject, Message). Submits to `POST /contact`; toast displays the exact API success or error message.
+- **Fixed**: **Contact Validation** — Per-field validation errors (name length, valid email, subject length, message length) replace the previous single generic error message.
+- **Changed**: **Settings Section Order** — Reordered to Feedback → Contact Us → Storage.
+
 ## [1.12.2+62] - App - 2026-05-18
 
 ### App (Flutter)

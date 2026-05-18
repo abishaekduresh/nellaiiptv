@@ -1,3 +1,14 @@
+## [1.12.3+63] - 2026-05-18
+
+### Added
+- **Contact Us** — New section in Settings with a "Send a Message" tile that opens a full contact form (Name, Email, Subject, Message). Submits to `POST /contact`; toast displays the exact API success or error message.
+
+### Fixed
+- **Contact Validation** — Per-field validation errors instead of a single generic message; each field reports its specific requirement on failure.
+
+### Changed
+- **Settings Order** — Section order is now Feedback → Contact Us → Storage.
+
 ## [1.12.2+62] - 2026-05-18
 
 ### Fixed
