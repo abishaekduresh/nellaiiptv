@@ -86,25 +86,45 @@ class TVPlayerController {
   ///    attached causes a native WinID assertion crash in android_common.c.
   ///  • Each property is set in its own try-catch so a single unsupported
   ///    option on an older device cannot abort the entire configuration.
-  ///  • hwdec strategy is gated on Android API level:
-  ///      API < 23  → skip hwdec (unreliable MediaCodec on Android 4/5)
-  ///      API 23-25 → mediacodec-copy (safe copy-back path, works on Android 6/7)
-  ///      API 26+   → auto (full zero-copy MediaCodec, reliable on Android 8+)
+  ///  • hwdec strategy:
+  ///      TV      : mediacodec-copy — budget TV SoCs (Amlogic/Rockchip) often
+  ///                have broken zero-copy MediaCodec; copy-back works everywhere.
+  ///      Mobile  : API 26+ → auto (full zero-copy on mainline Android 8+)
+  ///                API 23-25 → mediacodec-copy
+  ///                API < 23  → software decode (skip hwdec)
   Future<void> _applyPlaybackQualitySettings() async {
     final native = _player!.platform as dynamic;
     final int sdk = DeviceUtils.androidSdkInt;
 
     // ── Hardware decoding ──────────────────────────────────────────────────
-    // Gated on Android API level — older MediaCodec implementations have
-    // zero-copy bugs that cause crashes or artefacts on some devices.
-    if (sdk >= 26) {
-      // Android 8+ (Oreo): zero-copy MediaCodec — best performance & quality.
-      await _trySetProperty(native, 'hwdec', 'auto');
-    } else if (sdk >= 23) {
-      // Android 6-7: copy-back path — safe on old Mali/Adreno drivers.
-      await _trySetProperty(native, 'hwdec', 'mediacodec-copy');
+    if (DeviceUtils.isTV) {
+      // TV boxes (Amlogic S905/S922, Rockchip RK33xx, etc.) frequently have
+      // unreliable zero-copy MediaCodec surfaces. mediacodec-copy copies the
+      // decoded frame back to system memory before handing it to Flutter,
+      // which avoids the black-screen / green-frame surface-handshake failures
+      // seen with 'auto' on budget hardware. Performance difference is small
+      // compared to the reliability gain.
+      if (sdk >= 23) {
+        await _trySetProperty(native, 'hwdec', 'mediacodec-copy');
+      }
+      // API < 23 on TV is essentially nonexistent — leave hwdec unset (sw).
+    } else {
+      // Mobile: full zero-copy on Android 8+ (Oreo), copy-back on 6–7.
+      if (sdk >= 26) {
+        await _trySetProperty(native, 'hwdec', 'auto');
+      } else if (sdk >= 23) {
+        await _trySetProperty(native, 'hwdec', 'mediacodec-copy');
+      }
+      // API < 23: software decode.
     }
-    // API < 23: leave hwdec unset (software decode). Extremely rare.
+
+    // ── Audio output ───────────────────────────────────────────────────────
+    // Force AudioTrack on TV — prevents MPV from trying OpenSL ES or SPDIF
+    // output paths that are not properly initialised on many TV SoCs, which
+    // would cause silent playback even when hwdec succeeds.
+    if (DeviceUtils.isTV) {
+      await _trySetProperty(native, 'ao', 'audiotrack');
+    }
 
     // ── HLS variant / bitrate selection ───────────────────────────────────
     // Leave unset on ALL devices — MPV's default ABR algorithm starts at a

@@ -21,6 +21,8 @@ class DeviceUtils {
       
       // Check for leanback feature which is standard for Android TV
       _isTV = androidInfo.systemFeatures.contains('android.software.leanback');
+      // TEMP TEST OVERRIDE — force TV mode on phone. Remove before release.
+      // _isTV = true;
 
       // Capture the Android SDK API level for feature-gating (e.g. hwdec strategy)
       _androidSdkInt = androidInfo.version.sdkInt;

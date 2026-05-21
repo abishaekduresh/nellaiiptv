@@ -184,8 +184,15 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     _audioSubscription = AudioManager().volumeStream.listen((vol) {
       if (mounted) {
         setState(() {});
-        // Also sync player volume if hardware buttons change system volume
-        _tvPlayer.setVolume(vol <= 0 ? 0 : 100);
+        // On TV: skip system-volume→player sync. volume_controller can return
+        // 0 on Android TV (reads the wrong audio stream on some TV SoCs), which
+        // would silently mute the player. The TV's own remote controls system
+        // volume; the player always runs at 100 and the hardware mixer handles
+        // the final output level.
+        // On mobile: mirror the system mute state (explicit mute button).
+        if (!DeviceUtils.isTV) {
+          _tvPlayer.setVolume(AudioManager().isMuted ? 0 : 100);
+        }
       }
     });
 
@@ -446,10 +453,10 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
 
       // ── Stall / fallback timer ─────────────────────────────────────────
       // Grace period before triggering fallback.
-      // Raised from 15 s → 30 s on TV and 30 s → 45 s on Mobile so that
-      // legitimate HD/FHD rebuffering events (large segments, slow WiFi/LTE)
-      // are not mistaken for a broken stream and sent to fallback.
-      final int stallSecs = DeviceUtils.isTV ? 30 : 45;
+      // TV boxes (especially budget SoCs) have slower decoders and need more
+      // time to produce the first frame; mobile cellular is actually faster on
+      // modern 4G/5G. Giving TV 45 s prevents premature fallback on slow SoCs.
+      final int stallSecs = DeviceUtils.isTV ? 45 : 30;
       _stallTimer = Timer(Duration(seconds: stallSecs), () {
         if (!mounted || _isDisposed) return;
         if (_isLoading || _isBuffering) {

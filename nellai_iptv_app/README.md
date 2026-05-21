@@ -11,7 +11,13 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
-## Version: 1.12.3+63
+## Version: 1.12.4+64
+- **Fixed**: **TV Video** — `hwdec` changed from `auto` to `mediacodec-copy` for all Android TV devices; eliminates black-screen failures on budget Amlogic/Rockchip SoCs caused by broken zero-copy MediaCodec surface handshakes.
+- **Fixed**: **TV Audio** — Explicit `ao=audiotrack` MPV property added for TV; prevents silent playback caused by MPV attempting OpenSL ES/SPDIF output paths that are uninitialised on many TV SoC firmwares.
+- **Fixed**: **TV Volume Sync Mute** — Removed system-volume→player sync on TV (`volume_controller` reads wrong audio stream on some TVs, returning 0 and silencing playback); player now always runs at 100 on TV.
+- **Fixed**: **TV Stall Timer** — Corrected inversion: TV 30 s → 45 s, Mobile 45 s → 30 s; budget TV SoC decoders need more time than a modern phone to produce the first frame.
+
+## Version: 1.12.3+63 *(previous)*
 - **Added**: **Contact Us** — Settings section with a contact form (Name, Email, Subject, Message) posting to `POST /contact`; toast reflects exact API response.
 - **Fixed**: **Contact Validation** — Per-field error messages replace the generic fallback.
 - **Changed**: **Settings Order** — Feedback → Contact Us → Storage.

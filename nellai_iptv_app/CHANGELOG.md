@@ -1,3 +1,11 @@
+## [1.12.4+64] - 2026-05-21
+
+### Fixed
+- **TV Video Playback** — Switched `hwdec` from `auto` to `mediacodec-copy` on all Android TV devices. Budget TV SoCs (Amlogic S905/S922, Rockchip RK33xx) have unreliable zero-copy MediaCodec surface handshakes that cause black screens with `auto`; `mediacodec-copy` copies decoded frames back to system memory before handing them to Flutter, which works on every TV hardware variant.
+- **TV Silent Audio** — Added explicit `ao=audiotrack` MPV property for TV. Some TV SoCs leave MPV trying OpenSL ES or SPDIF output paths that are not properly initialised on their firmware, producing silent playback even when video renders correctly. Forcing AudioTrack (the standard Android Java audio path) fixes this across all TV hardware.
+- **TV Audio Muted by Volume Sync** — `volume_controller.getVolume()` can return `0` on Android TV because it reads the wrong audio stream on some TV SoCs. The previous logic `setVolume(vol <= 0 ? 0 : 100)` was silencing the player immediately after load. On TV the system-volume-to-player sync is now skipped entirely; the player always runs at 100 and the TV's own hardware mixer handles the final output level.
+- **TV Stall Timer** — Corrected stall-timer inversion: TV was 30 s, Mobile was 45 s. Swapped to TV = 45 s, Mobile = 30 s. Budget TV SoC decoders are slower to produce the first frame than a modern phone on 4G/5G; the shorter TV value was triggering premature fallback before the decoder finished initialising.
+
 ## [1.12.3+63] - 2026-05-18
 
 ### Added
