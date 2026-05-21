@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/toast_service.dart';
 
 class ConnectivityWrapper extends StatefulWidget {
@@ -12,34 +12,35 @@ class ConnectivityWrapper extends StatefulWidget {
 }
 
 class _ConnectivityWrapperState extends State<ConnectivityWrapper> {
-  StreamSubscription<InternetStatus>? _subscription;
+  StreamSubscription<List<ConnectivityResult>>? _subscription;
   Timer? _debounceTimer;
   bool _isFirstCheck = true;
+  bool _wasOffline = false;
 
   @override
   void initState() {
     super.initState();
-    _subscription = InternetConnection().onStatusChange.listen((status) {
+    _subscription = Connectivity().onConnectivityChanged.listen((results) {
+      final isOffline = results.every((r) => r == ConnectivityResult.none);
+
       if (_isFirstCheck) {
         _isFirstCheck = false;
-        // Don't show toast on app launch unless really offline? 
-        // Architecture doc says: Detect No internet.
-        // If launch offline -> Show Toast.
-        if (status == InternetStatus.disconnected) {
-             ToastService().show("No Internet Connection", type: ToastType.error);
+        _wasOffline = isOffline;
+        if (isOffline) {
+          ToastService().show("No Internet Connection", type: ToastType.error);
         }
         return;
       }
 
-      // Debounce logic
       _debounceTimer?.cancel();
       _debounceTimer = Timer(const Duration(seconds: 2), () {
         if (!mounted) return;
-        
-        if (status == InternetStatus.disconnected) {
+        if (isOffline && !_wasOffline) {
+          _wasOffline = true;
           ToastService().show("No Internet Connection", type: ToastType.error);
-        } else if (status == InternetStatus.connected) {
-           ToastService().show("Back Online", type: ToastType.success);
+        } else if (!isOffline && _wasOffline) {
+          _wasOffline = false;
+          ToastService().show("Back Online", type: ToastType.success);
         }
       });
     });

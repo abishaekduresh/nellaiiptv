@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart'; // for kIsWeb
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import 'package:flutter/foundation.dart';
+import 'package:video_player/video_player.dart';
 import 'package:dio/dio.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -10,7 +9,7 @@ import '../services/api_service.dart';
 import '../models/channel.dart';
 import '../widgets/pulse_loader.dart';
 import '../widgets/gesture_overlay.dart';
-import 'package:simple_pip_mode/simple_pip.dart'; // Correct import
+import 'package:simple_pip_mode/simple_pip.dart';
 import '../services/toast_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/audio_manager.dart';
@@ -28,20 +27,14 @@ class VideoPlayerScreen extends StatefulWidget {
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindingObserver {
   final ApiService _api = ApiService();
-  
-  late final Player _player;
-  late final VideoController _videoController;
-  
-  // Player Subscriptions
-  StreamSubscription<bool>? _bufferingSubscription;
-  // Player Subscriptions
 
-  StreamSubscription<String?>? _errorSubscription;
-  StreamSubscription<int?>? _widthSubscription; // Listen for video dimensions
-  StreamSubscription<double>? _volumeSubscription; // Listen for System Volume changes
+  VideoPlayerController? _controller;
+
+  // Subscriptions
+  StreamSubscription<double>? _volumeSubscription;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   bool _wasOffline = false;
-  
+
   // PiP Controller
   late SimplePip _simplePip;
 
@@ -50,6 +43,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   String _errorMessage = '';
   String? _appLogoUrl;
   Channel? _channel;
+
+  // Buffering health tracking
+  bool _lastIsBuffering = false;
+  DateTime? _lastBufferTime;
+  int _bufferCount = 0;
 
   // TV Detection
   bool _isTV = false;
@@ -66,43 +64,32 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); // Detect Background/Foreground
+    WidgetsBinding.instance.addObserver(this);
     _enterLandscape();
     WakelockPlus.enable();
-    
-    // Initialize MediaKit Player
-    _player = Player();
-    _videoController = VideoController(_player);
 
-    // Initialize PiP
     _simplePip = SimplePip(
       onPipEntered: () {
         if (mounted) setState(() { _isPipMode = true; });
       },
       onPipExited: () {
         if (mounted) {
-           setState(() { _isPipMode = false; });
-           // Re-force landscape when exiting PiP
-           _enterLandscape();
+          setState(() { _isPipMode = false; });
+          _enterLandscape();
         }
       },
     );
 
-    // Detect Android TV
     _detectTV();
-
-    // Initialize Audio Manager
     AudioManager().init();
 
-    // Listen to System Volume Changes (e.g. Hardware Buttons or Gestures)
-    // If user increases volume, ensure Player is unmuted
+    // Unmute player when system volume becomes non-zero
     _volumeSubscription = AudioManager().volumeStream.listen((volume) {
-       if (volume > 0 && _player.state.volume == 0) {
-          _player.setVolume(100.0); // Unmute Player
-       }
+      if (volume > 0 && (_controller?.value.volume ?? 1.0) == 0) {
+        _controller?.setVolume(1.0);
+      }
     });
 
-    // Auto-reconnect on network restore
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen(_onConnectivityChanged);
 
     _fetchAppLogo();
@@ -112,31 +99,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      // Prevent pausing if we are effectively in PiP mode (or entering it)
       if (!_isPipMode) {
-         _player.pause();
-         // Restore System Volume when backgrounded (unless entering PiP)
-         AudioManager().restoreOriginalVolume();
+        _controller?.pause();
+        AudioManager().restoreOriginalVolume();
       }
     } else if (state == AppLifecycleState.resumed) {
-      _player.play();
-      // Re-apply Session Volume when foregrounded
+      _controller?.play();
       AudioManager().reapplyAppVolume();
-      
-      // Safety: Ensure we exit PiP state and re-force landscape when returning to foreground
       if (mounted) {
-        setState(() {
-          _isPipMode = false;
-        });
+        setState(() { _isPipMode = false; });
         _enterLandscape();
       }
     }
   }
 
   void _toggleControls() {
-    setState(() {
-      _showControls = !_showControls;
-    });
+    setState(() { _showControls = !_showControls; });
     if (_showControls) _startHideTimer();
     else _hideTimer?.cancel();
   }
@@ -154,11 +132,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
     final isOnline = results.any((r) => r != ConnectivityResult.none);
     if (isOnline && _wasOffline) {
       _wasOffline = false;
-      if (_hasError || !_player.state.playing) {
-        setState(() {
-          _hasError = false;
-          _isLoading = true;
-        });
+      if (_hasError || !(_controller?.value.isPlaying ?? false)) {
+        setState(() { _hasError = false; _isLoading = true; });
         ToastService().show("Connection restored. Reconnecting...", type: ToastType.info);
         _fetchChannel();
       }
@@ -179,30 +154,29 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   }
 
   void _togglePlayPause() {
-    if (_player.state.playing) {
-      _player.pause();
+    if (_controller?.value.isPlaying ?? false) {
+      _controller?.pause();
     } else {
-      _player.play();
+      _controller?.play();
     }
   }
 
+  // Returns new volume in 0.0–1.0 for the GestureOverlay overlay indicator
   Future<double> _toggleMute() async {
-      double current = _player.state.volume;
-      double newVol = (current > 0) ? 0.0 : 100.0;
-      await _player.setVolume(newVol);
-      return newVol;
+    final double current = _controller?.value.volume ?? 1.0;
+    final double newVol = (current > 0) ? 0.0 : 1.0;
+    await _controller?.setVolume(newVol);
+    return newVol;
   }
 
   Future<void> _fetchAppLogo() async {
     try {
       final logo = await _api.getAppLogo();
       if (mounted && logo != null) {
-        setState(() {
-          _appLogoUrl = logo;
-        });
+        setState(() { _appLogoUrl = logo; });
       }
     } catch (e) {
-      print("Logo Fetch Error: $e");
+      debugPrint("Logo Fetch Error: $e");
     }
   }
 
@@ -229,7 +203,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
         if (channel.hlsUrl != null) {
           setState(() {
             _channel = channel;
-            // Reset view increment state for new channel
             _hasIncrementedView = false;
             _viewCountTimer?.cancel();
           });
@@ -241,95 +214,85 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
     } catch (e) {
       String msg = "Failed to load channel";
       if (e is DioException) {
-         if (e.response != null) {
-           msg = "API Error: ${e.response?.data['message'] ?? e.response?.statusMessage}";
-         } else {
-           msg = "Connection Failed. Check URL or Network.";
-         }
+        msg = e.response != null
+            ? "API Error: ${e.response?.data['message'] ?? e.response?.statusMessage}"
+            : "Connection Failed. Check URL or Network.";
       } else {
-         msg = e.toString();
+        msg = e.toString();
       }
       if (mounted) _showError(msg);
     }
   }
 
-  Future<void> _initVideoPlayer(String url) async {
-    try {
-      // Dispose previous activity
-      _disposeControllers(); // Stops player and cancels subs
+  // Single listener attached to the VideoPlayerController
+  void _playerListener() {
+    if (!mounted || _controller == null) return;
+    final val = _controller!.value;
 
-      await _player.open(Media(url), play: true);
-      await _player.setVolume(100.0); // Ensure Audio is ON
-      await _player.setPlaylistMode(PlaylistMode.none);
+    if (val.hasError && !_hasError) {
+      _showError("Playback Error: ${val.errorDescription ?? 'Unknown error'}");
+      return;
+    }
 
-      // Listen for buffering
-      _bufferingSubscription = _player.stream.buffering.listen((isBuffering) {
-          if (!mounted) return;
-          if (isBuffering) {
-            if (!_isLoading) {
-              setState(() { _isLoading = true; });
-              _checkBufferingHealth();
-            }
-          } else {
-             if (_isLoading) {
-               setState(() { _isLoading = false; });
-             }
-          }
-      });
-
-      // Listen for Errors
-      _errorSubscription = _player.stream.error.listen((error) {
-         if (!mounted) return;
-         _showError("Playback Error: $error");
-      });
-
-      // Listen for Video Dimensions (Seamless Transition)
-      _widthSubscription = _player.stream.width.listen((width) {
-        if (mounted && width != null && width > 0) {
-           // Video has dimensions, trigger rebuild to hide logo overlay
-           setState(() {});
-        }
-      });
-      
-      // Wait a bit for initialization or just assume valid if no error
-      setState(() {
-        _isLoading = false;
-      });
-
-      // Start 10s timer for view increment (Same as Frontend)
-      _startViewCountTimer();
-      
-    } catch (e) {
-      print("Video Init Error: $e");
-      _showError("Playback Failed");
+    // Only setState when buffering state actually changes to avoid rebuild storms
+    if (val.isBuffering != _lastIsBuffering) {
+      _lastIsBuffering = val.isBuffering;
+      if (mounted) {
+        setState(() { _isLoading = val.isBuffering; });
+        if (val.isBuffering) _checkBufferingHealth();
+      }
     }
   }
 
-  DateTime? _lastBufferTime;
-  int _bufferCount = 0;
+  Future<void> _initVideoPlayer(String url) async {
+    try {
+      await _disposeController();
+
+      if (mounted) setState(() { _isLoading = true; _hasError = false; });
+
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(url),
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: false),
+      );
+      _controller!.addListener(_playerListener);
+
+      await _controller!.initialize();
+      await _controller!.setLooping(false);
+      await _controller!.setVolume(1.0);
+      await _controller!.play();
+
+      if (mounted) setState(() { _isLoading = false; });
+
+      _startViewCountTimer();
+    } catch (e) {
+      debugPrint("Video Init Error: $e");
+      if (mounted) _showError("Playback Failed");
+    }
+  }
 
   void _checkBufferingHealth() {
-      // Smart Buffering Monitor
-      final now = DateTime.now();
-      if (_lastBufferTime != null && now.difference(_lastBufferTime!) < const Duration(seconds: 30)) {
-          _bufferCount++;
-      } else {
-          _bufferCount = 1; // Reset window
-      }
-      _lastBufferTime = now;
+    final now = DateTime.now();
+    if (_lastBufferTime != null && now.difference(_lastBufferTime!) < const Duration(seconds: 30)) {
+      _bufferCount++;
+    } else {
+      _bufferCount = 1;
+    }
+    _lastBufferTime = now;
 
-      if (_bufferCount >= 3) {
-          ToastService().show("Unstable Network: Buffering...", type: ToastType.warning);
-          _bufferCount = 0; // Reset after warning
-      }
+    if (_bufferCount >= 3) {
+      ToastService().show("Unstable Network: Buffering...", type: ToastType.warning);
+      _bufferCount = 0;
+    }
   }
 
   void _showError(String msg) {
-    setState(() {
-      _isLoading = false;
-      _hasError = true;
-      _errorMessage = msg;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _hasError = true;
+        _errorMessage = msg;
+      });
+    }
   }
 
   void _startViewCountTimer() {
@@ -342,34 +305,31 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
     });
   }
 
-  void _disposeControllers() {
-    _bufferingSubscription?.cancel();
-
-    _errorSubscription?.cancel();
-    _widthSubscription?.cancel();
-    _volumeSubscription?.cancel();
-    // Do not dispose _player here if you want to reuse it, but typically we do for full reset.
-    // However, with single instance, maybe just stop. 
-    // But since _initVideoPlayer creates new one? No, I initialized _player in initState (final).
-    // So I should just stop it.
-    _player.stop();
+  Future<void> _disposeController() async {
+    _controller?.removeListener(_playerListener);
+    await _controller?.pause();
+    await _controller?.dispose();
+    _controller = null;
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _connectivitySubscription?.cancel();
-    _disposeControllers();
-    _player.dispose(); // Dispose the final player instance
+    _volumeSubscription?.cancel();
+    _hideTimer?.cancel();
+    _viewCountTimer?.cancel();
+
+    _controller?.removeListener(_playerListener);
+    _controller?.pause();
+    _controller?.dispose();
+
     WakelockPlus.disable();
-    // Restore System Volume on Exit
     AudioManager().restoreOriginalVolume();
 
-    // Decrement view if it was incremented (Sync with Frontend)
     if (_hasIncrementedView && _channel != null) {
       _api.decrementView(_channel!.uuid);
     }
-    _viewCountTimer?.cancel();
 
     super.dispose();
   }
@@ -377,115 +337,110 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false, // Prevent default pop
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         final bool shouldExit = await _showExitConfirmation();
-        if (shouldExit) {
-          if (context.mounted) {
-             exit(0); // Hard Kill Process
-          }
+        if (shouldExit && context.mounted) {
+          exit(0);
         }
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0F172A),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 1. Gesture Layer (Wraps Video) - Background
-          GestureOverlay(
-            onTap: _toggleControls,
-            onToggleMute: _toggleMute,
-            onPlayPause: _togglePlayPause,
-            child: Container(
-              color: Colors.black, // Ensure black background
-              child: Video(
-                controller: _videoController,
-                fit: BoxFit.fill,
-                controls: NoVideoControls,
-              ),
-            ),
-          ),
-
-          // 2. Web Warning (Bottom)
-          if (kIsWeb)
-            Positioned(
-              bottom: 20,
-              left: 20,
-              right: 20,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 1. Video Layer
+            GestureOverlay(
+              onTap: _toggleControls,
+              onToggleMute: _toggleMute,
+              onPlayPause: _togglePlayPause,
               child: Container(
-                padding: const EdgeInsets.all(8),
-                color: Colors.black54,
-                child: const Text( 
-                  "NOTE: Desktop Chrome cannot play HLS (.m3u8) natively.\nPlease test on Android Emulator or Safari.",
-                  style: TextStyle(color: Colors.yellow, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
+                color: Colors.black,
+                child: (_controller != null && _controller!.value.isInitialized)
+                    ? SizedBox.expand(
+                        child: FittedBox(
+                          fit: BoxFit.fill,
+                          child: SizedBox(
+                            width: _controller!.value.size.width,
+                            height: _controller!.value.size.height,
+                            child: VideoPlayer(_controller!),
+                          ),
+                        ),
+                      )
+                    : const SizedBox(),
               ),
             ),
 
-          // 3. Loading Layer (Overlay)
-          // Maintain overlay until video has dimensions and is playing (Seamless Transition)
-          if ((_isLoading || _player.state.width == null || _player.state.width == 0) && !_hasError)
-             Center(
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Always show loader if in this state
-                  const PulseLoader(color: Color(0xFF06B6D4), size: 60),
-                ],
-              ),
-             ),
-          
-          // 4. Error Layer
-          if (_hasError)
-             Center(
-               child: Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                   const Icon(Icons.error_outline, color: Color(0xFF06B6D4), size: 50),
-                   const SizedBox(height: 10),
-                   Text(
-                     _errorMessage,
-                     style: const TextStyle(color: Colors.white, fontSize: 16),
-                     textAlign: TextAlign.center,
-                   ),
-                   const SizedBox(height: 10),
-                   ElevatedButton(
-                     autofocus: true,
-                     onPressed: () {
-                       setState(() {
-                         _hasError = false;
-                         _isLoading = true;
-                       });
-                       _fetchChannel();
-                     },
-                     child: const Text("Retry"),
-                   )
-                 ],
-               ),
-             ),
-
-          // 5. Watermark Layer (Hide in PiP)
-          if (!_hasError && _appLogoUrl != null && !_isPipMode)
-            Positioned(
-              bottom: 10,
-              left: 20,
-              child: Opacity(
-                opacity: 0.2,
-                child: Image.network(
-                  _appLogoUrl!,
-                  width: 150,
-                  errorBuilder: (c,e,s) => const SizedBox(),
+            // 2. Web Warning
+            if (kIsWeb)
+              Positioned(
+                bottom: 20,
+                left: 20,
+                right: 20,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  color: Colors.black54,
+                  child: const Text(
+                    "NOTE: Desktop Chrome cannot play HLS (.m3u8) natively.\nPlease test on Android Emulator or Safari.",
+                    style: TextStyle(color: Colors.yellow, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
-            ),
+
+            // 3. Loading Overlay — visible until controller is initialized and not buffering
+            if ((_isLoading || _controller == null || !_controller!.value.isInitialized) && !_hasError)
+              const Center(child: PulseLoader(color: Color(0xFF06B6D4), size: 60)),
+
+            // 4. Error Layer
+            if (_hasError)
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: Color(0xFF06B6D4), size: 50),
+                    const SizedBox(height: 10),
+                    Text(
+                      _errorMessage,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      autofocus: true,
+                      onPressed: () {
+                        setState(() { _hasError = false; _isLoading = true; });
+                        _fetchChannel();
+                      },
+                      child: const Text("Retry"),
+                    ),
+                  ],
+                ),
+              ),
+
+            // 5. Watermark
+            if (!_hasError && _appLogoUrl != null && !_isPipMode)
+              Positioned(
+                bottom: 10,
+                left: 20,
+                child: Opacity(
+                  opacity: 0.2,
+                  child: Image.network(
+                    _appLogoUrl!,
+                    width: 150,
+                    errorBuilder: (c, e, s) => const SizedBox(),
+                  ),
+                ),
+              ),
 
             // 6. Viewer Count & Rating (Top Left)
-            if (_channel != null && 
-                !_isPipMode && 
-                ((_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty) || 
-                 (_channel!.averageRating != null && _channel!.averageRating! > 0)))
+            if (_channel != null &&
+                !_isPipMode &&
+                ((_channel!.viewersCountFormatted != null &&
+                      _channel!.viewersCountFormatted! != "0" &&
+                      _channel!.viewersCountFormatted!.isNotEmpty) ||
+                    (_channel!.averageRating != null && _channel!.averageRating! > 0)))
               Positioned(
                 top: 25,
                 left: 20,
@@ -504,7 +459,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty) ...[
+                            if (_channel!.viewersCountFormatted != null &&
+                                _channel!.viewersCountFormatted! != "0" &&
+                                _channel!.viewersCountFormatted!.isNotEmpty) ...[
                               const Icon(Icons.remove_red_eye_outlined, color: Colors.white70, size: 16),
                               const SizedBox(width: 5),
                               Text(
@@ -513,7 +470,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                               ),
                             ],
                             if (_channel!.averageRating != null && _channel!.averageRating! > 0) ...[
-                              if (_channel!.viewersCountFormatted != null && _channel!.viewersCountFormatted! != "0" && _channel!.viewersCountFormatted!.isNotEmpty)
+                              if (_channel!.viewersCountFormatted != null &&
+                                  _channel!.viewersCountFormatted! != "0" &&
+                                  _channel!.viewersCountFormatted!.isNotEmpty)
                                 const SizedBox(width: 12),
                               const Icon(Icons.star, color: Color(0xFFFCD34D), size: 16),
                               const SizedBox(width: 4),
@@ -530,7 +489,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                 ),
               ),
 
-            // 7. Cast & PiP Buttons (Top Right) — hidden on TV (PiP not applicable)
+            // 7. PiP Button (Top Right, hidden on TV)
             if (!kIsWeb && !_isPipMode && !_isTV)
               Positioned(
                 top: 20,
@@ -542,25 +501,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                     ignoring: !_showControls,
                     child: Row(
                       children: [
-
-                        // PiP Button
                         IconButton(
                           icon: const Icon(Icons.picture_in_picture_alt, color: Colors.white, size: 28),
                           onPressed: () async {
-                            _startHideTimer(); // Reset timer
+                            _startHideTimer();
                             try {
-                               final isPipAvailable = await SimplePip.isPipAvailable;
-                               if (isPipAvailable) {
-                                 // Optimistically set mode to prevent auto-pause race condition
-                                 setState(() { _isPipMode = true; });
-                                 await _simplePip.enterPipMode(aspectRatio: (16, 9));
-                               } else {
-                                 ToastService().show("PiP not supported on this device", type: ToastType.warning);
-                               }
+                              final isPipAvailable = await SimplePip.isPipAvailable;
+                              if (isPipAvailable) {
+                                setState(() { _isPipMode = true; });
+                                await _simplePip.enterPipMode(aspectRatio: (16, 9));
+                              } else {
+                                ToastService().show("PiP not supported on this device", type: ToastType.warning);
+                              }
                             } catch (e) {
-                               // Revert state if failed
-                               setState(() { _isPipMode = false; });
-                               ToastService().show("PiP Failed: $e", type: ToastType.error);
+                              setState(() { _isPipMode = false; });
+                              ToastService().show("PiP Failed: $e", type: ToastType.error);
                             }
                           },
                         ),
@@ -569,107 +524,97 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                   ),
                 ),
               ),
-
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 
   Future<bool> _showExitConfirmation() async {
     return await showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.8),
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF1E293B), // Dark Slate
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          width: 350, // Reduced Width
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Icon
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.power_settings_new, color: Colors.red, size: 32),
-              ),
-              const SizedBox(height: 20),
-              
-              // Title
-              Text(
-                "Exit ${dotenv.env['APP_NAME'] ?? "App"}?", 
-                style: const TextStyle(
-                  color: Colors.white, 
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              
-              // Message
-              const Text(
-                "Are you sure you want to close the player?",
-                style: TextStyle(color: Colors.white70, fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              
-              // Buttons — autofocus on Cancel so TV remote lands here first
-              FocusTraversalGroup(
-                policy: OrderedTraversalPolicy(),
-                child: Row(
-                  children: [
-                    // Cancel Button
-                    Expanded(
-                      child: TextButton(
-                        autofocus: true,
-                        onPressed: () => Navigator.of(context).pop(false),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: Colors.white.withOpacity(0.1)),
+          context: context,
+          barrierColor: Colors.black.withOpacity(0.8),
+          builder: (context) => Dialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Container(
+              width: 350,
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.power_settings_new, color: Colors.red, size: 32),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "Exit ${dotenv.env['APP_TITLE'] ?? "App"}?",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Are you sure you want to close the player?",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 30),
+                  FocusTraversalGroup(
+                    policy: OrderedTraversalPolicy(),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            autofocus: true,
+                            onPressed: () => Navigator.of(context).pop(false),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                              ),
+                            ),
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+                            ),
                           ),
                         ),
-                        child: const Text(
-                          "Cancel",
-                          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-
-                    // Exit Button
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              "Exit",
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
-                        child: const Text(
-                          "Exit",
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 }

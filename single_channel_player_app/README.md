@@ -1,6 +1,6 @@
 # Single Channel Player App
 
-**Version**: `1.3.2`
+**Version**: `1.3.3+9`
 **Framework**: Flutter 3.x
 
 A high-performance, native Android application for streaming HLS content, optimized for both Mobile and Android TV interfaces.
@@ -12,9 +12,10 @@ A high-performance, native Android application for streaming HLS content, optimi
 ## 🚀 Features
 
 - **Intelligent Analytics**: Mirroring web logic with 10s watch-time delay and session-guarded increments.
-- **Native Playback**: Hardware-accelerated HLS streaming via `media_kit`.
+- **Native Playback**: Hardware-accelerated HLS streaming via `video_player` (ExoPlayer — Google's standard Android video pipeline).
 - **Android TV Ready**:
-    - **TV Launcher**: `LEANBACK_LAUNCHER` intent — appears on Android TV home screen.
+    - **TV Launcher**: `LEANBACK_LAUNCHER` intent — appears on Android TV home screen with proper 320×180 banner.
+    - **TV Banner**: Dedicated `drawable-xhdpi/tv_banner.png` for the Android TV launcher tile.
     - **Remote Control**: D-pad volume (Up/Down), controls toggle (Left/Right/Select), media Play/Pause keys.
     - **TV Detection**: Runtime detection via Leanback feature flag — hides inapplicable UI (PiP) on TV.
     - **Focusable Dialogs**: Exit confirmation and error Retry button auto-focused for D-pad navigation.
@@ -29,7 +30,8 @@ A high-performance, native Android application for streaming HLS content, optimi
     - **Stability**: Single-instance enforcement and hard process termination on exit.
     - **Session Volume**: Restores system audio settings on exit.
     - **Safe Gestures**: Center-weighted tap-to-mute; swipe left/right for brightness/volume.
-- **Production Ready**: Sub-24MB APK size with R8 shrinking.
+- **Google Play Compliant**: Screenshot capture enabled for review tools; ExoPlayer engine passes Google's device compatibility checks.
+- **Production Ready**: ~42MB AAB (sub-24MB split APK) with R8 shrinking.
 
 ## 🛠️ Setup & Development
 

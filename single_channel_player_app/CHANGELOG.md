@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.3.3+9] - 2026-05-21
+
+### Fixed
+- **App Does Not Open (Google Play Broken Functionality)** — Migrated video engine from `media_kit` (MPV/`any` version) to Flutter's official `video_player` (ExoPlayer). `media_kit: any` was pulling the latest unstable version whose native `.so` libraries crashed before any UI appeared on Google's review devices. ExoPlayer is Google's standard Android pipeline and works on all Android versions and ABI targets without native library loading issues.
+- **Google Play Policy Violation** — Disabled `ENABLE_SCREENSHOT_BLOCK` (`FLAG_SECURE=false`). `FLAG_SECURE` blocked Google's automated review tools from screenshotting the app, causing it to appear broken to reviewers and violating the policy requiring apps to be testable by Google.
+- **Android TV Banner Missing** — Added a dedicated 320×180 px TV banner image (`drawable-xhdpi/tv_banner.png`). The previous manifest referenced `@mipmap/ic_launcher` (default Flutter placeholder icon) instead of a proper TV launcher banner.
+- **`internet_connection_checker_plus` removed** — `ConnectivityWrapper` now uses `connectivity_plus` (already a dependency) replacing the removed `internet_connection_checker_plus` package.
+- **`flutter_spinkit` removed** — `PulseLoader` now renders a native three-dot bounce animation using `flutter_animate` (already a dependency), replacing the removed `flutter_spinkit` package.
+
+### Changed
+- **Player Engine** — `VideoPlayerController.networkUrl()` (ExoPlayer) replaces `Player` + `VideoController` (media_kit). Single `addListener(_playerListener)` callback replaces three separate stream subscriptions (`stream.buffering`, `stream.error`, `stream.width`).
+- **Volume Scale** — Player volume now uses `0.0–1.0` (video_player convention) instead of `0–100` (media_kit convention).
+- **Connectivity Check** — `ConnectivityWrapper` uses `ConnectivityResult.none` check from `connectivity_plus` instead of `InternetStatus.disconnected` from the removed package.
+- **`ENABLE_DEBUG_BLOCK`** — Set to `false` to avoid `safe_device` blocking Google's emulator-based review environment.
+
+### Removed
+- `media_kit`, `media_kit_video`, `media_kit_libs_android_video` — replaced by `video_player: ^2.8.6`.
+- `MediaKit.ensureInitialized()` — removed from `main.dart`.
+- `internet_connection_checker_plus`, `flutter_spinkit`, `google_fonts`, `in_app_update`, `shimmer` — unused packages removed to reduce APK size and dependency surface.
+
 ## [1.3.2] - 2026-05-15
 
 ### Changed
