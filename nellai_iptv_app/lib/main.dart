@@ -10,7 +10,6 @@ import 'screens/classic/classic_screen.dart';
 import 'screens/splash_screen.dart'; // Import Splash
 import 'core/security_service.dart'; // Import SecurityService
 
-import 'package:media_kit/media_kit.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart'; // Import CacheManager
 import 'core/toast_service.dart'; // Import ToastService
 
@@ -18,13 +17,14 @@ import 'core/device_utils.dart'; // Import DeviceUtils
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  MediaKit.ensureInitialized(); // Required for media_kit native player
-  
   await DeviceUtils.init(); // Initialize Device Detection
 
   
-  // Clear channel thumbnail cache on startup (Session-based caching)
-  await DefaultCacheManager().emptyCache();
+  // Clear channel thumbnail cache on startup (Session-based caching).
+  // Fire-and-forget — do NOT await. On slow TV hardware / emulators, awaiting
+  // a full disk scan before runApp() delays the first frame past the TV
+  // launcher's activity-resume timeout, sending the app to the background.
+  DefaultCacheManager().emptyCache();
   
   await dotenv.load(fileName: ".env");
   

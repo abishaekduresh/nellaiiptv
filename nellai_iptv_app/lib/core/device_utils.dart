@@ -6,6 +6,7 @@ class DeviceUtils {
   static bool _isTV = false;
   static bool _isHighPerformance = true;
   static int _androidSdkInt = 26; // Default to a safe modern API level
+  static bool _isEmulator = false;
   static bool _initialized = false;
 
   /// Initialize device info check. Should be called at app startup.
@@ -23,6 +24,11 @@ class DeviceUtils {
       _isTV = androidInfo.systemFeatures.contains('android.software.leanback');
       // TEMP TEST OVERRIDE — force TV mode on phone. Remove before release.
       // _isTV = true;
+
+      // isPhysicalDevice is false on AVD/Genymotion/emulators.
+      // Used to skip hardware video decoding on emulators whose software
+      // OpenGL renderer cannot create the EGL contexts that mediacodec-copy needs.
+      _isEmulator = !androidInfo.isPhysicalDevice;
 
       // Capture the Android SDK API level for feature-gating (e.g. hwdec strategy)
       _androidSdkInt = androidInfo.version.sdkInt;
@@ -46,7 +52,7 @@ class DeviceUtils {
         _isHighPerformance = true; // Fallback to true
       }
       
-      debugPrint("📱 Device Info: Model=${androidInfo.model}, TV=$_isTV, HighPerf=$_isHighPerformance, SDK=$_androidSdkInt");
+      debugPrint("📱 Device Info: Model=${androidInfo.model}, TV=$_isTV, Emulator=$_isEmulator, HighPerf=$_isHighPerformance, SDK=$_androidSdkInt");
 
     } else {
       // Add iOS/other platform TV checks if needed
@@ -59,6 +65,11 @@ class DeviceUtils {
 
   /// Returns true if the current device is detected as a TV
   static bool get isTV => _isTV;
+
+  /// Returns true if running inside an Android emulator (AVD / Genymotion).
+  /// Used to disable hardware video decoding, which requires EGL contexts
+  /// that emulator software renderers cannot provide.
+  static bool get isEmulator => _isEmulator;
 
   /// Returns true if device has > ~2GB RAM
   static bool get isHighPerformance => _isHighPerformance;

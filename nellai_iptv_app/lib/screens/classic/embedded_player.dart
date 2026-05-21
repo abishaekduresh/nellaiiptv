@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/foundation.dart';
-import 'package:media_kit_video/media_kit_video.dart'; // MediaKit Video widget
+import 'package:video_player/video_player.dart';
 import 'package:dio/dio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -84,11 +84,6 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   bool _showChannelInfo = false;
   Timer? _infoTimer;
 
-  StreamSubscription? _playerErrorSub;
-  StreamSubscription? _playerBufferingSub;
-  StreamSubscription? _playerWidthSub;   // Fired when first video frame is ready
-  Timer? _stallTimer;                     // Triggers fallback if stream stalls
-
   // Auto-Retry Logic
   Timer? _retryTimer;
   int _retrySeconds = 20;
@@ -108,11 +103,19 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   
   bool _isDisposed = false;
   bool _forceStopped = false; // Kill switch flag
-  bool _isBuffering = false;  // Driven by MediaKit stream.buffering
   
   // Timer for player focus highlight auto-hide
   bool _showFocusHighlight = false;
   Timer? _focusHighlightTimer;
+
+  void _playerListener() {
+    if (!mounted || _isDisposed) return;
+    if (_tvPlayer.player?.value.hasError ?? false) {
+      if (!_hasError) {
+        _handlePlaybackError("Playback Error: ${_tvPlayer.player!.value.errorDescription}");
+      }
+    }
+  }
 
   void _startFocusHighlightTimer() {
     _focusHighlightTimer?.cancel();
@@ -151,18 +154,8 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     });
     WidgetsBinding.instance.addObserver(this); 
     
-    // Initialize MediaKit Player via TVController.
-    // Buffer sizes and hwdec are configured inside TVPlayerController.
+    // Initialize ExoPlayer via TVPlayerController.
     _tvPlayer = TVPlayerController();
-
-    // Subscribe to MediaKit error stream (replaces ValueNotifier listener).
-    // Subscriptions for buffering are set up per-load in _initVideoPlayer.
-    _playerErrorSub = _tvPlayer.player?.stream.error.listen((error) {
-      if (!mounted || _isDisposed) return;
-      if (!_hasError && error != null && error.isNotEmpty) {
-        _handlePlaybackError('Playback Error: $error');
-      }
-    });
 
     // Initialize PiP
     _simplePip = SimplePip(
@@ -407,63 +400,29 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   }
 
   Future<void> _initVideoPlayer(String url) async {
-    if (url == _lastOpenedUrl && !_hasError && (_tvPlayer.player?.state.playing ?? false)) {
+    if (url == _lastOpenedUrl && !_hasError && (_tvPlayer.player?.value.isPlaying ?? false)) {
       if (mounted && _isLoading) setState(() => _isLoading = false);
       return;
     }
     _lastOpenedUrl = url;
 
-    // Cancel any stall timer and frame-ready sub from a previous load.
-    _stallTimer?.cancel();
-    _playerWidthSub?.cancel();
-
     try {
       if (mounted) {
         setState(() {
           _isLoading = true;
-          _isBuffering = false;
           _hasError = false;
         });
       }
 
+      _tvPlayer.player?.removeListener(_playerListener);
       await _tvPlayer.load(url);
+      _tvPlayer.player?.addListener(_playerListener);
 
-      // ── Buffering spinner ──────────────────────────────────────────────
-      // Driven by MediaKit's buffering stream for rebuffering events that
-      // happen AFTER initial load (e.g. network hiccups mid-stream).
-      _playerBufferingSub?.cancel();
-      _playerBufferingSub = _tvPlayer.player?.stream.buffering.listen((buffering) {
-        if (mounted && !_isDisposed) setState(() => _isBuffering = buffering);
-      });
-
-      // ── First-frame detection ──────────────────────────────────────────
-      // stream.width fires once the decoder has produced its first frame and
-      // width > 0. Only at that point do we hide the initial loading spinner.
-      // This prevents the spinner disappearing before any pixels are visible.
-      _playerWidthSub = _tvPlayer.player?.stream.width.listen((width) {
-        if (!mounted || _isDisposed) return;
-        if ((width ?? 0) > 0 && _isLoading) {
-          _stallTimer?.cancel();
-          setState(() => _isLoading = false);
-          _triggerInfoBanner();
-          _startViewCountTimer();
-          _playerWidthSub?.cancel();
-        }
-      });
-
-      // ── Stall / fallback timer ─────────────────────────────────────────
-      // Grace period before triggering fallback.
-      // TV boxes (especially budget SoCs) have slower decoders and need more
-      // time to produce the first frame; mobile cellular is actually faster on
-      // modern 4G/5G. Giving TV 45 s prevents premature fallback on slow SoCs.
-      final int stallSecs = DeviceUtils.isTV ? 45 : 30;
-      _stallTimer = Timer(Duration(seconds: stallSecs), () {
-        if (!mounted || _isDisposed) return;
-        if (_isLoading || _isBuffering) {
-          debugPrint('⚠️ Stream stalled >$stallSecs s — triggering fallback');
-          _handlePlaybackError('Stream timed out');
-        }
-      });
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _triggerInfoBanner();
+      }
+      _startViewCountTimer();
 
     } catch (e) {
       debugPrint("Video Init Error: $e");
@@ -638,16 +597,13 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     _hideTimer?.cancel();
     _infoTimer?.cancel();
     _focusHighlightTimer?.cancel();
-    _stallTimer?.cancel();
     _audioSubscription?.cancel();
     _connectivitySubscription?.cancel();
 
-    _playerErrorSub?.cancel();
-    _playerBufferingSub?.cancel();
-    _playerWidthSub?.cancel();
+    _tvPlayer.player?.removeListener(_playerListener);
 
     // 🛑 Stop playback immediately
-    _tvPlayer.stop(); 
+    _tvPlayer.stop();
     
     _tvPlayer.dispose();
 
@@ -760,11 +716,15 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   0,    0,    1.08, 0, -5,
   0,    0,    0,    1,  0,
 ]),
-                            child: Video(
-                              controller: _tvPlayer.videoController!,
-                              fit: BoxFit.fill,
-                              filterQuality: FilterQuality.high,
-                              controls: NoVideoControls,
+                            child: SizedBox.expand(
+                              child: FittedBox(
+                                fit: BoxFit.fill,
+                                child: SizedBox(
+                                  width: _tvPlayer.videoController!.value.size.width,
+                                  height: _tvPlayer.videoController!.value.size.height,
+                                  child: VideoPlayer(_tvPlayer.videoController!),
+                                ),
+                              ),
                             ),
                           ),
                 ),
@@ -787,13 +747,35 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                   ),
                 ),
               // 3. Loading / Buffering Overlay
-              // _isLoading: initial fetch; _isBuffering: MediaKit stream.buffering events.
-              if (!_hasError && !_isPremiumContent && (_isLoading || _isBuffering))
-                Center(
-                  child: LoadingAnimationWidget.progressiveDots(
-                    color: const Color(0xFF06B6D4),
-                    size: 60,
-                  ),
+              if (!_hasError && !_isPremiumContent)
+                Builder(
+                  builder: (context) {
+                    if (_isLoading) {
+                      return Center(
+                        child: LoadingAnimationWidget.progressiveDots(
+                          color: const Color(0xFF06B6D4),
+                          size: 60,
+                        ),
+                      );
+                    }
+                    if (_tvPlayer.player != null) {
+                      return ValueListenableBuilder<VideoPlayerValue>(
+                        valueListenable: _tvPlayer.player!,
+                        builder: (context, value, child) {
+                          if (value.isBuffering) {
+                            return Center(
+                              child: LoadingAnimationWidget.progressiveDots(
+                                color: const Color(0xFF06B6D4),
+                                size: 60,
+                              ),
+                            );
+                          }
+                          return const SizedBox();
+                        },
+                      );
+                    }
+                    return const SizedBox();
+                  },
                 ),
               
               // 4. Retry Button (Fallback Mode)
