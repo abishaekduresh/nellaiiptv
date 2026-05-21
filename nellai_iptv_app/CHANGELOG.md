@@ -1,10 +1,19 @@
 ## [1.12.4+64] - 2026-05-21
 
+### Changed
+- **Player Engine** — Migrated from `media_kit` (MPV) back to Flutter's official `video_player` (ExoPlayer). ExoPlayer is Google's standard Android video pipeline and works on all Android TV hardware — including budget Amlogic/Rockchip SoCs — without requiring EGL surface configuration or MPV property tuning. `TVPlayerController` rewritten around `VideoPlayerController.networkUrl()`.
+- **Video Surface** — Replaced `Video` (media_kit widget) with `VideoPlayer` in a `FittedBox`/`SizedBox` tree; `BoxFit.fill` stretches SD content to fill the screen exactly as before.
+- **Buffering Overlay** — Replaced `stream.buffering` subscription + `_isBuffering` flag with `ValueListenableBuilder<VideoPlayerValue>` so buffering state is driven directly by the `VideoPlayerController` value notifier; no separate subscription needed.
+- **Error Handling** — Replaced `stream.error` subscription with a `_playerListener` `VoidCallback` added via `addListener()`; reads `value.hasError` / `value.errorDescription` from `VideoPlayerValue`.
+
 ### Fixed
-- **TV Video Playback** — Switched `hwdec` from `auto` to `mediacodec-copy` on all Android TV devices. Budget TV SoCs (Amlogic S905/S922, Rockchip RK33xx) have unreliable zero-copy MediaCodec surface handshakes that cause black screens with `auto`; `mediacodec-copy` copies decoded frames back to system memory before handing them to Flutter, which works on every TV hardware variant.
-- **TV Silent Audio** — Added explicit `ao=audiotrack` MPV property for TV. Some TV SoCs leave MPV trying OpenSL ES or SPDIF output paths that are not properly initialised on their firmware, producing silent playback even when video renders correctly. Forcing AudioTrack (the standard Android Java audio path) fixes this across all TV hardware.
-- **TV Audio Muted by Volume Sync** — `volume_controller.getVolume()` can return `0` on Android TV because it reads the wrong audio stream on some TV SoCs. The previous logic `setVolume(vol <= 0 ? 0 : 100)` was silencing the player immediately after load. On TV the system-volume-to-player sync is now skipped entirely; the player always runs at 100 and the TV's own hardware mixer handles the final output level.
-- **TV Stall Timer** — Corrected stall-timer inversion: TV was 30 s, Mobile was 45 s. Swapped to TV = 45 s, Mobile = 30 s. Budget TV SoC decoders are slower to produce the first frame than a modern phone on 4G/5G; the shorter TV value was triggering premature fallback before the decoder finished initialising.
+- **TV Audio** — Removed system-volume→player sync on TV. `volume_controller` reads the wrong audio stream on some TV SoCs (returns 0), which was silently muting the player. On TV the player always runs at volume 100; the TV's own hardware mixer controls the output level.
+- **TV Emulator** — Added `DeviceUtils.isEmulator` detection (`!androidInfo.isPhysicalDevice`) so x86 AVD/emulators are correctly identified and any hardware-decoder-specific paths can be skipped.
+
+### Removed
+- **media_kit dependency** — `media_kit`, `media_kit_video`, `media_kit_libs_android_video` removed from `pubspec.yaml`; `MediaKit.ensureInitialized()` removed from `main.dart`.
+- **Stall timer** — `_stallTimer`, `_playerWidthSub`, `_playerBufferingSub` stream subscriptions removed; ExoPlayer surfaces errors and buffering state natively through `VideoPlayerValue`.
+- **`_isBuffering` field** — No longer needed; buffering state read directly from `VideoPlayerController.value.isBuffering` via `ValueListenableBuilder`.
 
 ## [1.12.3+63] - 2026-05-18
 

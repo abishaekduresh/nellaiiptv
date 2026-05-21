@@ -4,7 +4,7 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 
 ## Features
 
-- **Live TV Streaming**: High-quality HLS streaming via MediaKit (MPV/ExoPlayer pipeline) with hardware decoding.
+- **Live TV Streaming**: High-quality HLS streaming via Flutter `video_player` (ExoPlayer) for universal Android TV hardware compatibility.
 - **Classic TV Interface**: Grid-based channel selection optimized for D-pad remote controls.
 - **Premium Content**: Secure handling of premium channels with status indicators.
 - **Security**: Built-in screenshot and screen recording prevention.
@@ -12,10 +12,12 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Ads Integration**: Server-controlled ad rotation system.
 
 ## Version: 1.12.4+64
-- **Fixed**: **TV Video** — `hwdec` changed from `auto` to `mediacodec-copy` for all Android TV devices; eliminates black-screen failures on budget Amlogic/Rockchip SoCs caused by broken zero-copy MediaCodec surface handshakes.
-- **Fixed**: **TV Audio** — Explicit `ao=audiotrack` MPV property added for TV; prevents silent playback caused by MPV attempting OpenSL ES/SPDIF output paths that are uninitialised on many TV SoC firmwares.
-- **Fixed**: **TV Volume Sync Mute** — Removed system-volume→player sync on TV (`volume_controller` reads wrong audio stream on some TVs, returning 0 and silencing playback); player now always runs at 100 on TV.
-- **Fixed**: **TV Stall Timer** — Corrected inversion: TV 30 s → 45 s, Mobile 45 s → 30 s; budget TV SoC decoders need more time than a modern phone to produce the first frame.
+- **Changed**: **Player Engine** — Migrated from `media_kit` (MPV) back to Flutter's official `video_player` (ExoPlayer). ExoPlayer works on all Android TV hardware without EGL or SoC-specific configuration. `TVPlayerController` rewritten around `VideoPlayerController.networkUrl()`.
+- **Changed**: **Video Surface** — `Video` widget replaced with `VideoPlayer` inside a `FittedBox`; `BoxFit.fill` stretches SD content to fill the screen.
+- **Changed**: **Buffering & Errors** — `ValueListenableBuilder<VideoPlayerValue>` replaces all media_kit stream subscriptions; no stall timer, no `_isBuffering` flag.
+- **Fixed**: **TV Audio Muted** — Removed system-volume→player sync on TV; `volume_controller` can return 0 on some TV SoCs which was silently muting the player.
+- **Fixed**: **TV Emulator** — Added `DeviceUtils.isEmulator` detection so x86 AVD hardware-decoder paths are skipped.
+- **Removed**: `media_kit`, `media_kit_video`, `media_kit_libs_android_video`; `MediaKit.ensureInitialized()` removed from `main.dart`.
 
 ## Version: 1.12.3+63 *(previous)*
 - **Added**: **Contact Us** — Settings section with a contact form (Name, Email, Subject, Message) posting to `POST /contact`; toast reflects exact API response.
@@ -211,7 +213,7 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 ## Tech Stack
 
 - **Flutter**: ^3.32.6
-- **Player**: MediaKit (MPV / ExoPlayer pipeline via `media_kit`, `media_kit_video`, `media_kit_libs_android_video`)
+- **Player**: `video_player` ^2.11.1 (ExoPlayer on Android)
 - **State Management**: Provider
 - **Networking**: Dio
 - **Animation**: Flutter Animate
