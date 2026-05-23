@@ -32,6 +32,11 @@
 - **Added**: **Stall / Fallback Timer** — 15-second timer triggers `_handlePlaybackError` when an HLS stream stalls silently without emitting a MediaKit error event, switching to the fallback MP4 URL.
 - **Fixed**: **Dispose Cleanup** — `_stallTimer`, `_playerWidthSub`, `_hideTimer`, `_infoTimer`, and `_focusHighlightTimer` now all cancelled in `EmbeddedPlayerState.dispose()`.
 
+## [1.54.1] - Website - 2026-05-23
+
+### Website (Next.js)
+- **Fix**: **Preview Player Portrait Stretch** — `ClapprPlayer.tsx` now uses `object-fit: contain` in portrait/vertical orientation (mobile) instead of `fill`, preserving the video's 16:9 aspect ratio with letterboxing. Landscape and TV remain unaffected (`fill`). Enforced via orientation check in `applyStretchStyle()`, a `@media (orientation: portrait)` CSS rule, and re-application on every resize/rotation event.
+
 ## [1.3.2] - SCPA | [1.11.0+59] - App | [1.54.0] - Website | [1.41.0] - Backend - 2026-05-15
 
 ### Single Channel Player App (Flutter)

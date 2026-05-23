@@ -88,16 +88,15 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
     playerRef.current = new window.Clappr.Player(playerConfig);
 
     // 🖥️ SD → HD STRETCH: Force the internal <video> element to fill the entire
-    // player container regardless of source resolution (object-fit: fill stretches
-    // SD content to full HD without black bars).
+    // player container in landscape, but preserve aspect ratio in portrait (mobile).
     const applyStretchStyle = () => {
       const container = document.getElementById('player-container');
       if (!container) return;
-      // Target every video element Clappr renders inside the container
+      const isPortrait = window.innerHeight > window.innerWidth;
       container.querySelectorAll('video').forEach((vid: HTMLVideoElement) => {
         vid.style.width      = '100%';
         vid.style.height     = '100%';
-        vid.style.objectFit  = 'fill'; // "fill" = stretch; change to "cover" for crop-to-fit
+        vid.style.objectFit  = isPortrait ? 'contain' : 'fill';
         vid.style.display    = 'block';
       });
     };
@@ -117,6 +116,11 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
           width: 100% !important;
           height: 100% !important;
           object-fit: fill !important;
+        }
+        @media (orientation: portrait) {
+          #player-container video {
+            object-fit: contain !important;
+          }
         }
         #player-container .player-poster {
           background-size: cover !important;
@@ -156,7 +160,7 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
       }
     }, 1000);
 
-    // Fullscreen resize handler
+    // Fullscreen resize handler — also re-applies object-fit on orientation change
     const handleResize = () => {
       if (playerRef.current) {
         playerRef.current.resize({
@@ -164,6 +168,7 @@ export default function ClapprPlayer({ streamUrl, channelName, posterUrl, channe
           height: window.innerHeight
         });
       }
+      applyStretchStyle();
     };
 
     window.addEventListener('resize', handleResize);

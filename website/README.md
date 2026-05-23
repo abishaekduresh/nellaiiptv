@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.54.0
+# Nellai IPTV - Frontend v1.54.1
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.54.0)**
+### **Latest Updates (v1.54.1)**
+- **Preview Player Portrait Fix**: `ClapprPlayer.tsx` now preserves the video's 16:9 aspect ratio on portrait/vertical mobile screens using `object-fit: contain` (letterboxing) instead of stretching with `fill`. Landscape and TV views remain unchanged. Applied via JS orientation check, a `@media (orientation: portrait)` CSS rule, and re-application on resize/rotation.
+
+### **Previous Updates (v1.54.0)**
 - **Stream Server 360° View**: New `StreamServerDetailsModal` with a purple Eye button in the list. Full read-only detail view covering all server fields: identity, host, live capacity, MistServer API auth state, all 6 streaming endpoints (copyable), hardware specs, feature flag pills, system & lifecycle info.
 
 ### **Previous Updates (v1.53.0)**
