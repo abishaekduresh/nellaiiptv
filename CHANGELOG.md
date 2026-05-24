@@ -1,3 +1,12 @@
+## [1.54.6] - Website | [1.41.1] - Backend - 2026-05-24
+
+### Website (Next.js)
+- **Feature**: **Channel IP View Details Modal** (`/admin/reports/channel-views`) — Each row in the Channel Performance Details table now has a "View" eye-icon button. Clicking it opens a modal scoped to the current date filter showing: a 3-card summary strip (Total Views, Unique IPs, Record count) and a scrollable table of IP Address | Date | Views rows sorted by date desc. Modal has backdrop-dismiss, loading spinner, and empty state.
+
+### Backend (Slim PHP)
+- **Feature**: **Channel View Details Endpoint** — New `GET /api/admin/reports/channel-view-details?channel_id=&start_date=&end_date=` returns per-IP per-date rows from `channel_views` joined with `channels`, plus a summary object (total_views, unique_ips, channel_name, channel_number). Requires `channel_id`; returns 400 if omitted.
+- **Fix**: `getChannelViews` table_data query now includes `channel_views.channel_id` in the SELECT so the frontend can pass it directly to the detail endpoint.
+
 ## [1.54.5] - Website - 2026-05-24
 
 ### Website (Next.js)

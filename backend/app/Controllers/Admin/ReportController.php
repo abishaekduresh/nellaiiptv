@@ -25,6 +25,7 @@ class ReportController
         $channelStatsQuery = DB::table('channel_views')
             ->join('channels', 'channel_views.channel_id', '=', 'channels.id')
             ->select(
+                'channel_views.channel_id',
                 'channels.name as channel_name',
                 'channels.channel_number',
                 DB::connection()->raw('SUM(channel_views.count) as total_views')
@@ -86,5 +87,48 @@ class ReportController
         ];
 
         return ResponseFormatter::success($response, $data, 'Channel views report retrieved successfully');
+    }
+
+    public function getChannelViewDetails(Request $request, Response $response)
+    {
+        $params     = $request->getQueryParams();
+        $channelId  = $params['channel_id']  ?? null;
+        $startDate  = $params['start_date']  ?? date('Y-m-d', strtotime('-30 days'));
+        $endDate    = $params['end_date']    ?? date('Y-m-d');
+
+        if (!$channelId) {
+            return ResponseFormatter::error($response, null, 'channel_id is required', 400);
+        }
+
+        $details = DB::table('channel_views')
+            ->join('channels', 'channel_views.channel_id', '=', 'channels.id')
+            ->select(
+                'channel_views.client_ip',
+                'channel_views.view_date',
+                'channel_views.count',
+                'channels.name as channel_name',
+                'channels.channel_number'
+            )
+            ->where('channel_views.channel_id', $channelId)
+            ->whereBetween('channel_views.view_date', [$startDate, $endDate])
+            ->orderBy('channel_views.view_date', 'desc')
+            ->orderBy('channel_views.count', 'desc')
+            ->get();
+
+        $channelInfo = DB::table('channels')->find($channelId);
+
+        $data = [
+            'details' => $details,
+            'summary' => [
+                'total_views' => $details->sum('count'),
+                'unique_ips'  => $details->pluck('client_ip')->unique()->filter()->count(),
+                'channel_name'   => $channelInfo->name   ?? ($details->first()->channel_name   ?? 'Unknown'),
+                'channel_number' => $channelInfo->channel_number ?? ($details->first()->channel_number ?? 'N/A'),
+                'start_date' => $startDate,
+                'end_date'   => $endDate,
+            ],
+        ];
+
+        return ResponseFormatter::success($response, $data, 'Channel view details retrieved successfully');
     }
 }

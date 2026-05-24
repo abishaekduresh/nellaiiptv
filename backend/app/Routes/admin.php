@@ -97,7 +97,8 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
 
         // Reports
         $group->group('/reports', function (RouteCollectorProxy $group) {
-            $group->get('/channel-views', [\App\Controllers\Admin\ReportController::class, 'getChannelViews']);
+            $group->get('/channel-views',        [\App\Controllers\Admin\ReportController::class, 'getChannelViews']);
+            $group->get('/channel-view-details', [\App\Controllers\Admin\ReportController::class, 'getChannelViewDetails']);
         });
         
     })->add(new \App\Middleware\AdminAuthMiddleware());
