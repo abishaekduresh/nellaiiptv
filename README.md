@@ -16,15 +16,20 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
-- **Version**: 1.12.4+64
-- **Key Features**: `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, ColorFiltered contrast boost, `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
+- **Version**: 1.12.5+65
+- **Key Features**: `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, Enhanced ColorFilter contrast/colour matrix (1.22× contrast, cross-channel warmth, −16 bias), `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.41.4 Backend) — 2026-05-24
+## Recent Updates (v1.12.5+65 App) — 2026-05-24
+
+### App (Flutter)
+- **Improved**: Player contrast matrix — `1.22×` scale, `0.03` cross-channel warmth mix, `−16` bias for punchier picture without highlight blow-out.
+
+## Previous Updates (v1.41.4 Backend) — 2026-05-24
 
 ### Backend (Slim PHP)
 - **Fixed**: `batchRenumber` channel number swap crash — two-phase update (temp values → targets) prevents MySQL InnoDB unique constraint violation when swapping numbers between channels.

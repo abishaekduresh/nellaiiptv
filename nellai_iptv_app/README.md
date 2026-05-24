@@ -11,6 +11,9 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.12.5+65
+- **Improved**: **Player Contrast & Colour Matrix** — `ColorFilter.matrix` updated for stronger picture quality. Contrast scale: `1.08` → `1.22`. Cross-channel mix added (`0.03`) for natural warmth and saturation. Brightness bias: `-5` → `-16` to prevent highlight blow-out.
+
 ## Version: 1.12.4+64
 - **Changed**: **Player Engine** — Migrated from `media_kit` (MPV) back to Flutter's official `video_player` (ExoPlayer). ExoPlayer works on all Android TV hardware without EGL or SoC-specific configuration. `TVPlayerController` rewritten around `VideoPlayerController.networkUrl()`.
 - **Changed**: **Video Surface** — `Video` widget replaced with `VideoPlayer` inside a `FittedBox`; `BoxFit.fill` stretches SD content to fill the screen.

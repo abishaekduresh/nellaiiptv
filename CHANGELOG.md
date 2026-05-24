@@ -1,3 +1,8 @@
+## [1.12.5+65] - App - 2026-05-24
+
+### App (Flutter)
+- **Improved**: **Player Contrast & Colour Matrix** — `ColorFilter.matrix` in `EmbeddedPlayer` updated for stronger, more cinematic picture quality on IPTV streams. Contrast scale raised from `1.08` → `1.22` for punchier blacks and whites. Off-diagonal cross-channel mix added (`0.03`) so each RGB channel borrows 3% from the other two, producing natural warmth and perceived saturation rather than an artificial harshness. Brightness bias tightened from `-5` → `-16` to compensate for the brighter contrast and prevent highlight blow-out on bright scenes.
+
 ## [1.41.4] - Backend - 2026-05-24
 
 ### Backend (Slim PHP)

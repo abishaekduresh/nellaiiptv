@@ -711,11 +711,11 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                         // mid-tones accurate while stretching bright/dark ends.
                         : ColorFiltered(
                             colorFilter: const ColorFilter.matrix([
-  1.08, 0,    0,    0, -5,
-  0,    1.08, 0,    0, -5,
-  0,    0,    1.08, 0, -5,
-  0,    0,    0,    1,  0,
-]),
+                              1.22, 0.03, 0.03, 0, -14,
+                              0.03, 1.22, 0.03, 0, -16,
+                              0.03, 0.03, 1.22, 0, -18,
+                              0,    0,    0,    1,  0,
+                            ]),
                             child: SizedBox.expand(
                               child: FittedBox(
                                 fit: BoxFit.fill,
