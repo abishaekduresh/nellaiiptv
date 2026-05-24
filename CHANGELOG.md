@@ -32,6 +32,11 @@
 - **Added**: **Stall / Fallback Timer** — 15-second timer triggers `_handlePlaybackError` when an HLS stream stalls silently without emitting a MediaKit error event, switching to the fallback MP4 URL.
 - **Fixed**: **Dispose Cleanup** — `_stallTimer`, `_playerWidthSub`, `_hideTimer`, `_infoTimer`, and `_focusHighlightTimer` now all cancelled in `EmbeddedPlayerState.dispose()`.
 
+## [1.54.2] - Website - 2026-05-24
+
+### Website (Next.js)
+- **Feature**: **Universal Media Player** (`/player`) — Standalone player page supporting HLS (`.m3u8` via hls.js), DASH (`.mpd` via dash.js CDN), and MP4/WebM/native formats. Auto-detects stream type from URL. Features: custom controls bar (play/pause, seek, volume, mute, fullscreen), quality selector for HLS ABR levels, LIVE badge for live streams, example stream presets, HTTP→HTTPS mixed-content upgrade, keyboard shortcuts (Space, M, F, ←/→ ±10s, ↑↓ volume), and immersive no-navbar layout.
+
 ## [1.54.1] - Website - 2026-05-23
 
 ### Website (Next.js)

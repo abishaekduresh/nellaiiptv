@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.54.1
+# Nellai IPTV - Frontend v1.54.2
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.54.1)**
+### **Latest Updates (v1.54.2)**
+- **Universal Media Player** (`/player`): Standalone player page supporting HLS (`.m3u8` via hls.js), DASH (`.mpd` via dash.js CDN), and MP4/WebM/native video. Auto-detects stream type from URL extension. Custom controls: play/pause, seek bar (disabled for live), current time/duration, volume slider, mute, quality selector (HLS ABR levels), fullscreen. LIVE badge for live streams, loading/error states with retry, example stream presets, HTTP→HTTPS mixed-content upgrade, keyboard shortcuts (Space, M, F, ←→ ±10s, ↑↓ volume). Immersive no-navbar/no-footer layout via `LiteRouteGuard`.
+
+### **Previous Updates (v1.54.1)**
 - **Preview Player Portrait Fix**: `ClapprPlayer.tsx` now preserves the video's 16:9 aspect ratio on portrait/vertical mobile screens using `object-fit: contain` (letterboxing) instead of stretching with `fill`. Landscape and TV views remain unchanged. Applied via JS orientation check, a `@media (orientation: portrait)` CSS rule, and re-application on resize/rotation.
 
 ### **Previous Updates (v1.54.0)**

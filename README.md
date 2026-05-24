@@ -6,8 +6,8 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.54.1
-- **Key Features**: Stream Server 360° View, Stream Servers Admin CRUD, Feedback System, Admin Feedback Management, Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Scrolling Ads Ticker, RTMP URL Support.
+- **Version**: 1.54.2
+- **Key Features**: Stream Server 360° View, Stream Servers Admin CRUD, Feedback System, Admin Feedback Management, Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`), Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
@@ -23,6 +23,11 @@ A premium multi-channel IPTV player built for Android and Android TV.
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
+
+## Recent Updates (v1.54.2 Website) — 2026-05-24
+
+### Website (Next.js)
+- **Added**: **Universal Media Player** at `/player` — supports HLS, DASH, MP4/WebM/native, auto-detects stream type, full custom controls, quality selector, LIVE badge, example presets, keyboard shortcuts, immersive layout.
 
 ## Recent Updates (v1.54.1 Website) — 2026-05-23
 
