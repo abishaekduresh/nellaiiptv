@@ -6,8 +6,8 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.54.8
-- **Key Features**: Channel Manager (inline renumber + status edit, number search), Stream Server 360° View, Stream Servers Admin CRUD, Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge in footer, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
+- **Version**: 1.55.0
+- **Key Features**: Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Stream Server 360° View, Stream Servers Admin CRUD, Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
@@ -24,7 +24,15 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.12.5+66 App) — 2026-05-24
+## Recent Updates (v1.55.0 Website) — 2026-05-25
+
+### Website (Next.js)
+- **Redesigned**: Home page — full-viewport animated hero (floating orbs, dot-grid, staggered fade-up), animated stats count-up row, feature cards with per-card accent colours and hover glow, new App Download section with floating phone mockup, restored and redesigned CTA section.
+- **Redesigned**: Navbar — scroll-aware glass effect, active route highlighting with cyan underline, "Watch TV" desktop link added, mobile sidebar with per-item icons and active-pill state, `next/image` for logo.
+- **Redesigned**: Footer — gradient hairline top, Lucide icons on all link rows, `next/image` for logo and Play Store badge, "Need Help?" mini-card, pulsing green status dot, responsive 4→2→1 column grid.
+- **Added**: CSS animations — `animate-fade-up`, floating hero orbs, dot-grid pattern, phone mockup float.
+
+## Previous Updates (v1.12.5+66 App) — 2026-05-24
 
 ### App (Flutter)
 - **Improved**: Player contrast matrix — `1.22×` scale, `0.03` cross-channel warmth mix, `−16` bias for punchier picture without highlight blow-out.

@@ -1,10 +1,16 @@
-# Nellai IPTV - Frontend v1.54.8
+# Nellai IPTV - Frontend v1.55.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.54.8)**
+### **Latest Updates (v1.55.0)**
+- **Home Page Redesign**: Full-viewport hero with animated floating orbs, dot-grid background, and staggered `animate-fade-up` entrance animations. New animated stats row (count-up numbers on scroll). Feature cards with per-card accent colours and gradient hover glow. New App Download section with floating phone mockup and Google Play badge. Restored and redesigned final CTA section. All scroll-triggered sections use `IntersectionObserver` via a `useInView` hook.
+- **Navbar Redesign**: Scroll-aware glass effect (shadow intensifies on scroll). Active route highlighting (white bg + cyan underline). "Watch TV" link added to desktop nav. Mobile sidebar auto-closes on route change; each nav item has a Lucide icon and active-pill styling. `next/image` used for logo. Unified icon sizing and hover states.
+- **Footer Redesign**: Gradient hairline across the top. Background depth orbs. Lucide icons on all Quick Links and Legal rows. `next/image` for logo and Play Store badge. "Need Help?" support mini-card. Pulsing green "All Systems Operational" status dot. Responsive 4→2→1 column grid.
+- **CSS Animations**: `animate-fade-up`, `hero-orb-1/2` floating blobs, `.hero-grid` dot pattern, `phone-float` mockup animation — all added to `globals.css`.
+
+### **Previous Updates (v1.54.8)**
 - **Channel Manager — Status Editing**: The `/admin/channels/renumber` page now also allows inline status changes. Each row's Status column is a dropdown with four options: Active, Inactive, Blocked, Deleted. The dropdown border turns amber when the value differs from the saved state. Status and channel number changes are tracked independently; a single Save call submits only the dirty fields for each channel (number-only, status-only, or both).
 - **Channel Manager — Search by Number**: The search field now matches on channel number in addition to channel name (e.g. typing `5` surfaces channel 5, typing `sun` surfaces "Sun TV"). Status filter updated to include Blocked.
 

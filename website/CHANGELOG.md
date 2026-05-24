@@ -1,3 +1,41 @@
+## [1.55.0] - 2026-05-25
+
+### Improved — Home Page, Navbar & Footer Redesign
+
+#### Home Page (`app/page.tsx`)
+- **Hero Section**: Full-viewport (`min-h-[100svh]`) with two animated floating orbs, subtle dot-grid background, and staggered `animate-fade-up` entrance for badge, headline, subtext, CTAs, and trust badges.
+- **Stats Row**: New animated count-up section (200+ channels, 50k+ viewers, 99% uptime, 24/7 support) powered by `IntersectionObserver` — numbers count up when scrolled into view.
+- **Features Grid**: Six feature cards, each with a unique accent colour (yellow, rose, cyan, purple, green, sky) and a full-card gradient glow on hover. Staggered scroll-in animation via `IntersectionObserver`.
+- **App Download Section**: New section with a floating phone mockup (CSS animation), feature checklist, and Google Play badge linking to the Play Store. Slides in from both sides on scroll.
+- **Final CTA**: Uncommented and redesigned — glowing radial-gradient card with dual action buttons (Get Started / Browse Channels).
+- **Scroll Animations**: `useInView` hook (thin wrapper around `IntersectionObserver`) drives opacity + translateY transitions on Stats, Features, App, and CTA sections. `useCountUp` handles animated number counters.
+
+#### Navbar (`components/Navbar.tsx`)
+- **Scroll-aware glass**: Border shadow intensifies as user scrolls; stays subtle at page top.
+- **Active route highlighting**: Current page link has white background + cyan underline indicator; inactive links are muted until hovered.
+- **"Watch TV" desktop link**: Added missing direct link to `/channels` in the desktop nav bar.
+- **Route-change close**: Mobile sidebar auto-closes when the pathname changes.
+- **Icons in mobile sidebar**: Each nav item now has a Lucide icon; active route is highlighted with `bg-primary/15` pill.
+- **`next/image`**: Replaced raw `<img>` for logo with `<Image>` (optimised).
+- **Cleaner icon sizing**: Unified icon sizes (19 px for toolbar actions), hover states use `hover:bg-slate-800` rounded pill instead of plain colour change.
+
+#### Footer (`components/Footer.tsx`)
+- **Gradient hairline**: 1 px `via-primary/30` gradient line across the very top of the footer.
+- **Depth orbs**: Two subtle background blur orbs (primary + purple) for visual depth.
+- **Icons on links**: Every Quick Links and Legal row now has a matching Lucide icon with opacity transition on hover.
+- **`next/image`**: Both logo and Play Store badge use `<Image>` instead of raw `<img>`.
+- **"Need Help?" mini-card**: Compact support card tucked in the Legal column.
+- **Status dot**: Pulsing green "All Systems Operational" indicator in the bottom bar (replaces static version string).
+- **Responsive grid**: 4-col on desktop, 2-col on tablet, 1-col on mobile — collapses cleanly.
+
+#### CSS (`app/globals.css`)
+- Added `@keyframes fade-up` + `.animate-fade-up` utility for hero entrance animations.
+- Added `hero-orb-1` / `hero-orb-2` slow floating keyframes for background depth blobs.
+- Added `.hero-grid` dot-grid background pattern for the hero section.
+- Added `phone-float` gentle up/down float keyframe for the app mockup.
+
+---
+
 ## [1.54.0] - 2026-05-11
 
 - **Feature**: **Stream Server 360° View** - New `StreamServerDetailsModal` component providing a full read-only detail view of any stream server. Triggered by a purple Eye button in the stream servers list. Sections: identity/host badges, live capacity cards (streams & viewers with % usage), MistServer API credentials with last-validated challenge/hash copy blocks, all 6 streaming endpoint URLs (copyable), hardware specs, feature flag pills, system & lifecycle timestamps, and notes.
