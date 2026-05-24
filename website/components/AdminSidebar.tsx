@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen,
   CreditCard, Mail, MessageSquare, BarChart2, ChevronDown, ThumbsUp,
-  Server, Megaphone, Hash, Activity, X,
+  Server, Megaphone, Hash, X,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -108,15 +108,21 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         <div className="relative px-5 py-5 border-b border-slate-800 shrink-0">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-transparent pointer-events-none" />
           <div className="flex items-center justify-between relative">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Activity size={18} className="text-primary" />
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 transition-opacity group-hover:opacity-80">
+                <Image
+                  src="/assets/logos/Nellai IPTV logo 512x512px.webp"
+                  alt="Nellai IPTV"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
-                <div className="text-white font-bold text-base leading-tight">Nellai IPTV</div>
+                <div className="text-white font-bold text-base leading-tight group-hover:text-primary transition-colors">Nellai IPTV</div>
                 <div className="text-xs text-primary font-medium">{roleLabel}</div>
               </div>
-            </div>
+            </Link>
             <button
               onClick={onClose}
               className="md:hidden p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"

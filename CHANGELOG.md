@@ -1,3 +1,10 @@
+## [1.57.0] - Website - 2026-05-25
+
+### Website (Next.js)
+- **Fix**: **Admin Layout Isolation** — `LiteRouteGuard` now detects `/admin` and `/reseller` paths and renders them without the public `<Navbar />` and `<Footer />`. Previously the `isAdmin` flag was declared but unused, causing the public header and footer to overlap the fixed admin sidebar.
+- **Improved**: **Admin Login Branding** — Replaced the `Activity` icon placeholder with the actual Nellai IPTV logo (`/assets/logos/Nellai IPTV logo 512x512px.webp`) on the admin login page.
+- **Improved**: **Sidebar Logo** — The admin sidebar header now displays the Nellai IPTV logo instead of the `Activity` icon. Clicking the logo navigates to the public home page (`/`) with a subtle hover effect.
+
 ## [1.12.5+66] - App - 2026-05-24
 
 ### App (Flutter)

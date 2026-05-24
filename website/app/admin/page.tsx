@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Activity, Lock, User } from 'lucide-react';
+import Image from 'next/image';
+import { Eye, EyeOff, Lock, User } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -46,8 +47,14 @@ export default function AdminLoginPage() {
       <div className="relative z-10 w-full max-w-md animate-fade-up">
         {/* Logo / Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-primary/10 border border-primary/20 rounded-2xl mb-4">
-            <Activity size={26} className="text-primary" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 overflow-hidden">
+            <Image
+              src="/assets/logos/Nellai IPTV logo 512x512px.webp"
+              alt="Nellai IPTV"
+              width={64}
+              height={64}
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-2xl font-black text-white tracking-tight">Nellai IPTV</h1>
           <p className="text-slate-400 text-sm mt-1">Administration Portal</p>

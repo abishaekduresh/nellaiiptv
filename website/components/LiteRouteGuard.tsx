@@ -10,8 +10,8 @@ export default function LiteRouteGuard({ children }: { children: React.ReactNode
     const pathname = usePathname();
     const { isInitialized } = useViewMode();
     const isLite = pathname?.startsWith('/lite');
-    const isAdmin = pathname?.startsWith('/admin');
-    
+    const isAdmin = pathname?.startsWith('/admin') || pathname?.startsWith('/reseller');
+
     // Immersive paths (No Navbar/Footer)
     const isPlayerPage = pathname?.startsWith('/channels') || pathname?.startsWith('/channel/') || isLite || pathname?.startsWith('/system-error') || pathname?.startsWith('/player');
 
@@ -24,7 +24,16 @@ export default function LiteRouteGuard({ children }: { children: React.ReactNode
         return <div className="h-screen w-screen bg-black text-white overflow-hidden">{children}</div>;
     }
 
-    // Standard Layout for landing, auth, about, contact, and admin
+    // Admin/Reseller: render without public Navbar/Footer
+    if (isAdmin) {
+        return (
+            <MaintenanceCheck>
+                {children}
+            </MaintenanceCheck>
+        );
+    }
+
+    // Standard Layout for landing, auth, about, contact pages
     if (!isPlayerPage) {
         return (
             <>
