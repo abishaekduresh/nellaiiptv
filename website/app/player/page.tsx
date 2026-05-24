@@ -5,8 +5,9 @@ import Script from 'next/script';
 import Hls from 'hls.js';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
-  RefreshCw, AlertTriangle, ChevronDown, RotateCcw, Link2
+  RefreshCw, AlertTriangle, ChevronDown, RotateCcw, Link2, Scaling, X
 } from 'lucide-react';
+import { useBranding } from '@/hooks/useBranding';
 
 type StreamType = 'auto' | 'hls' | 'dash' | 'mp4';
 type DetectedType = 'hls' | 'dash' | 'mp4';
@@ -24,9 +25,8 @@ const TYPE_BADGE: Record<DetectedType, { label: string; cls: string }> = {
 
 const EXAMPLE_STREAMS = [
   { label: 'HLS — Big Buck Bunny', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', type: 'hls' as StreamType },
-  { label: 'HLS — Elephants Dream', url: 'https://playertest.longtailvideo.com/adaptive/elephants_dream_playlist.m3u8', type: 'hls' as StreamType },
   { label: 'DASH — Big Buck Bunny', url: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd', type: 'dash' as StreamType },
-  { label: 'MP4 — Tears of Steel', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4', type: 'mp4' as StreamType },
+  { label: 'MP4 — Road in a city', url: 'https://samplelib.com/mp4/sample-5s.mp4', type: 'mp4' as StreamType },
 ];
 
 function detectType(url: string): DetectedType {
@@ -60,12 +60,14 @@ export default function PlayerPage() {
   const [detectedType, setDetectedType] = useState<DetectedType | null>(null);
   const [isDashReady, setIsDashReady] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
+  const { logo_url, app_logo_png_url } = useBranding();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const dashRef = useRef<any>(null);
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingDashRef = useRef<{ url: string; type: DetectedType } | null>(null);
 
   const [status, setStatus] = useState<PlayerStatus>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +82,7 @@ export default function PlayerPage() {
   const [qualities, setQualities] = useState<{ index: number; label: string }[]>([]);
   const [currentQuality, setCurrentQuality] = useState(-1);
   const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [isStretched, setIsStretched] = useState(false);
 
   const showControls = useCallback(() => {
     setControlsVisible(true);
@@ -149,8 +152,8 @@ export default function PlayerPage() {
 
     } else if (type === 'dash') {
       if (!isDashReady || typeof window.dashjs === 'undefined') {
-        setError('DASH.js is still loading — please wait a moment and try again.');
-        setStatus('error');
+        pendingDashRef.current = { url, type };
+        setStatus('loading');
         return;
       }
       try {
@@ -233,6 +236,14 @@ export default function PlayerPage() {
 
   useEffect(() => () => { destroyPlayers(); }, []);
 
+  useEffect(() => {
+    if (isDashReady && pendingDashRef.current) {
+      const { url, type } = pendingDashRef.current;
+      pendingDashRef.current = null;
+      loadStream(url, type);
+    }
+  }, [isDashReady, loadStream]);
+
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -282,12 +293,23 @@ export default function PlayerPage() {
       case ' ': e.preventDefault(); togglePlay(); break;
       case 'm': case 'M': toggleMute(); break;
       case 'f': case 'F': toggleFullscreen(); break;
+      case 's': case 'S': setIsStretched(p => !p); showControls(); break;
       case 'ArrowRight': if (!isLive && videoRef.current) { videoRef.current.currentTime += 10; showControls(); } break;
       case 'ArrowLeft':  if (!isLive && videoRef.current) { videoRef.current.currentTime -= 10; showControls(); } break;
       case 'ArrowUp':   e.preventDefault(); handleVolumeChange(Math.min(1, volume + 0.1)); break;
       case 'ArrowDown': e.preventDefault(); handleVolumeChange(Math.max(0, volume - 0.1)); break;
     }
   }, [togglePlay, toggleMute, toggleFullscreen, handleVolumeChange, isLive, volume, showControls]);
+
+  const clearStream = useCallback(() => {
+    destroyPlayers();
+    setInputUrl('');
+    setActiveUrl(null);
+    setDetectedType(null);
+    setStatus('idle');
+    setError(null);
+    pendingDashRef.current = null;
+  }, [destroyPlayers]);
 
   const hasStream = !!activeUrl;
   const progressPct = duration > 0 && isFinite(duration) ? (currentTime / duration) * 100 : 0;
@@ -296,29 +318,46 @@ export default function PlayerPage() {
   return (
     <>
       <style>{`
-        html, body { margin: 0; background: #0f172a; overflow: hidden; height: 100%; }
+        html, body { margin: 0; background: #0f172a; }
         .range-slider { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 4px; cursor: pointer; outline: none; }
         .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 13px; height: 13px; border-radius: 50%; background: #06b6d4; cursor: pointer; box-shadow: 0 0 0 2px rgba(6,182,212,0.3); }
         .range-slider::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background: #06b6d4; cursor: pointer; border: none; }
+        .video-stretch { object-fit: fill !important; }
+        @media (orientation: portrait) { .video-stretch { object-fit: contain !important; } }
       `}</style>
 
       <Script
         src="https://cdn.dashjs.org/latest/dash.all.min.js"
-        strategy="lazyOnload"
+        strategy="afterInteractive"
         onLoad={() => setIsDashReady(true)}
       />
 
       <div
-        className="flex flex-col bg-slate-950 text-white"
-        style={{ height: '100vh', fontFamily: 'Inter, system-ui, sans-serif' }}
+        className="bg-slate-950 text-white"
+        style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
         {/* ── URL Bar ── */}
-        <div className="flex-shrink-0 bg-slate-900 border-b border-slate-800 px-3 py-2.5">
+        <div className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800 px-3 py-2.5">
           <div className="flex items-center gap-2">
-            {/* Logo */}
-            <span className="text-cyan-400 font-bold text-base whitespace-nowrap hidden sm:block">▶ Player</span>
+            {/* Branding */}
+            <div className="hidden sm:block shrink-0">
+              <div className="flex items-center gap-2">
+                {logo_url && (
+                  <img
+                    src={logo_url}
+                    alt="Nellai IPTV"
+                    className="h-8 w-8 rounded-lg object-cover"
+                    onError={e => (e.currentTarget.style.display = 'none')}
+                  />
+                )}
+                <span className="font-bold text-base leading-none">
+                  <span className="text-white">Nellai </span>
+                  <span className="text-cyan-400">IPTV</span>
+                </span>
+              </div>
+            </div>
             <div className="w-px h-5 bg-slate-700 hidden sm:block" />
 
             {/* Input */}
@@ -331,9 +370,19 @@ export default function PlayerPage() {
                 onFocus={() => setShowExamples(true)}
                 onBlur={() => setTimeout(() => setShowExamples(false), 200)}
                 placeholder="Paste HLS (.m3u8), DASH (.mpd), or video URL and press Enter..."
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-8 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
               />
               <Link2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+              {inputUrl && (
+                <button
+                  onClick={clearStream}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-0.5 rounded transition-colors"
+                  title="Clear"
+                  tabIndex={-1}
+                >
+                  <X size={14} />
+                </button>
+              )}
 
               {/* Example dropdown */}
               {showExamples && (
@@ -381,14 +430,14 @@ export default function PlayerPage() {
         {/* ── Player ── */}
         <div
           ref={containerRef}
-          className="flex-1 relative bg-black overflow-hidden"
-          style={{ minHeight: 0 }}
+          className="relative bg-black overflow-hidden"
+          style={{ height: 'calc(100vh - 56px)' }}
           onMouseMove={showControls}
         >
           {/* Video element */}
           <video
             ref={videoRef}
-            className="w-full h-full"
+            className={`w-full h-full${isStretched ? ' video-stretch' : ''}`}
             style={{ display: 'block', objectFit: 'contain' }}
             playsInline
           />
@@ -533,8 +582,22 @@ export default function PlayerPage() {
 
                   {/* Keyboard hints */}
                   <span className="text-slate-600 text-xs hidden lg:block select-none">
-                    Space · M · F · ←10s→
+                    Space · M · F · S · ←10s→
                   </span>
+
+                  {/* Stretch toggle */}
+                  <button
+                    onClick={() => { setIsStretched(p => !p); showControls(); }}
+                    title={isStretched ? 'Stretch: ON — click to contain (S)' : 'Stretch: OFF — click to stretch (S)'}
+                    className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                      isStretched
+                        ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-400'
+                        : 'bg-black/40 border-slate-700 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Scaling size={14} />
+                    <span className="hidden sm:inline">Stretch</span>
+                  </button>
 
                   {/* Quality (HLS) */}
                   {qualities.length > 0 && (
@@ -574,6 +637,128 @@ export default function PlayerPage() {
               </div>
             </div>
           )}
+
+          {/* Watermark — visible only during playback */}
+          {app_logo_png_url && isPlaying && (
+            <img
+              src={app_logo_png_url}
+              alt="Watermark"
+              className="absolute bottom-14 w-24 sm:w-32 md:w-40 opacity-35 pointer-events-none select-none z-20 drop-shadow-lg"
+              style={{ left: '21px' }}
+              onError={e => (e.currentTarget.style.display = 'none')}
+            />
+          )}
+        </div>
+
+        {/* ── SEO Content ── */}
+        <div className="bg-slate-950 px-4 py-14 md:py-20">
+          <div className="max-w-5xl mx-auto">
+
+            {/* Hero text */}
+            <div className="text-center mb-14">
+              <h1 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
+                Free Online Video Player —{' '}
+                <span className="text-cyan-400">HLS, DASH &amp; MP4</span>
+              </h1>
+              <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+                Play any HLS stream, DASH manifest, or MP4 file directly in your browser.
+                No installation, no sign-up — paste a URL and hit Load.
+              </p>
+            </div>
+
+            {/* Feature grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-14">
+              {[
+                { icon: '📡', title: 'HLS (.m3u8)', desc: 'Powered by HLS.js. Supports live streams, DVR windows, and multi-bitrate adaptive playlists.' },
+                { icon: '🎬', title: 'MPEG-DASH (.mpd)', desc: 'Powered by DASH.js. Plays VOD and live DASH manifests with adaptive bitrate switching.' },
+                { icon: '🎥', title: 'MP4 / WebM / Native', desc: 'Direct HTML5 playback for MP4, WebM, OGG, MOV, and other browser-native formats.' },
+                { icon: '📶', title: 'Adaptive Quality', desc: 'HLS quality levels listed automatically. Switch between 1080p, 720p, 480p, or let Auto decide.' },
+                { icon: '🔴', title: 'Live Stream Support', desc: 'Detects live streams automatically, shows a LIVE badge, and disables the seek bar.' },
+                { icon: '🔒', title: 'HTTPS Auto-Upgrade', desc: 'HTTP stream URLs are silently upgraded to HTTPS when the page is served over a secure connection.' },
+              ].map(f => (
+                <div key={f.title} className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition-colors">
+                  <div className="text-2xl mb-3">{f.icon}</div>
+                  <h2 className="text-white font-semibold text-base mb-1">{f.title}</h2>
+                  <p className="text-slate-500 text-sm leading-relaxed">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Keyboard shortcuts */}
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-14">
+              <h2 className="text-white font-bold text-lg mb-4">Keyboard Shortcuts</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {[
+                  { key: 'Space', action: 'Play / Pause' },
+                  { key: 'F', action: 'Toggle fullscreen' },
+                  { key: 'M', action: 'Toggle mute' },
+                  { key: 'S', action: 'Toggle stretch' },
+                  { key: '← →', action: 'Seek ±10 seconds' },
+                  { key: '↑ ↓', action: 'Volume ±10%' },
+                ].map(s => (
+                  <div key={s.key} className="flex items-center gap-3">
+                    <kbd className="bg-slate-800 border border-slate-700 text-cyan-400 font-mono text-xs px-2 py-1 rounded shrink-0">{s.key}</kbd>
+                    <span className="text-slate-400 text-sm">{s.action}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* FAQ */}
+            <div className="mb-10">
+              <h2 className="text-white font-bold text-2xl mb-6 text-center">Frequently Asked Questions</h2>
+              <div className="space-y-4">
+                {[
+                  {
+                    q: 'What is an HLS player?',
+                    a: 'HLS (HTTP Live Streaming) is a streaming protocol developed by Apple. An HLS player fetches .m3u8 playlist files and plays the video segments they reference. This player uses HLS.js to support HLS in all modern browsers, not just Safari.',
+                  },
+                  {
+                    q: 'How do I play an M3U8 stream online?',
+                    a: 'Paste your .m3u8 URL into the input above and click Load (or press Enter). The player auto-detects HLS streams by URL pattern and starts playback immediately. For password-protected or token-based streams, make sure the full URL including query parameters is pasted.',
+                  },
+                  {
+                    q: 'What is MPEG-DASH and how is it different from HLS?',
+                    a: 'MPEG-DASH (Dynamic Adaptive Streaming over HTTP) uses .mpd manifest files and is an open standard, whereas HLS was created by Apple. Both support adaptive bitrate streaming. This player handles DASH via DASH.js, giving you quality selection and live stream support.',
+                  },
+                  {
+                    q: 'Can I use this as an IPTV player?',
+                    a: 'Yes. IPTV streams are typically delivered as HLS (.m3u8) or RTSP. Paste any HLS IPTV stream URL here to test or watch it. For full M3U playlist support and channel lists, check out the main Nellai IPTV channels page.',
+                  },
+                  {
+                    q: 'Why does my stream fail with a CORS error?',
+                    a: 'CORS (Cross-Origin Resource Sharing) errors happen when the stream server does not allow requests from other origins. This is a server-side restriction and cannot be bypassed by the player. Contact the stream provider or use a CORS proxy for testing.',
+                  },
+                  {
+                    q: 'Does this player work on mobile?',
+                    a: 'Yes. The player is fully responsive. On portrait/mobile screens the video is letterboxed (contain) to preserve the aspect ratio. In landscape it fills the screen. The Stretch toggle forces fill mode in landscape for SD-to-HD content.',
+                  },
+                ].map(item => (
+                  <details
+                    key={item.q}
+                    className="bg-slate-900 border border-slate-800 rounded-xl group"
+                  >
+                    <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-white font-medium text-sm list-none select-none hover:bg-slate-800/50 rounded-xl transition-colors">
+                      {item.q}
+                      <span className="text-slate-500 text-lg ml-4 shrink-0 group-open:rotate-45 transition-transform">+</span>
+                    </summary>
+                    <p className="px-5 pb-4 text-slate-400 text-sm leading-relaxed">{item.a}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer credit */}
+            <p className="text-center text-slate-600 text-xs">
+              Powered by{' '}
+              <a href="https://github.com/video-dev/hls.js" className="text-slate-500 hover:text-slate-400 underline" target="_blank" rel="noopener noreferrer">HLS.js</a>
+              {' '}and{' '}
+              <a href="https://github.com/Dash-Industry-Forum/dash.js" className="text-slate-500 hover:text-slate-400 underline" target="_blank" rel="noopener noreferrer">DASH.js</a>
+              {' '}· A free tool by{' '}
+              <a href="https://nellaiiptv.com" className="text-cyan-700 hover:text-cyan-500 underline">Nellai IPTV</a>
+            </p>
+
+          </div>
         </div>
       </div>
     </>

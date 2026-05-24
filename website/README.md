@@ -1,10 +1,19 @@
-# Nellai IPTV - Frontend v1.54.2
+# Nellai IPTV - Frontend v1.54.3
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.54.2)**
+### **Latest Updates (v1.54.3)**
+- **DASH.js Loading Fix**: Switched Script strategy to `afterInteractive`; a `pendingDashRef` queue stores the load request if DASH.js hasn't finished downloading and auto-replays it on `onLoad` — eliminating the "DASH.js still loading" error.
+- **Stretch Toggle**: New button in player controls (shortcut `S`) switches `object-fit` between `contain` (letterbox) and `fill` (stretch) in landscape. Portrait always stays `contain` via CSS media query.
+- **URL Clear Button**: `×` icon inside the URL input clears text, stops playback, and resets the player to idle in one click.
+- **SEO & Metadata**: `app/player/layout.tsx` exports server-side `Metadata` (title, description, 15 keywords, OpenGraph, Twitter Card, canonical URL, robots). Page includes `WebApplication` JSON-LD schema, H1 hero heading, 6 feature cards, keyboard shortcut reference, and a 6-item crawlable FAQ using `<details>/<summary>` — all below the fold, accessible by scrolling.
+- **Header Branding**: Shows the app icon (`logo_url`, `h-8 w-8 rounded-lg`) + "Nellai " (white) + "IPTV" (cyan) bold text matching the brand identity.
+- **Watermark**: Enlarged to `w-24 sm:w-32 md:w-40`, opacity reduced to `0.35`, shifted 5 px right (`left: 21px`), and rendered only while `isPlaying` is true.
+- **Layout**: Sticky header, scrollable page (`overflow` restored), player fixed at `calc(100vh - 56px)` — first viewport is pure player, scroll reveals SEO content.
+
+### **Previous Updates (v1.54.2)**
 - **Universal Media Player** (`/player`): Standalone player page supporting HLS (`.m3u8` via hls.js), DASH (`.mpd` via dash.js CDN), and MP4/WebM/native video. Auto-detects stream type from URL extension. Custom controls: play/pause, seek bar (disabled for live), current time/duration, volume slider, mute, quality selector (HLS ABR levels), fullscreen. LIVE badge for live streams, loading/error states with retry, example stream presets, HTTP→HTTPS mixed-content upgrade, keyboard shortcuts (Space, M, F, ←→ ±10s, ↑↓ volume). Immersive no-navbar/no-footer layout via `LiteRouteGuard`.
 
 ### **Previous Updates (v1.54.1)**

@@ -1,3 +1,14 @@
+## [1.54.3] - Website - 2026-05-24
+
+### Website (Next.js)
+- **Fix**: **DASH.js Loading Race** — Changed Script strategy from `lazyOnload` to `afterInteractive` so DASH.js downloads immediately after hydration. Added `pendingDashRef` queue: if Load is clicked before DASH.js is ready, the request is stored and auto-replayed the moment `onLoad` fires — no manual retry needed.
+- **Feature**: **Stretch Toggle** — New "Stretch" button in player controls (keyboard shortcut `S`) switches `object-fit` between `contain` (letterbox) and `fill` (stretch to fill) in landscape. Portrait mode always stays `contain` via `@media (orientation: portrait)` regardless of stretch state.
+- **Feature**: **URL Clear Button** — `×` button appears inside the URL input whenever text is present. Clears the input, stops the player, destroys HLS/DASH instances, and resets all state to idle.
+- **Feature**: **SEO Content & Metadata** — New `app/player/layout.tsx` exports server-side `Metadata` (title, description, 15 keywords, OpenGraph, Twitter Card, canonical URL) and a `WebApplication` JSON-LD schema. Page now includes a scrollable below-fold section: H1 hero, 6 feature cards, keyboard shortcuts reference, and a 6-item crawlable FAQ (`<details>/<summary>`).
+- **Improved**: **Branding** — Player header now shows the app icon (`logo_url`, `h-8 w-8 rounded-lg`) alongside "Nellai" (white) + "IPTV" (cyan) bold text, matching the app brand identity.
+- **Improved**: **Watermark** — Larger (`w-24 sm:w-32 md:w-40`), lower opacity (`0.35`), position shifted 5 px right (`left: 21px`), and only rendered while the video is actively playing (`isPlaying`).
+- **Improved**: **Layout** — Removed `overflow: hidden` from `<body>`, changed outer container from fixed `100vh` to scrollable, sticky header, explicit `calc(100vh - 56px)` player height — first viewport shows only the player, scroll reveals SEO content.
+
 ## [1.12.3+63] - App - 2026-05-18
 
 ### App (Flutter)

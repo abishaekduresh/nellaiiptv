@@ -6,7 +6,7 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.54.2
+- **Version**: 1.54.3
 - **Key Features**: Stream Server 360° View, Stream Servers Admin CRUD, Feedback System, Admin Feedback Management, Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`), Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
@@ -23,6 +23,16 @@ A premium multi-channel IPTV player built for Android and Android TV.
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
+
+## Recent Updates (v1.54.3 Website) — 2026-05-24
+
+### Website (Next.js)
+- **Fixed**: DASH.js loading race — `afterInteractive` strategy + pending-queue auto-replay.
+- **Added**: Stretch toggle button (`S` key) — `object-fit: fill` in landscape, always `contain` in portrait.
+- **Added**: URL clear (`×`) button — stops player and resets state instantly.
+- **Added**: SEO layout with full `Metadata`, JSON-LD `WebApplication` schema, H1 hero, feature cards, shortcuts, and FAQ section below the player.
+- **Improved**: Header branding — icon + "Nellai IPTV" styled text.
+- **Improved**: Watermark — larger, lower opacity (0.35), +5 px right, only visible while playing.
 
 ## Recent Updates (v1.54.2 Website) — 2026-05-24
 
