@@ -1,10 +1,14 @@
-# Nellai IPTV - Frontend v1.54.4
+# Nellai IPTV - Frontend v1.54.5
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.54.4)**
+### **Latest Updates (v1.54.5)**
+- **HTTP Mixed-Content Warning**: Yellow warning banner appears below the `/player` URL bar whenever an `http://` URL is entered on the HTTPS-hosted site. Explains that the URL is auto-upgraded to HTTPS and playback will fail if the server has no SSL certificate. The error overlay also shows a targeted mixed-content callout when playback fails under these conditions.
+- **Google Play Badge Moved to Footer**: Removed the badge from the home page hero section; added it to the footer branding column (`Footer.tsx`) above the social icons, so it's globally visible on every page.
+
+### **Previous Updates (v1.54.4)**
 - **Real-Time Video Stats**: Toggleable stats overlay on `/player` (button or `D` key) showing Resolution, Buffer health, Bandwidth estimate, Dropped frames (Chrome), and Live latency. Updates every 1 s while playing; shows "last known values" when paused.
 - **Sparkline Graphs**: Cyan bandwidth graph and green buffer graph (last 60 s of history) rendered as SVG polylines inside the stats panel. Graphs reset automatically when a new stream is loaded.
 - **DASH.js Fix**: Replaced `reset()` with `destroy()` for proper cleanup between streams. Pinned CDN to `v4.7.4` (was `latest`). Added `STREAM_INITIALIZED`, `CAN_PLAY`, and `PLAYBACK_STARTED` events alongside `PLAYBACK_METADATA_LOADED`. Added a 300 ms polling fallback that detects `window.dashjs` even if `onLoad` misfires.

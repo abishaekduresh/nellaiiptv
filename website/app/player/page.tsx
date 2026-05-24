@@ -85,7 +85,10 @@ export default function PlayerPage() {
   const [detectedType, setDetectedType] = useState<DetectedType | null>(null);
   const [isDashReady, setIsDashReady] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
+  const [onHttps, setOnHttps] = useState(false);
   const { logo_url } = useBranding();
+
+  useEffect(() => { setOnHttps(window.location.protocol === 'https:'); }, []);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -420,6 +423,7 @@ export default function PlayerPage() {
   const hasStream = !!activeUrl;
   const progressPct = duration > 0 && isFinite(duration) ? (currentTime / duration) * 100 : 0;
   const currentQualityLabel = qualities.find(q => q.index === currentQuality)?.label ?? 'Auto';
+  const isHttpWarn = onHttps && (inputUrl.startsWith('http://') || (activeUrl?.startsWith('http://') ?? false));
 
   return (
     <>
@@ -545,6 +549,17 @@ export default function PlayerPage() {
           </div>
         </div>
 
+        {/* ── Mixed-content warning ── */}
+        {isHttpWarn && (
+          <div className="bg-yellow-950/60 border-b border-yellow-700/40 px-4 py-2 flex items-center gap-2 text-yellow-400 text-xs">
+            <AlertTriangle size={13} className="shrink-0" />
+            <span>
+              <strong>HTTP stream on HTTPS page</strong> — browser blocks mixed content.
+              The URL has been upgraded to <strong>HTTPS</strong>; playback will fail if the stream server has no SSL certificate.
+            </span>
+          </div>
+        )}
+
         {/* ── Player ── */}
         <div
           ref={containerRef}
@@ -603,7 +618,12 @@ export default function PlayerPage() {
                   <AlertTriangle size={30} className="text-red-400" />
                 </div>
                 <p className="text-white font-bold text-lg mb-1">Playback Failed</p>
-                <p className="text-slate-400 text-sm mb-5 leading-relaxed">{error}</p>
+                <p className="text-slate-400 text-sm mb-3 leading-relaxed">{error}</p>
+                {isHttpWarn && (
+                  <p className="text-yellow-500/80 text-xs mb-5 leading-relaxed bg-yellow-950/40 border border-yellow-700/30 rounded-lg px-3 py-2">
+                    The stream URL is HTTP but this page is HTTPS. The browser blocks mixed content — the server at this address may not support HTTPS.
+                  </p>
+                )}
                 <button
                   onClick={() => activeUrl && detectedType && loadStream(activeUrl, detectedType)}
                   className="inline-flex items-center gap-2 bg-white hover:bg-slate-100 text-black font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors"

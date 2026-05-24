@@ -1,3 +1,9 @@
+## [1.54.5] - Website - 2026-05-24
+
+### Website (Next.js)
+- **Fix**: **HTTP Mixed-Content Warning** — When an `http://` stream URL is entered on the HTTPS-hosted player, a yellow warning banner appears below the URL bar: "HTTP stream on HTTPS page — browser blocks mixed content. URL upgraded to HTTPS; playback will fail if server has no SSL certificate." The error overlay additionally renders a targeted callout box explaining the mixed-content cause whenever playback fails under this condition. Implemented via `onHttps` state (set on mount, SSR-safe) and a derived `isHttpWarn` boolean.
+- **Moved**: **Google Play Badge** — Removed from home page hero section (`app/page.tsx`); added to `Footer.tsx` branding column above the social icons so it appears on every page sitewide.
+
 ## [1.54.4] - Website - 2026-05-24
 
 ### Website (Next.js)

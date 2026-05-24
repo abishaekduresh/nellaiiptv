@@ -31,11 +31,6 @@ export default function Home() {
     className: "w-full sm:w-auto px-8 py-4 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white rounded-xl font-bold text-lg transition-all outline-none"
   });
 
-  const { focusProps: trialFocus, isFocused: isTrialFocused } = useTVFocus({
-    onEnter: () => router.push('/channels'),
-    className: "inline-flex items-center gap-3 px-10 py-5 bg-primary hover:bg-cyan-600 text-white rounded-2xl font-black text-xl shadow-2xl shadow-primary/40 transition-all hover:-translate-y-1 outline-none"
-  });
-
   return (
     <div className="bg-slate-950 text-white overflow-hidden">
       {/* Hero Section */}
@@ -78,20 +73,6 @@ export default function Home() {
                 Create Account
               </button>
             )}
-          </div>
-
-          <div className="mt-6 flex justify-center">
-            <a
-              href="https://play.google.com/store/apps/details?id=com.nellaiiptv"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src="/assets/icons/get_it_on_google_playstore.webp"
-                alt="Get it on Google Play"
-                className="h-12 w-auto hover:opacity-80 transition-opacity"
-              />
-            </a>
           </div>
 
           <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-slate-500 opacity-60">

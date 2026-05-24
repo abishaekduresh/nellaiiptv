@@ -39,6 +39,19 @@ const Footer = () => {
               The premier digital streaming service specifically tailored for the Tamil-speaking audience globally. 
               High-quality television, news, and entertainment at your fingertips.
             </p>
+            <a
+              href="https://play.google.com/store/apps/details?id=com.nellaiiptv"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mb-6"
+            >
+              <img
+                src="/assets/icons/get_it_on_google_playstore.webp"
+                alt="Get it on Google Play"
+                className="h-11 w-auto hover:opacity-80 transition-opacity"
+              />
+            </a>
+
             <div className="flex space-x-4">
               {/* Optional Social Icons */}
                <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all cursor-pointer">
