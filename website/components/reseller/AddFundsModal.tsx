@@ -106,8 +106,8 @@ export default function AddFundsModal({ isOpen, onClose, onSuccess }: AddFundsMo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-background-card border border-gray-800 rounded-xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between p-4 border-b border-slate-800">
           <h2 className="text-xl font-bold text-white">Add Funds</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             <X size={20} />
@@ -116,13 +116,13 @@ export default function AddFundsModal({ isOpen, onClose, onSuccess }: AddFundsMo
         
         <form onSubmit={handlePayment} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">Amount (₹)</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Amount (₹)</label>
             <input
               type="number"
               min="1"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full bg-background border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
+              className="w-full bg-slate-950 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
               placeholder="Enter amount to add"
               required
             />

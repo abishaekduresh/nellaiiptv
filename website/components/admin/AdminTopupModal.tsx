@@ -45,8 +45,8 @@ export default function AdminTopupModal({ customer, onClose, onSuccess }: AdminT
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-background-card border border-gray-800 rounded-xl w-full max-w-md shadow-2xl">
-        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-xl w-full max-w-md shadow-2xl">
+        <div className="flex items-center justify-between p-4 border-b border-slate-800">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Wallet size={20} className="text-purple-400" />
             Topup Wallet
@@ -58,31 +58,31 @@ export default function AdminTopupModal({ customer, onClose, onSuccess }: AdminT
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="bg-gray-800/50 p-3 rounded-lg">
-             <div className="text-sm text-text-secondary">Reseller</div>
+             <div className="text-sm text-slate-400">Reseller</div>
              <div className="font-medium text-white">{customer.name}</div>
-             <div className="text-xs text-text-secondary mt-1">Current Balance: ₹{customer.wallet_balance || 0}</div>
+             <div className="text-xs text-slate-400 mt-1">Current Balance: ₹{customer.wallet_balance || 0}</div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">Amount (₹)</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Amount (₹)</label>
             <input
               type="number"
               min="1"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full bg-background border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
+              className="w-full bg-slate-950 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
               placeholder="Enter amount"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">Description</label>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Description</label>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-background border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
+              className="w-full bg-slate-950 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
               placeholder="Reason for credit"
             />
           </div>

@@ -76,19 +76,19 @@ export default function ResellerDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Reseller Dashboard</h1>
-        <p className="text-text-secondary">Welcome back, {(user as any)?.name}</p>
+        <p className="text-slate-400">Welcome back, {(user as any)?.name}</p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Total Customers */}
-        <div className="bg-background-card rounded-lg border border-gray-800 p-6">
+        <div className="bg-slate-900/80 rounded-lg border border-slate-800 p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-blue-500/10 rounded-lg">
               <Users className="text-blue-400" size={24} />
             </div>
           </div>
-          <h3 className="text-text-secondary text-sm mb-1">Total Customers</h3>
+          <h3 className="text-slate-400 text-sm mb-1">Total Customers</h3>
           <p className="text-3xl font-bold text-white">{stats.totalCustomers}</p>
         </div>
 
@@ -104,15 +104,15 @@ export default function ResellerDashboard() {
         </div>
 
         {/* Device Limit */}
-        <div className="bg-background-card rounded-lg border border-gray-800 p-6">
+        <div className="bg-slate-900/80 rounded-lg border border-slate-800 p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-purple-500/10 rounded-lg">
               <Clock className="text-purple-400" size={24} />
             </div>
           </div>
-          <h3 className="text-text-secondary text-sm mb-1">Your Device Limit</h3>
+          <h3 className="text-slate-400 text-sm mb-1">Your Device Limit</h3>
           <p className="text-3xl font-bold text-white">1</p>
-          <p className="text-xs text-text-secondary mt-1">Reseller Account</p>
+          <p className="text-xs text-slate-400 mt-1">Reseller Account</p>
         </div>
       </div>
 
@@ -136,23 +136,23 @@ export default function ResellerDashboard() {
         {/* View Profile */}
         <button
           onClick={() => router.push('/profile')}
-          className="bg-background-card hover:bg-gray-800 border border-gray-800 text-white p-6 rounded-lg transition-colors text-left"
+          className="bg-slate-900/80 hover:bg-gray-800 border border-slate-800 text-white p-6 rounded-lg transition-colors text-left"
         >
           <DollarSign size={32} className="mb-3" />
           <h3 className="text-xl font-semibold mb-2">My Profile</h3>
-          <p className="text-sm text-text-secondary">View and update your reseller account details</p>
+          <p className="text-sm text-slate-400">View and update your reseller account details</p>
         </button>
       </div>
 
       {/* Recent Customers */}
       {stats.recentCustomers.length > 0 && (
-        <div className="bg-background-card rounded-lg border border-gray-800 overflow-hidden">
-          <div className="p-4 border-b border-gray-800">
+        <div className="bg-slate-900/80 rounded-lg border border-slate-800 overflow-hidden">
+          <div className="p-4 border-b border-slate-800">
             <h2 className="text-xl font-semibold text-white">Recent Customers</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-gray-800/50 text-text-secondary text-sm uppercase">
+              <thead className="bg-gray-800/50 text-slate-400 text-sm uppercase">
                 <tr>
                   <th className="px-6 py-4">Name</th>
                   <th className="px-6 py-4">Phone</th>
@@ -160,16 +160,16 @@ export default function ResellerDashboard() {
                   <th className="px-6 py-4">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-slate-800">
                 {stats.recentCustomers.map((customer: any) => (
                   <tr key={customer.uuid} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-medium text-white">{customer.name}</div>
                       {customer.email && (
-                        <div className="text-xs text-text-secondary">{customer.email}</div>
+                        <div className="text-xs text-slate-400">{customer.email}</div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-text-secondary">{customer.phone}</td>
+                    <td className="px-6 py-4 text-slate-400">{customer.phone}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
                         customer.plan
@@ -193,7 +193,7 @@ export default function ResellerDashboard() {
               </tbody>
             </table>
           </div>
-          <div className="p-4 border-t border-gray-800 text-center">
+          <div className="p-4 border-t border-slate-800 text-center">
             <button
               onClick={() => router.push('/reseller/customers')}
               className="text-primary hover:text-primary/80 text-sm font-medium"

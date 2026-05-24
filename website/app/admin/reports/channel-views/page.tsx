@@ -246,11 +246,11 @@ export default function ChannelViewsReportPage() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
-                        <Link href="/admin/dashboard" className="inline-flex items-center text-sm text-text-secondary hover:text-white mb-2">
-                            <ArrowLeft size={16} className="mr-1" /> Back to Dashboard
+                        <Link href="/admin/dashboard" className="inline-flex items-center text-sm text-slate-400 hover:text-white mb-2 gap-1">
+                            <ArrowLeft size={14} /> Back to Dashboard
                         </Link>
-                        <h1 className="text-3xl font-bold text-white">Channel Views Report</h1>
-                        <p className="text-text-secondary">Analytics and performance detailed report</p>
+                        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Channel Views Report</h1>
+                        <p className="text-slate-400 text-sm">Analytics and performance detailed report</p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 relative">
@@ -258,14 +258,14 @@ export default function ChannelViewsReportPage() {
                         <div className="relative min-w-[250px]" onClick={e => e.stopPropagation()}>
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="w-full flex items-center justify-between bg-background-card border border-gray-800 text-white text-sm rounded-lg p-2.5 focus:outline-none focus:border-primary"
+                                className="w-full flex items-center justify-between bg-slate-900/80 border border-slate-800 text-white text-sm rounded-lg p-2.5 focus:outline-none focus:border-primary"
                             >
                                 <span className="truncate">{getSelectedChannelLabel()}</span>
-                                <ChevronDown size={16} className="text-text-secondary ml-2" />
+                                <ChevronDown size={16} className="text-slate-400 ml-2" />
                             </button>
                             {isDropdownOpen && (
-                                <div className="absolute top-full left-0 w-full mt-1 bg-background-card border border-gray-800 rounded-lg shadow-xl z-50 max-h-60 flex flex-col">
-                                    <div className="p-2 border-b border-gray-800 sticky top-0 bg-background-card z-10">
+                                <div className="absolute top-full left-0 w-full mt-1 bg-slate-900/80 border border-slate-800 rounded-lg shadow-xl z-50 max-h-60 flex flex-col">
+                                    <div className="p-2 border-b border-slate-800 sticky top-0 bg-slate-900/80 z-10">
                                         <input
                                             type="text"
                                             placeholder="Search channels..."
@@ -278,7 +278,7 @@ export default function ChannelViewsReportPage() {
                                     <div className="overflow-y-auto flex-1">
                                         <button
                                             onClick={() => handleSelectChannel('')}
-                                            className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors ${selectedChannel === '' ? 'text-primary bg-primary/10' : 'text-text-secondary'}`}
+                                            className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors ${selectedChannel === '' ? 'text-primary bg-primary/10' : 'text-slate-400'}`}
                                         >
                                             All Channels
                                         </button>
@@ -287,19 +287,19 @@ export default function ChannelViewsReportPage() {
                                                 <button
                                                     key={channel.id}
                                                     onClick={() => handleSelectChannel(channel.id)}
-                                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors ${selectedChannel == channel.id ? 'text-primary bg-primary/10' : 'text-text-secondary'}`}
+                                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors ${selectedChannel == channel.id ? 'text-primary bg-primary/10' : 'text-slate-400'}`}
                                                 >
                                                     <span className="font-mono opacity-70 mr-2">#{channel.channel_number}</span>
                                                     {channel.name}
                                                 </button>
                                             ))
                                         ) : isSearching ? (
-                                            <div className="px-4 py-2 text-sm text-text-secondary italic flex items-center gap-2">
+                                            <div className="px-4 py-2 text-sm text-slate-400 italic flex items-center gap-2">
                                                 <div className="animate-spin rounded-full h-3 w-3 border-b border-primary"></div>
                                                 Searching...
                                             </div>
                                         ) : (
-                                            <div className="px-4 py-2 text-sm text-text-secondary italic">No channels found</div>
+                                            <div className="px-4 py-2 text-sm text-slate-400 italic">No channels found</div>
                                         )}
                                     </div>
                                 </div>
@@ -309,7 +309,7 @@ export default function ChannelViewsReportPage() {
                         <select
                             value={status}
                             onChange={e => setStatus(e.target.value)}
-                            className="bg-background-card border border-gray-800 text-white text-sm rounded-lg focus:ring-primary focus:border-primary block p-2.5"
+                            className="bg-slate-900/80 border border-slate-800 text-white text-sm rounded-lg focus:ring-primary focus:border-primary block p-2.5"
                         >
                             <option value="all">All Status</option>
                             <option value="active">Active</option>
@@ -317,15 +317,15 @@ export default function ChannelViewsReportPage() {
                             <option value="deleted">Deleted</option>
                         </select>
 
-                        <div className="flex items-center gap-2 bg-background-card p-2 rounded-lg border border-gray-800">
-                            <Calendar size={16} className="text-text-secondary" />
+                        <div className="flex items-center gap-2 bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <Calendar size={16} className="text-slate-400" />
                             <input
                                 type="date"
                                 value={dateRange.startDate}
                                 onChange={e => handleDateChange('start', e.target.value)}
                                 className="bg-transparent text-white text-sm focus:outline-none"
                             />
-                            <span className="text-text-secondary">-</span>
+                            <span className="text-slate-400">-</span>
                             <input
                                 type="date"
                                 value={dateRange.endDate}
@@ -345,22 +345,22 @@ export default function ChannelViewsReportPage() {
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-                        <p className="text-text-secondary mb-1">Total Views</p>
+                    <div className="bg-slate-900/80 p-6 rounded-lg border border-slate-800">
+                        <p className="text-slate-400 mb-1">Total Views</p>
                         <p className="text-3xl font-bold text-white">{summary?.total_views?.toLocaleString() || 0}</p>
                     </div>
-                    <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-                        <p className="text-text-secondary mb-1">Top Performing Channel</p>
+                    <div className="bg-slate-900/80 p-6 rounded-lg border border-slate-800">
+                        <p className="text-slate-400 mb-1">Top Performing Channel</p>
                         <p className="text-xl font-bold text-white truncate">{summary?.top_channel || 'N/A'}</p>
                     </div>
-                    <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-                        <p className="text-text-secondary mb-1">Date Range</p>
+                    <div className="bg-slate-900/80 p-6 rounded-lg border border-slate-800">
+                        <p className="text-slate-400 mb-1">Date Range</p>
                         <p className="text-lg font-bold text-white">{dateRange.startDate} to {dateRange.endDate}</p>
                     </div>
                 </div>
 
                 {/* Chart */}
-                <div className="bg-background-card p-6 rounded-lg border border-gray-800 mb-8">
+                <div className="bg-slate-900/80 p-6 rounded-lg border border-slate-800 mb-8">
                     <h2 className="text-xl font-bold text-white mb-6">Views Over Time</h2>
                     <div className="h-[400px] w-full">
                         {chartData && (
@@ -381,29 +381,29 @@ export default function ChannelViewsReportPage() {
                 </div>
 
                 {/* Table */}
-                <div className="bg-background-card rounded-lg border border-gray-800 overflow-hidden">
-                    <div className="p-6 border-b border-gray-800 flex justify-between items-center">
+                <div className="bg-slate-900/80 rounded-lg border border-slate-800 overflow-hidden">
+                    <div className="p-6 border-b border-slate-800 flex justify-between items-center">
                         <h2 className="text-xl font-bold text-white">Channel Performance Details</h2>
-                        <p className="text-xs text-text-secondary">Click <Eye size={11} className="inline mb-0.5" /> to view IP-level details</p>
+                        <p className="text-xs text-slate-400">Click <Eye size={11} className="inline mb-0.5" /> to view IP-level details</p>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-black/20">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Rank</th>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Channel Name</th>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Channel Number</th>
-                                    <th className="px-6 py-4 text-right text-xs font-medium text-text-secondary uppercase tracking-wider">Total Views</th>
-                                    <th className="px-6 py-4 text-center text-xs font-medium text-text-secondary uppercase tracking-wider">Details</th>
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Rank</th>
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Channel Name</th>
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Channel Number</th>
+                                    <th className="px-6 py-4 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">Total Views</th>
+                                    <th className="px-6 py-4 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Details</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-800">
+                            <tbody className="divide-y divide-slate-800">
                                 {tableData.length > 0 ? (
                                     tableData.map((channel, index) => (
                                         <tr key={index} className="hover:bg-white/5 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">#{index + 1}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">#{index + 1}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{channel.channel_name}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">{channel.channel_number}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">{channel.channel_number}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-white text-right font-bold">
                                                 {Number(channel.total_views).toLocaleString()}
                                             </td>
@@ -420,7 +420,7 @@ export default function ChannelViewsReportPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-text-secondary">
+                                        <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
                                             No data found for the selected period
                                         </td>
                                     </tr>
@@ -438,40 +438,40 @@ export default function ChannelViewsReportPage() {
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeDetailModal} />
 
                     {/* Panel */}
-                    <div className="relative bg-background-card border border-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col">
+                    <div className="relative bg-slate-900/80 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col">
 
                         {/* Modal Header */}
-                        <div className="flex items-start justify-between px-6 py-4 border-b border-gray-800 shrink-0">
+                        <div className="flex items-start justify-between px-6 py-4 border-b border-slate-800 shrink-0">
                             <div>
                                 <h3 className="text-lg font-bold text-white">
                                     IP View Details
                                     {detailModal.summary && (
                                         <span className="ml-2 text-primary">
                                             — {detailModal.summary.channel_name}
-                                            <span className="text-text-secondary font-normal text-sm ml-1">
+                                            <span className="text-slate-400 font-normal text-sm ml-1">
                                                 #{detailModal.summary.channel_number}
                                             </span>
                                         </span>
                                     )}
                                 </h3>
-                                <p className="text-xs text-text-secondary mt-0.5">
+                                <p className="text-xs text-slate-400 mt-0.5">
                                     {dateRange.startDate} → {dateRange.endDate}
                                 </p>
                             </div>
-                            <button onClick={closeDetailModal} className="text-text-secondary hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5">
+                            <button onClick={closeDetailModal} className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5">
                                 <X size={18} />
                             </button>
                         </div>
 
                         {/* Summary row */}
                         {detailModal.summary && !detailModal.loading && (
-                            <div className="grid grid-cols-3 gap-4 px-6 py-4 border-b border-gray-800 shrink-0">
+                            <div className="grid grid-cols-3 gap-4 px-6 py-4 border-b border-slate-800 shrink-0">
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
                                         <BarChart2 size={16} className="text-primary" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-text-secondary">Total Views</p>
+                                        <p className="text-xs text-slate-400">Total Views</p>
                                         <p className="text-base font-bold text-white">{Number(detailModal.summary.total_views).toLocaleString()}</p>
                                     </div>
                                 </div>
@@ -480,7 +480,7 @@ export default function ChannelViewsReportPage() {
                                         <Users size={16} className="text-cyan-400" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-text-secondary">Unique IPs</p>
+                                        <p className="text-xs text-slate-400">Unique IPs</p>
                                         <p className="text-base font-bold text-white">{detailModal.summary.unique_ips.toLocaleString()}</p>
                                     </div>
                                 </div>
@@ -489,7 +489,7 @@ export default function ChannelViewsReportPage() {
                                         <Globe size={16} className="text-green-400" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-text-secondary">Records</p>
+                                        <p className="text-xs text-slate-400">Records</p>
                                         <p className="text-base font-bold text-white">{detailModal.details.length.toLocaleString()}</p>
                                     </div>
                                 </div>
@@ -499,30 +499,30 @@ export default function ChannelViewsReportPage() {
                         {/* Body */}
                         <div className="flex-1 overflow-y-auto">
                             {detailModal.loading ? (
-                                <div className="flex items-center justify-center h-40 gap-3 text-text-secondary">
+                                <div className="flex items-center justify-center h-40 gap-3 text-slate-400">
                                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
                                     Loading IP details…
                                 </div>
                             ) : detailModal.details.length === 0 ? (
-                                <div className="flex items-center justify-center h-40 text-text-secondary text-sm">
+                                <div className="flex items-center justify-center h-40 text-slate-400 text-sm">
                                     No view records found for this period.
                                 </div>
                             ) : (
                                 <table className="w-full text-sm">
                                     <thead className="bg-black/30 sticky top-0">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">#</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">IP Address</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Date</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider">Views</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">#</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">IP Address</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Date</th>
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">Views</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-800/60">
+                                    <tbody className="divide-y divide-slate-800/60">
                                         {detailModal.details.map((row, i) => (
                                             <tr key={i} className="hover:bg-white/5 transition-colors">
-                                                <td className="px-6 py-3 text-text-secondary">{i + 1}</td>
+                                                <td className="px-6 py-3 text-slate-400">{i + 1}</td>
                                                 <td className="px-6 py-3 font-mono text-cyan-400">{row.client_ip || '—'}</td>
-                                                <td className="px-6 py-3 text-text-secondary">{row.view_date}</td>
+                                                <td className="px-6 py-3 text-slate-400">{row.view_date}</td>
                                                 <td className="px-6 py-3 text-right font-bold text-white">{Number(row.count).toLocaleString()}</td>
                                             </tr>
                                         ))}
@@ -532,7 +532,7 @@ export default function ChannelViewsReportPage() {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="px-6 py-3 border-t border-gray-800 shrink-0 flex justify-end">
+                        <div className="px-6 py-3 border-t border-slate-800 shrink-0 flex justify-end">
                             <button onClick={closeDetailModal} className="px-4 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors">
                                 Close
                             </button>

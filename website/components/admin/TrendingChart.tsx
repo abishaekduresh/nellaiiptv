@@ -124,14 +124,14 @@ export default function TrendingChart() {
   };
 
   return (
-    <div className="bg-background-card p-6 rounded-lg border border-gray-800 flex flex-col h-full min-h-[400px]">
+    <div className="bg-slate-900/80 p-6 rounded-lg border border-slate-800 flex flex-col h-full min-h-[400px]">
         <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between mb-6 gap-4">
             <div>
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                     <Filter className="text-primary" size={20} />
                     Trending Channels
                 </h2>
-                <p className="text-sm text-text-secondary">Most viewed channels analytics</p>
+                <p className="text-sm text-slate-400">Most viewed channels analytics</p>
             </div>
             
             <div className="flex flex-wrap items-center gap-2 bg-slate-900 p-1 rounded-lg border border-slate-800">

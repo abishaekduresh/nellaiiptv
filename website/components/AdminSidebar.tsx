@@ -1,90 +1,42 @@
-import { useState } from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen, CreditCard, Mail, MessageSquare, BarChart, ChevronDown, ChevronRight, ThumbsUp, Server } from 'lucide-react';
+import {
+  LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen,
+  CreditCard, Mail, MessageSquare, BarChart2, ChevronDown, ThumbsUp,
+  Server, Megaphone, Hash, Activity, X,
+} from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 const menuItems = [
+  { title: 'Dashboard',     icon: LayoutDashboard, href: '/admin/dashboard' },
   {
-    title: 'Dashboard',
-    icon: LayoutDashboard,
-    href: '/admin/dashboard',
-  },
-  {
-    title: 'Channels',
-    icon: Tv,
-    href: '#',
+    title: 'Channels', icon: Tv, href: '#',
     children: [
-      { title: 'All Channels', href: '/admin/channels' },
-      { title: 'Channel Numbers', href: '/admin/channels/renumber' },
+      { title: 'All Channels',     href: '/admin/channels' },
+      { title: 'Channel Numbers',  href: '/admin/channels/renumber' },
     ],
   },
+  { title: 'Stream Servers', icon: Server,       href: '/admin/stream-servers' },
+  { title: 'Scrolling Ads',  icon: Megaphone,    href: '/admin/scrolling-ads' },
   {
-    title: 'Stream Servers',
-    icon: Server,
-    href: '/admin/stream-servers',
-  },
-  {
-    title: 'Scrolling Ads',
-    icon: Tv,
-    href: '/admin/scrolling-ads',
-  },
-  {
-    title: 'Reports',
-    icon: BarChart,
-    href: '#', // Parent item
+    title: 'Reports', icon: BarChart2, href: '#',
     children: [
-        {
-            title: 'Channel Views',
-            href: '/admin/reports/channel-views'
-        }
-    ]
+      { title: 'Channel Views', href: '/admin/reports/channel-views' },
+    ],
   },
-  {
-    title: 'Customers',
-    icon: Users,
-    href: '/admin/customers',
-  },
-  {
-    title: 'Comments',
-    icon: MessageSquare,
-    href: '/admin/comments',
-  },
-  {
-    title: 'Messages',
-    icon: Mail,
-    href: '/admin/contacts',
-  },
-  {
-    title: 'Feedback',
-    icon: ThumbsUp,
-    href: '/admin/feedback',
-  },
-  {
-    title: 'Transactions',
-    icon: CreditCard,
-    href: '/admin/transactions',
-  },
-  {
-    title: 'API Keys',
-    icon: Shield,
-    href: '/admin/api-keys',
-  },
-  {
-    title: 'API Docs',
-    icon: BookOpen,
-    href: '/admin/api-docs',
-  },
-  {
-    title: 'Plans',
-    icon: Settings,
-    href: '/admin/plans',
-  },
-  {
-    title: 'Settings',
-    icon: Settings,
-    href: '/admin/settings',
-  },
+  { title: 'Customers',    icon: Users,        href: '/admin/customers' },
+  { title: 'Comments',     icon: MessageSquare, href: '/admin/comments' },
+  { title: 'Messages',     icon: Mail,          href: '/admin/contacts' },
+  { title: 'Feedback',     icon: ThumbsUp,      href: '/admin/feedback' },
+  { title: 'Transactions', icon: CreditCard,    href: '/admin/transactions' },
+  { title: 'API Keys',     icon: Shield,        href: '/admin/api-keys' },
+  { title: 'API Docs',     icon: BookOpen,      href: '/admin/api-docs' },
+  { title: 'Plans',        icon: Hash,          href: '/admin/plans' },
+  { title: 'Settings',     icon: Settings,      href: '/admin/settings' },
 ];
 
 interface AdminSidebarProps {
@@ -96,37 +48,30 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout, user } = useAuthStore();
-  
-  // Track open menus by title
+
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
-      'Reports': true,
-      'Channels': true,
+    Channels: true,
+    Reports: true,
   });
 
-  const toggleMenu = (title: string) => {
-      setOpenMenus(prev => ({
-          ...prev,
-          [title]: !prev[title]
-      }));
-  };
+  useEffect(() => {
+    onClose();
+  }, [pathname]);
+
+  const toggleMenu = (title: string) =>
+    setOpenMenus(prev => ({ ...prev, [title]: !prev[title] }));
 
   const handleLogout = () => {
     logout();
     router.push('/admin');
   };
 
-  // Filter menu items based on user role
-  const filteredMenuItems = menuItems.filter(item => {
-    // For resellers, show only Dashboard, Plans, and Customers
-    if (user?.role === 'reseller') {
-      return ['Dashboard', 'Plans', 'Customers'].includes(item.title);
-    }
-    // For admins, show everything
+  const filteredItems = menuItems.filter(item => {
+    if (user?.role === 'reseller') return ['Dashboard', 'Plans', 'Customers'].includes(item.title);
     return true;
   });
 
-  // Update menu item hrefs for resellers
-  const getMenuItemHref = (item: any) => {
+  const resolveHref = (item: (typeof menuItems)[0]) => {
     if (user?.role === 'reseller') {
       if (item.title === 'Dashboard') return '/reseller';
       if (item.title === 'Customers') return '/reseller/customers';
@@ -135,109 +80,149 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     return item.href;
   };
 
+  const isItemActive = (href: string) =>
+    href !== '#' && (pathname === href || (href.length > 10 && pathname.startsWith(href)));
+
+  const roleLabel = user?.role === 'reseller' ? 'Reseller Panel' : 'Admin Panel';
+  const userName = (user as any)?.name || (user as any)?.username || 'Admin';
+  const userInitial = userName.charAt(0).toUpperCase();
+
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Mobile overlay */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
           onClick={onClose}
         />
       )}
 
-      <div className={`
-        fixed left-0 top-0 h-screen w-64 bg-background-card border-r border-gray-800 flex flex-col z-50 transition-transform duration-300
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0
+      <aside className={`
+        fixed left-0 top-0 h-screen w-72 z-50 flex flex-col
+        bg-slate-900 border-r border-slate-800
+        transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
       `}>
-        <div className="p-6 border-b border-gray-800 flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold text-primary">Nellai IPTV</h1>
-            <p className="text-xs text-text-secondary mt-1">
-              {user?.role === 'reseller' ? 'Reseller Panel' : 'Admin Panel'}
-            </p>
+
+        {/* Header */}
+        <div className="relative px-5 py-5 border-b border-slate-800 shrink-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-transparent pointer-events-none" />
+          <div className="flex items-center justify-between relative">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Activity size={18} className="text-primary" />
+              </div>
+              <div>
+                <div className="text-white font-bold text-base leading-tight">Nellai IPTV</div>
+                <div className="text-xs text-primary font-medium">{roleLabel}</div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="md:hidden p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            >
+              <X size={18} />
+            </button>
           </div>
         </div>
 
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {filteredMenuItems.map((item) => {
-            const hasChildren = item.children && item.children.length > 0;
-            const Icon = item.icon;
-            
-            if (hasChildren) {
-                const isOpen = openMenus[item.title];
-                const isChildActive = item.children?.some(child => pathname === child.href);
-                const isActive = isOpen || isChildActive; // Highlight parent if child active or open
+        {/* User chip */}
+        <div className="px-4 py-3 border-b border-slate-800/60 shrink-0">
+          <div className="flex items-center gap-3 px-3 py-2.5 bg-slate-800/50 rounded-xl">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/40 to-cyan-600/40 flex items-center justify-center text-white font-bold text-sm shrink-0">
+              {userInitial}
+            </div>
+            <div className="min-w-0">
+              <p className="text-white text-sm font-semibold truncate">{userName}</p>
+              <p className="text-slate-500 text-xs capitalize">{user?.role || 'admin'}</p>
+            </div>
+            <span className="ml-auto w-2 h-2 rounded-full bg-green-400 shrink-0" />
+          </div>
+        </div>
 
-                return (
-                    <div key={item.title}>
-                        <button
-                            onClick={() => toggleMenu(item.title)}
-                            className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors ${
-                                isActive ? 'text-white' : 'text-text-secondary hover:text-white hover:bg-white/5'
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5 scrollbar-thin">
+          {filteredItems.map((item) => {
+            const Icon = item.icon;
+            const href = resolveHref(item);
+            const hasChildren = !!item.children?.length;
+
+            if (hasChildren) {
+              const expanded = openMenus[item.title];
+              const childActive = item.children!.some(c => pathname === c.href);
+
+              return (
+                <div key={item.title}>
+                  <button
+                    onClick={() => toggleMenu(item.title)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      childActive
+                        ? 'text-primary bg-primary/10'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/70'
+                    }`}
+                  >
+                    <Icon size={18} className="shrink-0" />
+                    <span className="flex-1 text-left">{item.title}</span>
+                    <ChevronDown
+                      size={15}
+                      className={`shrink-0 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+
+                  <div className={`overflow-hidden transition-all duration-200 ${expanded ? 'max-h-40' : 'max-h-0'}`}>
+                    <div className="ml-6 mt-0.5 pl-3 border-l border-slate-800 space-y-0.5 pb-1">
+                      {item.children!.map(child => {
+                        const active = pathname === child.href;
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={`block px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+                              active
+                                ? 'text-primary bg-primary/10 font-semibold'
+                                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                             }`}
-                        >
-                            <div className="flex items-center gap-3">
-                                <Icon size={20} />
-                                <span className="font-medium">{item.title}</span>
-                            </div>
-                            {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                        </button>
-                        
-                        {isOpen && (
-                            <div className="ml-9 mt-1 space-y-1">
-                                {item.children?.map(child => {
-                                    const isChildActive = pathname === child.href;
-                                    return (
-                                        <Link
-                                            key={child.href}
-                                            href={child.href}
-                                            className={`block px-4 py-2 text-sm rounded-lg transition-colors ${
-                                                isChildActive
-                                                    ? 'bg-primary/20 text-primary'
-                                                    : 'text-text-secondary hover:text-white hover:bg-white/5'
-                                            }`}
-                                        >
-                                            {child.title}
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        )}
+                          >
+                            {child.title}
+                          </Link>
+                        );
+                      })}
                     </div>
-                );
+                  </div>
+                </div>
+              );
             }
 
-          const href = getMenuItemHref(item);
-          const isActive = pathname === href || (href !== '/admin/dashboard' && href !== '/reseller' && pathname.startsWith(href));
-          
-          return (
-            <Link
-              key={item.href}
-              href={href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-primary/20 text-primary'
-                  : 'text-text-secondary hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Icon size={20} />
-              <span className="font-medium">{item.title}</span>
-            </Link>
-          );
-        })}
-      </nav>
+            const active = isItemActive(href);
+            return (
+              <Link
+                key={item.href}
+                href={href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  active
+                    ? 'text-primary bg-primary/10 shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/70'
+                }`}
+              >
+                {active && <span className="absolute left-0 w-0.5 h-6 bg-primary rounded-r-full" />}
+                <Icon size={18} className="shrink-0" />
+                <span>{item.title}</span>
+              </Link>
+            );
+          })}
+        </nav>
 
-      <div className="p-4 border-t border-gray-800">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
-        >
-          <LogOut size={20} />
-          <span className="font-medium">Logout</span>
-        </button>
-      </div>
-    </div>
+        {/* Logout */}
+        <div className="px-3 py-3 border-t border-slate-800 shrink-0">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
+          >
+            <LogOut size={18} className="shrink-0" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </aside>
     </>
   );
 }

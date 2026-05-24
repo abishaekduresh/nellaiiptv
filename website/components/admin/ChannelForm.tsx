@@ -222,66 +222,66 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
         
         {/* RE-INSERTING Name/Number/HLS Fields so I don't break them */}
         <div>
-          <label className="block text-text-secondary mb-2">Channel Name</label>
+          <label className="block text-slate-400 mb-2">Channel Name</label>
           <input
             type="text"
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+            className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
             placeholder="e.g. Sun TV"
           />
         </div>
 
         <div>
-          <label className="block text-text-secondary mb-2">Channel Number</label>
+          <label className="block text-slate-400 mb-2">Channel Number</label>
           <input
             type="text"
             value={formData.channel_number}
             onChange={(e) => setFormData({ ...formData, channel_number: e.target.value })}
-            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+            className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
             placeholder="e.g. 101"
           />
         </div>
 
         <div>
-          <label className="block text-text-secondary mb-2">Share Code (6 Digits)</label>
+          <label className="block text-slate-400 mb-2">Share Code (6 Digits)</label>
           <input
             type="text"
             maxLength={6}
             value={formData.share_code || ''}
             onChange={(e) => setFormData({ ...formData, share_code: e.target.value.replace(/\D/g, '') })}
-            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary font-mono tracking-widest"
+            className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary font-mono tracking-widest"
             placeholder="e.g. 123456"
           />
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-text-secondary mb-2">Stream URL (HLS)</label>
+          <label className="block text-slate-400 mb-2">Stream URL (HLS)</label>
           <input
             type="url"
             required
             value={formData.hls_url}
             onChange={(e) => setFormData({ ...formData, hls_url: e.target.value })}
-            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+            className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
             placeholder="https://example.com/stream.m3u8"
           />
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-text-secondary mb-2">RTMP URL (Optional)</label>
+          <label className="block text-slate-400 mb-2">RTMP URL (Optional)</label>
           <input
             type="text"
             value={formData.rtmp_url}
             onChange={(e) => setFormData({ ...formData, rtmp_url: e.target.value })}
-            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+            className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
             placeholder="rtmp://example.com/live/stream"
           />
         </div>
 
         {/* THUMBNAIL UPLOAD */}
         <div>
-          <label className="block text-text-secondary mb-2">Thumbnail (Card Image)</label>
+          <label className="block text-slate-400 mb-2">Thumbnail (Card Image)</label>
           <div className="flex gap-4 items-center">
               {formData.thumbnail_url && (
                   <img src={formData.thumbnail_url} alt="Preview" className="w-16 h-16 object-cover rounded-md border border-gray-700" />
@@ -290,7 +290,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
                 type="file"
                 accept="image/png, image/webp"
                 onChange={(e) => handleFileChange(e, 'thumbnail')}
-                className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark"
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark"
               />
           </div>
            <p className="text-xs text-gray-500 mt-1">Thumbnail of the channel (1280x720). Supports .png, .webp</p>
@@ -298,7 +298,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
 
         {/* LOGO UPLOAD */}
         <div>
-          <label className="block text-text-secondary mb-2">Channel Logo</label>
+          <label className="block text-slate-400 mb-2">Channel Logo</label>
           <div className="flex gap-4 items-center">
               {formData.logo_url && (
                   <img src={formData.logo_url} alt="Logo Preview" className="w-16 h-16 object-contain rounded-md border border-gray-700 bg-gray-900" />
@@ -307,18 +307,18 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
                 type="file"
                 accept="image/png, image/webp"
                 onChange={(e) => handleFileChange(e, 'logo')}
-                className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark"
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark"
               />
           </div>
            <p className="text-xs text-gray-500 mt-1">Official logo of the channel (512x512px). Supports .png, .webp</p>
         </div>
 
         <div>
-          <label className="block text-text-secondary mb-2">Category</label>
+          <label className="block text-slate-400 mb-2">Category</label>
           <select
             value={formData.category_id}
             onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+            className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
           >
             <option value="">Select Category</option>
             {categories.map((c) => (
@@ -328,11 +328,11 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
         </div>
 
         <div>
-          <label className="block text-text-secondary mb-2">Language</label>
+          <label className="block text-slate-400 mb-2">Language</label>
           <select
             value={formData.language_id}
             onChange={(e) => setFormData({ ...formData, language_id: e.target.value })}
-            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+            className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
           >
             <option value="">Select Language</option>
             {languages.map((l) => (
@@ -342,11 +342,11 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
         </div>
 
         <div>
-          <label className="block text-text-secondary mb-2">State</label>
+          <label className="block text-slate-400 mb-2">State</label>
           <select
             value={formData.state_id}
             onChange={handleStateChange}
-            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+            className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
           >
             <option value="">Select State</option>
             {states.map((s) => (
@@ -356,11 +356,11 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
         </div>
 
         <div>
-          <label className="block text-text-secondary mb-2">District</label>
+          <label className="block text-slate-400 mb-2">District</label>
           <select
             value={formData.district_id}
             onChange={(e) => setFormData({ ...formData, district_id: e.target.value })}
-            className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+            className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
             disabled={!districts.length}
           >
             <option value="">Select District</option>
@@ -371,45 +371,45 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
         </div>
 
         <div>
-            <label className="block text-text-secondary mb-2">User Agent (Optional)</label>
+            <label className="block text-slate-400 mb-2">User Agent (Optional)</label>
             <input
                 type="text"
                 value={formData.user_agent || ''}
                 onChange={(e) => setFormData({ ...formData, user_agent: e.target.value })}
-                className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
                 placeholder="Custom User Agent"
             />
         </div>
 
         <div>
-            <label className="block text-text-secondary mb-2">Referer (Optional)</label>
+            <label className="block text-slate-400 mb-2">Referer (Optional)</label>
             <input
                 type="text"
                 value={formData.referer || ''}
                 onChange={(e) => setFormData({ ...formData, referer: e.target.value })}
-                className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
                 placeholder="Custom Referer"
             />
         </div>
 
         {/* Proprietor Details Section */}
         <div className="md:col-span-2">
-          <h3 className="text-xl font-semibold text-white mb-4 mt-4 pb-2 border-b border-gray-800">Channel Proprietor Details</h3>
+          <h3 className="text-xl font-semibold text-white mb-4 mt-4 pb-2 border-b border-slate-800">Channel Proprietor Details</h3>
         </div>
 
         <div>
-            <label className="block text-text-secondary mb-2">Proprietor Name</label>
+            <label className="block text-slate-400 mb-2">Proprietor Name</label>
             <input
                 type="text"
                 value={formData.proprietor_name || ''}
                 onChange={(e) => setFormData({ ...formData, proprietor_name: e.target.value })}
-                className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
                 placeholder="Owner/Proprietor Name"
             />
         </div>
 
         <div>
-            <label className="block text-text-secondary mb-2">Proprietor Phone</label>
+            <label className="block text-slate-400 mb-2">Proprietor Phone</label>
             <input
                 type="tel"
                 value={formData.proprietor_phone || ''}
@@ -426,12 +426,12 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
                     setPhoneError('');
                   }
                 }}
-                className={`w-full bg-background border ${
+                className={`w-full bg-slate-950 border ${
                   phoneError 
                     ? 'border-red-500' 
                     : formData.proprietor_phone && validatePhoneNumber(formData.proprietor_phone)
                     ? 'border-green-500'
-                    : 'border-gray-800'
+                    : 'border-slate-800'
                 } text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary`}
                 placeholder="+91 9876543210"
             />
@@ -447,22 +447,22 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
         </div>
 
         <div>
-            <label className="block text-text-secondary mb-2">Proprietor Email</label>
+            <label className="block text-slate-400 mb-2">Proprietor Email</label>
             <input
                 type="email"
                 value={formData.proprietor_email || ''}
                 onChange={(e) => setFormData({ ...formData, proprietor_email: e.target.value })}
-                className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
                 placeholder="owner@example.com"
             />
         </div>
 
         <div>
-            <label className="block text-text-secondary mb-2">Proprietor Address</label>
+            <label className="block text-slate-400 mb-2">Proprietor Address</label>
             <textarea
                 value={formData.proprietor_address || ''}
                 onChange={(e) => setFormData({ ...formData, proprietor_address: e.target.value })}
-                className="w-full bg-background border border-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary"
                 placeholder="Full address of the channel owner"
                 rows={3}
             />
@@ -552,7 +552,7 @@ export default function ChannelForm({ initialData, isEditing = false }: ChannelF
 
         {/* Platform Restrictions */}
         <div className="md:col-span-2">
-             <label className="block text-text-secondary mb-4 font-semibold">Allowed Platforms</label>
+             <label className="block text-slate-400 mb-4 font-semibold">Allowed Platforms</label>
              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                  {[
                      { id: 'web', label: 'Web (OTT)', icon: Monitor },

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Eye, CreditCard, RefreshCcw, Wallet, ArrowUpRight, ArrowDownLeft, DollarSign } from 'lucide-react';
+import { Search, Eye, CreditCard, RefreshCcw, Wallet, ArrowUpRight, ArrowDownLeft, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import Modal from '@/components/ui/Modal';
@@ -20,7 +20,6 @@ interface UnifiedTransaction {
   customer_name: string;
   customer_phone: string;
   customer_uuid: string;
-  raw_response?: any; // For backward compatibility if needed, though raw query might not return it unless selected
 }
 
 interface Stats {
@@ -42,281 +41,213 @@ export default function TransactionsPage() {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const res = await adminApi.get(`/admin/transactions/unified`, {
-        params: { 
-            page,
-            search: search || undefined,
-            type: activeTab === 'all' ? undefined : activeTab,
-        },
+      const res = await adminApi.get('/admin/transactions/unified', {
+        params: { page, search: search || undefined, type: activeTab === 'all' ? undefined : activeTab },
       });
       setTransactions(res.data.data.data);
       setTotalPages(res.data.data.last_page);
       setStats(res.data.data.stats);
-    } catch (error) {
-      console.error('Failed to fetch transactions', error);
-      // @ts-ignore
-      const msg = error.response?.data?.message || error.message || 'Failed to load transactions';
-      toast.error(msg);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to load transactions');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    setPage(1);
-  }, [search, activeTab]);
+  useEffect(() => { setPage(1); }, [search, activeTab]);
+  useEffect(() => { fetchTransactions(); }, [page, search, activeTab]);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [page, search, activeTab]);
-
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case 'success': return 'bg-green-500/10 text-green-400';
-      case 'failed': return 'bg-red-500/10 text-red-400';
-      case 'pending': return 'bg-yellow-500/10 text-yellow-400';
-      case 'refunded': return 'bg-blue-500/10 text-blue-400';
-      default: return 'bg-gray-500/10 text-gray-400';
-    }
+  const statusStyle = (s: string) => {
+    const m: Record<string, string> = {
+      success: 'bg-green-500/15 text-green-400',
+      failed: 'bg-red-500/15 text-red-400',
+      pending: 'bg-yellow-500/15 text-yellow-400',
+      refunded: 'bg-blue-500/15 text-blue-400',
+    };
+    return m[s] || 'bg-slate-500/15 text-slate-400';
   };
 
-  const getSourceIcon = (type: string, method: string) => {
-    if (type === 'wallet') {
-        return <Wallet size={16} className="text-purple-400" />;
-    }
-    return <CreditCard size={16} className="text-blue-400" />;
-  };
+  const statCards = [
+    { label: 'Total Gateway Sales', value: stats.total_revenue, icon: DollarSign, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', badge: 'Net Revenue' },
+    { label: 'Wallet Loads (Credits)', value: stats.wallet_credits, icon: ArrowDownLeft, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', badge: '' },
+    { label: 'Wallet Spend (Debits)', value: stats.wallet_debits, icon: ArrowUpRight, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20', badge: '' },
+  ];
+
+  const tabs = [
+    { key: 'all', label: 'All Activity' },
+    { key: 'payment', label: 'Gateway' },
+    { key: 'wallet', label: 'Wallet' },
+  ] as const;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between animate-fade-up" style={{ animationDelay: '0.05s' }}>
         <div>
-            <h1 className="text-3xl font-bold text-white">Financial Activity</h1>
-            <p className="text-text-secondary mt-1">Monitor all payments and wallet transactions</p>
+          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Financial Activity</h1>
+          <p className="text-slate-400 text-sm mt-1">Monitor payments and wallet transactions</p>
         </div>
-        <button 
-          onClick={() => fetchTransactions()}
-          className="p-2 bg-gray-800 text-text-secondary rounded-lg hover:text-white transition-colors"
-          title="Refresh"
-        >
-          <RefreshCcw size={20} />
+        <button onClick={() => fetchTransactions()}
+          className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition-colors" title="Refresh">
+          <RefreshCcw size={18} />
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-            <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-green-500/10 rounded-lg">
-                    <DollarSign className="text-green-400" size={24} />
-                </div>
-                <span className="text-xs font-medium text-green-400 bg-green-500/10 px-2 py-1 rounded">Net Revenue</span>
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-up" style={{ animationDelay: '0.12s' }}>
+        {statCards.map(({ label, value, icon: Icon, color, bg, border, badge }) => (
+          <div key={label} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className={`w-10 h-10 ${bg} border ${border} rounded-xl flex items-center justify-center`}>
+                <Icon size={20} className={color} />
+              </div>
+              {badge && <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${bg} ${color}`}>{badge}</span>}
             </div>
-            <h3 className="text-text-secondary text-sm">Total Gateway Sales</h3>
-            <p className="text-2xl font-bold text-white mt-1">₹{Number(stats.total_revenue).toLocaleString()}</p>
-        </div>
-
-        <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-            <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-500/10 rounded-lg">
-                    <ArrowDownLeft className="text-blue-400" size={24} />
-                </div>
-            </div>
-            <h3 className="text-text-secondary text-sm">Wallet Loads (Credits)</h3>
-            <p className="text-2xl font-bold text-white mt-1">₹{Number(stats.wallet_credits).toLocaleString()}</p>
-        </div>
-
-        <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-            <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-purple-500/10 rounded-lg">
-                    <ArrowUpRight className="text-purple-400" size={24} />
-                </div>
-            </div>
-            <h3 className="text-text-secondary text-sm">Wallet Spend (Debits)</h3>
-            <p className="text-2xl font-bold text-white mt-1">₹{Number(stats.wallet_debits).toLocaleString()}</p>
-        </div>
+            <p className="text-slate-400 text-xs mb-0.5">{label}</p>
+            <p className="text-2xl font-black text-white">₹{Number(value).toLocaleString()}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Controls */}
-      <div className="bg-background-card p-1 rounded-lg border border-gray-800 mb-6 inline-flex">
-          <button 
-            onClick={() => setActiveTab('all')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'all' ? 'bg-gray-800 text-white shadow-sm' : 'text-text-secondary hover:text-white'}`}
-          >
-            All Activity
-          </button>
-          <button 
-            onClick={() => setActiveTab('payment')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'payment' ? 'bg-gray-800 text-white shadow-sm' : 'text-text-secondary hover:text-white'}`}
-          >
-            Gateway Payments
-          </button>
-          <button 
-            onClick={() => setActiveTab('wallet')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'wallet' ? 'bg-gray-800 text-white shadow-sm' : 'text-text-secondary hover:text-white'}`}
-          >
-            Wallet Logs
-          </button>
-      </div>
-
-      {/* Search */}
-      <div className="bg-background-card p-4 rounded-lg border border-gray-800 mb-6">
-        <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" size={20} />
-            <input 
-                type="text" 
-                placeholder="Search by customer, phone, or reference ID..." 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-background border border-gray-800 text-white pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:border-primary"
-            />
+      {/* Tabs + Search */}
+      <div className="flex flex-col sm:flex-row gap-3 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+        <div className="flex bg-slate-900/80 border border-slate-800 rounded-xl p-1 gap-1">
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setActiveTab(t.key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === t.key ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input
+            type="text"
+            placeholder="Search by customer, phone, or reference..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full bg-slate-900/80 border border-slate-800 text-white pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all placeholder:text-slate-600"
+          />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-background-card rounded-lg border border-gray-800 overflow-hidden">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden animate-fade-up" style={{ animationDelay: '0.28s' }}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-800/50 text-text-secondary uppercase font-medium">
-              <tr>
-                <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Customer</th>
-                <th className="px-6 py-4">Description / Reference</th>
-                <th className="px-6 py-4 text-right">Amount</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4">Action</th>
+            <thead>
+              <tr className="border-b border-slate-800 bg-slate-800/40">
+                {['Type', 'Customer', 'Description', 'Amount', 'Status', 'Date', ''].map((h, i) => (
+                  <th key={i} className="px-5 py-3.5 text-slate-400 font-semibold text-xs uppercase tracking-wider">{h}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-slate-800/60">
               {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-text-secondary italic">Loading activity...</td>
-                </tr>
+                <tr><td colSpan={7} className="px-5 py-12 text-center">
+                  <div className="flex flex-col items-center gap-2 text-slate-500">
+                    <svg className="animate-spin h-6 w-6 text-primary" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                    <span className="text-sm">Loading transactions...</span>
+                  </div>
+                </td></tr>
               ) : transactions.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-text-secondary italic">No records found</td>
-                </tr>
-              ) : (
-                transactions.map((tx) => (
-                  <tr key={`${tx.source_type}-${tx.id}`} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg ${tx.source_type === 'wallet' ? 'bg-purple-500/10' : 'bg-blue-500/10'}`}>
-                            {getSourceIcon(tx.source_type, tx.method)}
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-white font-medium capitalize">{tx.source_type}</span>
-                            <span className="text-[10px] text-text-secondary uppercase">{tx.method}</span>
-                        </div>
+                <tr><td colSpan={7} className="px-5 py-12 text-center text-slate-500 text-sm">No records found</td></tr>
+              ) : transactions.map(tx => (
+                <tr key={`${tx.source_type}-${tx.id}`} className="hover:bg-slate-800/30 transition-colors">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`p-1.5 rounded-lg ${tx.source_type === 'wallet' ? 'bg-purple-500/10' : 'bg-blue-500/10'}`}>
+                        {tx.source_type === 'wallet' ? <Wallet size={15} className="text-purple-400" /> : <CreditCard size={15} className="text-blue-400" />}
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-white font-medium">{tx.customer_name || 'Unknown'}</div>
-                      <div className="text-xs text-text-secondary">{tx.customer_phone}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-white max-w-[200px] truncate" title={tx.description}>{tx.description}</div>
-                      <div className="text-xs text-text-secondary font-mono mt-0.5">{tx.reference || '-'}</div>
-                    </td>
-                    <td className={`px-6 py-4 text-right font-bold ${
-                        tx.method === 'debit' ? 'text-white' : 'text-green-400'
-                    }`}>
-                      {tx.method === 'debit' ? '-' : '+'}
-                      {tx.currency} {Number(tx.amount).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getStatusStyle(tx.status)}`}>
-                        {tx.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-text-secondary">
-                      {format(new Date(tx.created_at), 'MMM dd, HH:mm')}
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => setSelectedTransaction(tx)}
-                        className="p-1.5 hover:bg-white/10 rounded text-text-secondary hover:text-white transition-colors"
-                      >
-                        <Eye size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+                      <div>
+                        <p className="text-white font-medium text-sm capitalize">{tx.source_type}</p>
+                        <p className="text-slate-500 text-xs uppercase">{tx.method}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <p className="text-white font-medium text-sm">{tx.customer_name || 'Unknown'}</p>
+                    <p className="text-slate-500 text-xs">{tx.customer_phone}</p>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <p className="text-white text-sm max-w-[180px] truncate" title={tx.description}>{tx.description}</p>
+                    <p className="text-slate-500 text-xs font-mono">{tx.reference || '—'}</p>
+                  </td>
+                  <td className={`px-5 py-3.5 font-bold text-sm ${tx.method === 'debit' ? 'text-white' : 'text-green-400'}`}>
+                    {tx.method === 'debit' ? '−' : '+'}{tx.currency} {Number(tx.amount).toFixed(2)}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold uppercase ${statusStyle(tx.status)}`}>{tx.status}</span>
+                  </td>
+                  <td className="px-5 py-3.5 text-slate-400 text-xs whitespace-nowrap">
+                    {format(new Date(tx.created_at), 'MMM dd, HH:mm')}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <button onClick={() => setSelectedTransaction(tx)}
+                      className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors">
+                      <Eye size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination */}
-        <div className="p-4 border-t border-gray-800 flex justify-between items-center">
-            <button 
-                disabled={page <= 1}
-                onClick={() => setPage(p => p - 1)}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors text-sm"
-            >
-                Previous
-            </button>
-            <span className="text-text-secondary text-sm">Page {page} of {totalPages}</span>
-            <button 
-                disabled={page >= totalPages}
-                onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg disabled:opacity-50 hover:bg-gray-700 transition-colors text-sm"
-            >
-                Next
-            </button>
+
+        <div className="flex items-center justify-between px-5 py-4 border-t border-slate-800">
+          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm rounded-xl transition-all">
+            <ChevronLeft size={15} /> Previous
+          </button>
+          <span className="text-slate-400 text-sm">Page <span className="text-white font-semibold">{page}</span> of <span className="text-white font-semibold">{totalPages}</span></span>
+          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm rounded-xl transition-all">
+            Next <ChevronRight size={15} />
+          </button>
         </div>
       </div>
 
-      <Modal
-        isOpen={!!selectedTransaction}
-        onClose={() => setSelectedTransaction(null)}
-        title="Transaction Details"
-      >
+      {/* Detail Modal */}
+      <Modal isOpen={!!selectedTransaction} onClose={() => setSelectedTransaction(null)} title="Transaction Details">
         {selectedTransaction && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-background rounded-lg border border-gray-800">
-                <p className="text-xs text-text-secondary mb-1">Status</p>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getStatusStyle(selectedTransaction.status)}`}>
-                  {selectedTransaction.status}
-                </span>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700">
+                <p className="text-xs text-slate-400 mb-1">Status</p>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold uppercase ${statusStyle(selectedTransaction.status)}`}>{selectedTransaction.status}</span>
               </div>
-              <div className="p-3 bg-background rounded-lg border border-gray-800">
-                <p className="text-xs text-text-secondary mb-1">Amount</p>
+              <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700">
+                <p className="text-xs text-slate-400 mb-1">Amount</p>
                 <p className="text-lg font-bold text-white">{selectedTransaction.currency} {selectedTransaction.amount}</p>
               </div>
             </div>
-
-            <div className="p-4 bg-background rounded-lg border border-gray-800 space-y-3">
-                 <div className="flex justify-between text-sm">
-                  <span className="text-text-secondary">Type</span>
-                  <span className="text-white capitalize">{selectedTransaction.source_type} ({selectedTransaction.method})</span>
+            <div className="p-4 bg-slate-800/40 rounded-xl border border-slate-700 space-y-2.5 text-sm">
+              {[
+                ['Type', `${selectedTransaction.source_type} (${selectedTransaction.method})`],
+                ['Description', selectedTransaction.description],
+                ['Reference', selectedTransaction.reference],
+                ['Date', new Date(selectedTransaction.created_at).toLocaleString()],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-4">
+                  <span className="text-slate-400 shrink-0">{k}</span>
+                  <span className="text-white text-right capitalize">{v}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-secondary">Description</span>
-                  <span className="text-white text-right">{selectedTransaction.description}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-secondary">Reference ID</span>
-                  <span className="text-white font-mono">{selectedTransaction.reference}</span>
-                </div>
-                 <div className="flex justify-between text-sm">
-                  <span className="text-text-secondary">Date</span>
-                  <span className="text-white">{new Date(selectedTransaction.created_at).toLocaleString()}</span>
-                </div>
+              ))}
             </div>
-
-            <div className="p-4 bg-background rounded-lg border border-gray-800 space-y-3">
-                <h4 className="text-sm font-bold text-white border-b border-gray-700 pb-2 mb-2">Customer Info</h4>
-                 <div className="flex justify-between text-sm">
-                  <span className="text-text-secondary">Name</span>
-                  <span className="text-white">{selectedTransaction.customer_name}</span>
+            <div className="p-4 bg-slate-800/40 rounded-xl border border-slate-700 space-y-2.5 text-sm">
+              <p className="text-xs font-bold text-white uppercase tracking-wider mb-2">Customer</p>
+              {[
+                ['Name', selectedTransaction.customer_name],
+                ['Phone', selectedTransaction.customer_phone],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between">
+                  <span className="text-slate-400">{k}</span>
+                  <span className="text-white">{v}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-secondary">Phone</span>
-                  <span className="text-white">{selectedTransaction.customer_phone}</span>
-                </div>
+              ))}
             </div>
           </div>
         )}

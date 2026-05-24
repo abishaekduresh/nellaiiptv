@@ -180,9 +180,9 @@ export default function SettingsPage() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2">System Settings</h1>
-        <p className="text-slate-400">Manage your application configuration, branding, and platform availability</p>
+      <div className="mb-8 animate-fade-up">
+        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">System Settings</h1>
+        <p className="text-slate-400 text-sm mt-1">Manage application configuration, branding, and platform availability</p>
       </div>
       
       {/* General Settings */}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Hash, CheckCircle, Monitor, Smartphone, Tv } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import { SubscriptionPlan } from '@/types';
@@ -19,156 +19,164 @@ export default function PlansPage() {
     try {
       const res = await adminApi.get('/admin/plans');
       setPlans(res.data.data);
-    } catch (error) {
-      console.error('Failed to fetch plans', error);
-      toast.error('Failed to load subscription plans');
+    } catch {
+      toast.error('Failed to load plans');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchPlans();
-  }, []);
-
-  const handleCreate = () => {
-    setSelectedPlan(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEdit = (uuid: string) => {
-    setSelectedPlan(uuid);
-    setIsModalOpen(true);
-  };
+  useEffect(() => { fetchPlans(); }, []);
 
   const handleDelete = async (uuid: string) => {
-    if (!confirm('Are you sure you want to delete this plan?')) return;
+    if (!confirm('Delete this plan?')) return;
     try {
       await adminApi.delete(`/admin/plans/${uuid}`);
-      toast.success('Plan deleted successfully');
+      toast.success('Plan deleted');
       fetchPlans();
     } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Failed to delete plan');
+      toast.error(error.response?.data?.message || 'Failed to delete plan');
     }
   };
 
-  const handleFormSuccess = () => {
-    setIsModalOpen(false);
-    fetchPlans();
+  const platformIcon = (p: string) => {
+    if (p === 'web') return <Monitor size={12} />;
+    if (p === 'tv') return <Tv size={12} />;
+    return <Smartphone size={12} />;
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">Subscription Plans</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between animate-fade-up" style={{ animationDelay: '0.05s' }}>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Subscription Plans</h1>
+          <p className="text-slate-400 text-sm mt-1">Manage pricing plans for customers and resellers</p>
+        </div>
         <button
-          onClick={handleCreate}
-          className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          onClick={() => { setSelectedPlan(null); setIsModalOpen(true); }}
+          className="flex items-center gap-2 bg-primary hover:bg-cyan-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5"
         >
-          <Plus size={20} />
+          <Plus size={16} />
           Add Plan
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <div className="text-text-secondary">Loading...</div>
-        ) : plans.length === 0 ? (
-          <div className="text-text-secondary">No plans found. Create one!</div>
-        ) : (
-          plans.map((plan) => (
-            <div key={plan.uuid} className="bg-background-card border border-gray-800 rounded-lg p-6 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                     <button
-                        onClick={() => handleEdit(plan.uuid)}
-                        className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 p-2 rounded transition-colors"
-                        title="Edit"
-                    >
-                        <Edit size={16} />
-                    </button>
-                    <button
-                        onClick={() => handleDelete(plan.uuid)}
-                        className="bg-red-500/10 hover:bg-red-500/20 text-red-400 p-2 rounded transition-colors"
-                        title="Delete"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
+      {/* Plan grid */}
+      {loading ? (
+        <div className="flex items-center justify-center py-16 text-slate-500 animate-fade-up">
+          <svg className="animate-spin h-7 w-7 text-primary" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+          </svg>
+        </div>
+      ) : plans.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 py-16 text-slate-500 animate-fade-up">
+          <Hash size={32} className="opacity-30" />
+          <p className="text-sm">No plans found. Create one!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-up" style={{ animationDelay: '0.12s' }}>
+          {plans.map((plan) => (
+            <div key={plan.uuid} className="group bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-6 relative transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
+              {/* Actions */}
+              <div className="absolute top-4 right-4 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => { setSelectedPlan(plan.uuid); setIsModalOpen(true); }}
+                  className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors" title="Edit">
+                  <Edit size={14} />
+                </button>
+                <button onClick={() => handleDelete(plan.uuid)}
+                  className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors" title="Delete">
+                  <Trash2 size={14} />
+                </button>
+              </div>
 
-              <div className="mb-4 text-left">
-                <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+              {/* Plan name + badge */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-9 h-9 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shrink-0">
+                  <Hash size={16} className="text-primary" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-white font-bold">{plan.name}</h3>
                     {plan.is_popular && (
-                        <span className="bg-primary/20 text-primary text-[10px] font-bold uppercase px-2 py-0.5 rounded border border-primary/30">Popular</span>
+                      <span className="bg-primary/10 text-primary text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full border border-primary/20">Popular</span>
                     )}
+                  </div>
+                  <p className={`text-xs capitalize font-medium ${plan.status === 'active' ? 'text-green-400' : 'text-slate-500'}`}>{plan.status}</p>
                 </div>
-                <div className="space-y-1 mt-2">
-                    <div className="flex justify-between items-baseline">
-                        <span className="text-sm text-text-secondary font-normal">Retail Price</span>
-                        <span className="text-xl font-bold text-white">₹{plan.price}</span>
-                    </div>
-                    <div className="flex justify-between items-baseline">
-                        <span className="text-sm text-text-secondary font-normal">Reseller Price</span>
-                        <span className="text-xl font-bold text-primary">₹{plan.reseller_price || '0'}</span>
-                    </div>
-                    <div className="flex justify-between items-baseline pt-1 border-t border-gray-800">
-                        <span className="text-sm text-text-secondary font-normal">Margin</span>
-                        <span className="text-lg font-bold text-green-400">₹{(parseFloat(plan.price.toString()) - parseFloat((plan.reseller_price || '0').toString())).toFixed(2)}</span>
-                    </div>
-                </div>
-              </div>
-              
-              <div className="space-y-2 text-sm text-text-secondary mb-4">
-                  <div className="flex justify-between">
-                      <span>Duration</span>
-                      <span className="text-white">{plan.duration} Days</span>
-                  </div>
-                  <div className="flex justify-between">
-                      <span>Devices</span>
-                      <span className="text-white">{plan.device_limit}</span>
-                  </div>
-                  <div className="flex justify-between">
-                      <span>Status</span>
-                      <span className={plan.status === 'active' ? 'text-green-400' : 'text-gray-400'}>{plan.status}</span>
-                  </div>
-                  <div className="flex justify-between">
-                      <span>Visible To</span>
-                      <span className={`capitalize ${
-                          plan.show_to === 'reseller' ? 'text-blue-400' : 
-                          plan.show_to === 'customer' ? 'text-yellow-400' : 
-                          'text-white'
-                      }`}>{plan.show_to || 'Both'}</span>
-                  </div>
-                  {(plan.features && plan.features.length > 0) && (
-                      <div className="border-t border-gray-800 pt-2 mt-2">
-                          <span className="text-xs uppercase font-bold text-slate-500">Features Preview</span>
-                          <p className="line-clamp-2 text-xs mt-1 italic">{plan.features.join(', ')}</p>
-                      </div>
-                  )}
               </div>
 
-              <div className="flex flex-wrap gap-2 mt-4">
-                  {plan.platform_access && plan.platform_access.map(p => (
-                      <span key={p} className="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300 uppercase">
-                          {p}
-                      </span>
+              {/* Pricing */}
+              <div className="space-y-2 mb-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-sm">Retail</span>
+                  <span className="text-xl font-black text-white">₹{plan.price}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-sm">Reseller</span>
+                  <span className="text-lg font-bold text-primary">₹{plan.reseller_price || '0'}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-slate-700/50">
+                  <span className="text-slate-400 text-sm">Margin</span>
+                  <span className="text-green-400 font-bold">
+                    ₹{(parseFloat(plan.price.toString()) - parseFloat((plan.reseller_price || '0').toString())).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Meta */}
+              <div className="space-y-1.5 text-sm mb-4">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Duration</span>
+                  <span className="text-white font-medium">{plan.duration} days</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Devices</span>
+                  <span className="text-white font-medium">{plan.device_limit}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Visible to</span>
+                  <span className={`font-medium capitalize ${
+                    plan.show_to === 'reseller' ? 'text-blue-400'
+                    : plan.show_to === 'customer' ? 'text-yellow-400'
+                    : 'text-white'
+                  }`}>{plan.show_to || 'Both'}</span>
+                </div>
+              </div>
+
+              {/* Features */}
+              {plan.features && plan.features.length > 0 && (
+                <div className="mb-4 space-y-1">
+                  {plan.features.slice(0, 3).map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 text-slate-300 text-xs">
+                      <CheckCircle size={11} className="text-green-400 shrink-0" />
+                      {f}
+                    </div>
                   ))}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+                  {plan.features.length > 3 && (
+                    <p className="text-xs text-slate-500 pl-5">+{plan.features.length - 3} more</p>
+                  )}
+                </div>
+              )}
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={selectedPlan ? 'Edit Plan' : 'Create Plan'}
-      >
-        <PlanForm
-          planUuid={selectedPlan}
-          onSuccess={handleFormSuccess}
-          onCancel={() => setIsModalOpen(false)}
-        />
+              {/* Platforms */}
+              {plan.platform_access && plan.platform_access.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-3 border-t border-slate-800">
+                  {plan.platform_access.map(p => (
+                    <span key={p} className="flex items-center gap-1 bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg text-xs font-medium uppercase">
+                      {platformIcon(p)} {p}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={selectedPlan ? 'Edit Plan' : 'Create Plan'}>
+        <PlanForm planUuid={selectedPlan} onSuccess={() => { setIsModalOpen(false); fetchPlans(); }} onCancel={() => setIsModalOpen(false)} />
       </Modal>
     </div>
   );

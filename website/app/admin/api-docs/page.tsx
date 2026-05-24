@@ -379,7 +379,7 @@ export default function ApiDocsPage() {
         <h1 className="text-3xl font-bold text-white flex items-center gap-2">
           <Globe className="w-8 h-8 text-primary" /> API Documentation
         </h1>
-        <p className="text-text-secondary mt-2 max-w-2xl">
+        <p className="text-slate-400 mt-2 max-w-2xl">
           Comprehensive guide to all available API endpoints, including required payloads and expected responses.
           <br/>
           <span className="text-primary text-sm font-medium mt-1 inline-block">
@@ -390,7 +390,7 @@ export default function ApiDocsPage() {
 
       <div className="space-y-6">
         {apiData.map((category) => (
-          <div key={category.name} className="bg-background-card border border-gray-800 rounded-xl overflow-hidden">
+          <div key={category.name} className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
             <button 
               onClick={() => toggleCategory(category.name)}
               className="w-full flex items-center justify-between p-6 hover:bg-white/5 transition-colors text-left"
@@ -400,7 +400,7 @@ export default function ApiDocsPage() {
             </button>
 
             {openCategory === category.name && (
-              <div className="border-t border-gray-800 divide-y divide-gray-800">
+              <div className="border-t border-slate-800 divide-y divide-slate-800">
                 {category.endpoints.map((endpoint, idx) => {
                   const endpointId = `${category.name}-${idx}`;
                   const isOpen = openEndpoint === endpointId;
@@ -428,7 +428,7 @@ export default function ApiDocsPage() {
                       </button>
 
                       {isOpen && (
-                        <div className="p-4 pl-6 bg-black/40 border-t border-gray-800 space-y-4">
+                        <div className="p-4 pl-6 bg-black/40 border-t border-slate-800 space-y-4">
                           <p className="text-sm text-gray-400">{endpoint.description || endpoint.title}</p>
                           
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -441,7 +441,7 @@ export default function ApiDocsPage() {
                                     <Copy size={12} />
                                   </button>
                                 </div>
-                                <pre className="bg-[#0d1117] rounded-lg p-3 text-xs text-orange-300 font-mono overflow-auto max-h-60 border border-gray-800 custom-scrollbar">
+                                <pre className="bg-[#0d1117] rounded-lg p-3 text-xs text-orange-300 font-mono overflow-auto max-h-60 border border-slate-800 custom-scrollbar">
                                   {JSON.stringify(endpoint.headers, null, 2)}
                                 </pre>
                               </div>
@@ -455,7 +455,7 @@ export default function ApiDocsPage() {
                                     <Copy size={12} />
                                   </button>
                                 </div>
-                                <pre className="bg-[#0d1117] rounded-lg p-3 text-xs text-blue-300 font-mono overflow-auto max-h-60 border border-gray-800 custom-scrollbar">
+                                <pre className="bg-[#0d1117] rounded-lg p-3 text-xs text-blue-300 font-mono overflow-auto max-h-60 border border-slate-800 custom-scrollbar">
                                   {JSON.stringify(endpoint.queryParams, null, 2)}
                                 </pre>
                               </div>
@@ -469,7 +469,7 @@ export default function ApiDocsPage() {
                                     <Copy size={12} />
                                   </button>
                                 </div>
-                                <pre className="bg-[#0d1117] rounded-lg p-3 text-xs text-gray-300 font-mono overflow-auto max-h-60 border border-gray-800 custom-scrollbar">
+                                <pre className="bg-[#0d1117] rounded-lg p-3 text-xs text-gray-300 font-mono overflow-auto max-h-60 border border-slate-800 custom-scrollbar">
                                   {JSON.stringify(endpoint.payload, null, 2)}
                                 </pre>
                               </div>
@@ -482,7 +482,7 @@ export default function ApiDocsPage() {
                                   <Copy size={12} />
                                 </button>
                               </div>
-                              <pre className="bg-[#0d1117] rounded-lg p-3 text-xs text-green-400/80 font-mono overflow-auto max-h-60 border border-gray-800 custom-scrollbar">
+                              <pre className="bg-[#0d1117] rounded-lg p-3 text-xs text-green-400/80 font-mono overflow-auto max-h-60 border border-slate-800 custom-scrollbar">
                                 {JSON.stringify(endpoint.response, null, 2)}
                               </pre>
                             </div>

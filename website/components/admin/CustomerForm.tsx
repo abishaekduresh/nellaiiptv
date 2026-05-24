@@ -106,7 +106,7 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
   };
 
   if (fetching) {
-      return <div className="p-8 text-center text-text-secondary">Loading customer details...</div>;
+      return <div className="p-8 text-center text-slate-400">Loading customer details...</div>;
   }
 
   return (
@@ -114,11 +114,11 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
       
       {/* Name */}
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Name</label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Name</label>
         <input
           {...register('name')}
           type="text"
-          className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+          className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
           placeholder="Enter full name"
         />
         {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
@@ -126,11 +126,11 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
 
       {/* Phone */}
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Phone</label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Phone</label>
         <input
           {...register('phone')}
           type="text" // Input is text, but safely coerced to number by zod
-          className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+          className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
           placeholder="Enter phone number"
         />
         {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone.message}</p>}
@@ -138,11 +138,11 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
 
       {/* Email */}
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Email <span className="text-xs text-gray-500">(Optional)</span></label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Email <span className="text-xs text-gray-500">(Optional)</span></label>
         <input
           {...register('email')}
           type="email"
-          className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+          className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
           placeholder="Enter email address"
         />
         {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
@@ -150,7 +150,7 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
 
       {/* Password */}
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">
+        <label className="block text-sm font-medium text-slate-400 mb-1">
             {customerUuid ? 'New Password' : 'Password'} <span className="text-xs text-gray-500">
                 {customerUuid ? '(Leave blank to keep current)' : '(Optional)'}
             </span>
@@ -158,7 +158,7 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
         <input
           {...register('password')}
           type="password"
-          className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+          className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
           placeholder={customerUuid ? "Enter to change password" : "Enter password"}
         />
         {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
@@ -166,10 +166,10 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
 
       {/* Role */}
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Role</label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Role</label>
         <select
           {...register('role')}
-          className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+          className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
         >
           <option value="customer">Customer</option>
           <option value="reseller">Reseller</option>
@@ -179,10 +179,10 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
 
       {/* Status */}
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Status</label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Status</label>
         <select
           {...register('status')}
-          className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+          className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
         >
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
@@ -194,10 +194,10 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
       {/* Subscription Plan */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-text-secondary mb-1">Subscription Plan</label>
+          <label className="block text-sm font-medium text-slate-400 mb-1">Subscription Plan</label>
           <select
             {...register('plan_uuid')}
-            className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+            className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
           >
             <option value="">No Plan</option>
             {plans.map(plan => (
@@ -209,17 +209,17 @@ export default function CustomerForm({ customerUuid, onSuccess, onCancel }: Cust
         </div>
 
         <div>
-           <label className="block text-sm font-medium text-text-secondary mb-1">Expiry Date</label>
+           <label className="block text-sm font-medium text-slate-400 mb-1">Expiry Date</label>
            <input
              {...register('subscription_expires_at')}
              type="datetime-local"
-             className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+             className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
            />
            <p className="text-xs text-gray-500 mt-1">Leave blank to auto-calculate if plan selected</p>
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+      <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
         <button
           type="button"
           onClick={onCancel}

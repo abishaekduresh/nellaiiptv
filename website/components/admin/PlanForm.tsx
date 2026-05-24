@@ -107,21 +107,21 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Plan Name</label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Plan Name</label>
         <input
           type="text"
           name="name"
           value={formData.name}
           onChange={handleChange}
           required
-          className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+          className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
           placeholder="e.g. Premium Monthly"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">Retail Price</label>
+            <label className="block text-sm font-medium text-slate-400 mb-1">Retail Price</label>
             <input
               type="number"
               name="price"
@@ -129,12 +129,12 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
               onChange={handleChange}
               required
               step="0.01"
-              className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
               placeholder="e.g. 9.99"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">Reseller Price</label>
+            <label className="block text-sm font-medium text-slate-400 mb-1">Reseller Price</label>
             <input
               type="number"
               name="reseller_price"
@@ -142,7 +142,7 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
               onChange={handleChange}
               required
               step="0.01"
-              className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
               placeholder="e.g. 7.99"
             />
           </div>
@@ -150,19 +150,19 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
 
       <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">Duration (days)</label>
+            <label className="block text-sm font-medium text-slate-400 mb-1">Duration (days)</label>
             <input
               type="number"
               name="duration"
               value={formData.duration}
               onChange={handleChange}
               required
-              className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
               placeholder="e.g. 30"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">Device Limit</label>
+            <label className="block text-sm font-medium text-slate-400 mb-1">Device Limit</label>
             <input
               type="number"
               name="device_limit"
@@ -170,13 +170,13 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
               onChange={handleChange}
               required
               min="1"
-              className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
             />
           </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Platform Access</label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Platform Access</label>
         <div className="flex flex-wrap gap-3">
             {PLATFORMS.map(platform => (
                 <button
@@ -186,7 +186,7 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
                     className={`px-3 py-1 rounded text-sm transition-colors ${
                         formData.platform_access.includes(platform)
                             ? 'bg-primary text-white'
-                            : 'bg-gray-800 text-text-secondary hover:bg-gray-700'
+                            : 'bg-gray-800 text-slate-400 hover:bg-gray-700'
                     }`}
                 >
                     {platform.toUpperCase()}
@@ -196,25 +196,25 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Features (one per line)</label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Features (one per line)</label>
         <textarea
           name="features"
           value={formData.features}
           onChange={handleChange}
           rows={4}
-          className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary font-mono text-sm"
+          className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary font-mono text-sm"
           placeholder="High Quality Streams&#10;All Devices Support&#10;24/7 Support"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Description (Internal Notes)</label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Description (Internal Notes)</label>
         <textarea
           name="description"
           value={formData.description}
           onChange={handleChange}
           rows={2}
-          className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+          className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
           placeholder="Internal notes about this plan..."
         />
       </div>
@@ -226,18 +226,18 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
           id="is_popular"
           checked={formData.is_popular}
           onChange={handleChange}
-          className="w-4 h-4 rounded border-gray-800 text-primary focus:ring-primary bg-background"
+          className="w-4 h-4 rounded border-slate-800 text-primary focus:ring-primary bg-slate-950"
         />
-        <label htmlFor="is_popular" className="text-sm font-medium text-text-secondary cursor-pointer">Mark as Popular Plan</label>
+        <label htmlFor="is_popular" className="text-sm font-medium text-slate-400 cursor-pointer">Mark as Popular Plan</label>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Status</label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Status</label>
         <select
           name="status"
           value={formData.status}
           onChange={handleChange}
-          className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+          className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
         >
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
@@ -245,12 +245,12 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Visible To</label>
+        <label className="block text-sm font-medium text-slate-400 mb-1">Visible To</label>
         <select
           name="show_to"
           value={formData.show_to}
           onChange={handleChange}
-          className="w-full bg-background border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
+          className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
         >
           <option value="both">Both (Everyone)</option>
           <option value="customer">Customers Only</option>
@@ -258,11 +258,11 @@ export default function PlanForm({ planUuid, onSuccess, onCancel }: PlanFormProp
         </select>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+      <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-text-secondary hover:text-white transition-colors"
+          className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
           disabled={loading}
         >
           Cancel

@@ -14,7 +14,7 @@ export default function WalletCard({ balance, onFundsAdded }: WalletCardProps) {
 
   return (
     <>
-      <div className="bg-background-card rounded-lg border border-gray-800 p-6">
+      <div className="bg-slate-900/80 rounded-lg border border-slate-800 p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="p-3 bg-purple-500/10 rounded-lg">
             <Wallet className="text-purple-400" size={24} />
@@ -27,9 +27,9 @@ export default function WalletCard({ balance, onFundsAdded }: WalletCardProps) {
             Add Funds
           </button>
         </div>
-        <h3 className="text-text-secondary text-sm mb-1">Wallet Balance</h3>
+        <h3 className="text-slate-400 text-sm mb-1">Wallet Balance</h3>
         <p className="text-3xl font-bold text-white">₹{Number(balance).toFixed(2)}</p>
-        <p className="text-xs text-text-secondary mt-1">Available for purchases</p>
+        <p className="text-xs text-slate-400 mt-1">Available for purchases</p>
       </div>
 
       <AddFundsModal 

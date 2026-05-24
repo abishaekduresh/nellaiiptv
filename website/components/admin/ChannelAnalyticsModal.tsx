@@ -123,10 +123,10 @@ export default function ChannelAnalyticsModal({ uuid, isOpen, onClose }: Props) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-[#0f172a] border border-gray-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div className="bg-[#0f172a] border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800 bg-[#1e293b]/50">
+        <div className="flex items-center justify-between p-6 border-b border-slate-800 bg-[#1e293b]/50">
           <div className="flex items-center gap-4">
              {loading ? (
                  <div className="h-12 w-12 bg-gray-800 rounded animate-pulse" />
@@ -162,7 +162,7 @@ export default function ChannelAnalyticsModal({ uuid, isOpen, onClose }: Props) 
                 <>
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="bg-[#1e293b] p-4 rounded-xl border border-gray-800">
+                        <div className="bg-[#1e293b] p-4 rounded-xl border border-slate-800">
                             <div className="text-slate-400 text-sm mb-1 flex items-center gap-2">
                                 <Eye size={16} /> Total Views
                             </div>
@@ -174,7 +174,7 @@ export default function ChannelAnalyticsModal({ uuid, isOpen, onClose }: Props) 
                             </div>
                         </div>
 
-                        <div className="bg-[#1e293b] p-4 rounded-xl border border-gray-800">
+                        <div className="bg-[#1e293b] p-4 rounded-xl border border-slate-800">
                              <div className="text-slate-400 text-sm mb-1 flex items-center gap-2">
                                 <Star size={16} className="text-yellow-500" /> Avg Rating
                             </div>
@@ -183,7 +183,7 @@ export default function ChannelAnalyticsModal({ uuid, isOpen, onClose }: Props) 
                             </div>
                         </div>
 
-                        <div className="bg-[#1e293b] p-4 rounded-xl border border-gray-800">
+                        <div className="bg-[#1e293b] p-4 rounded-xl border border-slate-800">
                             <div className="text-slate-400 text-sm mb-1">
                                 30-Day Trend
                             </div>
@@ -197,7 +197,7 @@ export default function ChannelAnalyticsModal({ uuid, isOpen, onClose }: Props) 
                     </div>
 
                     {/* Chart */}
-                    <div className="bg-[#1e293b] p-6 rounded-xl border border-gray-800 h-[400px]">
+                    <div className="bg-[#1e293b] p-6 rounded-xl border border-slate-800 h-[400px]">
                         <h3 className="text-lg font-semibold text-white mb-4">Views Overview (Last 30 Days)</h3>
                         <div className="relative h-full pb-8">
                              <Bar data={chartData} options={chartOptions} />

@@ -121,11 +121,11 @@ export default function ResellerCustomersPage() {
     <div className="p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">My Customers</h1>
-        <p className="text-text-secondary">Manage and assign plans to your customers</p>
+        <p className="text-slate-400">Manage and assign plans to your customers</p>
       </div>
 
       {/* Phone Search */}
-      <div className="bg-background-card rounded-lg border border-gray-800 p-6 mb-6">
+      <div className="bg-slate-900/80 rounded-lg border border-slate-800 p-6 mb-6">
         <h2 className="text-xl font-semibold text-white mb-4">Search Customer by Phone</h2>
         <div className="flex gap-3">
           <div className="flex-1">
@@ -140,7 +140,7 @@ export default function ResellerCustomersPage() {
               onKeyPress={(e) => e.key === 'Enter' && handleSearchByPhone()}
               placeholder="Enter exact phone number..."
               pattern="[0-9]*"
-              className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+              className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
             />
           </div>
           <button
@@ -170,9 +170,9 @@ export default function ResellerCustomersPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-text-secondary">{searchedCustomer.phone}</p>
+                <p className="text-sm text-slate-400">{searchedCustomer.phone}</p>
                 {searchedCustomer.email && (
-                  <p className="text-sm text-text-secondary">{searchedCustomer.email}</p>
+                  <p className="text-sm text-slate-400">{searchedCustomer.email}</p>
                 )}
                 <div className="mt-2">
                   {searchedCustomer.plan ? (
@@ -201,42 +201,42 @@ export default function ResellerCustomersPage() {
             <h3 className="text-white font-semibold mb-4">Create New Customer</h3>
             <form onSubmit={handleCreateCustomer} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1">Name *</label>
+                <label className="block text-sm font-medium text-slate-400 mb-1">Name *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                  className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1">Phone *</label>
+                <label className="block text-sm font-medium text-slate-400 mb-1">Phone *</label>
                 <input
                   type="text"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   required
-                  className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                  className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1">Email</label>
+                <label className="block text-sm font-medium text-slate-400 mb-1">Email</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                  className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1">Password *</label>
+                <label className="block text-sm font-medium text-slate-400 mb-1">Password *</label>
                 <input
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
-                  className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+                  className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
                 />
               </div>
               <div className="flex gap-3">
@@ -261,13 +261,13 @@ export default function ResellerCustomersPage() {
       </div>
 
       {/* Customers List */}
-      <div className="bg-background-card rounded-lg border border-gray-800 overflow-hidden">
-        <div className="p-4 border-b border-gray-800">
+      <div className="bg-slate-900/80 rounded-lg border border-slate-800 overflow-hidden">
+        <div className="p-4 border-b border-slate-800">
           <h2 className="text-xl font-semibold text-white">All Customers</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-gray-800/50 text-text-secondary text-sm uppercase">
+            <thead className="bg-gray-800/50 text-slate-400 text-sm uppercase">
               <tr>
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Contact</th>
@@ -276,10 +276,10 @@ export default function ResellerCustomersPage() {
                 <th className="px-6 py-4">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-slate-800">
               {customers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-text-secondary">
+                  <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
                     No customers found
                   </td>
                 </tr>
@@ -289,10 +289,10 @@ export default function ResellerCustomersPage() {
                     <td className="px-6 py-4">
                       <div className="font-medium text-white">{customer.name}</div>
                       {customer.email && (
-                        <div className="text-xs text-text-secondary">{customer.email}</div>
+                        <div className="text-xs text-slate-400">{customer.email}</div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-text-secondary">{customer.phone}</td>
+                    <td className="px-6 py-4 text-slate-400">{customer.phone}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
                         customer.plan
@@ -302,7 +302,7 @@ export default function ResellerCustomersPage() {
                         {customer.plan?.name || 'No Plan'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-text-secondary">
+                    <td className="px-6 py-4 text-slate-400">
                       {customer.subscription_expires_at
                         ? new Date(customer.subscription_expires_at).toLocaleDateString()
                         : '-'}

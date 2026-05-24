@@ -127,10 +127,10 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
     }
   };
 
-  const inputCls = 'w-full bg-background border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors';
-  const labelCls = 'block text-sm font-medium text-text-secondary mb-1';
-  const sectionCls = 'border border-gray-800 rounded-lg p-5 space-y-4';
-  const sectionTitle = 'text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4';
+  const inputCls = 'w-full bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors';
+  const labelCls = 'block text-sm font-medium text-slate-400 mb-1';
+  const sectionCls = 'border border-slate-800 rounded-lg p-5 space-y-4';
+  const sectionTitle = 'text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4';
 
   const Toggle = ({ field, label }: { field: string; label: string }) => (
     <label className="flex items-center gap-3 cursor-pointer">
@@ -140,7 +140,7 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
       >
         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form[field] ? 'translate-x-5' : 'translate-x-0'}`} />
       </div>
-      <span className="text-sm text-text-secondary">{label}</span>
+      <span className="text-sm text-slate-400">{label}</span>
     </label>
   );
 
@@ -226,38 +226,38 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
         {/* ── MistServer Auth State (read-only, populated after save) ── */}
         {isEditing && (initialData?.mist_challenge || initialData?.mist_final_hash) && (
           <div className="col-span-full mt-2 rounded-lg border border-gray-700 bg-gray-900/50 p-4 space-y-3">
-            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Last Validated Auth State</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Last Validated Auth State</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-text-secondary mb-1">MistServer Challenge</label>
+                <label className="block text-xs text-slate-400 mb-1">MistServer Challenge</label>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 bg-background rounded px-3 py-2 text-xs text-yellow-400 font-mono break-all">
+                  <code className="flex-1 bg-slate-950 rounded px-3 py-2 text-xs text-yellow-400 font-mono break-all">
                     {initialData.mist_challenge ?? '—'}
                   </code>
                   {initialData.mist_challenge && (
                     <button type="button" onClick={() => navigator.clipboard.writeText(initialData.mist_challenge)}
-                      className="text-xs text-text-secondary hover:text-white px-2 py-1 rounded bg-gray-800 shrink-0">
+                      className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-gray-800 shrink-0">
                       Copy
                     </button>
                   )}
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-text-secondary mb-1">Final MD5 Hash</label>
+                <label className="block text-xs text-slate-400 mb-1">Final MD5 Hash</label>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 bg-background rounded px-3 py-2 text-xs text-green-400 font-mono break-all">
+                  <code className="flex-1 bg-slate-950 rounded px-3 py-2 text-xs text-green-400 font-mono break-all">
                     {initialData.mist_final_hash ?? '—'}
                   </code>
                   {initialData.mist_final_hash && (
                     <button type="button" onClick={() => navigator.clipboard.writeText(initialData.mist_final_hash)}
-                      className="text-xs text-text-secondary hover:text-white px-2 py-1 rounded bg-gray-800 shrink-0">
+                      className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-gray-800 shrink-0">
                       Copy
                     </button>
                   )}
                 </div>
               </div>
             </div>
-            <p className="text-xs text-text-secondary">Refreshed automatically each time a new password is saved.</p>
+            <p className="text-xs text-slate-400">Refreshed automatically each time a new password is saved.</p>
           </div>
         )}
         </div>
@@ -431,7 +431,7 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
         <button
           type="button"
           onClick={() => router.push('/admin/stream-servers')}
-          className="px-5 py-2 text-text-secondary hover:text-white transition-colors"
+          className="px-5 py-2 text-slate-400 hover:text-white transition-colors"
         >
           Cancel
         </button>

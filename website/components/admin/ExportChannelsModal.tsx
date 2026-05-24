@@ -131,19 +131,19 @@ export default function ExportChannelsModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-background-card border border-gray-800 rounded-xl w-full max-w-2xl shadow-2xl">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-xl w-full max-w-2xl shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800">
+        <div className="flex items-center justify-between p-6 border-b border-slate-800">
           <div className="flex items-center gap-3">
              <div className="bg-green-500/10 p-2 rounded-lg">
                 <FileSpreadsheet className="text-green-500" size={24} />
              </div>
              <div>
                 <h2 className="text-xl font-bold text-white">Export Channels</h2>
-                <p className="text-sm text-text-secondary">Filter data and select columns for CSV export</p>
+                <p className="text-sm text-slate-400">Filter data and select columns for CSV export</p>
              </div>
           </div>
-          <button onClick={onClose} className="text-text-secondary hover:text-white transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -158,20 +158,20 @@ export default function ExportChannelsModal({
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" size={18} />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
                         <input 
                             type="text" 
                             placeholder="Search by name..." 
                             value={filters.search}
                             onChange={(e) => setFilters({...filters, search: e.target.value})}
-                            className="w-full bg-background border border-gray-800 text-white pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:border-primary text-sm"
+                            className="w-full bg-slate-950 border border-slate-800 text-white pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:border-primary text-sm"
                         />
                     </div>
 
                     <select
                         value={filters.status}
                         onChange={(e) => setFilters({...filters, status: e.target.value})}
-                        className="bg-background border border-gray-800 text-text-secondary rounded-lg px-3 py-2 focus:outline-none focus:border-primary text-sm"
+                        className="bg-slate-950 border border-slate-800 text-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-primary text-sm"
                     >
                         <option value="">All Status</option>
                         <option value="active">Active</option>
@@ -181,7 +181,7 @@ export default function ExportChannelsModal({
                     <select
                         value={filters.category_id}
                         onChange={(e) => setFilters({...filters, category_id: e.target.value})}
-                        className="bg-background border border-gray-800 text-text-secondary rounded-lg px-3 py-2 focus:outline-none focus:border-primary text-sm"
+                        className="bg-slate-950 border border-slate-800 text-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-primary text-sm"
                     >
                         <option value="">All Categories</option>
                         {categories.map((cat) => (
@@ -192,7 +192,7 @@ export default function ExportChannelsModal({
                     <select
                         value={filters.language_id}
                         onChange={(e) => setFilters({...filters, language_id: e.target.value})}
-                        className="bg-background border border-gray-800 text-text-secondary rounded-lg px-3 py-2 focus:outline-none focus:border-primary text-sm"
+                        className="bg-slate-950 border border-slate-800 text-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-primary text-sm"
                     >
                         <option value="">All Languages</option>
                         {languages.map((lang) => (
@@ -203,7 +203,7 @@ export default function ExportChannelsModal({
                     <select
                         value={filters.state_id}
                         onChange={(e) => setFilters({...filters, state_id: e.target.value})}
-                        className="bg-background border border-gray-800 text-text-secondary rounded-lg px-3 py-2 focus:outline-none focus:border-primary text-sm"
+                        className="bg-slate-950 border border-slate-800 text-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-primary text-sm"
                     >
                         <option value="">All States</option>
                         {states.map((state) => (
@@ -236,7 +236,7 @@ export default function ExportChannelsModal({
                                 flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all
                                 ${selectedColumns.includes(col.id) 
                                     ? 'bg-primary/10 border-primary/50' 
-                                    : 'bg-background border-gray-800 hover:border-gray-700'}
+                                    : 'bg-slate-950 border-slate-800 hover:border-gray-700'}
                             `}
                         >
                             <div className={`
@@ -257,7 +257,7 @@ export default function ExportChannelsModal({
                                 checked={selectedColumns.includes(col.id)}
                                 onChange={() => toggleColumn(col.id)}
                             />
-                            <span className={`text-sm ${selectedColumns.includes(col.id) ? 'text-white' : 'text-text-secondary'}`}>
+                            <span className={`text-sm ${selectedColumns.includes(col.id) ? 'text-white' : 'text-slate-400'}`}>
                                 {col.label}
                             </span>
                         </label>
@@ -267,10 +267,10 @@ export default function ExportChannelsModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-800 flex justify-end gap-3 bg-gray-900/30 rounded-b-xl">
+        <div className="p-6 border-t border-slate-800 flex justify-end gap-3 bg-gray-900/30 rounded-b-xl">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-text-secondary hover:text-white transition-colors"
+            className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
           >
             Cancel
           </button>

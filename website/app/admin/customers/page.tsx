@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Users, UserCheck, UserX, Crown, Eye, Wallet } from 'lucide-react';
+import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Users, UserCheck, UserX, Crown, Eye, Wallet, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import { Customer } from '@/types';
@@ -9,7 +9,6 @@ import Modal from '@/components/ui/Modal';
 import CustomerForm from '@/components/admin/CustomerForm';
 import CustomerOverviewModal from '@/components/admin/CustomerOverviewModal';
 import AdminTopupModal from '@/components/admin/AdminTopupModal';
-
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -19,444 +18,282 @@ export default function CustomersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
-  
-  // Sorting State
   const [sortBy, setSortBy] = useState('id');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [viewCustomerUuid, setViewCustomerUuid] = useState<string | null>(null);
-  const [topupCustomer, setTopupCustomer] = useState<{uuid: string, name: string, wallet_balance: number} | null>(null);
+  const [topupCustomer, setTopupCustomer] = useState<{ uuid: string; name: string; wallet_balance: number } | null>(null);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, blocked: 0, premium: 0 });
 
   const fetchStats = async () => {
     try {
-        const res = await adminApi.get('/admin/customers/stats');
-        setStats(res.data.data);
-    } catch (e) {
-        console.error("Failed to fetch stats", e);
-    }
+      const res = await adminApi.get('/admin/customers/stats');
+      setStats(res.data.data);
+    } catch {}
   };
 
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const res = await adminApi.get(`/admin/customers`, {
-        params: {
-          page,
-          per_page: 20,
-          search: search || undefined,
-          status: statusFilter || undefined,
-          role: roleFilter || undefined,
-          sort_by: sortBy,
-          sort_order: sortOrder,
-        },
+      const res = await adminApi.get('/admin/customers', {
+        params: { page, per_page: 20, search: search || undefined, status: statusFilter || undefined, role: roleFilter || undefined, sort_by: sortBy, sort_order: sortOrder },
       });
       setCustomers(res.data.data.data);
       setTotalPages(res.data.data.last_page);
-    } catch (error) {
-      console.error('Failed to fetch customers', error);
+    } catch {
       toast.error('Failed to load customers');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, statusFilter, roleFilter, sortBy, sortOrder]);
-
-  useEffect(() => {
-    fetchCustomers();
-  }, [page, search, statusFilter, roleFilter, sortBy, sortOrder]);
+  useEffect(() => { fetchStats(); }, []);
+  useEffect(() => { setPage(1); }, [search, statusFilter, roleFilter, sortBy, sortOrder]);
+  useEffect(() => { fetchCustomers(); }, [page, search, statusFilter, roleFilter, sortBy, sortOrder]);
 
   const handleStatusUpdate = async (uuid: string, newStatus: string) => {
     try {
       await adminApi.put(`/admin/customers/${uuid}`, { status: newStatus });
-        setCustomers(customers.map(c => 
-            c.uuid === uuid ? { ...c, status: newStatus } : c
-        ));
-      toast.success(`Customer ${newStatus === 'active' ? 'activated' : 'blocked'} successfully`);
+      setCustomers(cs => cs.map(c => c.uuid === uuid ? { ...c, status: newStatus } : c));
+      toast.success(`Customer ${newStatus === 'active' ? 'activated' : 'blocked'}`);
     } catch (error: any) {
-      console.error('Failed to update customer status - Full Error:', error);
-      toast.error(error.response?.data?.message || 'Failed to update customer status');
+      toast.error(error.response?.data?.message || 'Failed to update status');
     }
   };
 
   const handleDelete = async (uuid: string) => {
-    if (!confirm('Are you sure you want to delete this customer? This action cannot be undone.')) return;
+    if (!confirm('Delete this customer? This cannot be undone.')) return;
     try {
       await adminApi.delete(`/admin/customers/${uuid}`);
-      toast.success('Customer deleted successfully');
-      setCustomers(customers.filter((c) => c.uuid !== uuid));
-      await fetchCustomers(); // Re-fetch to ensure sync with backend
-    } catch (error) {
+      toast.success('Customer deleted');
+      fetchCustomers();
+    } catch {
       toast.error('Failed to delete customer');
     }
   };
 
-  const handleEdit = (uuid: string) => {
-      setSelectedCustomer(uuid);
-      setIsModalOpen(true);
+  const handleSort = (col: string) => {
+    if (sortBy === col) setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
+    else { setSortBy(col); setSortOrder('asc'); }
   };
 
-  const handleCreate = () => {
-      setSelectedCustomer(null);
-      setIsModalOpen(true);
+  const SortIcon = ({ col }: { col: string }) => {
+    if (sortBy !== col) return <ArrowUpDown size={13} className="text-slate-600" />;
+    return sortOrder === 'asc' ? <ArrowUp size={13} className="text-primary" /> : <ArrowDown size={13} className="text-primary" />;
   };
 
-  const handleFormSuccess = () => {
-      setIsModalOpen(false);
-      fetchCustomers();
-  };
+  const statCards = [
+    { label: 'Total', value: stats.total, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+    { label: 'Active', value: stats.active, icon: UserCheck, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20' },
+    { label: 'Inactive / Blocked', value: stats.inactive + stats.blocked, icon: UserX, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+    { label: 'Premium', value: stats.premium, icon: Crown, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
+  ];
 
-  const handleView = (uuid: string) => {
-    setViewCustomerUuid(uuid);
-  };
+  const selectClass = "bg-slate-800 border border-slate-700 text-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all";
 
-  const handleTopup = (customer: Customer) => {
-      setTopupCustomer({
-          uuid: customer.uuid,
-          name: customer.name,
-          wallet_balance: (customer as any).wallet_balance || 0
-      });
-  };
-
-  const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('asc');
-    }
-  };
-
-  const getSortIcon = (column: string) => {
-    if (sortBy !== column) return <ArrowUpDown size={14} className="ml-1 text-gray-500" />;
-    return sortOrder === 'asc' ? <ArrowUp size={14} className="ml-1 text-primary" /> : <ArrowDown size={14} className="ml-1 text-primary" />;
-  };
+  const ThSort = ({ col, label }: { col: string; label: string }) => (
+    <th className="px-5 py-3.5 text-slate-400 font-semibold text-xs uppercase tracking-wider cursor-pointer hover:text-white transition-colors select-none" onClick={() => handleSort(col)}>
+      <div className="flex items-center gap-1.5">{label} <SortIcon col={col} /></div>
+    </th>
+  );
 
   return (
-    <div>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-white">Customers</h1>
-        <button 
-            onClick={handleCreate}
-            className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-up" style={{ animationDelay: '0.05s' }}>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Customers</h1>
+          <p className="text-slate-400 text-sm mt-1">Manage registered users and resellers</p>
+        </div>
+        <button
+          onClick={() => { setSelectedCustomer(null); setIsModalOpen(true); }}
+          className="flex items-center gap-2 bg-primary hover:bg-cyan-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 self-start sm:self-auto"
         >
-            <Plus size={20} />
-            Add Customer
+          <Plus size={16} />
+          Add Customer
         </button>
       </div>
 
-     {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-background-card p-5 rounded-lg border border-gray-800 flex items-center justify-between">
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-up" style={{ animationDelay: '0.12s' }}>
+        {statCards.map(({ label, value, icon: Icon, color, bg, border }) => (
+          <div key={label} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
             <div>
-                <p className="text-text-secondary text-sm mb-1">Total Customers</p>
-                <p className="text-2xl font-bold text-white">{stats.total}</p>
+              <p className="text-slate-400 text-xs mb-0.5">{label}</p>
+              <p className="text-2xl font-black text-white">{value}</p>
             </div>
-            <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400">
-                <Users size={24} />
+            <div className={`w-10 h-10 ${bg} border ${border} rounded-xl flex items-center justify-center shrink-0`}>
+              <Icon size={18} className={color} />
             </div>
-        </div>
-        <div className="bg-background-card p-5 rounded-lg border border-gray-800 flex items-center justify-between">
-            <div>
-                <p className="text-text-secondary text-sm mb-1">Active Customers</p>
-                <p className="text-2xl font-bold text-white">{stats.active}</p>
-            </div>
-            <div className="p-3 bg-green-500/10 rounded-lg text-green-400">
-                <UserCheck size={24} />
-            </div>
-        </div>
-         <div className="bg-background-card p-5 rounded-lg border border-gray-800 flex items-center justify-between">
-            <div>
-                <p className="text-text-secondary text-sm mb-1">Inactive / Blocked</p>
-                <p className="text-2xl font-bold text-white">{stats.inactive + stats.blocked}</p>
-            </div>
-             <div className="p-3 bg-red-500/10 rounded-lg text-red-400">
-                <UserX size={24} />
-            </div>
-        </div>
-        <div className="bg-background-card p-5 rounded-lg border border-gray-800 flex items-center justify-between">
-            <div>
-                <p className="text-text-secondary text-sm mb-1">Premium Users</p>
-                <p className="text-2xl font-bold text-white">{stats.premium}</p>
-            </div>
-             <div className="p-3 bg-yellow-500/10 rounded-lg text-yellow-400">
-                <Crown size={24} />
-            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search by name or phone..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full bg-slate-800 border border-slate-700 text-white pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all placeholder:text-slate-600"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={selectClass}>
+              <option value="id">Sort: ID</option>
+              <option value="name">Sort: Name</option>
+              <option value="phone">Sort: Phone</option>
+              <option value="created_at">Sort: Joined</option>
+              <option value="status">Sort: Status</option>
+            </select>
+            <select value={sortOrder} onChange={e => setSortOrder(e.target.value as 'asc' | 'desc')} className={selectClass}>
+              <option value="asc">Asc</option>
+              <option value="desc">Desc</option>
+            </select>
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className={selectClass}>
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="blocked">Blocked</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} className={selectClass}>
+              <option value="">All Roles</option>
+              <option value="customer">Customer</option>
+              <option value="reseller">Reseller</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Search and Filter */}
-      <div className="bg-background-card p-4 rounded-lg border border-gray-800 mb-6 space-y-4">
-        <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" size={20} />
-                <input 
-                    type="text" 
-                    placeholder="Search by name or phone..." 
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-background border border-gray-800 text-white pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:border-primary"
-                />
-            </div>
-            
-            
-            <div className="flex gap-2 w-full md:w-auto overflow-x-auto">
-                 <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-background border border-gray-800 text-text-secondary rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
-                >
-                    <option value="id">Sort by ID</option>
-                    <option value="name">Sort by Name</option>
-                    <option value="phone">Sort by Phone</option>
-                    <option value="created_at">Sort by Joined</option>
-                    <option value="status">Sort by Status</option>
-                </select>
-
-                <select
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                    className="bg-background border border-gray-800 text-text-secondary rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
-                >
-                    <option value="asc">Ascending</option>
-                    <option value="desc">Descending</option>
-                </select>
-
-                <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-background border border-gray-800 text-text-secondary rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
-                >
-                    <option value="">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="blocked">Blocked</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-
-                <select
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="bg-background border border-gray-800 text-text-secondary rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
-                >
-                    <option value="">All Roles</option>
-                    <option value="customer">Customer</option>
-                    <option value="reseller">Reseller</option>
-                </select>
-            </div>
-        </div>
-      </div>
-
-      {/* Customers Table */}
-      <div className="bg-background-card rounded-lg border border-gray-800 overflow-hidden">
+      {/* Table */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden animate-fade-up" style={{ animationDelay: '0.28s' }}>
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-800/50 text-text-secondary text-sm uppercase">
-              <tr>
-                <th className="px-6 py-4">S.No</th>
-                <th 
-                    className="px-6 py-4 cursor-pointer hover:bg-white/5 transition-colors"
-                    onClick={() => handleSort('name')}
-                >
-                    <div className="flex items-center">
-                        Name {getSortIcon('name')}
-                    </div>
-                </th>
-                <th 
-                    className="px-6 py-4 cursor-pointer hover:bg-white/5 transition-colors"
-                    onClick={() => handleSort('phone')}
-                >
-                    <div className="flex items-center">
-                        Contact {getSortIcon('phone')}
-                    </div>
-                </th>
-                <th 
-                    className="px-6 py-4 cursor-pointer hover:bg-white/5 transition-colors"
-                    onClick={() => handleSort('created_at')}
-                >
-                    <div className="flex items-center">
-                        Joined Date {getSortIcon('created_at')}
-                    </div>
-                </th>
-                <th className="px-6 py-4">Role</th>
-                <th 
-                    className="px-6 py-4 cursor-pointer hover:bg-white/5 transition-colors"
-                    onClick={() => handleSort('status')}
-                >
-                    <div className="flex items-center">
-                        Status {getSortIcon('status')}
-                    </div>
-                </th>
-                <th className="px-6 py-4">Actions</th>
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-800 bg-slate-800/40">
+                <th className="px-5 py-3.5 text-slate-400 font-semibold text-xs uppercase tracking-wider">S.No</th>
+                <ThSort col="name" label="Name" />
+                <ThSort col="phone" label="Contact" />
+                <ThSort col="created_at" label="Joined" />
+                <th className="px-5 py-3.5 text-slate-400 font-semibold text-xs uppercase tracking-wider">Role</th>
+                <ThSort col="status" label="Status" />
+                <th className="px-5 py-3.5 text-slate-400 font-semibold text-xs uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-slate-800/60">
               {loading ? (
-                <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">Loading...</td>
-                </tr>
+                <tr><td colSpan={7} className="px-5 py-12 text-center">
+                  <div className="flex flex-col items-center gap-2 text-slate-500">
+                    <svg className="animate-spin h-6 w-6 text-primary" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                    <span className="text-sm">Loading customers...</span>
+                  </div>
+                </td></tr>
               ) : customers.length === 0 ? (
-                 <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-text-secondary">No customers found</td>
-                </tr>
-              ) : (
-                customers.map((customer, index) => (
-                  <tr key={customer.uuid} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 text-text-secondary">
-                        {(page - 1) * 20 + index + 1}
-                    </td>
-                    <td className="px-6 py-4">
-                        <div className="font-medium text-white">{customer.name}</div>
-                        <div className="text-xs text-text-secondary">{customer.email}</div>
-                    </td>
-                    <td className="px-6 py-4 text-text-secondary">
-                        {customer.phone}
-                    </td>
-                    <td className="px-6 py-4 text-text-secondary">
-                        {new Date(customer.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          (customer as any).role === 'reseller'
-                            ? 'bg-purple-500/20 text-purple-400'
-                            : 'bg-blue-500/20 text-blue-400'
-                        }`}
-                      >
-                        {(customer as any).role === 'reseller' ? 'Reseller' : 'Customer'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          customer.status === 'active'
-                            ? 'bg-green-500/20 text-green-400'
-                            : customer.status === 'blocked'
-                            ? 'bg-red-500/20 text-red-400'
-                            : 'bg-gray-500/20 text-gray-400'
-                        }`}
-                      >
-                        {customer.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => handleView(customer.uuid)}
-                            className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 p-2 rounded transition-colors"
-                            title="View Overview"
-                        >
-                            <Eye size={16} />
-                        </button>
-
-                        {(customer as any).role === 'reseller' && (
-                            <button
-                                onClick={() => handleTopup(customer)}
-                                className="bg-green-500/10 hover:bg-green-500/20 text-green-400 p-2 rounded transition-colors"
-                                title="Topup Wallet"
-                            >
-                                <Wallet size={16} />
-                            </button>
-                        )}
-
-                        <button
-                            onClick={() => handleEdit(customer.uuid)}
-                            className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 p-2 rounded transition-colors"
-                            title="Edit Customer"
-                        >
-                            <Edit size={16} />
-                        </button>
-
-                        {customer.status === 'blocked' ? (
-                            <button
-                                onClick={() => handleStatusUpdate(customer.uuid, 'active')}
-                                className="bg-green-500/10 hover:bg-green-500/20 text-green-400 p-2 rounded transition-colors"
-                                title="Unblock Customer"
-                            >
-                                <CheckCircle size={16} />
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => handleStatusUpdate(customer.uuid, 'blocked')}
-                                className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 p-2 rounded transition-colors"
-                                title="Block Customer"
-                            >
-                                <Ban size={16} />
-                            </button>
-                        )}
-                        
-                        <button
-                          onClick={() => handleDelete(customer.uuid)}
-                          className="bg-red-500/10 hover:bg-red-500/20 text-red-400 p-2 rounded transition-colors"
-                          title="Delete Customer"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                <tr><td colSpan={7} className="px-5 py-12 text-center">
+                  <div className="flex flex-col items-center gap-2 text-slate-500">
+                    <Users size={32} className="opacity-30" />
+                    <span className="text-sm">No customers found</span>
+                  </div>
+                </td></tr>
+              ) : customers.map((cu, i) => (
+                <tr key={cu.uuid} className="hover:bg-slate-800/30 transition-colors">
+                  <td className="px-5 py-3.5 text-slate-500 text-xs">{(page - 1) * 20 + i + 1}</td>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/15 flex items-center justify-center text-purple-400 font-bold text-xs shrink-0">
+                        {cu.name?.charAt(0).toUpperCase()}
                       </div>
-                    </td>
-                  </tr>
-                ))
-              )}
+                      <div>
+                        <p className="text-white font-medium">{cu.name}</p>
+                        <p className="text-slate-500 text-xs">{cu.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3.5 text-slate-300 text-sm">{cu.phone}</td>
+                  <td className="px-5 py-3.5 text-slate-400 text-xs">{new Date(cu.created_at).toLocaleDateString()}</td>
+                  <td className="px-5 py-3.5">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${(cu as any).role === 'reseller' ? 'bg-purple-500/15 text-purple-400' : 'bg-blue-500/15 text-blue-400'}`}>
+                      {(cu as any).role === 'reseller' ? 'Reseller' : 'Customer'}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      cu.status === 'active' ? 'bg-green-500/15 text-green-400'
+                      : cu.status === 'blocked' ? 'bg-red-500/15 text-red-400'
+                      : 'bg-slate-500/15 text-slate-400'
+                    }`}>
+                      {cu.status}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => setViewCustomerUuid(cu.uuid)}
+                        className="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors" title="View">
+                        <Eye size={14} />
+                      </button>
+                      {(cu as any).role === 'reseller' && (
+                        <button onClick={() => setTopupCustomer({ uuid: cu.uuid, name: cu.name, wallet_balance: (cu as any).wallet_balance || 0 })}
+                          className="p-1.5 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors" title="Topup">
+                          <Wallet size={14} />
+                        </button>
+                      )}
+                      <button onClick={() => { setSelectedCustomer(cu.uuid); setIsModalOpen(true); }}
+                        className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors" title="Edit">
+                        <Edit size={14} />
+                      </button>
+                      {cu.status === 'blocked' ? (
+                        <button onClick={() => handleStatusUpdate(cu.uuid, 'active')}
+                          className="p-1.5 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors" title="Unblock">
+                          <CheckCircle size={14} />
+                        </button>
+                      ) : (
+                        <button onClick={() => handleStatusUpdate(cu.uuid, 'blocked')}
+                          className="p-1.5 rounded-lg bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-colors" title="Block">
+                          <Ban size={14} />
+                        </button>
+                      )}
+                      <button onClick={() => handleDelete(cu.uuid)}
+                        className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors" title="Delete">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination */}
-        <div className="p-4 border-t border-gray-800 flex justify-between items-center">
-            <button 
-                disabled={page <= 1}
-                onClick={() => setPage(p => p - 1)}
-                className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 hover:bg-gray-700"
-            >
-                Previous
-            </button>
-            <span className="text-text-secondary">Page {page} of {totalPages}</span>
-            <button 
-                disabled={page >= totalPages}
-                onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 hover:bg-gray-700"
-            >
-                Next
-            </button>
+        <div className="flex items-center justify-between px-5 py-4 border-t border-slate-800">
+          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm rounded-xl transition-all">
+            <ChevronLeft size={15} /> Previous
+          </button>
+          <span className="text-slate-400 text-sm">Page <span className="text-white font-semibold">{page}</span> of <span className="text-white font-semibold">{totalPages}</span></span>
+          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm rounded-xl transition-all">
+            Next <ChevronRight size={15} />
+          </button>
         </div>
       </div>
 
-    <CustomerOverviewModal
-        uuid={viewCustomerUuid || ''}
-        isOpen={!!viewCustomerUuid}
-        onClose={() => setViewCustomerUuid(null)}
-    />
-
-    <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={selectedCustomer ? 'Edit Customer' : 'Add New Customer'}
-    >
-        <CustomerForm
-            customerUuid={selectedCustomer}
-            onSuccess={handleFormSuccess}
-            onCancel={() => setIsModalOpen(false)}
-        />
-    </Modal>
-
-    {topupCustomer && (
-        <AdminTopupModal
-            customer={topupCustomer}
-            onClose={() => setTopupCustomer(null)}
-            onSuccess={() => {
-                setTopupCustomer(null);
-                fetchCustomers();
-            }}
-        />
-    )}
+      <CustomerOverviewModal uuid={viewCustomerUuid || ''} isOpen={!!viewCustomerUuid} onClose={() => setViewCustomerUuid(null)} />
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={selectedCustomer ? 'Edit Customer' : 'Add New Customer'}>
+        <CustomerForm customerUuid={selectedCustomer} onSuccess={() => { setIsModalOpen(false); fetchCustomers(); }} onCancel={() => setIsModalOpen(false)} />
+      </Modal>
+      {topupCustomer && (
+        <AdminTopupModal customer={topupCustomer} onClose={() => setTopupCustomer(null)} onSuccess={() => { setTopupCustomer(null); fetchCustomers(); }} />
+      )}
     </div>
   );
 }

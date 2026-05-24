@@ -193,7 +193,7 @@ export default function ChannelRenumberPage() {
         </td>
 
         {/* Category */}
-        <td className={`px-3 py-2.5 text-text-secondary text-sm hidden xl:table-cell ${rowBg}`}>
+        <td className={`px-3 py-2.5 text-slate-400 text-sm hidden xl:table-cell ${rowBg}`}>
           {ch.category?.name ?? '—'}
         </td>
 
@@ -233,7 +233,7 @@ export default function ChannelRenumberPage() {
             <Hash size={20} className="text-primary" />
             <h1 className="text-2xl font-bold text-white">Channel Manager</h1>
           </div>
-          <p className="text-text-secondary text-sm">
+          <p className="text-slate-400 text-sm">
             Edit channel numbers and status inline. Amber = changed, Red = duplicate. Save when done.
           </p>
         </div>
@@ -241,7 +241,7 @@ export default function ChannelRenumberPage() {
           {isDirty && (
             <button
               onClick={handleReset}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-text-secondary hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors"
             >
               <RotateCcw size={14} />
               Reset ({changedCount})
@@ -273,19 +273,19 @@ export default function ChannelRenumberPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
             type="text"
             placeholder="Search by name or channel number…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-background-card border border-gray-700 rounded-lg text-white placeholder-text-secondary text-sm focus:outline-none focus:border-primary"
+            className="w-full pl-9 pr-4 py-2 bg-slate-900/80 border border-gray-700 rounded-lg text-white placeholder-text-secondary text-sm focus:outline-none focus:border-primary"
           />
         </div>
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
-          className="px-3 py-2 bg-background-card border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-primary"
+          className="px-3 py-2 bg-slate-900/80 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-primary"
         >
           <option value="">All Status</option>
           <option value="active">Active</option>
@@ -296,7 +296,7 @@ export default function ChannelRenumberPage() {
       </div>
 
       {/* Table — 2 channels per row */}
-      <div className="bg-background-card border border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 size={26} className="animate-spin text-primary" />
@@ -305,19 +305,19 @@ export default function ChannelRenumberPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="border-b border-gray-800 bg-white/2">
-                  <th className="text-left px-3 py-3 text-text-secondary font-medium w-36">Channel #</th>
-                  <th className="text-left px-3 py-3 text-text-secondary font-medium">Channel Name</th>
-                  <th className="text-left px-3 py-3 text-text-secondary font-medium hidden xl:table-cell">Category</th>
-                  <th className="text-left px-3 py-3 text-text-secondary font-medium w-28">Status</th>
+                <tr className="border-b border-slate-800 bg-white/2">
+                  <th className="text-left px-3 py-3 text-slate-400 font-medium w-36">Channel #</th>
+                  <th className="text-left px-3 py-3 text-slate-400 font-medium">Channel Name</th>
+                  <th className="text-left px-3 py-3 text-slate-400 font-medium hidden xl:table-cell">Category</th>
+                  <th className="text-left px-3 py-3 text-slate-400 font-medium w-28">Status</th>
                   <th className="w-px p-0 bg-gray-800" aria-hidden />
-                  <th className="text-left px-3 py-3 text-text-secondary font-medium w-36">Channel #</th>
-                  <th className="text-left px-3 py-3 text-text-secondary font-medium">Channel Name</th>
-                  <th className="text-left px-3 py-3 text-text-secondary font-medium hidden xl:table-cell">Category</th>
-                  <th className="text-left px-3 py-3 text-text-secondary font-medium w-28">Status</th>
+                  <th className="text-left px-3 py-3 text-slate-400 font-medium w-36">Channel #</th>
+                  <th className="text-left px-3 py-3 text-slate-400 font-medium">Channel Name</th>
+                  <th className="text-left px-3 py-3 text-slate-400 font-medium hidden xl:table-cell">Category</th>
+                  <th className="text-left px-3 py-3 text-slate-400 font-medium w-28">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/40">
+              <tbody className="divide-y divide-slate-800/40">
                 {rows.map(([ch1, ch2], i) => (
                   <tr key={i}>
                     {renderCells(ch1)}
@@ -327,7 +327,7 @@ export default function ChannelRenumberPage() {
                 ))}
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="text-center py-14 text-text-secondary">
+                    <td colSpan={9} className="text-center py-14 text-slate-400">
                       No channels match the current filter.
                     </td>
                   </tr>
@@ -340,7 +340,7 @@ export default function ChannelRenumberPage() {
 
       {/* Footer */}
       {!loading && (
-        <p className="text-text-secondary text-xs">
+        <p className="text-slate-400 text-xs">
           Showing {filtered.length} of {channels.length} channels
           {isDirty && ` — ${changedCount} unsaved change(s)`}
         </p>

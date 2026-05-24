@@ -82,12 +82,12 @@ export default function PlanAssignmentModal({ customer, onClose, onSuccess }: Pl
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background-card rounded-lg border border-gray-800 w-full max-w-md">
-        <div className="flex justify-between items-center p-6 border-b border-gray-800">
+      <div className="bg-slate-900/80 rounded-lg border border-slate-800 w-full max-w-md">
+        <div className="flex justify-between items-center p-6 border-b border-slate-800">
           <h2 className="text-xl font-semibold text-white">Assign Plan</h2>
           <button
             onClick={onClose}
-            className="text-text-secondary hover:text-white transition-colors"
+            className="text-slate-400 hover:text-white transition-colors"
           >
             <X size={24} />
           </button>
@@ -95,20 +95,20 @@ export default function PlanAssignmentModal({ customer, onClose, onSuccess }: Pl
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="p-4 bg-gray-800/30 rounded-lg mb-4">
-            <p className="text-sm text-text-secondary">Customer</p>
+            <p className="text-sm text-slate-400">Customer</p>
             <p className="text-white font-medium">{customer.name}</p>
-            <p className="text-sm text-text-secondary">{customer.phone}</p>
+            <p className="text-sm text-slate-400">{customer.phone}</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">
+            <label className="block text-sm font-medium text-slate-400 mb-2">
               Select Plan *
             </label>
             <select
               value={selectedPlan}
               onChange={(e) => handlePlanChange(e.target.value)}
               required
-              className="w-full bg-background border border-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
+              className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:border-primary"
             >
               <option value="">-- Select Plan --</option>
               {plans.map((plan) => (
@@ -140,7 +140,7 @@ export default function PlanAssignmentModal({ customer, onClose, onSuccess }: Pl
 
 
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
             <button
               type="button"
               onClick={onClose}

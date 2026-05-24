@@ -58,21 +58,21 @@ export default function ScrollingAdForm({ adUuid, onSuccess, onCancel }: Scrolli
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">
+        <label className="block text-sm font-medium text-slate-400 mb-1">
           Ad Text Content *
         </label>
         <textarea
           required
           value={formData.text_content}
           onChange={(e) => setFormData({ ...formData, text_content: e.target.value })}
-          className="w-full bg-background border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors h-24 resize-none"
+          className="w-full bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors h-24 resize-none"
           placeholder="Enter scrolling text..."
         />
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-text-secondary mb-1">
+          <label className="block text-sm font-medium text-slate-400 mb-1">
             Repeat Count *
           </label>
           <input
@@ -82,13 +82,13 @@ export default function ScrollingAdForm({ adUuid, onSuccess, onCancel }: Scrolli
             max="20"
             value={formData.repeat_count}
             onChange={(e) => setFormData({ ...formData, repeat_count: parseInt(e.target.value) || 3 })}
-            className="w-full bg-background border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary transition-colors"
+            className="w-full bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary transition-colors"
           />
           <p className="text-xs text-gray-500 mt-1">Times to scroll before next ad</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-text-secondary mb-1">
+          <label className="block text-sm font-medium text-slate-400 mb-1">
             Scroll Speed (px/sec) *
           </label>
           <input
@@ -98,17 +98,17 @@ export default function ScrollingAdForm({ adUuid, onSuccess, onCancel }: Scrolli
             max="500"
             value={(formData as any).scroll_speed ?? 50}
             onChange={(e) => setFormData({ ...formData, scroll_speed: parseInt(e.target.value) || 50 } as any)}
-            className="w-full bg-background border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary transition-colors"
+            className="w-full bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary transition-colors"
           />
           <p className="text-xs text-gray-500 mt-1">Lower = slower, Higher = faster</p>
         </div>
 
         <div>
-           <label className="block text-sm font-medium text-text-secondary mb-1">Status</label>
+           <label className="block text-sm font-medium text-slate-400 mb-1">Status</label>
            <select
              value={formData.status}
              onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
-             className="w-full bg-background border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary transition-colors appearance-none"
+             className="w-full bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary transition-colors appearance-none"
            >
              <option value="active">Active</option>
              <option value="inactive">Inactive</option>
@@ -116,11 +116,11 @@ export default function ScrollingAdForm({ adUuid, onSuccess, onCancel }: Scrolli
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+      <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-text-secondary hover:text-white transition-colors"
+          className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
         >
           Cancel
         </button>

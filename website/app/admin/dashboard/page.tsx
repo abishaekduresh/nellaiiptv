@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Tv, BarChart3 } from 'lucide-react';
+import { Users, Tv, BarChart3, TrendingUp, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import adminApi from '@/lib/adminApi';
 import TrendingChart from '@/components/admin/TrendingChart';
 
@@ -14,170 +15,194 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check token existence simply
     const token = localStorage.getItem('admin_token');
-    if (!token) {
-      router.push('/admin');
-      return;
-    }
+    if (!token) { router.push('/admin'); return; }
 
-    // Check if user is reseller and redirect to reseller panel
     const userStr = localStorage.getItem('auth-storage');
     if (userStr) {
       try {
         const authData = JSON.parse(userStr);
-        if (authData?.state?.user?.role === 'reseller') {
-          router.push('/reseller');
-          return;
-        }
-      } catch (e) {
-        // Ignore parse errors
-      }
+        if (authData?.state?.user?.role === 'reseller') { router.push('/reseller'); return; }
+      } catch (e) {}
     }
 
     const fetchData = async () => {
-        try {
-            const [channelsRes, customersRes, statsRes] = await Promise.all([
-                adminApi.get('/admin/channels?per_page=5'),
-                adminApi.get('/admin/customers?per_page=5'),
-                adminApi.get('/admin/dashboard/stats'),
-            ]);
-
-            const channelData = channelsRes.data.data?.data || [];
-            const customerData = customersRes.data.data?.data || [];
-            const statsData = statsRes.data.data;
-            
-            setChannels(channelData);
-            setCustomers(customerData);
-            setStats({
-                channels: statsData.total_channels,
-                customers: statsData.total_customers,
-                activeChannels: statsData.active_channels,
-            });
-        } catch (error) {
-            console.error(error);
-            // If 401, interceptor might handle, or we catch here
-        } finally {
-            setLoading(false);
-        }
+      try {
+        const [channelsRes, customersRes, statsRes] = await Promise.all([
+          adminApi.get('/admin/channels?per_page=5'),
+          adminApi.get('/admin/customers?per_page=5'),
+          adminApi.get('/admin/dashboard/stats'),
+        ]);
+        setChannels(channelsRes.data.data?.data || []);
+        setCustomers(customersRes.data.data?.data || []);
+        const s = statsRes.data.data;
+        setStats({ channels: s.total_channels, customers: s.total_customers, activeChannels: s.active_channels });
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     };
-
     fetchData();
   }, [router]);
 
-  const handleDeleteChannel = async (uuid: string) => {
-    if (!confirm('Delete this channel?')) return;
-    try {
-      await adminApi.delete(`/admin/channels/${uuid}`);
-      setChannels(channels.filter(c => c.uuid !== uuid));
-    } catch (error) {
-      alert('Failed to delete channel');
-    }
-  };
-
-  const handleToggleCustomerStatus = async (uuid: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    try {
-      await adminApi.put(`/admin/customers/${uuid}`, { status: newStatus });
-      setCustomers(customers.map(c => c.uuid === uuid ? { ...c, status: newStatus } : c));
-    } catch (error) {
-      alert('Failed to update customer status');
-    }
-  };
+  const statCards = [
+    {
+      label: 'Total Channels',
+      value: stats.channels,
+      icon: Tv,
+      color: 'text-primary',
+      bg: 'bg-primary/10',
+      border: 'border-primary/20',
+      href: '/admin/channels',
+    },
+    {
+      label: 'Total Customers',
+      value: stats.customers,
+      icon: Users,
+      color: 'text-purple-400',
+      bg: 'bg-purple-500/10',
+      border: 'border-purple-500/20',
+      href: '/admin/customers',
+    },
+    {
+      label: 'Active Channels',
+      value: stats.activeChannels,
+      icon: BarChart3,
+      color: 'text-green-400',
+      bg: 'bg-green-500/10',
+      border: 'border-green-500/20',
+      href: '/admin/channels',
+    },
+  ];
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <svg className="animate-spin h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+          </svg>
+          <p className="text-slate-400 text-sm">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto pb-10">
-      <h1 className="text-3xl font-bold text-white mb-8">Dashboard Overview</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-text-secondary mb-1">Total Channels</p>
-              <p className="text-3xl font-bold text-white">{stats.channels}</p>
-            </div>
-            <div className="p-3 bg-primary/20 rounded-lg">
-                <Tv size={32} className="text-primary" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-text-secondary mb-1">Total Customers</p>
-              <p className="text-3xl font-bold text-white">{stats.customers}</p>
-            </div>
-            <div className="p-3 bg-secondary/20 rounded-lg">
-                <Users size={32} className="text-secondary" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-text-secondary mb-1">Active Channels</p>
-              <p className="text-3xl font-bold text-white">{stats.activeChannels}</p>
-            </div>
-             <div className="p-3 bg-green-500/20 rounded-lg">
-                <BarChart3 size={32} className="text-green-500" />
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Page header */}
+      <div className="animate-fade-up" style={{ animationDelay: '0.05s' }}>
+        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Dashboard</h1>
+        <p className="text-slate-400 text-sm mt-1">Overview of your Nellai IPTV platform</p>
       </div>
 
-      {/* Analytics Chart Section */}
-      <div className="mb-8 h-[500px]">
-         <TrendingChart />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-          <h2 className="text-xl font-bold text-white mb-4">Recent Channels</h2>
-          <div className="space-y-3">
-            {channels.map((channel) => (
-              <div key={channel.uuid} className="flex items-center justify-between border-b border-gray-800 pb-3 last:border-0">
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-up" style={{ animationDelay: '0.12s' }}>
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Link
+              key={card.label}
+              href={card.href}
+              className="group bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-white font-semibold">{channel.name}</p>
-                  <p className="text-sm text-text-secondary">
-                    {channel.state?.name || 'N/A'} • {channel.channel_number || '?'}
-                  </p>
+                  <p className="text-slate-400 text-sm mb-1">{card.label}</p>
+                  <p className="text-3xl font-black text-white">{card.value}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 text-xs rounded ${channel.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                        {channel.status}
-                    </span>
+                <div className={`w-11 h-11 ${card.bg} border ${card.border} rounded-xl flex items-center justify-center shrink-0`}>
+                  <Icon size={22} className={card.color} />
                 </div>
               </div>
-            ))}
-            {channels.length === 0 && <p className="text-text-secondary text-sm">No channels found</p>}
-          </div>
-        </div>
+              <div className={`flex items-center gap-1 mt-3 text-xs ${card.color} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                <TrendingUp size={12} />
+                <span>View details</span>
+                <ArrowRight size={12} className="ml-auto" />
+              </div>
+            </Link>
+          );
+        })}
+      </div>
 
-        <div className="bg-background-card p-6 rounded-lg border border-gray-800">
-          <h2 className="text-xl font-bold text-white mb-4">Recent Customers</h2>
-          <div className="space-y-3">
-            {customers.map((customer) => (
-              <div key={customer.uuid} className="flex items-center justify-between border-b border-gray-800 pb-3 last:border-0">
-                <div>
-                  <p className="text-white font-semibold">{customer.name}</p>
-                  <p className="text-sm text-text-secondary">{customer.phone}</p>
+      {/* Chart */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+        <h2 className="text-base font-bold text-white mb-4">Channel View Trends</h2>
+        <div className="h-[400px]">
+          <TrendingChart />
+        </div>
+      </div>
+
+      {/* Recent tables */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-up" style={{ animationDelay: '0.28s' }}>
+
+        {/* Recent Channels */}
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+            <h2 className="font-bold text-white">Recent Channels</h2>
+            <Link href="/admin/channels" className="text-primary text-xs hover:text-cyan-400 transition-colors flex items-center gap-1">
+              View all <ArrowRight size={12} />
+            </Link>
+          </div>
+          <div className="divide-y divide-slate-800/70">
+            {channels.length === 0 ? (
+              <p className="px-5 py-6 text-slate-500 text-sm text-center">No channels found</p>
+            ) : channels.map((ch) => (
+              <div key={ch.uuid} className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-800/30 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  {ch.thumbnail_url ? (
+                    <img src={ch.thumbnail_url} alt={ch.name} className="w-9 h-9 rounded-lg object-cover bg-slate-800 shrink-0" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center shrink-0">
+                      <Tv size={14} className="text-slate-500" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-white text-sm font-medium truncate">{ch.name}</p>
+                    <p className="text-slate-500 text-xs">{ch.state?.name || 'N/A'} · CH {ch.channel_number || '?'}</p>
+                  </div>
                 </div>
-                <span className={`px-2 py-0.5 text-xs rounded ${customer.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                  {customer.status}
+                <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${
+                  ch.status === 'active' ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'
+                }`}>
+                  {ch.status}
                 </span>
               </div>
             ))}
-             {customers.length === 0 && <p className="text-text-secondary text-sm">No customers found</p>}
+          </div>
+        </div>
+
+        {/* Recent Customers */}
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+            <h2 className="font-bold text-white">Recent Customers</h2>
+            <Link href="/admin/customers" className="text-primary text-xs hover:text-cyan-400 transition-colors flex items-center gap-1">
+              View all <ArrowRight size={12} />
+            </Link>
+          </div>
+          <div className="divide-y divide-slate-800/70">
+            {customers.length === 0 ? (
+              <p className="px-5 py-6 text-slate-500 text-sm text-center">No customers found</p>
+            ) : customers.map((cu) => (
+              <div key={cu.uuid} className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-800/30 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0 font-bold text-purple-400 text-sm">
+                    {cu.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white text-sm font-medium truncate">{cu.name}</p>
+                    <p className="text-slate-500 text-xs">{cu.phone}</p>
+                  </div>
+                </div>
+                <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${
+                  cu.status === 'active' ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'
+                }`}>
+                  {cu.status}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

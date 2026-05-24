@@ -59,7 +59,7 @@ export default function ResellerPlansPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Subscription Plans</h1>
-        <p className="text-text-secondary">View pricing for customer plans</p>
+        <p className="text-slate-400">View pricing for customer plans</p>
       </div>
 
       {/* Pricing Info */}
@@ -68,7 +68,7 @@ export default function ResellerPlansPage() {
           <Package className="text-blue-400 mt-1" size={20} />
           <div>
             <h3 className="text-white font-semibold mb-1">Pricing Information</h3>
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-slate-400">
               <span className="text-green-400 font-medium">Reseller Price</span> is what you pay.{' '}
               <span className="text-blue-400 font-medium">Retail Price</span> is the suggested customer price.
             </p>
@@ -85,8 +85,8 @@ export default function ResellerPlansPage() {
           return (
             <div
               key={plan.uuid}
-              className={`bg-background-card rounded-lg border ${
-                plan.is_popular ? 'border-primary' : 'border-gray-800'
+              className={`bg-slate-900/80 rounded-lg border ${
+                plan.is_popular ? 'border-primary' : 'border-slate-800'
               } overflow-hidden relative`}
             >
               {plan.is_popular && (
@@ -97,17 +97,17 @@ export default function ResellerPlansPage() {
 
               <div className="p-6">
                 <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                <p className="text-sm text-text-secondary mb-4">{plan.description}</p>
+                <p className="text-sm text-slate-400 mb-4">{plan.description}</p>
 
                 {/* Pricing */}
                 <div className="mb-4 space-y-2">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-sm text-text-secondary">Retail Price:</span>
+                    <span className="text-sm text-slate-400">Retail Price:</span>
                     <span className="text-2xl font-bold text-blue-400">₹{plan.price}</span>
-                    <span className="text-text-secondary">/{plan.duration} days</span>
+                    <span className="text-slate-400">/{plan.duration} days</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-sm text-text-secondary">Your Cost:</span>
+                    <span className="text-sm text-slate-400">Your Cost:</span>
                     <span className="text-2xl font-bold text-green-400">₹{plan.reseller_price}</span>
                   </div>
                   <div className="bg-purple-500/10 border border-purple-500/20 rounded px-3 py-2">
@@ -118,18 +118,18 @@ export default function ResellerPlansPage() {
                 </div>
 
                 {/* Features */}
-                <div className="border-t border-gray-800 pt-4">
+                <div className="border-t border-slate-800 pt-4">
                   <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-text-secondary">
+                    <div className="flex items-center gap-2 text-slate-400">
                       <span className="w-2 h-2 bg-primary rounded-full"></span>
                       <span>{plan.duration} days validity</span>
                     </div>
-                    <div className="flex items-center gap-2 text-text-secondary">
+                    <div className="flex items-center gap-2 text-slate-400">
                       <span className="w-2 h-2 bg-primary rounded-full"></span>
                       <span>{plan.device_limit} device{plan.device_limit > 1 ? 's' : ''}</span>
                     </div>
                     {plan.features && plan.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-text-secondary">
+                      <div key={idx} className="flex items-center gap-2 text-slate-400">
                         <span className="w-2 h-2 bg-primary rounded-full"></span>
                         <span>{feature}</span>
                       </div>
@@ -152,8 +152,8 @@ export default function ResellerPlansPage() {
       </div>
 
       {plans.length === 0 && (
-        <div className="bg-background-card rounded-lg border border-gray-800 p-12 text-center">
-          <p className="text-text-secondary">No active plans available</p>
+        <div className="bg-slate-900/80 rounded-lg border border-slate-800 p-12 text-center">
+          <p className="text-slate-400">No active plans available</p>
         </div>
       )}
     </div>
