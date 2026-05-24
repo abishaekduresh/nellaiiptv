@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import Hls from 'hls.js';
-import { Search, Save, RotateCcw, AlertCircle, Loader2, CheckCircle2, Hash, Play, X, Tv, WifiOff, RefreshCw, Copy, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Search, Save, RotateCcw, AlertCircle, Loader2, CheckCircle2, Hash, Play, X, Tv, WifiOff, RefreshCw, Copy, ArrowRight, ShieldCheck, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 
@@ -364,6 +364,7 @@ export default function ChannelRenumberPage() {
   const [saving, setSaving] = useState(false);
   const [previewChannel, setPreviewChannel] = useState<Channel | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showGaps, setShowGaps] = useState(false);
 
   // Separate dirty maps — only touched rows are stored
   const [dirtyNumbers, setDirtyNumbers] = useState<Record<string, string>>({});
@@ -428,6 +429,48 @@ export default function ChannelRenumberPage() {
   const isDirty = changedUuids.size > 0;
   const hasDuplicates = duplicateNumbers.size > 0;
   const changedCount = changedUuids.size;
+
+  // Status-wise counts (respect dirty status changes)
+  const statusCounts = useMemo(() => {
+    const c: Record<string, number> = { active: 0, inactive: 0, blocked: 0, deleted: 0 };
+    channels.forEach(ch => {
+      const s = dirtyStatuses[ch.uuid] ?? ch.status;
+      c[s] = (c[s] ?? 0) + 1;
+    });
+    return c;
+  }, [channels, dirtyStatuses]);
+
+  // Channels with no assigned number
+  const unassignedChannels = useMemo(() =>
+    channels.filter(ch => {
+      const raw = dirtyNumbers[ch.uuid] ?? String(ch.channel_number ?? '');
+      const n = parseInt(raw, 10);
+      return isNaN(n) || n < 1;
+    }),
+  [channels, dirtyNumbers]);
+
+  // Gap numbers: integers in [1..max] not assigned to any channel
+  const gapNumbers = useMemo(() => {
+    const assigned = new Set(Object.keys(numberCounts).map(Number));
+    if (assigned.size === 0) return [];
+    const max = Math.max(...Array.from(assigned));
+    const gaps: number[] = [];
+    for (let i = 1; i < max; i++) { if (!assigned.has(i)) gaps.push(i); }
+    return gaps;
+  }, [numberCounts]);
+
+  // Format gap numbers into compact ranges: [1,2,3,5,6,9] → "1–3, 5–6, 9"
+  const gapRanges = useMemo(() => {
+    if (gapNumbers.length === 0) return '';
+    const ranges: string[] = [];
+    let start = gapNumbers[0], end = gapNumbers[0];
+    for (let i = 1; i < gapNumbers.length; i++) {
+      if (gapNumbers[i] === end + 1) { end = gapNumbers[i]; }
+      else { ranges.push(start === end ? `${start}` : `${start}–${end}`); start = end = gapNumbers[i]; }
+    }
+    ranges.push(start === end ? `${start}` : `${start}–${end}`);
+    return ranges.join(', ');
+  }, [gapNumbers]);
 
   const handleNumberChange = (uuid: string, original: number | null, value: string) => {
     const originalStr = String(original ?? '');
@@ -631,6 +674,81 @@ export default function ChannelRenumberPage() {
           </button>
         </div>
       </div>
+
+      {/* Stats + gap numbers */}
+      {!loading && (
+        <div className="space-y-3">
+
+          {/* Stats cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-3 flex flex-col gap-1">
+              <span className="text-xs text-slate-500 font-medium">Total</span>
+              <span className="text-2xl font-black text-white">{channels.length}</span>
+            </div>
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-3 flex flex-col gap-1">
+              <span className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />Active
+              </span>
+              <span className="text-2xl font-black text-green-400">{statusCounts.active ?? 0}</span>
+            </div>
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-3 flex flex-col gap-1">
+              <span className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <span className="w-2 h-2 rounded-full bg-slate-400 shrink-0" />Inactive
+              </span>
+              <span className="text-2xl font-black text-slate-400">{statusCounts.inactive ?? 0}</span>
+            </div>
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-3 flex flex-col gap-1">
+              <span className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />Blocked
+              </span>
+              <span className="text-2xl font-black text-orange-400">{statusCounts.blocked ?? 0}</span>
+            </div>
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-3 flex flex-col gap-1">
+              <span className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" />Deleted
+              </span>
+              <span className="text-2xl font-black text-red-400">{statusCounts.deleted ?? 0}</span>
+            </div>
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-3 flex flex-col gap-1">
+              <span className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />No Number
+              </span>
+              <span className="text-2xl font-black text-amber-400">{unassignedChannels.length}</span>
+            </div>
+          </div>
+
+          {/* Available gap numbers */}
+          {gapNumbers.length > 0 && (
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
+              <button
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-800/40 transition-colors"
+                onClick={() => setShowGaps(v => !v)}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
+                  <span className="text-sm font-medium text-white">Available Gap Numbers</span>
+                  <span className="text-xs font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                    {gapNumbers.length} slot{gapNumbers.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <ChevronDown
+                  size={15}
+                  className={`text-slate-400 transition-transform duration-200 ${showGaps ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {showGaps && (
+                <div className="px-4 pb-4 pt-1 border-t border-slate-800">
+                  <p className="text-xs text-slate-500 mb-2">
+                    These numbers are not assigned to any channel — they are free to use.
+                  </p>
+                  <p className="text-sm font-mono text-slate-300 leading-relaxed break-all">{gapRanges}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+      )}
 
       {/* Duplicate warning */}
       {hasDuplicates && (

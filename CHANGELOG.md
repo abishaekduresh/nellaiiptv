@@ -1,3 +1,9 @@
+## [1.60.0] - Website - 2026-05-25
+
+### Website (Next.js)
+- **Feature**: **Channel Manager — Stats Panel** (`/admin/channels/renumber`) — Added a 6-card summary row (Total, Active, Inactive, Blocked, Deleted, No Number) that reflects live dirty-status changes before saving. Status counts update in real time as dropdowns are edited.
+- **Feature**: **Channel Manager — Available Gap Numbers** — Collapsible panel below the stats cards listing all unassigned integers in the range 1–max. Gaps are compacted into ranges (e.g. `2, 17–29, 501–700`). Panel hides entirely when there are no gaps.
+
 ## [1.59.0] - Website - 2026-05-25
 
 ### Website (Next.js)
