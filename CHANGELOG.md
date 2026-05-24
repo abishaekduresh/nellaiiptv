@@ -1,3 +1,8 @@
+## [1.59.0] - Website - 2026-05-25
+
+### Website (Next.js)
+- **Improved**: **Channel Manager — Serial Numbers** (`/admin/channels/renumber`) — Added a sequential row-index column (`#`) on both sides of the two-per-row table. Numbers are muted monospace, `select-none`, and reflect the filtered list position (left column: 1, 3, 5…; right column: 2, 4, 6…). Empty-state colspan updated to match the new column count.
+
 ## [1.58.0] - Website - 2026-05-25
 
 ### Website (Next.js)

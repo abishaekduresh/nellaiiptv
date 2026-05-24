@@ -680,11 +680,13 @@ export default function ChannelRenumberPage() {
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b border-slate-800 bg-white/2">
+                  <th className="px-3 py-3 text-slate-600 font-medium text-xs w-10 text-right">#</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium w-36">Channel #</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium">Channel Name</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium hidden xl:table-cell">Category</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium w-36">Status</th>
                   <th className="w-px p-0 bg-gray-800" aria-hidden />
+                  <th className="px-3 py-3 text-slate-600 font-medium text-xs w-10 text-right">#</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium w-36">Channel #</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium">Channel Name</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium hidden xl:table-cell">Category</th>
@@ -694,14 +696,16 @@ export default function ChannelRenumberPage() {
               <tbody className="divide-y divide-slate-800/40">
                 {rows.map(([ch1, ch2], i) => (
                   <tr key={i}>
+                    <td className="px-3 py-2.5 text-right text-xs text-slate-600 font-mono w-10 select-none">{i * 2 + 1}</td>
                     {renderCells(ch1)}
                     <td className="w-px p-0 bg-gray-800/70" />
+                    <td className="px-3 py-2.5 text-right text-xs text-slate-600 font-mono w-10 select-none">{ch2 ? i * 2 + 2 : ''}</td>
                     {ch2 ? renderCells(ch2) : <td colSpan={4} />}
                   </tr>
                 ))}
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="text-center py-14 text-slate-400">
+                    <td colSpan={11} className="text-center py-14 text-slate-400">
                       No channels match the current filter.
                     </td>
                   </tr>
