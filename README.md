@@ -11,8 +11,8 @@ Premium web interface optimized for Browsers and Smart TV.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.41.3
-- **Key Features**: Batch Channel Update API (number + status), Stream Servers API, MistServer Auth (challenge-response), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API, Channel View Details API.
+- **Version**: 1.41.4
+- **Key Features**: Batch Channel Update API (number + status, swap-safe two-phase update), Stream Servers API, MistServer Auth (challenge-response), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API, Channel View Details API.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
@@ -24,7 +24,12 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.54.8 Website | v1.41.3 Backend) — 2026-05-24
+## Recent Updates (v1.41.4 Backend) — 2026-05-24
+
+### Backend (Slim PHP)
+- **Fixed**: `batchRenumber` channel number swap crash — two-phase update (temp values → targets) prevents MySQL InnoDB unique constraint violation when swapping numbers between channels.
+
+## Previous Updates (v1.54.8 Website | v1.41.3 Backend) — 2026-05-24
 
 ### Website (Next.js)
 - **Improved**: Channel Manager now supports inline status editing (Active / Inactive / Blocked / Deleted dropdown per row) and channel-number search in the filter bar.

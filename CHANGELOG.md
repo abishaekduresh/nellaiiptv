@@ -1,3 +1,8 @@
+## [1.41.4] - Backend - 2026-05-24
+
+### Backend (Slim PHP)
+- **Fix**: **Channel Number Swap Crash** — `batchRenumber` now uses a two-phase update strategy to safely handle number swaps (e.g. channel 3 ↔ channel 4) without hitting MySQL InnoDB's per-row unique constraint. Phase 1 moves all changing rows to guaranteed-unique temporary values (`max(channel_number) + offset`); Phase 2 moves them to the intended targets. By the time Phase 2 runs, no changing row holds any of the target numbers, so no inter-row conflict can occur. The previous single-statement `CASE WHEN` approach did not fix this because InnoDB enforces uniqueness row-by-row even within a single `UPDATE` statement.
+
 ## [1.54.8] - Website | [1.41.3] - Backend - 2026-05-24
 
 ### Website (Next.js)

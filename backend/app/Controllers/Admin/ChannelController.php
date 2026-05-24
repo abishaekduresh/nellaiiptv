@@ -467,14 +467,44 @@ class ChannelController
             }
         }
 
+        // Separate number and status changes
+        $numberCases = [];
+        $statusCases = [];
+        foreach ($validUpdates as $item) {
+            if (isset($item['channel_number'])) $numberCases[$item['uuid']] = $item['channel_number'];
+            if (isset($item['status']))         $statusCases[$item['uuid']] = $item['status'];
+        }
+
         DB::beginTransaction();
         try {
-            foreach ($validUpdates as $item) {
-                $updateData = array_intersect_key($item, array_flip(['channel_number', 'status']));
-                if (!empty($updateData)) {
-                    \App\Models\Channel::where('uuid', $item['uuid'])->update($updateData);
+            if (!empty($numberCases)) {
+                // Two-phase update to handle swaps safely.
+                // MySQL InnoDB checks uniqueness row-by-row even in a single statement,
+                // so swapping 3↔4 would fail if done directly.
+                //
+                // Phase 1: Move all changing rows to temp values above any existing number.
+                //          These are guaranteed unique because tempBase > max(channel_number).
+                // Phase 2: Move to the actual targets. No inter-row conflict is possible
+                //          because all changed rows now hold temp values, and targets were
+                //          already verified not to conflict with unchanged rows.
+                $maxNum   = (int)(\App\Models\Channel::max('channel_number') ?? 0);
+                $tempBase = $maxNum + count($numberCases) + 1000;
+                $i = 1;
+                foreach ($numberCases as $uuid => $_) {
+                    \App\Models\Channel::where('uuid', $uuid)
+                        ->update(['channel_number' => $tempBase + $i++]);
+                }
+                foreach ($numberCases as $uuid => $num) {
+                    \App\Models\Channel::where('uuid', $uuid)
+                        ->update(['channel_number' => $num]);
                 }
             }
+
+            // Status has no unique constraint — individual updates are safe
+            foreach ($statusCases as $uuid => $status) {
+                \App\Models\Channel::where('uuid', $uuid)->update(['status' => $status]);
+            }
+
             DB::commit();
             return ResponseFormatter::success($response, ['updated' => count($validUpdates)], 'Channels updated successfully');
         } catch (Exception $e) {
