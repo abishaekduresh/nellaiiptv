@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { Search, Save, RotateCcw, AlertCircle, Loader2, CheckCircle2, Hash } from 'lucide-react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import Hls from 'hls.js';
+import { Search, Save, RotateCcw, AlertCircle, Loader2, CheckCircle2, Hash, Play, X, Tv, WifiOff, RefreshCw, Copy, ArrowRight, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 
@@ -12,6 +13,340 @@ interface Channel {
   status: string;
   category?: { name: string };
   thumbnail_url?: string;
+  hls_url?: string;
+}
+
+/* ── Channel Preview Modal ──────────────────────────────────────────── */
+type PlayerStatus = 'loading' | 'playing' | 'buffering' | 'error' | 'no-url';
+
+function ChannelPreviewModal({ channel, onClose }: { channel: Channel; onClose: () => void }) {
+  const videoRef  = useRef<HTMLVideoElement>(null);
+  const hlsRef    = useRef<Hls | null>(null);
+  const [status, setStatus]     = useState<PlayerStatus>(channel.hls_url ? 'loading' : 'no-url');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const startPlayer = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || !channel.hls_url) return;
+
+    hlsRef.current?.destroy();
+    setStatus('loading');
+    setErrorMsg('');
+
+    video.onwaiting = () => setStatus(s => s === 'playing' ? 'buffering' : s);
+    video.onplaying  = () => setStatus('playing');
+    video.onerror    = () => { setStatus('error'); setErrorMsg('Playback error'); };
+
+    if (Hls.isSupported()) {
+      const hls = new Hls({ enableWorker: false, lowLatencyMode: true });
+      hlsRef.current = hls;
+      hls.loadSource(channel.hls_url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(() => {}); });
+      hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.fatal) { setStatus('error'); setErrorMsg(data.details ?? 'Stream unavailable'); }
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = channel.hls_url;
+      video.play().catch(() => {});
+    }
+  }, [channel.hls_url]);
+
+  useEffect(() => {
+    startPlayer();
+    return () => { hlsRef.current?.destroy(); };
+  }, [startPlayer]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  const isLive = status === 'playing' || status === 'buffering';
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-3xl bg-slate-950 border border-slate-700/60 rounded-2xl overflow-hidden shadow-2xl shadow-black/70 animate-fade-up"
+        onClick={e => e.stopPropagation()}
+      >
+
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 border-b border-slate-800">
+          <div className="flex items-center gap-3 min-w-0">
+            {channel.thumbnail_url
+              ? <img src={channel.thumbnail_url} alt="" className="w-10 h-10 rounded-xl object-cover bg-slate-800 shrink-0 ring-1 ring-white/10" />
+              : <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0"><Tv size={16} className="text-slate-400" /></div>
+            }
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-white font-bold text-sm truncate">{channel.name}</p>
+                {channel.channel_number != null && (
+                  <span className="text-[10px] font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
+                    #{channel.channel_number}
+                  </span>
+                )}
+              </div>
+              <p className="text-slate-500 text-xs truncate mt-0.5">
+                {channel.category?.name ?? 'Uncategorised'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            {isLive && (
+              <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white bg-red-500 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                Live
+              </span>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* ── Player area ── */}
+        <div className="relative bg-black aspect-video w-full">
+
+          {/* Actual video element — always mounted when URL exists */}
+          {channel.hls_url && (
+            <video
+              ref={videoRef}
+              className="w-full h-full"
+              playsInline
+            />
+          )}
+
+          {/* Loading overlay */}
+          {status === 'loading' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 gap-4">
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
+                <svg className="absolute inset-0 animate-spin w-16 h-16 text-primary" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.5" />
+                  <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                {channel.thumbnail_url && (
+                  <img src={channel.thumbnail_url} alt="" className="absolute inset-2 rounded-full object-cover opacity-50" />
+                )}
+              </div>
+              <div className="text-center">
+                <p className="text-white text-sm font-semibold">Connecting to stream…</p>
+                <p className="text-slate-600 text-xs mt-1 font-mono truncate max-w-xs px-4">{channel.hls_url}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Mid-playback buffering */}
+          {status === 'buffering' && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
+              <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center">
+                <svg className="animate-spin w-6 h-6 text-white/80" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                  <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+              </div>
+            </div>
+          )}
+
+          {/* Error overlay */}
+          {status === 'error' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/95 gap-5">
+              <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+                <WifiOff size={28} className="text-red-400" />
+              </div>
+              <div className="text-center px-6">
+                <p className="text-white font-semibold text-base mb-1.5">Stream unavailable</p>
+                <p className="text-slate-500 text-xs leading-relaxed font-mono">{errorMsg || 'Could not load the stream'}</p>
+              </div>
+              <button
+                onClick={startPlayer}
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5"
+              >
+                <RefreshCw size={14} /> Retry
+              </button>
+            </div>
+          )}
+
+          {/* No URL configured */}
+          {status === 'no-url' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 gap-3 text-slate-600">
+              <Tv size={44} className="opacity-20" />
+              <p className="text-sm">No stream URL configured for this channel</p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Footer ── */}
+        <div className="flex items-center gap-3 px-5 py-3 bg-slate-900/80 border-t border-slate-800">
+          {/* Status dot */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className={`w-2 h-2 rounded-full ${
+              channel.status === 'active'  ? 'bg-green-400' :
+              channel.status === 'blocked' ? 'bg-orange-400' :
+              channel.status === 'deleted' ? 'bg-red-400' : 'bg-slate-500'
+            }`} />
+            <span className="text-xs text-slate-500 capitalize">{channel.status}</span>
+          </div>
+
+          {channel.hls_url && (
+            <>
+              <span className="text-slate-700 text-xs shrink-0">·</span>
+              <span className="text-xs text-slate-600 font-mono truncate flex-1">{channel.hls_url}</span>
+              <button
+                onClick={() => { navigator.clipboard.writeText(channel.hls_url!); toast.success('URL copied!'); }}
+                className="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors shrink-0"
+                title="Copy stream URL"
+              >
+                <Copy size={13} />
+              </button>
+            </>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+/* ── Confirm Save Modal ─────────────────────────────────────────────── */
+interface ChangePreview {
+  uuid: string;
+  name: string;
+  thumbnail_url?: string;
+  numberChange?: { from: number | null; to: number };
+  statusChange?: { from: string; to: string };
+}
+
+const STATUS_DOT: Record<string, string> = {
+  active: 'bg-green-400', inactive: 'bg-slate-400',
+  blocked: 'bg-orange-400', deleted: 'bg-red-400',
+};
+
+function ConfirmSaveModal({ changes, onConfirm, onCancel, saving }: {
+  changes: ChangePreview[];
+  onConfirm: () => void;
+  onCancel: () => void;
+  saving: boolean;
+}) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape' && !saving) onCancel(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onCancel, saving]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+      onClick={() => { if (!saving) onCancel(); }}
+    >
+      <div
+        className="relative w-full max-w-lg bg-slate-950 border border-slate-700/60 rounded-2xl overflow-hidden shadow-2xl animate-fade-up"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 bg-slate-900 border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+              <ShieldCheck size={17} className="text-amber-400" />
+            </div>
+            <div>
+              <p className="text-white font-bold text-sm">Confirm Changes</p>
+              <p className="text-slate-500 text-xs mt-0.5">
+                {changes.length} channel{changes.length !== 1 ? 's' : ''} will be updated
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onCancel}
+            disabled={saving}
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-40"
+          >
+            <X size={17} />
+          </button>
+        </div>
+
+        {/* Change list */}
+        <div className="overflow-y-auto max-h-[360px] divide-y divide-slate-800/60">
+          {changes.map(ch => (
+            <div key={ch.uuid} className="flex items-start gap-3 px-5 py-3.5 hover:bg-slate-900/40 transition-colors">
+              {/* Thumbnail */}
+              {ch.thumbnail_url
+                ? <img src={ch.thumbnail_url} alt="" className="w-9 h-9 rounded-lg object-cover bg-slate-800 shrink-0 ring-1 ring-white/10 mt-0.5" />
+                : <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 mt-0.5"><Tv size={14} className="text-slate-500" /></div>
+              }
+
+              {/* Channel name + changes */}
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm font-semibold truncate mb-1.5">{ch.name}</p>
+                <div className="space-y-1">
+                  {ch.numberChange && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-slate-500 w-14 shrink-0">Number</span>
+                      <span className="font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
+                        #{ch.numberChange.from ?? '—'}
+                      </span>
+                      <ArrowRight size={11} className="text-slate-600 shrink-0" />
+                      <span className="font-mono text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded">
+                        #{ch.numberChange.to}
+                      </span>
+                    </div>
+                  )}
+                  {ch.statusChange && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-slate-500 w-14 shrink-0">Status</span>
+                      <span className={`flex items-center gap-1 capitalize px-1.5 py-0.5 rounded bg-slate-800 text-slate-400`}>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${STATUS_DOT[ch.statusChange.from] ?? 'bg-slate-500'}`} />
+                        {ch.statusChange.from}
+                      </span>
+                      <ArrowRight size={11} className="text-slate-600 shrink-0" />
+                      <span className={`flex items-center gap-1 capitalize px-1.5 py-0.5 rounded bg-slate-800 font-semibold ${
+                        ch.statusChange.to === 'active'   ? 'text-green-400' :
+                        ch.statusChange.to === 'blocked'  ? 'text-orange-400' :
+                        ch.statusChange.to === 'deleted'  ? 'text-red-400' : 'text-slate-400'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${STATUS_DOT[ch.statusChange.to] ?? 'bg-slate-500'}`} />
+                        {ch.statusChange.to}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 px-5 py-4 bg-slate-900/80 border-t border-slate-800">
+          <button
+            onClick={onCancel}
+            disabled={saving}
+            className="px-4 py-2.5 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all disabled:opacity-40 font-medium"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={saving}
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5"
+          >
+            {saving
+              ? <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg> Saving…</>
+              : <><Save size={14} /> Save {changes.length} Change{changes.length !== 1 ? 's' : ''}</>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 const STATUSES = ['active', 'inactive', 'blocked', 'deleted'] as const;
@@ -27,6 +362,8 @@ export default function ChannelRenumberPage() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [previewChannel, setPreviewChannel] = useState<Channel | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Separate dirty maps — only touched rows are stored
   const [dirtyNumbers, setDirtyNumbers] = useState<Record<string, string>>({});
@@ -111,24 +448,27 @@ export default function ChannelRenumberPage() {
 
   const handleReset = () => { setDirtyNumbers({}); setDirtyStatuses({}); };
 
-  const handleSave = async () => {
+  // Step 1 — validate then open confirm modal
+  const handleSave = () => {
     if (!isDirty || hasDuplicates || saving) return;
-
-    const updates: { uuid: string; channel_number?: number; status?: string }[] = [];
-
     for (const uuid of Array.from(changedUuids)) {
-      const entry: { uuid: string; channel_number?: number; status?: string } = { uuid };
       if (dirtyNumbers[uuid] !== undefined) {
         const n = parseInt(dirtyNumbers[uuid], 10);
         if (!n || n < 1) { toast.error('Invalid channel number — fix before saving'); return; }
-        entry.channel_number = n;
       }
-      if (dirtyStatuses[uuid] !== undefined) {
-        entry.status = dirtyStatuses[uuid];
-      }
+    }
+    setShowConfirm(true);
+  };
+
+  // Step 2 — called when user confirms in the modal
+  const handleConfirmedSave = async () => {
+    const updates: { uuid: string; channel_number?: number; status?: string }[] = [];
+    for (const uuid of Array.from(changedUuids)) {
+      const entry: { uuid: string; channel_number?: number; status?: string } = { uuid };
+      if (dirtyNumbers[uuid] !== undefined) entry.channel_number = parseInt(dirtyNumbers[uuid], 10);
+      if (dirtyStatuses[uuid] !== undefined) entry.status = dirtyStatuses[uuid];
       updates.push(entry);
     }
-
     if (updates.length === 0) { toast.error('No valid changes to save'); return; }
 
     setSaving(true);
@@ -137,6 +477,7 @@ export default function ChannelRenumberPage() {
       toast.success(`Updated ${updates.length} channel(s)`);
       setDirtyNumbers({});
       setDirtyStatuses({});
+      setShowConfirm(false);
       await fetchChannels();
     } catch (err: any) {
       const msg = err.response?.data?.message ?? 'Failed to save changes';
@@ -146,6 +487,19 @@ export default function ChannelRenumberPage() {
       setSaving(false);
     }
   };
+
+  // Build the preview data for the confirm modal
+  const confirmChanges: ChangePreview[] = useMemo(() => {
+    return Array.from(changedUuids).map(uuid => {
+      const ch = channels.find(c => c.uuid === uuid)!;
+      const preview: ChangePreview = { uuid, name: ch?.name ?? uuid, thumbnail_url: ch?.thumbnail_url };
+      if (dirtyNumbers[uuid] !== undefined)
+        preview.numberChange = { from: ch?.channel_number ?? null, to: parseInt(dirtyNumbers[uuid], 10) };
+      if (dirtyStatuses[uuid] !== undefined)
+        preview.statusChange = { from: ch?.status ?? '', to: dirtyStatuses[uuid] };
+      return preview;
+    }).sort((a, b) => (a.numberChange?.to ?? 0) - (b.numberChange?.to ?? 0));
+  }, [changedUuids, channels, dirtyNumbers, dirtyStatuses]);
 
   // Render the 4 cells for one channel entry
   const renderCells = (ch: Channel) => {
@@ -197,19 +551,28 @@ export default function ChannelRenumberPage() {
           {ch.category?.name ?? '—'}
         </td>
 
-        {/* Status — editable dropdown */}
+        {/* Status + Preview */}
         <td className={`px-3 py-2.5 ${rowBg}`}>
-          <select
-            value={currentStatus}
-            onChange={e => handleStatusChange(ch.uuid, ch.status, e.target.value)}
-            className={`px-2 py-1 rounded-md border text-xs font-medium bg-slate-900/80 focus:outline-none transition-colors capitalize cursor-pointer ${
-              isStChanged ? 'border-amber-500' : 'border-gray-700 focus:border-primary'
-            } ${statusColor(currentStatus)}`}
-          >
-            {STATUSES.map(s => (
-              <option key={s} value={s} className="bg-slate-900 text-white capitalize">{s}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <select
+              value={currentStatus}
+              onChange={e => handleStatusChange(ch.uuid, ch.status, e.target.value)}
+              className={`px-2 py-1 rounded-md border text-xs font-medium bg-slate-900/80 focus:outline-none transition-colors capitalize cursor-pointer ${
+                isStChanged ? 'border-amber-500' : 'border-gray-700 focus:border-primary'
+              } ${statusColor(currentStatus)}`}
+            >
+              {STATUSES.map(s => (
+                <option key={s} value={s} className="bg-slate-900 text-white capitalize">{s}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => setPreviewChannel(ch)}
+              className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors shrink-0"
+              title="Preview stream"
+            >
+              <Play size={12} />
+            </button>
+          </div>
         </td>
       </>
     );
@@ -226,6 +589,17 @@ export default function ChannelRenumberPage() {
 
   return (
     <div className="space-y-6">
+      {previewChannel && (
+        <ChannelPreviewModal channel={previewChannel} onClose={() => setPreviewChannel(null)} />
+      )}
+      {showConfirm && (
+        <ConfirmSaveModal
+          changes={confirmChanges}
+          saving={saving}
+          onConfirm={handleConfirmedSave}
+          onCancel={() => { if (!saving) setShowConfirm(false); }}
+        />
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
@@ -309,12 +683,12 @@ export default function ChannelRenumberPage() {
                   <th className="text-left px-3 py-3 text-slate-400 font-medium w-36">Channel #</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium">Channel Name</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium hidden xl:table-cell">Category</th>
-                  <th className="text-left px-3 py-3 text-slate-400 font-medium w-28">Status</th>
+                  <th className="text-left px-3 py-3 text-slate-400 font-medium w-36">Status</th>
                   <th className="w-px p-0 bg-gray-800" aria-hidden />
                   <th className="text-left px-3 py-3 text-slate-400 font-medium w-36">Channel #</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium">Channel Name</th>
                   <th className="text-left px-3 py-3 text-slate-400 font-medium hidden xl:table-cell">Category</th>
-                  <th className="text-left px-3 py-3 text-slate-400 font-medium w-28">Status</th>
+                  <th className="text-left px-3 py-3 text-slate-400 font-medium w-36">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/40">

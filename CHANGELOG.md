@@ -1,3 +1,9 @@
+## [1.58.0] - Website - 2026-05-25
+
+### Website (Next.js)
+- **Feature**: **Channel Manager — Stream Preview Modal** (`/admin/channels/renumber`) — Each channel row now has a Play button that opens a full HLS preview modal. States: loading (spinner with thumbnail inside ring + stream URL), buffering (frosted-glass overlay mid-playback), error (WifiOff icon + error detail + Retry button that re-initialises HLS), no-url (placeholder). Header shows channel thumbnail, name, `#number` chip, category and a red pulsing LIVE badge while playing. Footer shows status dot and truncated stream URL with a copy-to-clipboard button. Browser controls removed for a clean cinematic view.
+- **Feature**: **Channel Manager — Confirm-Save Modal** — Clicking "Save Changes" now opens a confirmation modal before any API call. Lists every modified channel with thumbnail, name, and a diff row per changed field: number change shows `#old → #new` in monospace, status change shows coloured dot + label for both old and new values. List is sorted by new channel number. Modal stays open with a spinner during save and closes automatically on success. Escape / click-outside cancels when not saving.
+
 ## [1.57.0] - Website - 2026-05-25
 
 ### Website (Next.js)
