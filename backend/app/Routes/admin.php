@@ -19,6 +19,7 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->post('/channels', [\App\Controllers\Admin\ChannelController::class, 'create']);
         $group->get('/channels/export', [\App\Controllers\Admin\ChannelController::class, 'export']); // Export Route
         $group->get('/channels/next-number', [\App\Controllers\Admin\ChannelController::class, 'getNextChannelNumber']); // Must be before {uuid}
+        $group->post('/channels/batch-renumber', [\App\Controllers\Admin\ChannelController::class, 'batchRenumber']); // Must be before {uuid}
         $group->get('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'show']);
         $group->put('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'update']);
         $group->post('/channels/{uuid}', [\App\Controllers\Admin\ChannelController::class, 'update']); // Allow POST for file uploads

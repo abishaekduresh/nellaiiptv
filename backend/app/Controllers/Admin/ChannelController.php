@@ -7,6 +7,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Services\Admin\ChannelService;
 use App\Helpers\ResponseFormatter;
 use App\Helpers\Validator;
+use Illuminate\Database\Capsule\Manager as DB;
 use Exception;
 
 class ChannelController
@@ -376,6 +377,78 @@ class ChannelController
 
             return ResponseFormatter::success($response, ['next_number' => $nextNumber], 'Next channel number retrieved');
         } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
+        }
+    }
+
+    public function batchRenumber(Request $request, Response $response): Response
+    {
+        $body    = $request->getParsedBody() ?? [];
+        $updates = $body['updates'] ?? [];
+
+        if (empty($updates) || !is_array($updates)) {
+            return ResponseFormatter::error($response, 'updates array is required', 400);
+        }
+
+        $errors      = [];
+        $validUpdates = [];
+        $seenNumbers = [];
+
+        foreach ($updates as $i => $item) {
+            $uuid   = trim($item['uuid'] ?? '');
+            $number = $item['channel_number'] ?? null;
+
+            if (empty($uuid)) {
+                $errors[] = "Item $i: uuid is required";
+                continue;
+            }
+            if (!is_numeric($number) || (int)$number < 1) {
+                $errors[] = "uuid=$uuid: channel_number must be a positive integer";
+                continue;
+            }
+
+            $num = (int)$number;
+            if (isset($seenNumbers[$num])) {
+                $errors[] = "Duplicate channel_number $num in request";
+                continue;
+            }
+            $seenNumbers[$num] = $uuid;
+            $validUpdates[]    = ['uuid' => $uuid, 'channel_number' => $num];
+        }
+
+        if (!empty($errors)) {
+            return ResponseFormatter::error($response, 'Validation failed', 400, $errors);
+        }
+
+        $uuids   = array_column($validUpdates, 'uuid');
+        $numbers = array_column($validUpdates, 'channel_number');
+
+        // Ensure all provided UUIDs exist
+        $foundCount = \App\Models\Channel::whereIn('uuid', $uuids)->count();
+        if ($foundCount !== count($uuids)) {
+            return ResponseFormatter::error($response, 'One or more channel UUIDs not found', 404);
+        }
+
+        // Detect conflicts with channels that are NOT part of this update
+        $conflicting = \App\Models\Channel::whereIn('channel_number', $numbers)
+            ->whereNotIn('uuid', $uuids)
+            ->get(['name', 'channel_number']);
+
+        if ($conflicting->count() > 0) {
+            $details = $conflicting->map(fn($c) => "#{$c->channel_number} already used by '{$c->name}'")->all();
+            return ResponseFormatter::error($response, 'Channel number conflicts', 409, $details);
+        }
+
+        DB::beginTransaction();
+        try {
+            foreach ($validUpdates as $item) {
+                \App\Models\Channel::where('uuid', $item['uuid'])
+                    ->update(['channel_number' => $item['channel_number']]);
+            }
+            DB::commit();
+            return ResponseFormatter::success($response, ['updated' => count($validUpdates)], 'Channel numbers updated successfully');
+        } catch (Exception $e) {
+            DB::rollBack();
             return ResponseFormatter::error($response, $e->getMessage(), 500);
         }
     }

@@ -13,7 +13,11 @@ const menuItems = [
   {
     title: 'Channels',
     icon: Tv,
-    href: '/admin/channels',
+    href: '#',
+    children: [
+      { title: 'All Channels', href: '/admin/channels' },
+      { title: 'Channel Numbers', href: '/admin/channels/renumber' },
+    ],
   },
   {
     title: 'Stream Servers',
@@ -95,7 +99,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   
   // Track open menus by title
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
-      'Reports': true // Default open for visibility
+      'Reports': true,
+      'Channels': true,
   });
 
   const toggleMenu = (title: string) => {

@@ -6,13 +6,13 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.54.6
-- **Key Features**: Stream Server 360° View, Stream Servers Admin CRUD, Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge in footer, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
+- **Version**: 1.54.7
+- **Key Features**: Channel Number Manager (bulk inline renumber), Stream Server 360° View, Stream Servers Admin CRUD, Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge in footer, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.41.1
-- **Key Features**: Stream Servers API, MistServer Auth (challenge-response), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API, Channel View Details API.
+- **Version**: 1.41.2
+- **Key Features**: Batch Channel Renumber API, Stream Servers API, MistServer Auth (challenge-response), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API, Channel View Details API.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
@@ -24,7 +24,16 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.54.6 Website | v1.41.1 Backend) — 2026-05-24
+## Recent Updates (v1.54.7 Website | v1.41.2 Backend) — 2026-05-24
+
+### Website (Next.js)
+- **Added**: Channel Number Manager at `/admin/channels/renumber` — two-per-row inline editable table, amber/red row highlights, duplicate detection banner, search + status filter (including Deleted), batch save.
+- **Updated**: AdminSidebar "Channels" converted to collapsible group with "All Channels" and "Channel Numbers" children.
+
+### Backend (Slim PHP)
+- **Added**: `POST /api/admin/channels/batch-renumber` — atomic batch channel number update with duplicate/conflict detection and DB transaction rollback.
+
+## Previous Updates (v1.54.6 Website | v1.41.1 Backend) — 2026-05-24
 
 ### Website (Next.js)
 - **Added**: Channel IP View Details modal on `/admin/reports/channel-views` — eye icon per row opens IP-level breakdown (IP, date, views) scoped to the active date filter.
@@ -32,12 +41,6 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 ### Backend (Slim PHP)
 - **Added**: `GET /api/admin/reports/channel-view-details` — returns per-IP per-date view rows + summary for a given channel and date range.
 - **Fixed**: `getChannelViews` now exposes `channel_id` in `table_data` response.
-
-## Recent Updates (v1.54.5 Website) — 2026-05-24
-
-### Website (Next.js)
-- **Fixed**: HTTP mixed-content warning banner on `/player` for `http://` streams on HTTPS; targeted error callout when playback fails.
-- **Moved**: Google Play Store badge from home page hero to `Footer.tsx` (visible sitewide).
 
 ## Recent Updates (v1.54.4 Website) — 2026-05-24
 

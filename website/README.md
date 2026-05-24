@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.54.6
+# Nellai IPTV - Frontend v1.54.7
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.54.6)**
+### **Latest Updates (v1.54.7)**
+- **Channel Number Manager** (`/admin/channels/renumber`): New admin page for updating channel numbers in bulk. Loads all channels sorted by channel number, displays them in a two-per-row table layout (Channel # | Name | Category | Status on each side). Channel number inputs are inline-editable — changed rows highlight amber, duplicate numbers highlight red with an alert icon. Client-side search by name and status filter (Active / Inactive / Deleted). Duplicate number detection blocks saving with a detailed banner. Save button batch-submits only dirty rows via `POST /admin/channels/batch-renumber`; Reset button discards all edits. Sidebar "Channels" group updated with "All Channels" and "Channel Numbers" children.
+
+### **Previous Updates (v1.54.6)**
 - **Channel IP View Details Modal**: Each row in the Channel Performance Details table (`/admin/reports/channel-views`) now has a "View" eye-icon button. Clicking it opens a modal scoped to the active date filter. The modal shows a 3-card summary strip (Total Views, Unique IPs, Record count) and a scrollable IP details table (IP Address, Date, Views) sorted by date desc. Includes loading spinner, backdrop-dismiss, and empty state. Calls the new backend `GET /admin/reports/channel-view-details` endpoint.
 
 ### **Previous Updates (v1.54.5)**

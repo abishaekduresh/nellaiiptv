@@ -1,3 +1,12 @@
+## [1.54.7] - Website | [1.41.2] - Backend - 2026-05-24
+
+### Website (Next.js)
+- **Feature**: **Channel Number Manager** (`/admin/channels/renumber`) — New admin page for bulk-editing channel numbers. All channels are loaded in one request (`per_page=1000`, sorted by `channel_number` asc) and displayed in a two-per-row table layout mirroring `Channel # | Name | Category | Status` on both the left and right halves of each row. Inline number inputs: changed rows turn amber, duplicates turn red with an alert icon. Client-side search by name and status filter (All / Active / Inactive / Deleted). A banner lists all duplicate numbers and blocks save until resolved. Save button batch-submits only edited entries; Reset button discards all changes. Sidebar "Channels" item converted from a standalone link to a collapsible group with "All Channels" and "Channel Numbers" children, defaulting to open.
+
+### Backend (Slim PHP)
+- **Feature**: **Batch Channel Renumber Endpoint** — New `POST /api/admin/channels/batch-renumber` handled by `ChannelController::batchRenumber()`. Accepts `{ "updates": [{ "uuid": "...", "channel_number": N }] }`. Validates each entry (uuid non-empty, channel_number positive integer), detects duplicates within the request, verifies all UUIDs exist, checks for conflicts with channels not in the batch, then atomically updates all rows inside a DB transaction (rollback on any failure). Returns `{ updated: N }` on success or `400/404/409/500` with structured error details.
+- **Route**: `POST /api/admin/channels/batch-renumber` added before the `{uuid}` wildcard routes in `admin.php`.
+
 ## [1.54.6] - Website | [1.41.1] - Backend - 2026-05-24
 
 ### Website (Next.js)
