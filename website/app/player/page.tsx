@@ -1,17 +1,26 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import Script from 'next/script';
 import Hls from 'hls.js';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
-  RefreshCw, AlertTriangle, ChevronDown, RotateCcw, Link2, Scaling, X
+  RefreshCw, AlertTriangle, ChevronDown, RotateCcw, Link2, Scaling, X, BarChart2
 } from 'lucide-react';
 import { useBranding } from '@/hooks/useBranding';
 
 type StreamType = 'auto' | 'hls' | 'dash' | 'mp4';
 type DetectedType = 'hls' | 'dash' | 'mp4';
 type PlayerStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'error';
+
+type Metrics = {
+  resolution: string;
+  bufferHealth: string;
+  bitrate: string;
+  droppedFrames: string | null;
+  latency: string | null;
+};
 
 declare global {
   interface Window { dashjs: any; }
@@ -46,6 +55,22 @@ function formatTime(s: number): string {
   return `${m}:${String(sec).padStart(2, '0')}`;
 }
 
+function Sparkline({ data, color }: { data: number[]; color: string }) {
+  if (data.length < 2) return <div className="h-6 w-full rounded bg-slate-800/60" />;
+  const max = Math.max(...data, 1);
+  const W = 200, H = 28;
+  const pts = data.map((v, i) => {
+    const x = ((i / (data.length - 1)) * W).toFixed(1);
+    const y = (H - (v / max) * H).toFixed(1);
+    return `${x},${y}`;
+  }).join(' ');
+  return (
+    <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="overflow-visible">
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function resolveUrl(url: string): string {
   if (typeof window === 'undefined') return url;
   if (window.location.protocol === 'https:' && url.startsWith('http://'))
@@ -60,7 +85,7 @@ export default function PlayerPage() {
   const [detectedType, setDetectedType] = useState<DetectedType | null>(null);
   const [isDashReady, setIsDashReady] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
-  const { logo_url, app_logo_png_url } = useBranding();
+  const { logo_url } = useBranding();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +108,12 @@ export default function PlayerPage() {
   const [currentQuality, setCurrentQuality] = useState(-1);
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [isStretched, setIsStretched] = useState(false);
+  const [showMetrics, setShowMetrics] = useState(false);
+  const [metrics, setMetrics] = useState<Metrics>({
+    resolution: '—', bufferHealth: '—', bitrate: '—', droppedFrames: null, latency: null,
+  });
+  const [bitrateHistory, setBitrateHistory] = useState<number[]>([]);
+  const [bufferHistory,  setBufferHistory]  = useState<number[]>([]);
 
   const showControls = useCallback(() => {
     setControlsVisible(true);
@@ -92,7 +123,7 @@ export default function PlayerPage() {
 
   const destroyPlayers = useCallback(() => {
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-    if (dashRef.current) { try { dashRef.current.reset(); } catch {} dashRef.current = null; }
+    if (dashRef.current) { try { dashRef.current.destroy(); } catch {} dashRef.current = null; }
     const video = videoRef.current;
     if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
     setQualities([]);
@@ -151,24 +182,30 @@ export default function PlayerPage() {
       }
 
     } else if (type === 'dash') {
-      if (!isDashReady || typeof window.dashjs === 'undefined') {
+      const djsReady = isDashReady && typeof window.dashjs !== 'undefined';
+      if (!djsReady) {
         pendingDashRef.current = { url, type };
         setStatus('loading');
         return;
       }
       try {
-        const dash = window.dashjs.MediaPlayer().create();
+        const djs = window.dashjs;
+        const dash = djs.MediaPlayer().create();
         dashRef.current = dash;
-        dash.updateSettings({ debug: { logLevel: 0 } });
+        dash.updateSettings({
+          debug: { logLevel: 0 },
+          streaming: { delay: { liveDelay: 4 } },
+        });
         dash.initialize(video, src, true);
 
-        dash.on(window.dashjs.MediaPlayer.events.PLAYBACK_METADATA_LOADED, () => {
-          setIsLive(dash.isDynamic?.() ?? false);
-          setStatus('playing');
-        });
-
-        dash.on(window.dashjs.MediaPlayer.events.ERROR, (e: any) => {
-          setError(`DASH error: ${e?.error?.message ?? 'Playback failed'}`);
+        const ev = djs.MediaPlayer.events;
+        dash.on(ev.STREAM_INITIALIZED,        () => setStatus('loading'));
+        dash.on(ev.CAN_PLAY,                  () => setStatus('playing'));
+        dash.on(ev.PLAYBACK_STARTED,          () => { setStatus('playing'); setIsLive(dash.isDynamic?.() ?? false); });
+        dash.on(ev.PLAYBACK_METADATA_LOADED,  () => setIsLive(dash.isDynamic?.() ?? false));
+        dash.on(ev.ERROR, (e: any) => {
+          const msg = e?.error?.message ?? e?.error?.code ?? 'Playback failed';
+          setError(`DASH error: ${msg}`);
           setStatus('error');
         });
       } catch (err: any) {
@@ -244,6 +281,17 @@ export default function PlayerPage() {
     }
   }, [isDashReady, loadStream]);
 
+  // Polling fallback: detect dashjs global even if onLoad misfires
+  useEffect(() => {
+    if (isDashReady) return;
+    const id = setInterval(() => {
+      if (typeof window !== 'undefined' && typeof window.dashjs !== 'undefined') {
+        setIsDashReady(true);
+      }
+    }, 300);
+    return () => clearInterval(id);
+  }, [isDashReady]);
+
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -294,12 +342,68 @@ export default function PlayerPage() {
       case 'm': case 'M': toggleMute(); break;
       case 'f': case 'F': toggleFullscreen(); break;
       case 's': case 'S': setIsStretched(p => !p); showControls(); break;
+      case 'd': case 'D': setShowMetrics(p => !p); showControls(); break;
       case 'ArrowRight': if (!isLive && videoRef.current) { videoRef.current.currentTime += 10; showControls(); } break;
       case 'ArrowLeft':  if (!isLive && videoRef.current) { videoRef.current.currentTime -= 10; showControls(); } break;
       case 'ArrowUp':   e.preventDefault(); handleVolumeChange(Math.min(1, volume + 0.1)); break;
       case 'ArrowDown': e.preventDefault(); handleVolumeChange(Math.max(0, volume - 0.1)); break;
     }
   }, [togglePlay, toggleMute, toggleFullscreen, handleVolumeChange, isLive, volume, showControls]);
+
+  const updateMetrics = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const resolution = video.videoWidth && video.videoHeight
+      ? `${video.videoWidth}×${video.videoHeight}` : '—';
+
+    let bufferNum = 0;
+    let bufferHealth = '—';
+    if (video.buffered.length > 0) {
+      bufferNum = Math.max(0, video.buffered.end(video.buffered.length - 1) - video.currentTime);
+      bufferHealth = `${bufferNum.toFixed(1)}s`;
+    }
+
+    let bitrateNum = 0;
+    let bitrate = '—';
+    if (hlsRef.current) {
+      const bw = hlsRef.current.bandwidthEstimate;
+      if (isFinite(bw) && bw > 0) { bitrateNum = bw / 1000; bitrate = `${Math.round(bitrateNum).toLocaleString()} kbps`; }
+    } else if (dashRef.current) {
+      try {
+        const bw: number = dashRef.current.getAverageThroughput?.('video') ?? 0;
+        if (bw > 0) { bitrateNum = bw; bitrate = `${Math.round(bw).toLocaleString()} kbps`; }
+      } catch {}
+    }
+
+    const v = video as any;
+    const droppedFrames = typeof v.webkitDroppedFrameCount === 'number'
+      ? `${v.webkitDroppedFrameCount} / ${v.webkitDecodedFrameCount}` : null;
+
+    let latency: string | null = null;
+    if (isLive) {
+      if (hlsRef.current) {
+        const lag = (hlsRef.current as any).liveSyncPosition - video.currentTime;
+        if (isFinite(lag)) latency = `${lag.toFixed(1)}s`;
+      } else if (dashRef.current) {
+        try {
+          const lag: number = dashRef.current.getCurrentLiveLatency?.() ?? NaN;
+          if (isFinite(lag)) latency = `${lag.toFixed(1)}s`;
+        } catch {}
+      }
+    }
+
+    setMetrics({ resolution, bufferHealth, bitrate, droppedFrames, latency });
+    setBitrateHistory(prev => [...prev.slice(-59), bitrateNum]);
+    setBufferHistory(prev  => [...prev.slice(-59), bufferNum]);
+  }, [isLive]);
+
+  useEffect(() => {
+    if (!isPlaying || !showMetrics) return;
+    updateMetrics();
+    const id = setInterval(updateMetrics, 1000);
+    return () => clearInterval(id);
+  }, [isPlaying, showMetrics, updateMetrics]);
 
   const clearStream = useCallback(() => {
     destroyPlayers();
@@ -308,6 +412,8 @@ export default function PlayerPage() {
     setDetectedType(null);
     setStatus('idle');
     setError(null);
+    setBitrateHistory([]);
+    setBufferHistory([]);
     pendingDashRef.current = null;
   }, [destroyPlayers]);
 
@@ -327,7 +433,7 @@ export default function PlayerPage() {
       `}</style>
 
       <Script
-        src="https://cdn.dashjs.org/latest/dash.all.min.js"
+        src="https://cdn.dashjs.org/v4.7.4/dash.all.min.js"
         strategy="afterInteractive"
         onLoad={() => setIsDashReady(true)}
       />
@@ -359,6 +465,18 @@ export default function PlayerPage() {
               </div>
             </div>
             <div className="w-px h-5 bg-slate-700 hidden sm:block" />
+
+            {/* Home button */}
+            <Link
+              href="/"
+              className="shrink-0 flex items-center gap-1.5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
+              title="Go to home"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <span className="hidden sm:inline">Home</span>
+            </Link>
+
+            <div className="w-px h-5 bg-slate-700" />
 
             {/* Input */}
             <div className="flex-1 relative min-w-0">
@@ -599,6 +717,20 @@ export default function PlayerPage() {
                     <span className="hidden sm:inline">Stretch</span>
                   </button>
 
+                  {/* Stats toggle */}
+                  <button
+                    onClick={() => { setShowMetrics(p => !p); showControls(); }}
+                    title={showMetrics ? 'Hide stats (D)' : 'Show stats (D)'}
+                    className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                      showMetrics
+                        ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-400'
+                        : 'bg-black/40 border-slate-700 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <BarChart2 size={14} />
+                    <span className="hidden sm:inline">Stats</span>
+                  </button>
+
                   {/* Quality (HLS) */}
                   {qualities.length > 0 && (
                     <div className="relative">
@@ -638,16 +770,43 @@ export default function PlayerPage() {
             </div>
           )}
 
-          {/* Watermark — visible only during playback */}
-          {app_logo_png_url && isPlaying && (
-            <img
-              src={app_logo_png_url}
-              alt="Watermark"
-              className="absolute bottom-14 w-24 sm:w-32 md:w-40 opacity-35 pointer-events-none select-none z-20 drop-shadow-lg"
-              style={{ left: '21px' }}
-              onError={e => (e.currentTarget.style.display = 'none')}
-            />
+          {/* Metrics overlay */}
+          {hasStream && showMetrics && (
+            <div className="absolute top-12 right-3 z-30 bg-black/80 backdrop-blur-sm border border-slate-700/60 rounded-xl p-3 pointer-events-none font-mono text-xs w-56">
+              <div className="text-slate-500 font-sans font-semibold text-[10px] uppercase tracking-widest mb-2.5">Video Stats</div>
+
+              {/* Key-value rows */}
+              <div className="space-y-1 mb-3">
+                {[
+                  { label: 'Resolution', value: metrics.resolution, warn: false },
+                  { label: 'Buffer',     value: metrics.bufferHealth, warn: metrics.bufferHealth !== '—' && parseFloat(metrics.bufferHealth) < 2 },
+                  { label: 'Bandwidth',  value: metrics.bitrate, warn: false },
+                  ...(metrics.droppedFrames !== null ? [{ label: 'Dropped', value: metrics.droppedFrames, warn: parseInt(metrics.droppedFrames) > 0 }] : []),
+                  ...(metrics.latency    !== null ? [{ label: 'Live Lag', value: metrics.latency!,       warn: parseFloat(metrics.latency!) > 5 }] : []),
+                ].map(row => (
+                  <div key={row.label} className="flex justify-between items-center gap-2">
+                    <span className="text-white">{row.label}</span>
+                    <span className={row.warn ? 'text-yellow-400' : 'text-green-400'}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bandwidth sparkline */}
+              <div className="mb-2">
+                <div className="text-white font-sans text-[10px] mb-1">Bandwidth (kbps)</div>
+                <Sparkline data={bitrateHistory} color="#06b6d4" />
+              </div>
+
+              {/* Buffer sparkline */}
+              <div>
+                <div className="text-white font-sans text-[10px] mb-1">Buffer (s)</div>
+                <Sparkline data={bufferHistory} color="#10b981" />
+              </div>
+
+              {!isPlaying && <div className="text-slate-600 font-sans text-[10px] mt-2">Paused — last known values</div>}
+            </div>
           )}
+
         </div>
 
         {/* ── SEO Content ── */}
@@ -693,6 +852,7 @@ export default function PlayerPage() {
                   { key: 'F', action: 'Toggle fullscreen' },
                   { key: 'M', action: 'Toggle mute' },
                   { key: 'S', action: 'Toggle stretch' },
+                  { key: 'D', action: 'Toggle video stats' },
                   { key: '← →', action: 'Seek ±10 seconds' },
                   { key: '↑ ↓', action: 'Volume ±10%' },
                 ].map(s => (

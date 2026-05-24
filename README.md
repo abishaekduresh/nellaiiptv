@@ -6,8 +6,8 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.54.3
-- **Key Features**: Stream Server 360° View, Stream Servers Admin CRUD, Feedback System, Admin Feedback Management, Backend-Only Auth, Admin Player Watermark, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`), Scrolling Ads Ticker, RTMP URL Support.
+- **Version**: 1.54.4
+- **Key Features**: Stream Server 360° View, Stream Servers Admin CRUD, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTPS Mixed Content Fix, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
@@ -23,6 +23,17 @@ A premium multi-channel IPTV player built for Android and Android TV.
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
+
+## Recent Updates (v1.54.4 Website) — 2026-05-24
+
+### Website (Next.js)
+- **Added**: Real-time video stats overlay on `/player` — Resolution, Buffer, Bandwidth, Dropped Frames, Live Latency; toggleable with Stats button or `D` key.
+- **Added**: Sparkline SVG graphs in stats panel — cyan bandwidth history and green buffer history (last 60 s).
+- **Fixed**: DASH.js player — `destroy()` cleanup, pinned CDN to v4.7.4, polling fallback, additional playback events.
+- **Added**: Home button in `/player` header linking to `/`.
+- **Removed**: Watermark from `/player` page.
+- **Added**: Google Play Store badge in home page hero linking to the Play Store listing.
+- **Added**: Player promo section on home page with mock player preview and "Open Player" CTA.
 
 ## Recent Updates (v1.54.3 Website) — 2026-05-24
 

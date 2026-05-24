@@ -79,7 +79,21 @@ export default function Home() {
               </button>
             )}
           </div>
-          
+
+          <div className="mt-6 flex justify-center">
+            <a
+              href="https://play.google.com/store/apps/details?id=com.nellaiiptv"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="/assets/icons/get_it_on_google_playstore.webp"
+                alt="Get it on Google Play"
+                className="h-12 w-auto hover:opacity-80 transition-opacity"
+              />
+            </a>
+          </div>
+
           <div className="mt-12 flex flex-wrap justify-center items-center gap-8 text-slate-500 opacity-60">
               <div className="flex items-center gap-2"><Tv size={18} /> HD Quality</div>
               <div className="flex items-center gap-2"><Shield size={18} /> Ad-Free Option</div>
@@ -138,6 +152,85 @@ export default function Home() {
                 </div>
               ))}
            </div>
+        </div>
+      </section>
+
+      {/* Universal Player Promo Section */}
+      <section className="py-20 px-4">
+        <div className="container-custom">
+          <div className="rounded-3xl border border-slate-800 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950">
+            <div className="grid md:grid-cols-2">
+
+              {/* Left — text */}
+              <div className="p-8 md:p-12 flex flex-col justify-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-cyan-400 text-xs font-bold mb-5 w-fit">
+                  FREE TOOL
+                </div>
+                <h2 className="text-3xl md:text-4xl font-black mb-4 leading-tight">
+                  Universal<br />
+                  <span className="text-primary">Stream Player</span>
+                </h2>
+                <p className="text-slate-400 leading-relaxed mb-6 text-sm md:text-base">
+                  Test any HLS, DASH, or MP4 stream directly in your browser — no install, no sign-up.
+                  Paste a URL and hit play. Supports live streams, adaptive quality, and real-time stats.
+                </p>
+                <div className="flex flex-wrap gap-2 mb-8">
+                  {['HLS (.m3u8)', 'DASH (.mpd)', 'MP4 / WebM', 'Live Streams', 'ABR Quality'].map(t => (
+                    <span key={t} className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-slate-300 text-xs font-medium">{t}</span>
+                  ))}
+                </div>
+                <Link
+                  href="/player"
+                  className="inline-flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-6 py-3 rounded-xl transition-colors w-fit text-sm"
+                >
+                  <Play size={16} fill="currentColor" />
+                  Open Player
+                </Link>
+              </div>
+
+              {/* Right — mock player */}
+              <div className="relative min-h-[280px] md:min-h-0 bg-black border-t md:border-t-0 md:border-l border-slate-800 flex flex-col overflow-hidden">
+                {/* Fake video area */}
+                <div className="flex-1 flex items-center justify-center relative bg-gradient-to-br from-slate-900 to-black">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.07)_0%,transparent_70%)]" />
+                  <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center z-10">
+                    <Play size={26} className="text-white ml-1" fill="currentColor" />
+                  </div>
+                  {/* Badges */}
+                  <div className="absolute top-3 left-3 flex gap-1.5">
+                    <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 rounded text-[10px] font-bold">HLS</span>
+                    <span className="flex items-center gap-1 px-2 py-0.5 bg-red-600 rounded text-[10px] font-bold">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                      LIVE
+                    </span>
+                  </div>
+                  {/* Stats badge */}
+                  <div className="absolute top-3 right-3 bg-black/70 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[10px] font-mono space-y-0.5">
+                    <div className="flex gap-3 justify-between"><span className="text-slate-400">Resolution</span><span className="text-green-400">1920×1080</span></div>
+                    <div className="flex gap-3 justify-between"><span className="text-slate-400">Buffer</span><span className="text-green-400">12.4s</span></div>
+                    <div className="flex gap-3 justify-between"><span className="text-slate-400">Bandwidth</span><span className="text-green-400">4,250 kbps</span></div>
+                  </div>
+                </div>
+                {/* Fake controls */}
+                <div className="px-4 pb-3 pt-2 bg-black/90 flex flex-col gap-2">
+                  <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-cyan-500 rounded-full w-2/5" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded bg-slate-800" />
+                    <div className="w-5 h-5 rounded bg-slate-800" />
+                    <div className="w-5 h-5 rounded bg-slate-800" />
+                    <div className="h-1 w-14 bg-slate-800 rounded" />
+                    <div className="flex-1" />
+                    <div className="w-14 h-5 rounded bg-slate-800" />
+                    <div className="w-16 h-5 rounded bg-slate-800" />
+                    <div className="w-5 h-5 rounded bg-slate-800" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
         </div>
       </section>
 

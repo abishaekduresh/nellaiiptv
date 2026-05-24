@@ -1,10 +1,19 @@
-# Nellai IPTV - Frontend v1.54.3
+# Nellai IPTV - Frontend v1.54.4
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.54.3)**
+### **Latest Updates (v1.54.4)**
+- **Real-Time Video Stats**: Toggleable stats overlay on `/player` (button or `D` key) showing Resolution, Buffer health, Bandwidth estimate, Dropped frames (Chrome), and Live latency. Updates every 1 s while playing; shows "last known values" when paused.
+- **Sparkline Graphs**: Cyan bandwidth graph and green buffer graph (last 60 s of history) rendered as SVG polylines inside the stats panel. Graphs reset automatically when a new stream is loaded.
+- **DASH.js Fix**: Replaced `reset()` with `destroy()` for proper cleanup between streams. Pinned CDN to `v4.7.4` (was `latest`). Added `STREAM_INITIALIZED`, `CAN_PLAY`, and `PLAYBACK_STARTED` events alongside `PLAYBACK_METADATA_LOADED`. Added a 300 ms polling fallback that detects `window.dashjs` even if `onLoad` misfires.
+- **Home Button**: House icon button added to the `/player` header bar, linking back to `/`.
+- **Watermark Removed**: Watermark removed from the `/player` page.
+- **Google Play Badge**: "Get it on Google Play" badge (`get_it_on_google_playstore.webp`) added to the home page hero, below the Watch Now / Create Account buttons, linking to the Play Store listing.
+- **Player Promo Section**: New home page section (between Features and About) promoting `/player` — two-column card with feature chips, "Open Player" CTA, and a mock player preview showing badges, real-time stats, seek bar, and controls.
+
+### **Previous Updates (v1.54.3)**
 - **DASH.js Loading Fix**: Switched Script strategy to `afterInteractive`; a `pendingDashRef` queue stores the load request if DASH.js hasn't finished downloading and auto-replays it on `onLoad` — eliminating the "DASH.js still loading" error.
 - **Stretch Toggle**: New button in player controls (shortcut `S`) switches `object-fit` between `contain` (letterbox) and `fill` (stretch) in landscape. Portrait always stays `contain` via CSS media query.
 - **URL Clear Button**: `×` icon inside the URL input clears text, stops playback, and resets the player to idle in one click.

@@ -1,3 +1,14 @@
+## [1.54.4] - Website - 2026-05-24
+
+### Website (Next.js)
+- **Feature**: **Real-Time Video Stats Overlay** — Toggleable stats panel on `/player` (Stats button or `D` key) displaying Resolution, Buffer health, Bandwidth estimate, Dropped frames (`webkitDroppedFrameCount`, Chrome), and Live latency (HLS `liveSyncPosition` / DASH `getCurrentLiveLatency`). Updates every 1 s during playback; shows last known values when paused. State resets on new stream load.
+- **Feature**: **Sparkline Graphs** — SVG polyline graphs rendered inside the stats panel: cyan line for bandwidth (kbps) history and green line for buffer (seconds) history, both tracking the last 60 data points. Graphs clear automatically when loading a new stream.
+- **Fix**: **DASH.js Player** — Replaced `dash.reset()` with `dash.destroy()` for proper instance cleanup between streams. Pinned DASH.js CDN from `latest` to `v4.7.4`. Added `STREAM_INITIALIZED`, `CAN_PLAY`, and `PLAYBACK_STARTED` event listeners alongside `PLAYBACK_METADATA_LOADED`. Added a 300 ms `setInterval` polling fallback that sets `isDashReady` the moment `window.dashjs` is detected, guarding against `onLoad` not firing due to timing or CSP issues.
+- **Feature**: **Home Button** — Added a house-icon button to the `/player` header bar that links back to `/`.
+- **Removed**: **Player Watermark** — Watermark overlay removed from the `/player` page.
+- **Feature**: **Google Play Badge** — "Get it on Google Play" badge added to the home page hero section (below Watch Now / Create Account), using `public/assets/icons/get_it_on_google_playstore.webp`, linking to the Play Store listing.
+- **Feature**: **Player Promo Section** — New home page section between Features and About promoting the `/player` tool. Two-column card: left shows heading, description, format chips (HLS, DASH, MP4, Live, ABR), and an "Open Player" CTA button; right shows a styled mock player UI with stream badges, a real-time stats preview, seek bar, and controls row.
+
 ## [1.54.3] - Website - 2026-05-24
 
 ### Website (Next.js)
