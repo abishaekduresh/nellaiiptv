@@ -11,7 +11,7 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
-## Version: 1.12.5+65
+## Version: 1.12.5+66
 - **Improved**: **Player Contrast & Colour Matrix** — `ColorFilter.matrix` updated for stronger picture quality. Contrast scale: `1.08` → `1.22`. Cross-channel mix added (`0.03`) for natural warmth and saturation. Brightness bias: `-5` → `-16` to prevent highlight blow-out.
 
 ## Version: 1.12.4+64
