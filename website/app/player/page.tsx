@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Script from 'next/script';
 import Hls from 'hls.js';
@@ -420,6 +420,17 @@ export default function PlayerPage() {
     pendingDashRef.current = null;
   }, [destroyPlayers]);
 
+  // Scroll-triggered animation for the SEO section
+  const seoRef = useRef<HTMLDivElement>(null);
+  const [seoInView, setSeoInView] = useState(false);
+  useEffect(() => {
+    const el = seoRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setSeoInView(true); }, { threshold: 0.05 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   const hasStream = !!activeUrl;
   const progressPct = duration > 0 && isFinite(duration) ? (currentTime / duration) * 100 : 0;
   const currentQualityLabel = qualities.find(q => q.index === currentQuality)?.label ?? 'Auto';
@@ -586,7 +597,7 @@ export default function PlayerPage() {
 
           {/* ── Idle state ── */}
           {!hasStream && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20">
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 animate-fade-up">
               <div className="w-24 h-24 rounded-full bg-slate-800/80 ring-1 ring-slate-700 flex items-center justify-center mb-5">
                 <Play size={40} className="text-slate-600 ml-2" />
               </div>
@@ -830,11 +841,14 @@ export default function PlayerPage() {
         </div>
 
         {/* ── SEO Content ── */}
-        <div className="bg-slate-950 px-4 py-14 md:py-20">
+        <div ref={seoRef} className="bg-slate-950 px-4 py-14 md:py-20">
           <div className="max-w-5xl mx-auto">
 
             {/* Hero text */}
-            <div className="text-center mb-14">
+            <div
+              className="text-center mb-14 transition-all duration-700"
+              style={{ opacity: seoInView ? 1 : 0, transform: seoInView ? 'translateY(0)' : 'translateY(28px)' }}
+            >
               <h1 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
                 Free Online Video Player —{' '}
                 <span className="text-cyan-400">HLS, DASH &amp; MP4</span>
@@ -854,8 +868,12 @@ export default function PlayerPage() {
                 { icon: '📶', title: 'Adaptive Quality', desc: 'HLS quality levels listed automatically. Switch between 1080p, 720p, 480p, or let Auto decide.' },
                 { icon: '🔴', title: 'Live Stream Support', desc: 'Detects live streams automatically, shows a LIVE badge, and disables the seek bar.' },
                 { icon: '🔒', title: 'HTTPS Auto-Upgrade', desc: 'HTTP stream URLs are silently upgraded to HTTPS when the page is served over a secure connection.' },
-              ].map(f => (
-                <div key={f.title} className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition-colors">
+              ].map((f, i) => (
+                <div
+                  key={f.title}
+                  className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 hover:-translate-y-0.5 transition-all duration-500"
+                  style={{ opacity: seoInView ? 1 : 0, transform: seoInView ? 'translateY(0)' : 'translateY(24px)', transitionDelay: `${i * 70}ms` }}
+                >
                   <div className="text-2xl mb-3">{f.icon}</div>
                   <h2 className="text-white font-semibold text-base mb-1">{f.title}</h2>
                   <p className="text-slate-500 text-sm leading-relaxed">{f.desc}</p>
@@ -864,7 +882,10 @@ export default function PlayerPage() {
             </div>
 
             {/* Keyboard shortcuts */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-14">
+            <div
+              className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-14 transition-all duration-700"
+              style={{ opacity: seoInView ? 1 : 0, transform: seoInView ? 'translateY(0)' : 'translateY(24px)', transitionDelay: '420ms' }}
+            >
               <h2 className="text-white font-bold text-lg mb-4">Keyboard Shortcuts</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {[
@@ -885,7 +906,10 @@ export default function PlayerPage() {
             </div>
 
             {/* FAQ */}
-            <div className="mb-10">
+            <div
+              className="mb-10 transition-all duration-700"
+              style={{ opacity: seoInView ? 1 : 0, transform: seoInView ? 'translateY(0)' : 'translateY(24px)', transitionDelay: '490ms' }}
+            >
               <h2 className="text-white font-bold text-2xl mb-6 text-center">Frequently Asked Questions</h2>
               <div className="space-y-4">
                 {[

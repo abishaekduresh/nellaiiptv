@@ -1,68 +1,94 @@
+import { AlertTriangle, Tv, Wrench, Info } from 'lucide-react';
+
 export default function DisclaimerPage() {
   return (
-    <div className="min-h-screen bg-slate-950 pb-12 px-4 md:px-8">
-      <div className="container-custom max-w-4xl">
-        <div className="bg-slate-900 rounded-xl p-8 border border-slate-800">
-          <h1 className="text-4xl font-bold text-white mb-6">Disclaimer</h1>
-          
-          <div className="prose prose-invert max-w-none space-y-4 text-slate-300">
-            <p className="text-lg">
-              Please read this disclaimer carefully before using Nellai IPTV services.
-            </p>
-            
-            <h2 className="text-2xl font-semibold text-white mt-8 mb-4">Content Disclaimer</h2>
-            <p>
-              NELLAI IPTV is a platform that aggregates and provides access to publicly available IPTV streams. We do not host, own, or control any of the content broadcasted through the channels available on our platform. All content is the sole responsibility of the respective channel owners or content providers.
+    <div className="min-h-screen bg-slate-950 text-white pb-20">
 
-NELLAI IPTV does not assume any responsibility or liability for any copyrighted materials, infringement claims, or legal issues arising from the content streamed by third-party channels. Users and content owners are advised to ensure compliance with applicable copyright laws in their respective jurisdictions.
-
-By using our service, you acknowledge and agree that NELLAI IPTV is not responsible for the legality, accuracy, or nature of the content provided by third-party sources.
-            </p>
-            
-            {/* <h2 className="text-2xl font-semibold text-white mt-8 mb-4">Copyright Notice</h2>
-            <p>
-              All trademarks, logos, and copyrights belong to their respective owners. If you
-              believe any content infringes on your copyright, please contact us immediately at
-              our <a href="/contact" className="text-primary hover:underline">Contact page</a>.
-            </p>
-            
-            <h2 className="text-2xl font-semibold text-white mt-8 mb-4">Age Restriction</h2>
-            <p>
-              This service is intended for users aged 18 years and above. By using this service,
-              you confirm that you are of legal age in your jurisdiction.
-            </p> */}
-            
-            <h2 className="text-2xl font-semibold text-white mt-8 mb-4">Service Availability</h2>
-            <p>
-              We strive to provide uninterrupted service, but we cannot guarantee 100% uptime.
-              Channels may be temporarily unavailable due to:
-            </p>
-            <ul className="list-disc list-inside space-y-2">
-              <li>Scheduled maintenance</li>
-              <li>Technical difficulties</li>
-              <li>Third-party stream interruptions</li>
-              <li>Network issues</li>
-            </ul>
-            
-            {/* <h2 className="text-2xl font-semibold text-white mt-8 mb-4">External Links</h2>
-            <p>
-              This service may contain links to external websites. We are not responsible for
-              the content, privacy policies, or practices of any third-party sites.
-            </p>
-            
-            <h2 className="text-2xl font-semibold text-white mt-8 mb-4">No Warranty</h2>
-            <p>
-              The service is provided "as is" and "as available" without any warranties of any kind,
-              either express or implied, including but not limited to warranties of merchantability,
-              fitness for a particular purpose, or non-infringement.
-            </p>
-            
-            <h2 className="text-2xl font-semibold text-white mt-8 mb-4">Limitation of Liability</h2>
-            <p>
-              In no event shall Nellai IPTV be liable for any indirect, incidental, special,
-              consequential, or punitive damages arising from your use of the service.
-            </p> */}
+      {/* Hero */}
+      <div className="relative pt-16 pb-14 px-4 text-center overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-yellow-500/6 blur-[120px] rounded-full" />
+        </div>
+        <div className="relative z-10 animate-fade-up" style={{ animationDelay: '0.05s' }}>
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl mb-5">
+            <AlertTriangle size={26} className="text-yellow-400" />
           </div>
+          <h1 className="text-4xl md:text-5xl font-black mb-3 tracking-tight">Disclaimer</h1>
+          <p className="text-slate-400 max-w-lg mx-auto text-base md:text-lg">
+            Please read this disclaimer carefully before using Nellai IPTV.
+          </p>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="container-custom max-w-3xl px-4 space-y-5">
+
+        {/* Content disclaimer */}
+        <div
+          className="bg-slate-900/60 border border-yellow-500/15 rounded-2xl p-6 animate-fade-up"
+          style={{ animationDelay: '0.15s' }}
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 bg-yellow-500/10 border border-yellow-500/20 rounded-xl flex items-center justify-center shrink-0">
+              <Tv size={17} className="text-yellow-400" />
+            </div>
+            <h2 className="text-lg font-bold text-white">Content Disclaimer</h2>
+          </div>
+          <div className="space-y-3 text-slate-400 text-sm leading-relaxed">
+            <p>
+              <strong className="text-white">NELLAI IPTV</strong> is a platform that aggregates and provides access to publicly
+              available IPTV streams. We do not host, own, or control any of the content broadcasted through
+              the channels available on our platform. All content is the sole responsibility of the respective
+              channel owners or content providers.
+            </p>
+            <p>
+              NELLAI IPTV does not assume any responsibility or liability for any copyrighted materials,
+              infringement claims, or legal issues arising from the content streamed by third-party channels.
+              Users and content owners are advised to ensure compliance with applicable copyright laws in
+              their respective jurisdictions.
+            </p>
+            <p>
+              By using our service, you acknowledge and agree that NELLAI IPTV is not responsible for the
+              legality, accuracy, or nature of the content provided by third-party sources.
+            </p>
+          </div>
+        </div>
+
+        {/* Service Availability */}
+        <div
+          className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 animate-fade-up"
+          style={{ animationDelay: '0.25s' }}
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shrink-0">
+              <Wrench size={17} className="text-primary" />
+            </div>
+            <h2 className="text-lg font-bold text-white">Service Availability</h2>
+          </div>
+          <p className="text-slate-400 text-sm leading-relaxed mb-4">
+            We strive to provide uninterrupted service, but we cannot guarantee 100% uptime.
+            Channels may be temporarily unavailable due to:
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {['Scheduled maintenance', 'Technical difficulties', 'Third-party stream issues', 'Network disruptions'].map(item => (
+              <div key={item} className="flex items-center gap-2 text-slate-400 text-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 shrink-0" />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Note */}
+        <div
+          className="flex items-start gap-3 bg-slate-900/40 border border-slate-800 rounded-2xl p-5 animate-fade-up"
+          style={{ animationDelay: '0.35s' }}
+        >
+          <Info size={17} className="text-slate-500 shrink-0 mt-0.5" />
+          <p className="text-slate-500 text-sm leading-relaxed">
+            This disclaimer is subject to change. Continued use of the service after modifications
+            constitutes your acceptance of the updated disclaimer.
+          </p>
         </div>
       </div>
     </div>
