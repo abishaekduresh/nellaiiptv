@@ -390,63 +390,93 @@ class ChannelController
             return ResponseFormatter::error($response, 'updates array is required', 400);
         }
 
-        $errors      = [];
-        $validUpdates = [];
-        $seenNumbers = [];
+        $allowedStatuses = ['active', 'inactive', 'blocked', 'deleted'];
+        $errors          = [];
+        $validUpdates    = [];
+        $seenNumbers     = [];
 
         foreach ($updates as $i => $item) {
-            $uuid   = trim($item['uuid'] ?? '');
-            $number = $item['channel_number'] ?? null;
+            $uuid       = trim($item['uuid'] ?? '');
+            $hasNumber  = array_key_exists('channel_number', $item);
+            $hasStatus  = array_key_exists('status', $item);
+            $number     = $item['channel_number'] ?? null;
+            $status     = $item['status'] ?? null;
 
             if (empty($uuid)) {
                 $errors[] = "Item $i: uuid is required";
                 continue;
             }
-            if (!is_numeric($number) || (int)$number < 1) {
-                $errors[] = "uuid=$uuid: channel_number must be a positive integer";
+
+            if (!$hasNumber && !$hasStatus) {
+                $errors[] = "uuid=$uuid: at least channel_number or status is required";
                 continue;
             }
 
-            $num = (int)$number;
-            if (isset($seenNumbers[$num])) {
-                $errors[] = "Duplicate channel_number $num in request";
-                continue;
+            $entry = ['uuid' => $uuid];
+
+            if ($hasNumber) {
+                if (!is_numeric($number) || (int)$number < 1) {
+                    $errors[] = "uuid=$uuid: channel_number must be a positive integer";
+                    continue;
+                }
+                $num = (int)$number;
+                if (isset($seenNumbers[$num])) {
+                    $errors[] = "Duplicate channel_number $num in request";
+                    continue;
+                }
+                $seenNumbers[$num] = $uuid;
+                $entry['channel_number'] = $num;
             }
-            $seenNumbers[$num] = $uuid;
-            $validUpdates[]    = ['uuid' => $uuid, 'channel_number' => $num];
+
+            if ($hasStatus) {
+                if (!in_array($status, $allowedStatuses)) {
+                    $errors[] = "uuid=$uuid: status must be one of " . implode(', ', $allowedStatuses);
+                    continue;
+                }
+                $entry['status'] = $status;
+            }
+
+            $validUpdates[] = $entry;
         }
 
         if (!empty($errors)) {
             return ResponseFormatter::error($response, 'Validation failed', 400, $errors);
         }
 
-        $uuids   = array_column($validUpdates, 'uuid');
-        $numbers = array_column($validUpdates, 'channel_number');
+        $uuids = array_column($validUpdates, 'uuid');
 
-        // Ensure all provided UUIDs exist
+        // Ensure all UUIDs exist
         $foundCount = \App\Models\Channel::whereIn('uuid', $uuids)->count();
         if ($foundCount !== count($uuids)) {
             return ResponseFormatter::error($response, 'One or more channel UUIDs not found', 404);
         }
 
-        // Detect conflicts with channels that are NOT part of this update
-        $conflicting = \App\Models\Channel::whereIn('channel_number', $numbers)
-            ->whereNotIn('uuid', $uuids)
-            ->get(['name', 'channel_number']);
+        // Conflict check only for items that are changing channel_number
+        $numberUpdates = array_filter($validUpdates, fn($u) => isset($u['channel_number']));
+        if (!empty($numberUpdates)) {
+            $numbers     = array_column($numberUpdates, 'channel_number');
+            $numberUuids = array_column($numberUpdates, 'uuid');
 
-        if ($conflicting->count() > 0) {
-            $details = $conflicting->map(fn($c) => "#{$c->channel_number} already used by '{$c->name}'")->all();
-            return ResponseFormatter::error($response, 'Channel number conflicts', 409, $details);
+            $conflicting = \App\Models\Channel::whereIn('channel_number', $numbers)
+                ->whereNotIn('uuid', $numberUuids)
+                ->get(['name', 'channel_number']);
+
+            if ($conflicting->count() > 0) {
+                $details = $conflicting->map(fn($c) => "#{$c->channel_number} already used by '{$c->name}'")->all();
+                return ResponseFormatter::error($response, 'Channel number conflicts', 409, $details);
+            }
         }
 
         DB::beginTransaction();
         try {
             foreach ($validUpdates as $item) {
-                \App\Models\Channel::where('uuid', $item['uuid'])
-                    ->update(['channel_number' => $item['channel_number']]);
+                $updateData = array_intersect_key($item, array_flip(['channel_number', 'status']));
+                if (!empty($updateData)) {
+                    \App\Models\Channel::where('uuid', $item['uuid'])->update($updateData);
+                }
             }
             DB::commit();
-            return ResponseFormatter::success($response, ['updated' => count($validUpdates)], 'Channel numbers updated successfully');
+            return ResponseFormatter::success($response, ['updated' => count($validUpdates)], 'Channels updated successfully');
         } catch (Exception $e) {
             DB::rollBack();
             return ResponseFormatter::error($response, $e->getMessage(), 500);

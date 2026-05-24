@@ -1,10 +1,14 @@
-# Nellai IPTV - Frontend v1.54.7
+# Nellai IPTV - Frontend v1.54.8
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.54.7)**
+### **Latest Updates (v1.54.8)**
+- **Channel Manager — Status Editing**: The `/admin/channels/renumber` page now also allows inline status changes. Each row's Status column is a dropdown with four options: Active, Inactive, Blocked, Deleted. The dropdown border turns amber when the value differs from the saved state. Status and channel number changes are tracked independently; a single Save call submits only the dirty fields for each channel (number-only, status-only, or both).
+- **Channel Manager — Search by Number**: The search field now matches on channel number in addition to channel name (e.g. typing `5` surfaces channel 5, typing `sun` surfaces "Sun TV"). Status filter updated to include Blocked.
+
+### **Previous Updates (v1.54.7)**
 - **Channel Number Manager** (`/admin/channels/renumber`): New admin page for updating channel numbers in bulk. Loads all channels sorted by channel number, displays them in a two-per-row table layout (Channel # | Name | Category | Status on each side). Channel number inputs are inline-editable — changed rows highlight amber, duplicate numbers highlight red with an alert icon. Client-side search by name and status filter (Active / Inactive / Deleted). Duplicate number detection blocks saving with a detailed banner. Save button batch-submits only dirty rows via `POST /admin/channels/batch-renumber`; Reset button discards all edits. Sidebar "Channels" group updated with "All Channels" and "Channel Numbers" children.
 
 ### **Previous Updates (v1.54.6)**

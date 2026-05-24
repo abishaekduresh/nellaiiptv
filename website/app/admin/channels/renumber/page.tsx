@@ -14,16 +14,13 @@ interface Channel {
   thumbnail_url?: string;
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const cls =
-    status === 'active'   ? 'bg-green-500/15 text-green-400' :
-    status === 'deleted'  ? 'bg-red-500/15 text-red-400' :
-                            'bg-gray-500/15 text-gray-400';
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
-      {status}
-    </span>
-  );
+const STATUSES = ['active', 'inactive', 'blocked', 'deleted'] as const;
+
+function statusColor(s: string) {
+  if (s === 'active')   return 'text-green-400  border-green-700';
+  if (s === 'blocked')  return 'text-orange-400 border-orange-700';
+  if (s === 'deleted')  return 'text-red-400    border-red-700';
+  return 'text-gray-400 border-gray-600';
 }
 
 export default function ChannelRenumberPage() {
@@ -31,8 +28,9 @@ export default function ChannelRenumberPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // uuid -> edited number string (only dirty rows are stored here)
-  const [dirtyMap, setDirtyMap] = useState<Record<string, string>>({});
+  // Separate dirty maps — only touched rows are stored
+  const [dirtyNumbers, setDirtyNumbers] = useState<Record<string, string>>({});
+  const [dirtyStatuses, setDirtyStatuses] = useState<Record<string, string>>({});
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -54,24 +52,28 @@ export default function ChannelRenumberPage() {
 
   useEffect(() => { fetchChannels(); }, []);
 
+  // Search by name OR channel number
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return channels.filter(ch => {
-      const matchSearch = !search || ch.name.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = !q ||
+        ch.name.toLowerCase().includes(q) ||
+        String(ch.channel_number ?? '').includes(q);
       const matchStatus = !statusFilter || ch.status === statusFilter;
       return matchSearch && matchStatus;
     });
   }, [channels, search, statusFilter]);
 
-  // Count occurrences of each channel number across ALL channels (dirty overrides)
+  // Count how many times each number appears (dirty overrides original)
   const numberCounts = useMemo(() => {
     const counts: Record<number, number> = {};
     channels.forEach(ch => {
-      const raw = dirtyMap[ch.uuid] ?? String(ch.channel_number ?? '');
+      const raw = dirtyNumbers[ch.uuid] ?? String(ch.channel_number ?? '');
       const n = parseInt(raw, 10);
       if (!isNaN(n) && n > 0) counts[n] = (counts[n] ?? 0) + 1;
     });
     return counts;
-  }, [channels, dirtyMap]);
+  }, [channels, dirtyNumbers]);
 
   const duplicateNumbers = useMemo(() => {
     const set = new Set<number>();
@@ -81,41 +83,63 @@ export default function ChannelRenumberPage() {
     return set;
   }, [numberCounts]);
 
-  const isDirty = Object.keys(dirtyMap).length > 0;
+  // All UUIDs with any change
+  const changedUuids = useMemo(
+    () => new Set([...Object.keys(dirtyNumbers), ...Object.keys(dirtyStatuses)]),
+    [dirtyNumbers, dirtyStatuses],
+  );
+  const isDirty = changedUuids.size > 0;
   const hasDuplicates = duplicateNumbers.size > 0;
-  const changedCount = Object.keys(dirtyMap).length;
+  const changedCount = changedUuids.size;
 
   const handleNumberChange = (uuid: string, original: number | null, value: string) => {
     const originalStr = String(original ?? '');
     if (value === originalStr) {
-      setDirtyMap(prev => { const next = { ...prev }; delete next[uuid]; return next; });
+      setDirtyNumbers(prev => { const n = { ...prev }; delete n[uuid]; return n; });
     } else {
-      setDirtyMap(prev => ({ ...prev, [uuid]: value }));
+      setDirtyNumbers(prev => ({ ...prev, [uuid]: value }));
     }
   };
 
-  const handleReset = () => setDirtyMap({});
+  const handleStatusChange = (uuid: string, original: string, value: string) => {
+    if (value === original) {
+      setDirtyStatuses(prev => { const n = { ...prev }; delete n[uuid]; return n; });
+    } else {
+      setDirtyStatuses(prev => ({ ...prev, [uuid]: value }));
+    }
+  };
+
+  const handleReset = () => { setDirtyNumbers({}); setDirtyStatuses({}); };
 
   const handleSave = async () => {
     if (!isDirty || hasDuplicates || saving) return;
 
-    const updates = Object.entries(dirtyMap)
-      .map(([uuid, numStr]) => {
-        const n = parseInt(numStr, 10);
-        return n > 0 ? { uuid, channel_number: n } : null;
-      })
-      .filter(Boolean) as { uuid: string; channel_number: number }[];
+    const updates: { uuid: string; channel_number?: number; status?: string }[] = [];
+
+    for (const uuid of Array.from(changedUuids)) {
+      const entry: { uuid: string; channel_number?: number; status?: string } = { uuid };
+      if (dirtyNumbers[uuid] !== undefined) {
+        const n = parseInt(dirtyNumbers[uuid], 10);
+        if (!n || n < 1) { toast.error('Invalid channel number — fix before saving'); return; }
+        entry.channel_number = n;
+      }
+      if (dirtyStatuses[uuid] !== undefined) {
+        entry.status = dirtyStatuses[uuid];
+      }
+      updates.push(entry);
+    }
 
     if (updates.length === 0) { toast.error('No valid changes to save'); return; }
 
     setSaving(true);
     try {
       await adminApi.post('/admin/channels/batch-renumber', { updates });
-      toast.success(`Updated ${updates.length} channel number(s)`);
-      setDirtyMap({});
+      toast.success(`Updated ${updates.length} channel(s)`);
+      setDirtyNumbers({});
+      setDirtyStatuses({});
       await fetchChannels();
     } catch (err: any) {
-      const msg = err.response?.data?.message ?? 'Failed to save channel numbers';
+      const msg = err.response?.data?.message ?? 'Failed to save changes';
       const details: string[] = err.response?.data?.errors ?? [];
       toast.error(details.length ? details[0] : msg);
     } finally {
@@ -123,34 +147,40 @@ export default function ChannelRenumberPage() {
     }
   };
 
-  // Render the 4 cells for a single channel entry
+  // Render the 4 cells for one channel entry
   const renderCells = (ch: Channel) => {
-    const currentVal  = dirtyMap[ch.uuid] ?? String(ch.channel_number ?? '');
-    const isChanged   = dirtyMap[ch.uuid] !== undefined;
-    const numVal      = parseInt(currentVal, 10);
-    const isDuplicate = !isNaN(numVal) && numVal > 0 && duplicateNumbers.has(numVal);
+    const currentNum    = dirtyNumbers[ch.uuid] ?? String(ch.channel_number ?? '');
+    const currentStatus = dirtyStatuses[ch.uuid] ?? ch.status;
+    const isNumChanged  = dirtyNumbers[ch.uuid]  !== undefined;
+    const isStChanged   = dirtyStatuses[ch.uuid] !== undefined;
+    const isChanged     = isNumChanged || isStChanged;
+    const numVal        = parseInt(currentNum, 10);
+    const isDuplicate   = !isNaN(numVal) && numVal > 0 && duplicateNumbers.has(numVal);
 
     const rowBg = isDuplicate ? 'bg-red-500/5' : isChanged ? 'bg-amber-500/5' : '';
 
     return (
       <>
+        {/* Channel # */}
         <td className={`px-3 py-2.5 ${rowBg}`}>
           <div className="flex items-center gap-1.5">
             <input
               type="number"
               min={1}
-              value={currentVal}
+              value={currentNum}
               onChange={e => handleNumberChange(ch.uuid, ch.channel_number, e.target.value)}
               className={`w-20 px-2 py-1.5 rounded-md border text-white text-sm bg-slate-900/80 focus:outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-                isDuplicate ? 'border-red-500 focus:border-red-400' :
-                isChanged   ? 'border-amber-500 focus:border-amber-400' :
-                              'border-gray-700 focus:border-primary'
+                isDuplicate  ? 'border-red-500 focus:border-red-400' :
+                isNumChanged ? 'border-amber-500 focus:border-amber-400' :
+                               'border-gray-700 focus:border-primary'
               }`}
             />
-            {isDuplicate && <AlertCircle size={13} className="text-red-400 shrink-0" />}
-            {isChanged && !isDuplicate && <CheckCircle2 size={13} className="text-amber-400 shrink-0" />}
+            {isDuplicate  && <AlertCircle  size={13} className="text-red-400   shrink-0" />}
+            {isNumChanged && !isDuplicate && <CheckCircle2 size={13} className="text-amber-400 shrink-0" />}
           </div>
         </td>
+
+        {/* Channel Name */}
         <td className={`px-3 py-2.5 max-w-[160px] ${rowBg}`}>
           <div className="flex items-center gap-2 min-w-0">
             {ch.thumbnail_url && (
@@ -161,17 +191,31 @@ export default function ChannelRenumberPage() {
             </span>
           </div>
         </td>
+
+        {/* Category */}
         <td className={`px-3 py-2.5 text-text-secondary text-sm hidden xl:table-cell ${rowBg}`}>
           {ch.category?.name ?? '—'}
         </td>
+
+        {/* Status — editable dropdown */}
         <td className={`px-3 py-2.5 ${rowBg}`}>
-          <StatusBadge status={ch.status} />
+          <select
+            value={currentStatus}
+            onChange={e => handleStatusChange(ch.uuid, ch.status, e.target.value)}
+            className={`px-2 py-1 rounded-md border text-xs font-medium bg-slate-900/80 focus:outline-none transition-colors capitalize cursor-pointer ${
+              isStChanged ? 'border-amber-500' : 'border-gray-700 focus:border-primary'
+            } ${statusColor(currentStatus)}`}
+          >
+            {STATUSES.map(s => (
+              <option key={s} value={s} className="bg-slate-900 text-white capitalize">{s}</option>
+            ))}
+          </select>
         </td>
       </>
     );
   };
 
-  // Build paired rows: [ [ch0, ch1], [ch2, ch3], ... ]
+  // Pair channels into rows of 2
   const rows = useMemo(() => {
     const pairs: [Channel, Channel | null][] = [];
     for (let i = 0; i < filtered.length; i += 2) {
@@ -187,10 +231,10 @@ export default function ChannelRenumberPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Hash size={20} className="text-primary" />
-            <h1 className="text-2xl font-bold text-white">Channel Numbers</h1>
+            <h1 className="text-2xl font-bold text-white">Channel Manager</h1>
           </div>
           <p className="text-text-secondary text-sm">
-            Edit channel numbers inline. Amber = changed, Red = duplicate. Save when done.
+            Edit channel numbers and status inline. Amber = changed, Red = duplicate. Save when done.
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
@@ -232,7 +276,7 @@ export default function ChannelRenumberPage() {
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" />
           <input
             type="text"
-            placeholder="Search channels…"
+            placeholder="Search by name or channel number…"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-background-card border border-gray-700 rounded-lg text-white placeholder-text-secondary text-sm focus:outline-none focus:border-primary"
@@ -246,6 +290,7 @@ export default function ChannelRenumberPage() {
           <option value="">All Status</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
+          <option value="blocked">Blocked</option>
           <option value="deleted">Deleted</option>
         </select>
       </div>
@@ -261,30 +306,23 @@ export default function ChannelRenumberPage() {
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b border-gray-800 bg-white/2">
-                  {/* Left half */}
                   <th className="text-left px-3 py-3 text-text-secondary font-medium w-36">Channel #</th>
                   <th className="text-left px-3 py-3 text-text-secondary font-medium">Channel Name</th>
                   <th className="text-left px-3 py-3 text-text-secondary font-medium hidden xl:table-cell">Category</th>
-                  <th className="text-left px-3 py-3 text-text-secondary font-medium w-24">Status</th>
-                  {/* Centre divider */}
+                  <th className="text-left px-3 py-3 text-text-secondary font-medium w-28">Status</th>
                   <th className="w-px p-0 bg-gray-800" aria-hidden />
-                  {/* Right half */}
                   <th className="text-left px-3 py-3 text-text-secondary font-medium w-36">Channel #</th>
                   <th className="text-left px-3 py-3 text-text-secondary font-medium">Channel Name</th>
                   <th className="text-left px-3 py-3 text-text-secondary font-medium hidden xl:table-cell">Category</th>
-                  <th className="text-left px-3 py-3 text-text-secondary font-medium w-24">Status</th>
+                  <th className="text-left px-3 py-3 text-text-secondary font-medium w-28">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800/40">
                 {rows.map(([ch1, ch2], i) => (
                   <tr key={i}>
                     {renderCells(ch1)}
-                    {/* Centre divider */}
                     <td className="w-px p-0 bg-gray-800/70" />
-                    {ch2
-                      ? renderCells(ch2)
-                      : <td colSpan={4} />
-                    }
+                    {ch2 ? renderCells(ch2) : <td colSpan={4} />}
                   </tr>
                 ))}
                 {rows.length === 0 && (

@@ -1,3 +1,12 @@
+## [1.54.8] - Website | [1.41.3] - Backend - 2026-05-24
+
+### Website (Next.js)
+- **Improved**: **Channel Manager — Inline Status Editing** — The Status column in `/admin/channels/renumber` is now an editable dropdown (Active / Inactive / Blocked / Deleted). Border turns amber when changed. Number and status changes are tracked in separate dirty maps; the Save payload includes only the fields that actually changed per channel (number-only, status-only, or both). Reset discards all number and status edits simultaneously.
+- **Improved**: **Channel Manager — Search by Channel Number** — The search input now matches on channel number as well as channel name. Status filter dropdown extended with Blocked option.
+
+### Backend (Slim PHP)
+- **Improved**: **`batchRenumber` — Status Support** — `POST /api/admin/channels/batch-renumber` now accepts an optional `status` field per entry (whitelisted: `active`, `inactive`, `blocked`, `deleted`). `channel_number` is also now optional — at least one of the two fields must be present. Conflict check runs only for entries that include `channel_number`. The DB update writes only the fields present in each entry via `array_intersect_key`.
+
 ## [1.54.7] - Website | [1.41.2] - Backend - 2026-05-24
 
 ### Website (Next.js)
