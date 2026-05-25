@@ -66,6 +66,13 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->put('/scrolling-ads/{uuid}', [\App\Controllers\Admin\ScrollingAdAdminController::class, 'update']);
         $group->delete('/scrolling-ads/{uuid}', [\App\Controllers\Admin\ScrollingAdAdminController::class, 'delete']);
 
+        // Visual Ads Management (pre-roll / mid-roll video ads)
+        $group->get('/visual-ads', [\App\Controllers\Admin\VisualAdAdminController::class, 'index']);
+        $group->post('/visual-ads', [\App\Controllers\Admin\VisualAdAdminController::class, 'create']);
+        $group->get('/visual-ads/{uuid}', [\App\Controllers\Admin\VisualAdAdminController::class, 'show']);
+        $group->put('/visual-ads/{uuid}', [\App\Controllers\Admin\VisualAdAdminController::class, 'update']);
+        $group->delete('/visual-ads/{uuid}', [\App\Controllers\Admin\VisualAdAdminController::class, 'delete']);
+
         // API Keys Management
         $group->get('/api-keys', [\App\Controllers\Admin\ApiKeyController::class, 'index']);
         $group->post('/api-keys', [\App\Controllers\Admin\ApiKeyController::class, 'create']);

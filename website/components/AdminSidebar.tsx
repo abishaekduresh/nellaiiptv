@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen,
   CreditCard, Mail, MessageSquare, BarChart2, ChevronDown, ThumbsUp,
-  Server, Megaphone, Hash, X,
+  Server, Megaphone, Film, Hash, X,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -22,6 +22,7 @@ const menuItems = [
   },
   { title: 'Stream Servers', icon: Server,       href: '/admin/stream-servers' },
   { title: 'Scrolling Ads',  icon: Megaphone,    href: '/admin/scrolling-ads' },
+  { title: 'Visual Ads',     icon: Film,         href: '/admin/visual-ads' },
   {
     title: 'Reports', icon: BarChart2, href: '#',
     children: [

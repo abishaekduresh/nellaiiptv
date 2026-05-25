@@ -11,6 +11,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import AdBanner from './AdBanner';
 import ScrollingAdsTicker from './ScrollingAdsTicker';
 import api from '@/lib/api';
+import VideoAdOverlay, { VisualAd, getSessionImpressions, shouldAttemptAd } from './VideoAdOverlay';
 import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
 import ClassicMenu from './ClassicMenu';
@@ -37,6 +38,10 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(getInitialChannel());
   const [selectedSource, setSelectedSource] = useState<string>('main');
   const [viewersCount, setViewersCount] = useState(0);
+
+  // Visual ad state
+  const [currentAd, setCurrentAd]   = useState<VisualAd | null>(null);
+  const [showAd, setShowAd]         = useState(false);
   const [logoUrl, setLogoUrl] = useState('/icon.jpg'); // Default fallback
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -145,10 +150,32 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
   const topRef = useRef<HTMLDivElement>(null);
 
   /* Handle Channel Selection with Mobile Scroll and Fresh Data Fetch */
+  const tryShowAd = useCallback(async () => {
+    try {
+      const res = await api.get('/visual-ads/active');
+      const ad: VisualAd | null = res.data?.data ?? null;
+      if (!ad) return;
+      // Respect max_impressions_per_session
+      if (ad.max_impressions_per_session > 0 &&
+          getSessionImpressions(ad.uuid) >= ad.max_impressions_per_session) return;
+      // Respect display_frequency
+      if (!shouldAttemptAd(ad.display_frequency)) return;
+      setCurrentAd(ad);
+      setShowAd(true);
+    } catch {}
+  }, []);
+
+  const handleAdComplete = useCallback(() => {
+    setShowAd(false);
+    setCurrentAd(null);
+  }, []);
+
   const handleChannelClick = useCallback(async (channel: Channel, source: string = 'main') => {
       // Optimistic update
       setSelectedChannel(channel);
       setSelectedSource(source);
+      // Attempt to show a pre-roll ad on each channel switch
+      tryShowAd();
       
       // Fetch fresh details to ensure valid stream URL (and correct restriction status)
       try {
@@ -353,10 +380,16 @@ function FilterTabItem({ label, index, isSelected, onSelect }: { label: string; 
            
            {/* Player Wrapper: Takes available space, centers video */}
            <div className="flex-1 min-h-0 w-full flex items-center justify-center bg-black rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-700/50 relative mb-1 lg:mb-2">
+
+                {/* Video Ad Overlay — shown as pre-roll before channel plays */}
+                {showAd && currentAd && (
+                  <VideoAdOverlay ad={currentAd} onComplete={handleAdComplete} />
+                )}
+
                 <div className="w-full h-full max-w-full max-h-full flex items-center justify-center">
                     {/* Constrain video to aspect ratio but ensure it fits in the box */}
                     <div className="aspect-video w-full h-full max-h-full max-w-full flex items-center justify-center">
-                         <VideoPlayer 
+                         <VideoPlayer
                             src={selectedChannel.hls_url || ''} 
                             poster={selectedChannel.thumbnail_url} 
                             onVideoPlay={handleVideoPlay}

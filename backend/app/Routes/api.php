@@ -37,6 +37,12 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         $group->post('/ads/{uuid}/impression', [\App\Controllers\AdController::class, 'impression']);
         $group->get('/scrolling-ads', [\App\Controllers\ScrollingAdController::class, 'index']);
 
+        // Visual Ads (pre-roll / mid-roll video ads)
+        $group->get('/visual-ads/active', [\App\Controllers\VisualAdController::class, 'active']);
+        $group->post('/visual-ads/{uuid}/impression', [\App\Controllers\VisualAdController::class, 'impression']);
+        $group->post('/visual-ads/{uuid}/skip', [\App\Controllers\VisualAdController::class, 'skip']);
+        $group->post('/visual-ads/{uuid}/click', [\App\Controllers\VisualAdController::class, 'click']);
+
         // Geo
         $group->get('/states', [\App\Controllers\GeoController::class, 'getStates']);
         $group->get('/districts', [\App\Controllers\GeoController::class, 'getDistricts']);

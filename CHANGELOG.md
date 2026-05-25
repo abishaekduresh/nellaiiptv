@@ -1,3 +1,29 @@
+## [1.63.0] - Website | [1.42.0] - Backend - 2026-05-25
+
+### Website (Next.js)
+- **Feature**: **Visual Ads System** (`VideoAdOverlay` component) — YouTube-style pre-roll video ads displayed as a full-screen overlay on the channel player. Supports `.m3u8` streams via `hls.js` and `.mp4` via native `<video>`. Features:
+  - **Skippable ads**: countdown "Skip in Xs" transitions to active "Skip Ad" button after `skip_after_seconds`
+  - **Non-skippable ads**: run to full `duration_seconds`, no skip option
+  - **Top bar**: amber AD badge + monospace "Xs remaining" countdown
+  - **Bottom bar**: ad title, description, "Visit Advertiser" click-through (tracked API call + `window.open`), mute/unmute toggle, skip controls
+  - **Session limiting**: `sessionStorage` tracks impressions per ad UUID (`niptv_ad_impressions`) and channel-switch count (`niptv_channel_switches`); respects `max_impressions_per_session` and `display_frequency` without server round-trips
+  - **Analytics**: posts to `/api/visual-ads/{uuid}/impression` on mount, `/skip` on skip, `/click` on advertiser link click
+- **Added**: **`/admin/visual-ads`** — Full CRUD admin page. Table columns: title, ad URL, skip settings, targeting flags, frequency/weight, schedule dates, status badge (click to toggle active/inactive), analytics (impressions, skips, skip rate %, clicks, CTR%). Create/Edit modal fields: Title, Description, Ad URL (`.m3u8`/`.mp4`), Click URL, Thumbnail URL, Is Skippable toggle, Skip After (seconds), Duration (seconds), Show for Guests toggle, Show for Free Users toggle, Max Impressions/Session, Display Frequency (every N switches), Weight, Start Date, End Date, Status.
+- **Added**: **Visual Ads sidebar entry** in `AdminSidebar.tsx` — Film icon, positioned after Scrolling Ads.
+- **Modified**: **`ClassicHome.tsx`** — `handleChannelClick` now calls `tryShowAd()` which fetches `/api/visual-ads/active`, checks session limits, and mounts `VideoAdOverlay` inside the player wrapper. Ad dismisses (via `handleAdComplete`) before the channel stream resumes visually.
+
+### Backend (Slim PHP)
+- **Feature**: **Visual Ads API** — Full ad system with plan-level, guest, and free-user targeting:
+  - `GET /api/visual-ads/active` — Returns one ad (weighted random) for the current session. Filters: `status = active`, `show_for_guests` / `show_for_free_users` flags, `start_date`/`end_date` range, caller's subscription plan `show_visual_ads` flag. Picks winner via weighted random from filtered set.
+  - `POST /api/visual-ads/{uuid}/impression` — Increments `total_impressions`
+  - `POST /api/visual-ads/{uuid}/skip` — Increments `total_skips`
+  - `POST /api/visual-ads/{uuid}/click` — Increments `total_clicks`
+  - Admin CRUD: `GET /api/admin/visual-ads`, `POST`, `GET /{uuid}`, `PUT /{uuid}`, `DELETE /{uuid}` via `VisualAdAdminController`
+- **Added**: **`VisualAd` Eloquent model** (`backend/app/Models/VisualAd.php`) — table `visual_ads`, full `$fillable`, boolean/integer casts
+- **Added**: **SQL migrations**:
+  - `create_visual_ads_table.sql` — Full table: uuid, title, description, ad_url, click_url, thumbnail_url, is_skippable, skip_after_seconds, duration_seconds, show_for_guests, show_for_free_users, max_impressions_per_session, display_frequency, weight, start_date, end_date, status (ENUM active/inactive), total_impressions, total_skips, total_clicks
+  - `add_show_visual_ads_to_plans.sql` — Adds `show_visual_ads TINYINT(1) DEFAULT 0` to `subscription_plans` (`1` = show ads, `0` = ad-free)
+
 ## [1.62.1] - Website - 2026-05-25
 
 ### Website (Next.js)
