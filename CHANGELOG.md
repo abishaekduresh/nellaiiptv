@@ -1,3 +1,8 @@
+## [1.62.1] - Website - 2026-05-25
+
+### Website (Next.js)
+- **Fix**: **`/ads.txt`** — Added `app/ads.txt/route.ts` route handler that dynamically serves the AdSense publisher verification file. Publisher ID sourced from `NEXT_PUBLIC_GOOGLE_ADSENSE_ID` (strips `ca-` prefix for correct `pub-XXXX` format); DIRECT tag value sourced from `NEXT_PUBLIC_GOOGLE_DIRECT_ID`. Deleted `public/ads.txt` static file which would take priority over the route handler in Next.js. Removed `public/ads.txt` exclusion from `website/.gitignore`.
+
 ## [1.62.0] - Website - 2026-05-25
 
 ### Website (Next.js)

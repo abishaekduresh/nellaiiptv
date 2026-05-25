@@ -6,7 +6,7 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.62.0
+- **Version**: 1.62.1
 - **Key Features**: AdSense Policy Compliance (script restricted to content pages only; `sitemap.xml` + `robots.txt` generated), Expanded About Page (FAQ, How It Works, Channel Categories, Platform details), Payment Gateway UI (enable/disable toggle per gateway with inline Test Transaction button; credentials managed via backend `.env`), Channel Manager Stream Preview (HLS player modal with loading/buffering/error/retry states, live badge, copy URL, no-controls clean view), Channel Manager Confirm-Save Modal (per-channel diff of number and status changes with thumbnail, arrow indicators, sorted by new number), Full Admin Portal Redesign (modern slate theme, animated, mobile-responsive sidebar, dashboard, all CRUD pages), Admin Layout Isolation (public Navbar/Footer hidden on admin/reseller routes), Admin Branding (logo on login page + sidebar, sidebar logo links to home), Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Stream Server 360° View, Stream Servers Admin CRUD, Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
@@ -24,7 +24,12 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.62.0 Website) — 2026-05-25
+## Recent Updates (v1.62.1 Website) — 2026-05-25
+
+### Website (Next.js)
+- **Fix**: **`/ads.txt`** — Dynamic route handler (`app/ads.txt/route.ts`) serves the AdSense publisher verification file. Publisher ID read from `NEXT_PUBLIC_GOOGLE_ADSENSE_ID` (`ca-` prefix stripped automatically); DIRECT tag value read from `NEXT_PUBLIC_GOOGLE_DIRECT_ID`. Removed static `public/ads.txt` (would override the route handler in Next.js). Removed `public/ads.txt` from `.gitignore`.
+
+## Previous Updates (v1.62.0 Website) — 2026-05-25
 
 ### Website (Next.js)
 - **Fix**: **AdSense Policy — Ads on Screens Without Publisher-Content** — `GoogleAdSense` component now checks `usePathname()` and only injects `adsbygoogle.js` on content pages (`/`, `/about`, `/privacy`, `/terms`, `/disclaimer`, `/contact`, `/feedback`). Functional screens like `/channels`, `/login`, `/register`, `/player`, and all `/admin/*` and `/reseller/*` routes no longer load the script.
