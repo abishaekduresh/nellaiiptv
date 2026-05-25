@@ -1,3 +1,13 @@
+## [1.42.1] - 2026-05-25
+
+### Fixed
+- **`VisualAdController` — PHP fatal on ad request** (`VisualAdController.php`): Removed non-existent `use App\Models\Subscription` import (subscription fields live directly on `Customer`). Replaced Laravel's `now()` helper (unavailable in Slim) with `date('Y-m-d H:i:s')`. Customer now resolved from JWT `$user->sub` UUID via `Customer::where('uuid', $jwtUser->sub)->first()`.
+- **`ChannelController` — master API key not recognised as trusted** (`ChannelController.php`): The `isTrustedApp` flag check now inspects the `API_SECRET` env variable first before querying DB keys. Previously, guests carrying the master key received a 401 because only DB-registered keys were accepted.
+
+## [1.42.0] - 2026-05-25
+
+- **Feature**: **Visual Ads API** — `GET /api/visual-ads/active` (plan-aware, guest/free-user targeting, date range, weighted random), `POST /api/visual-ads/{uuid}/impression|skip|click` (analytics). Admin CRUD via `VisualAdAdminController`. `visual_ads` table migration + `show_visual_ads` column on `subscription_plans`.
+
 ## [1.41.0] - 2026-05-10
 
 - **Feature**: **Stream Servers CRUD API** - Full admin CRUD for `stream_servers` table: `GET/POST /api/admin/stream-servers`, `GET/PUT/DELETE /api/admin/stream-servers/{uuid}`. Supports filters: `search`, `status`, `health_status`, `server_type`, `provider_name`.

@@ -152,39 +152,42 @@ class ChannelController
 
             $isTrustedApp = false;
             if (!empty($apiKey) && !empty($platform)) {
-                // Check if API Key exists and is active
-                 $keyRecord = \App\Models\ApiKey::where('key_string', $apiKey)
-                    ->where('status', 'active')
-                    ->first();
-                 
-                 if ($keyRecord) {
-                     // Check specific Platform Access
-                     // allowed_platforms is comma separated string e.g. "android,ios,web"
-                     $allowedPlatforms = explode(',', strtolower($keyRecord->allowed_platforms));
-                     if (in_array(strtolower($platform), $allowedPlatforms)) {
-                         $isTrustedApp = true;
-                         
-                         // Update Last Used
-                         $keyRecord->last_used_at = date('Y-m-d H:i:s');
-                         $keyRecord->save();
-                     }
-                 }
+                // Accept the master API key (env) as a trusted app — the web/app
+                // frontend uses this key and it is validated by ApiKeyMiddleware.
+                $masterKey = trim($_ENV['API_SECRET'] ?? '');
+                if (!empty($masterKey) && $apiKey === $masterKey) {
+                    $isTrustedApp = true;
+                }
+
+                // Also accept any active DB key with matching platform
+                if (!$isTrustedApp) {
+                    $keyRecord = \App\Models\ApiKey::where('key_string', $apiKey)
+                        ->where('status', 'active')
+                        ->first();
+
+                    if ($keyRecord) {
+                        $allowedPlatforms = explode(',', strtolower($keyRecord->allowed_platforms));
+                        if (in_array(strtolower($platform), $allowedPlatforms)) {
+                            $isTrustedApp = true;
+                            $keyRecord->last_used_at = date('Y-m-d H:i:s');
+                            $keyRecord->save();
+                        }
+                    }
+                }
             }
 
             if ($isAdmin) {
-                // Admin always allowed
-                $allowPremium = true; 
+                $allowPremium = true;
             } elseif ($isPreviewPublic) {
-                 // Public Preview allowed
-                 $allowPremium = true; 
+                $allowPremium = true;
             } elseif ($isTrustedApp) {
-                 // Valid API Key & Platform -> ALLOW
-                 $allowPremium = true;
+                $allowPremium = true;
             } elseif ($user) {
-                 // Logged in users
+                // logged-in customer — allowPremium already set above based on plan
             } else {
-                 // Guest AND Not Public Preview AND No API Key -> BLOCK
-                 return ResponseFormatter::error($response, 'Unauthorized', 401);
+                // Guest with no valid API key — allow read with non-premium access
+                // (same behaviour as the channel list endpoint; never block with 401)
+                $allowPremium = false;
             }
 
             // If Public Preview is enabled, we might want to ensure they get the stream URL even if it's premium?

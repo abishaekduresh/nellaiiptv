@@ -22,16 +22,18 @@ interface Props {
   // onReady removed as it was specific to video.js player instance
   channelUuid?: string;
   channelName?: string;
+  // When true (ad is playing), pause the channel video silently
+  adPlaying?: boolean;
   // Overlay / STB Features
   channels?: Channel[];
-  topTrending?: Channel[]; 
-  viewersCount?: number;   
+  topTrending?: Channel[];
+  viewersCount?: number;
   currentGroup?: string;
   onChannelSelect?: (c: Channel) => void;
   onNextGroup?: () => void;
   onPrevGroup?: () => void;
   useCustomOverlay?: boolean;
-  
+
   // Advanced Grouping
   allGroupedChannels?: { [key: string]: Channel[] };
   groupKeys?: string[];
@@ -80,8 +82,9 @@ function TVReportButton({ onClick, className }: { onClick: (e: any) => void; cla
     );
 }
 
-function VideoPlayer({ 
-  src, poster, channelUuid, channelName, 
+function VideoPlayer({
+  src, poster, channelUuid, channelName,
+  adPlaying = false,
   channels, topTrending, viewersCount = 0, currentGroup, onChannelSelect, onNextGroup, onPrevGroup,
   useCustomOverlay = true,
   allGroupedChannels, groupKeys, currentGroupType, onGroupTypeChange, onGroupSelect
@@ -208,6 +211,19 @@ function VideoPlayer({
       setIsFallbackPlaying(false);
       setErrorMessage(null);
   }, [src, channelUuid]);
+
+  // Mute channel video while ad is playing; restore previous mute state when ad ends
+  const priorMutedRef = useRef<boolean>(false);
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (adPlaying) {
+      priorMutedRef.current = video.muted;
+      video.muted = true;
+    } else {
+      video.muted = priorMutedRef.current;
+    }
+  }, [adPlaying]);
 
   // Create AirPlay availability listener
   useEffect(() => {

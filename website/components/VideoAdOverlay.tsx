@@ -58,11 +58,12 @@ export default function VideoAdOverlay({ ad, onComplete }: Props) {
   const hlsRef      = useRef<Hls | null>(null);
   const timerRef    = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [muted,       setMuted]       = useState(true);
-  const [skipSecs,    setSkipSecs]    = useState(ad.is_skippable ? ad.skip_after_seconds : -1);
-  const [canSkip,     setCanSkip]     = useState(false);
-  const [timeLeft,    setTimeLeft]    = useState(ad.duration_seconds);
-  const [hasTracked,  setHasTracked]  = useState(false);
+  const [muted,    setMuted]    = useState(false);
+  const [skipSecs, setSkipSecs] = useState(ad.is_skippable ? ad.skip_after_seconds : -1);
+  const [canSkip,  setCanSkip]  = useState(false);
+  const [timeLeft, setTimeLeft] = useState(ad.duration_seconds);
+  // useRef so Strict Mode's double-effect doesn't double-count the impression
+  const trackedRef = useRef(false);
 
   const finish = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -102,10 +103,12 @@ export default function VideoAdOverlay({ ad, onComplete }: Props) {
       video.play().catch(() => {});
     }
 
-    // Track impression once
-    incSessionImpressions(ad.uuid);
-    api.post(`/visual-ads/${ad.uuid}/impression`).catch(() => {});
-    setHasTracked(true);
+    // Track impression once — guard prevents double-count in React Strict Mode
+    if (!trackedRef.current) {
+      trackedRef.current = true;
+      incSessionImpressions(ad.uuid);
+      api.post(`/visual-ads/${ad.uuid}/impression`).catch(() => {});
+    }
 
     // Countdown timer
     timerRef.current = setInterval(() => {
@@ -130,7 +133,7 @@ export default function VideoAdOverlay({ ad, onComplete }: Props) {
   }, []);
 
   return (
-    <div className="absolute inset-0 z-40 bg-black flex flex-col">
+    <div className="absolute inset-0 z-[999] bg-black flex flex-col">
       {/* Video */}
       <video
         ref={videoRef}

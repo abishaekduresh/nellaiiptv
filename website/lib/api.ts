@@ -58,11 +58,14 @@ api.interceptors.response.use(
           return new Promise(() => {});
       }
     } else if (error.response?.status === 401) {
-      // Only redirect if we are NOT already on the login page
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+      // Only treat as session expiry when the URL is an endpoint that genuinely requires
+      // a logged-in session. Optional-auth endpoints (channels, ads, etc.) can legitimately
+      // return 401 for restricted content — that is NOT a session expiry.
+      const url: string = error.config?.url ?? '';
+      const isAuthEndpoint = url.includes('/customers/') || url.includes('/payments/') ||
+                             url.includes('/favorites') || url.includes('/sessions');
+      if (isAuthEndpoint && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
          const { token, tempToken } = useAuthStore.getState();
-         // Only force logout/redirect if the user had an active token (real session expiry).
-         // Guest users in open-access mode will naturally get 401s — don't redirect them.
          if (token || tempToken) {
              useAuthStore.getState().logout(true);
              window.location.href = '/login?error=session_expired';

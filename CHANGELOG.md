@@ -1,3 +1,19 @@
+## [1.63.1] - Website | [1.42.1] - Backend - 2026-05-25
+
+### Website (Next.js)
+- **Fix**: **Visual Ad — Admin sidebar missing** (`/admin/visual-ads/layout.tsx` — NEW) — Created missing `AdminLayout` wrapper so the sidebar renders correctly on the visual-ads admin page.
+- **Fix**: **Visual Ad — ad not showing on channel switch** (`ClassicHome.tsx`) — Replaced stale `useCallback` closure (`tryShowAd`) with a `useEffect` watching `selectedChannel?.uuid`; uses raw `fetch()` instead of `api.get()` to avoid api.ts 5xx-interceptor silently swallowing the response. Added `prevAdChannelUuid` ref to skip the initial auto-selected channel and only trigger on real switches.
+- **Fix**: **Visual Ad — overlay hidden behind VideoPlayer** (`VideoAdOverlay.tsx`) — Raised root div `z-index` to `z-[999]`; added CSS `isolate` on the VideoPlayer wrapper to create a fresh stacking context.
+- **Fix**: **Visual Ad — React Strict Mode double-counting impressions** (`VideoAdOverlay.tsx`) — Replaced `useState` impression guard with `useRef(false)` (`trackedRef`) so Strict Mode's double-effect never fires the impression API call twice.
+- **Fix**: **Visual Ad — ad starts muted, channel audio audible during ad** (`VideoAdOverlay.tsx`, `VideoPlayer.tsx`) — `VideoAdOverlay` now starts unmuted (`useState(false)`) so ad audio plays immediately. `VideoPlayer` gains an `adPlaying` prop; when `true` the channel video's audio is muted (while it keeps buffering); original mute state is restored when the ad ends/is skipped.
+- **Fix**: **API interceptor false 401 redirect** (`lib/api.ts`) — The 401 handler now only redirects to `/login?error=session_expired` for genuinely auth-required endpoints (`/customers/`, `/payments/`, `/favorites`, `/sessions`). Optional-auth endpoints like channels and ads returning 401 for restricted content no longer trigger a session-expiry logout.
+
+### Backend (Slim PHP)
+- **Fix**: **`VisualAdController` — PHP fatal on ad request** (`VisualAdController.php`) — Removed non-existent `App\Models\Subscription` import; subscription fields are stored directly on `Customer`. Fixed `now()` Laravel helper (not available in Slim) replaced with `date('Y-m-d H:i:s')`. Customer now correctly resolved from JWT via `Customer::where('uuid', $jwtUser->sub)->first()`.
+- **Fix**: **`ChannelController` — master API key not recognised** (`ChannelController.php`) — `isTrustedApp` check now inspects the `API_SECRET` env variable first; previously only DB-registered keys were accepted, causing guests carrying the master key to receive a 401.
+
+---
+
 ## [1.63.0] - Website | [1.42.0] - Backend - 2026-05-25
 
 ### Website (Next.js)

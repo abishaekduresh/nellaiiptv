@@ -150,32 +150,47 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
   const topRef = useRef<HTMLDivElement>(null);
 
   /* Handle Channel Selection with Mobile Scroll and Fresh Data Fetch */
-  const tryShowAd = useCallback(async () => {
-    try {
-      const res = await api.get('/visual-ads/active');
-      const ad: VisualAd | null = res.data?.data ?? null;
-      if (!ad) return;
-      // Respect max_impressions_per_session
-      if (ad.max_impressions_per_session > 0 &&
-          getSessionImpressions(ad.uuid) >= ad.max_impressions_per_session) return;
-      // Respect display_frequency
-      if (!shouldAttemptAd(ad.display_frequency)) return;
-      setCurrentAd(ad);
-      setShowAd(true);
-    } catch {}
-  }, []);
-
   const handleAdComplete = useCallback(() => {
     setShowAd(false);
     setCurrentAd(null);
   }, []);
 
+  // Trigger pre-roll ad on every channel *switch* (not on initial auto-select).
+  // Uses raw fetch to bypass api.ts interceptors that silently swallow errors.
+  const prevAdChannelUuid = useRef<string | null>(null);
+  useEffect(() => {
+    const uuid = selectedChannel?.uuid ?? null;
+    if (!uuid) return;
+    if (prevAdChannelUuid.current === null) {
+      prevAdChannelUuid.current = uuid;
+      return;
+    }
+    if (prevAdChannelUuid.current === uuid) return;
+    prevAdChannelUuid.current = uuid;
+
+    const base = process.env.NEXT_PUBLIC_API_URL ?? '';
+    const key  = process.env.NEXT_PUBLIC_API_SECRET ?? '';
+    fetch(`${base}/visual-ads/active`, {
+      headers: { 'X-Client-Platform': 'web', 'X-API-KEY': key },
+    })
+      .then(r => r.json())
+      .then((data: any) => {
+        const ad: VisualAd | null = data?.data ?? null;
+        if (!ad) return;
+        if (ad.max_impressions_per_session > 0 &&
+            getSessionImpressions(ad.uuid) >= ad.max_impressions_per_session) return;
+        if (!shouldAttemptAd(ad.display_frequency)) return;
+        setCurrentAd(ad);
+        setShowAd(true);
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedChannel?.uuid]);
+
   const handleChannelClick = useCallback(async (channel: Channel, source: string = 'main') => {
       // Optimistic update
       setSelectedChannel(channel);
       setSelectedSource(source);
-      // Attempt to show a pre-roll ad on each channel switch
-      tryShowAd();
       
       // Fetch fresh details to ensure valid stream URL (and correct restriction status)
       try {
@@ -386,16 +401,17 @@ function FilterTabItem({ label, index, isSelected, onSelect }: { label: string; 
                   <VideoAdOverlay ad={currentAd} onComplete={handleAdComplete} />
                 )}
 
-                <div className="w-full h-full max-w-full max-h-full flex items-center justify-center">
+                <div className="w-full h-full max-w-full max-h-full flex items-center justify-center isolate">
                     {/* Constrain video to aspect ratio but ensure it fits in the box */}
                     <div className="aspect-video w-full h-full max-h-full max-w-full flex items-center justify-center">
                          <VideoPlayer
-                            src={selectedChannel.hls_url || ''} 
-                            poster={selectedChannel.thumbnail_url} 
+                            src={selectedChannel.hls_url || ''}
+                            poster={selectedChannel.thumbnail_url}
                             onVideoPlay={handleVideoPlay}
                             onVideoPause={handleVideoPause}
                             channelUuid={selectedChannel.uuid}
                             channelName={selectedChannel.name}
+                            adPlaying={showAd}
                             
                             // STB Overlay Props
                             channels={groups[effectiveActiveGroup] || []}

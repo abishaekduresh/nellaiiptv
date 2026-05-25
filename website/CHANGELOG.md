@@ -1,3 +1,15 @@
+## [1.63.1] - 2026-05-25
+
+### Fixed
+- **Visual Ad — admin sidebar missing** (`/admin/visual-ads/layout.tsx` — NEW): Added missing `AdminLayout` wrapper so the sidebar renders on the `/admin/visual-ads` page.
+- **Visual Ad — not showing on channel switch** (`ClassicHome.tsx`): Replaced stale `useCallback` closure with a `useEffect` watching `selectedChannel?.uuid`. Uses raw `fetch()` to bypass the api.ts 5xx-interceptor that silently returns a never-resolving `Promise`. Added `prevAdChannelUuid` ref to skip the initial load and only trigger on real switches.
+- **Visual Ad — overlay hidden behind VideoPlayer** (`VideoAdOverlay.tsx`, `ClassicHome.tsx`): Raised overlay `z-index` to `z-[999]`; added CSS `isolate` class on the VideoPlayer wrapper div to create an independent stacking context.
+- **Visual Ad — React Strict Mode double impression count** (`VideoAdOverlay.tsx`): Replaced `useState` boolean guard with `useRef(false)` (`trackedRef`) so Strict Mode's double-fired effects never call the impression API twice.
+- **Visual Ad — channel audio audible during ad / ad starts muted** (`VideoAdOverlay.tsx`, `VideoPlayer.tsx`): `VideoAdOverlay` now starts unmuted (`useState(false)`) so ad audio plays automatically (browser allows this after a user gesture). `VideoPlayer` gains an `adPlaying?: boolean` prop; when `true` the channel `<video>` element is muted while keeping the stream buffering silently; the prior mute state is restored via `priorMutedRef` when the ad ends or is skipped.
+- **API 401 interceptor false session-expiry redirect** (`lib/api.ts`): The 401 handler now only redirects to `/login?error=session_expired` for endpoints that genuinely require authentication (`/customers/`, `/payments/`, `/favorites`, `/sessions`). Optional-auth endpoints (channels, ads) returning 401 for restricted content no longer trigger spurious logouts.
+
+---
+
 ## [1.55.0] - 2026-05-25
 
 ### Improved — Home Page, Navbar & Footer Redesign
