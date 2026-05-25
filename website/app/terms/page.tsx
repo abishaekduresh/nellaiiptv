@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import { FileText, UserCheck, Ban, User, AlertTriangle, Scale, XCircle, RefreshCw } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service — Nellai IPTV',
+  description: 'Read the Nellai IPTV Terms of Service. These terms govern your access to and use of our Tamil live TV streaming platform.',
+};
 
 export default function TermsPage() {
   const sections = [

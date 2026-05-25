@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { Shield, Lock, Eye, Trash2, Bell, Mail } from 'lucide-react';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy — Nellai IPTV',
+  description: 'Read the Nellai IPTV Privacy Policy to understand how we collect, use, and protect your personal information when you use our Tamil live streaming service.',
+};
 
 export default function PrivacyPage() {
   const sections = [

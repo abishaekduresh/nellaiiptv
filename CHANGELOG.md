@@ -1,3 +1,13 @@
+## [1.62.0] - Website - 2026-05-25
+
+### Website (Next.js)
+- **Fix**: **AdSense Policy Compliance** — `GoogleAdSense` now uses `usePathname()` to only inject `adsbygoogle.js` on real content pages (`/`, `/about`, `/privacy`, `/terms`, `/disclaimer`, `/contact`, `/feedback`). All functional/app screens (`/channels`, `/login`, `/register`, `/player`, `/admin/*`, `/reseller/*`) no longer load the script, resolving the "Google-served ads on screens without publisher-content" policy violation.
+- **Improved**: **About Page Content** — Rewrote and expanded with substantive original text: Who We Are, Our Mission, How It Works (4-step guide), Channel Categories, What We Offer (6-card grid), Platform & Technology, 5-question FAQ, and CTA. Added `Metadata` export with unique title and description to address "low value content" review.
+- **Improved**: **Privacy & Terms Pages** — Added `Metadata` exports for unique page titles and descriptions.
+- **Added**: **`/sitemap.xml`** — Generated via `app/sitemap.ts` with all public pages, correct `changeFrequency` and `priority`.
+- **Added**: **`/robots.txt`** — Generated via `app/robots.ts`; blocks admin/reseller/api routes from crawlers and references the sitemap.
+- **Added**: Logo assets (`public/assets/logos/`) tracked in git version control.
+
 ## [1.61.0] - Website | [1.41.5] - Backend - 2026-05-25
 
 ### Website (Next.js)
