@@ -46,6 +46,7 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->put('/settings/{key}', [\App\Controllers\Admin\SettingController::class, 'update']);
         $group->post('/settings/logo', [\App\Controllers\Admin\SettingController::class, 'uploadLogo']);
         $group->post('/settings/logo-png', [\App\Controllers\Admin\SettingController::class, 'uploadAppLogoPng']);
+        $group->post('/settings/test-payment', [\App\Controllers\Admin\SettingController::class, 'testPayment']);
         
         // Subscription Plans
         $group->get('/plans', [\App\Controllers\Admin\SubscriptionPlanController::class, 'index']);

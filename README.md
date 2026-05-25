@@ -6,13 +6,13 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.60.0
-- **Key Features**: Channel Manager Stream Preview (HLS player modal with loading/buffering/error/retry states, live badge, copy URL, no-controls clean view), Channel Manager Confirm-Save Modal (per-channel diff of number and status changes with thumbnail, arrow indicators, sorted by new number), Full Admin Portal Redesign (modern slate theme, animated, mobile-responsive sidebar, dashboard, all CRUD pages), Admin Layout Isolation (public Navbar/Footer hidden on admin/reseller routes), Admin Branding (logo on login page + sidebar, sidebar logo links to home), Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Stream Server 360° View, Stream Servers Admin CRUD, Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
+- **Version**: 1.61.0
+- **Key Features**: Payment Gateway UI (enable/disable toggle per gateway with inline Test Transaction button; credentials managed via backend `.env`), Channel Manager Stream Preview (HLS player modal with loading/buffering/error/retry states, live badge, copy URL, no-controls clean view), Channel Manager Confirm-Save Modal (per-channel diff of number and status changes with thumbnail, arrow indicators, sorted by new number), Full Admin Portal Redesign (modern slate theme, animated, mobile-responsive sidebar, dashboard, all CRUD pages), Admin Layout Isolation (public Navbar/Footer hidden on admin/reseller routes), Admin Branding (logo on login page + sidebar, sidebar logo links to home), Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Stream Server 360° View, Stream Servers Admin CRUD, Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.41.4
-- **Key Features**: Batch Channel Update API (number + status, swap-safe two-phase update), Stream Servers API, MistServer Auth (challenge-response), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API, Channel View Details API.
+- **Version**: 1.41.5
+- **Key Features**: Payment Gateway Test API (`POST /api/admin/settings/test-payment`) — reads Razorpay/Cashfree credentials from `.env` (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`, `CASHFREE_MODE`) and creates a live test order; SSL-safe CA bundle resolution for WAMP. Batch Channel Update API (number + status, swap-safe two-phase update), Stream Servers API, MistServer Auth (challenge-response), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API, Channel View Details API.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
@@ -24,7 +24,16 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.55.0 Website) — 2026-05-25
+## Recent Updates (v1.61.0 Website | v1.41.5 Backend) — 2026-05-25
+
+### Website (Next.js)
+- **Improved**: **Payment Gateway Settings** (`/admin/settings`) — Credential input fields removed from the UI. Razorpay and Cashfree API keys are now managed exclusively via backend `.env` variables (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`, `CASHFREE_MODE`). Each gateway card shows the relevant env var names as a reference hint. Enable/disable toggle and inline "Test" button remain.
+
+### Backend (Slim PHP)
+- **Feature**: **Payment Gateway Test API** (`POST /api/admin/settings/test-payment`) — Creates a real test order via Razorpay or Cashfree using credentials read from `.env`. CA bundle resolution (`resolveCaBundle`) finds valid cacert from vendor or WAMP glob to avoid cURL SSL errors on Windows.
+- **Fix**: Credential values are `trim()`ed before use to guard against CRLF whitespace from Windows-formatted `.env` files causing authentication failures.
+
+## Previous Updates (v1.60.0 Website) — 2026-05-25
 
 ### Website (Next.js)
 - **Redesigned**: Home page — full-viewport animated hero (floating orbs, dot-grid, staggered fade-up), animated stats count-up row, feature cards with per-card accent colours and hover glow, new App Download section with floating phone mockup, restored and redesigned CTA section.

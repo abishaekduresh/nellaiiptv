@@ -1,3 +1,13 @@
+## [1.61.0] - Website | [1.41.5] - Backend - 2026-05-25
+
+### Website (Next.js)
+- **Improved**: **Payment Gateway Settings** (`/admin/settings`) — Credential input fields (Key ID, Key Secret, Webhook Secret for Razorpay; App ID, Secret Key, Environment for Cashfree) removed from the admin UI. API keys are now managed exclusively through backend `.env` variables. Each gateway card displays the relevant env var names as a read-only reference hint. Enable/disable toggle and inline "Test" button remain on each card.
+
+### Backend (Slim PHP)
+- **Feature**: **Payment Gateway Test API** — `POST /api/admin/settings/test-payment` now reads Razorpay credentials from `RAZORPAY_KEY_ID` + `RAZORPAY_KEY_SECRET` and Cashfree credentials from `CASHFREE_APP_ID` + `CASHFREE_SECRET_KEY` + `CASHFREE_MODE` in `.env` (via `$_ENV` / `getenv()`) instead of database settings.
+- **Fix**: All credential values are `trim()`ed before use to strip CRLF whitespace from Windows-formatted `.env` files that would otherwise cause Razorpay/Cashfree "Authentication failed" errors.
+- **Feature**: `resolveCaBundle()` private method — cascading CA certificate lookup (vendor bundles → `php.ini curl.cainfo` → WAMP glob → `false` fallback) to prevent cURL error 77 on WAMP/Windows during outbound HTTPS calls.
+
 ## [1.60.0] - Website - 2026-05-25
 
 ### Website (Next.js)

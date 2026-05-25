@@ -4,8 +4,169 @@
 import { useEffect, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import toast from 'react-hot-toast';
-import { Save, Lock, Image, Hammer, Monitor, Smartphone, Tv, LayoutGrid, Mail } from 'lucide-react';
+import { Save, Lock, Image, Hammer, Monitor, Smartphone, Tv, LayoutGrid, Mail, CreditCard, FlaskConical, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+
+/* ── Helper: load external script once ─────────────────────────────── */
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload  = () => resolve();
+    s.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(s);
+  });
+}
+
+/* ── Payment Test Modal ─────────────────────────────────────────────── */
+type TestStatus = 'idle' | 'loading' | 'success' | 'error' | 'cancelled';
+
+function PaymentTestModal({ gateway, onClose }: { gateway: 'razorpay' | 'cashfree'; onClose: () => void }) {
+  const [amount, setAmount]     = useState('1');
+  const [status, setStatus]     = useState<TestStatus>('idle');
+  const [detail, setDetail]     = useState('');
+
+  const label  = gateway === 'razorpay' ? 'Razorpay' : 'Cashfree';
+  const accent = gateway === 'razorpay' ? 'blue' : 'purple';
+
+  const runTest = async () => {
+    const paise = Math.round(parseFloat(amount) * 100);
+    if (!paise || paise < 100) { toast.error('Minimum test amount is ₹1'); return; }
+
+    setStatus('loading');
+    setDetail('');
+
+    try {
+      const res = await adminApi.post('/admin/settings/test-payment', { gateway, amount: paise });
+      const data = res.data.data;
+
+      if (gateway === 'razorpay') {
+        await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+        const rzp = new (window as any).Razorpay({
+          key:       data.key_id,
+          amount:    data.amount,
+          currency:  data.currency ?? 'INR',
+          name:      'Nellai IPTV — Test',
+          description: 'Gateway credential test',
+          order_id:  data.order_id,
+          theme:     { color: '#06b6d4' },
+          handler: (resp: any) => {
+            setStatus('success');
+            setDetail(`Payment ID: ${resp.razorpay_payment_id}`);
+          },
+          modal: { ondismiss: () => { setStatus('cancelled'); setDetail('Checkout closed without payment'); } },
+        });
+        rzp.open();
+      } else {
+        await loadScript('https://sdk.cashfree.com/js/v3/cashfree.js');
+        const cf = (window as any).Cashfree({ mode: data.environment ?? 'production' });
+        cf.checkout({
+          paymentSessionId: data.payment_session_id,
+          returnUrl: window.location.href,
+        });
+        setStatus('success');
+        setDetail('Cashfree checkout launched');
+      }
+    } catch (err: any) {
+      setStatus('error');
+      setDetail(err.response?.data?.message ?? err.message ?? 'Test failed');
+    }
+  };
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={onClose}>
+      <div className="w-full max-w-md bg-slate-950 border border-slate-700/60 rounded-2xl overflow-hidden shadow-2xl animate-fade-up" onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 bg-slate-900 border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${accent === 'blue' ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-purple-500/10 border border-purple-500/20'}`}>
+              <FlaskConical size={16} className={accent === 'blue' ? 'text-blue-400' : 'text-purple-400'} />
+            </div>
+            <div>
+              <p className="text-white font-bold text-sm">Test {label} Transaction</p>
+              <p className="text-slate-500 text-xs mt-0.5">Creates a real order in test/sandbox mode</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"><X size={17} /></button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 space-y-5">
+          {/* Amount */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Test Amount (₹)</label>
+            <div className="relative">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-medium text-sm">₹</span>
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                disabled={status === 'loading'}
+                className="w-full bg-slate-800 border border-slate-700 text-white pl-8 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all disabled:opacity-50"
+              />
+            </div>
+            <p className="text-xs text-slate-600 mt-1.5">Minimum ₹1. Use sandbox/test credentials to avoid real charges.</p>
+          </div>
+
+          {/* Status display */}
+          {status !== 'idle' && (
+            <div className={`flex items-start gap-3 rounded-xl px-4 py-3.5 text-sm border ${
+              status === 'loading'   ? 'bg-slate-800/50 border-slate-700 text-slate-400' :
+              status === 'success'   ? 'bg-green-500/10 border-green-500/30 text-green-300' :
+              status === 'cancelled' ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' :
+                                       'bg-red-500/10 border-red-500/30 text-red-300'
+            }`}>
+              {status === 'loading'   && <Loader2 size={16} className="animate-spin mt-0.5 shrink-0" />}
+              {status === 'success'   && <CheckCircle2 size={16} className="mt-0.5 shrink-0" />}
+              {status === 'cancelled' && <AlertCircle size={16} className="mt-0.5 shrink-0" />}
+              {status === 'error'     && <AlertCircle size={16} className="mt-0.5 shrink-0" />}
+              <div>
+                <p className="font-medium">
+                  {status === 'loading'   && 'Initiating test transaction…'}
+                  {status === 'success'   && 'Payment successful!'}
+                  {status === 'cancelled' && 'Checkout cancelled'}
+                  {status === 'error'     && 'Test failed'}
+                </p>
+                {detail && <p className="text-xs mt-0.5 opacity-75 font-mono">{detail}</p>}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-slate-900/80 border-t border-slate-800">
+          <button onClick={onClose} className="px-4 py-2.5 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
+            Close
+          </button>
+          <button
+            onClick={runTest}
+            disabled={status === 'loading'}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 ${
+              accent === 'blue'
+                ? 'bg-blue-600 hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25'
+                : 'bg-purple-600 hover:bg-purple-500 hover:shadow-lg hover:shadow-purple-500/25'
+            }`}
+          >
+            {status === 'loading'
+              ? <><Loader2 size={14} className="animate-spin" /> Running…</>
+              : <><FlaskConical size={14} /> Run Test</>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface Setting {
   id: number;
@@ -26,6 +187,8 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+
+  const [testGateway, setTestGateway] = useState<'razorpay' | 'cashfree' | null>(null);
   
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,6 +342,8 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
+      {testGateway && <PaymentTestModal gateway={testGateway} onClose={() => setTestGateway(null)} />}
+
       {/* Page Header */}
       <div className="mb-8 animate-fade-up">
         <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">System Settings</h1>
@@ -237,67 +402,75 @@ export default function SettingsPage() {
       <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-800/10 backdrop-blur-sm p-8 rounded-2xl border border-emerald-700/30 shadow-2xl mb-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-emerald-500/10 rounded-lg">
-            <div className="text-2xl text-emerald-400">₹</div>
+            <CreditCard className="text-emerald-400" size={24} />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-white">Payment Gateway Settings</h2>
-            <p className="text-sm text-slate-400">Configure payment providers for transactions</p>
+            <p className="text-sm text-slate-400">Configure payment providers and API credentials</p>
           </div>
         </div>
-        
-        <div className="space-y-4">
-            
-            {/* Razorpay */}
-            <div className="flex items-center justify-between p-5 bg-slate-800/60 rounded-xl border border-slate-700/40 hover:border-emerald-500/30 transition-all group">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-all">
-                        <span className="text-2xl">💳</span>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-white text-lg">Razorpay</h3>
-                        <p className="text-sm text-slate-400">Accept payments via Razorpay. Keys must be configured in .env.</p>
-                    </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                        type="checkbox" 
-                        className="sr-only peer"
-                        checked={settings.find(s => s.setting_key === 'gateway_razorpay_enabled')?.setting_value === '1'}
-                        onChange={(e) => {
-                            const newValue = e.target.checked ? '1' : '0';
-                            handleUpdate('gateway_razorpay_enabled', newValue);
-                            handleSave('gateway_razorpay_enabled', newValue);
-                        }} 
-                    />
-                    <div className="w-14 h-7 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500 shadow-lg"></div>
-                </label>
-            </div>
 
-            {/* Cashfree */}
-            <div className="flex items-center justify-between p-5 bg-slate-800/60 rounded-xl border border-slate-700/40 hover:border-emerald-500/30 transition-all group">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-all">
-                        <span className="text-2xl">💰</span>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-white text-lg">Cashfree</h3>
-                        <p className="text-sm text-slate-400">Accept payments via Cashfree. Keys must be configured in .env.</p>
-                    </div>
+        <div className="space-y-4">
+
+          {/* ── Razorpay ── */}
+          <div className="bg-slate-800/60 rounded-xl border border-slate-700/40">
+            <div className="flex items-center justify-between p-5">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+                  <span className="text-xl font-black text-blue-400">R</span>
                 </div>
+                <div className="min-w-0">
+                  <p className="text-white font-semibold">Razorpay</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Indian payment gateway — UPI, cards, net banking</p>
+                  <p className="text-xs text-slate-600 mt-1 font-mono">Credentials: <span className="text-slate-500">RAZORPAY_KEY_ID · RAZORPAY_KEY_SECRET</span> in .env</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 shrink-0 ml-4">
+                <button
+                  onClick={() => setTestGateway('razorpay')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-lg text-xs font-medium transition-all hover:-translate-y-0.5"
+                >
+                  <FlaskConical size={12} /> Test
+                </button>
                 <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                        type="checkbox" 
-                        className="sr-only peer"
-                        checked={settings.find(s => s.setting_key === 'gateway_cashfree_enabled')?.setting_value === '1'}
-                        onChange={(e) => {
-                            const newValue = e.target.checked ? '1' : '0';
-                            handleUpdate('gateway_cashfree_enabled', newValue);
-                            handleSave('gateway_cashfree_enabled', newValue);
-                        }} 
-                    />
-                    <div className="w-14 h-7 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500 shadow-lg"></div>
+                  <input type="checkbox" className="sr-only peer"
+                    checked={settings.find(s => s.setting_key === 'gateway_razorpay_enabled')?.setting_value === '1'}
+                    onChange={e => { const v = e.target.checked ? '1' : '0'; handleUpdate('gateway_razorpay_enabled', v); handleSave('gateway_razorpay_enabled', v); }} />
+                  <div className="w-12 h-6 bg-slate-700 peer-focus:ring-2 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500" />
                 </label>
+              </div>
             </div>
+          </div>
+
+          {/* ── Cashfree ── */}
+          <div className="bg-slate-800/60 rounded-xl border border-slate-700/40">
+            <div className="flex items-center justify-between p-5">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+                  <span className="text-xl font-black text-purple-400">CF</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white font-semibold">Cashfree</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Fast settlements — UPI, QR, subscriptions</p>
+                  <p className="text-xs text-slate-600 mt-1 font-mono">Credentials: <span className="text-slate-500">CASHFREE_APP_ID · CASHFREE_SECRET_KEY · CASHFREE_MODE</span> in .env</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 shrink-0 ml-4">
+                <button
+                  onClick={() => setTestGateway('cashfree')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 rounded-lg text-xs font-medium transition-all hover:-translate-y-0.5"
+                >
+                  <FlaskConical size={12} /> Test
+                </button>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer"
+                    checked={settings.find(s => s.setting_key === 'gateway_cashfree_enabled')?.setting_value === '1'}
+                    onChange={e => { const v = e.target.checked ? '1' : '0'; handleUpdate('gateway_cashfree_enabled', v); handleSave('gateway_cashfree_enabled', v); }} />
+                  <div className="w-12 h-6 bg-slate-700 peer-focus:ring-2 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500" />
+                </label>
+              </div>
+            </div>
+          </div>
 
         </div>
       </div>
