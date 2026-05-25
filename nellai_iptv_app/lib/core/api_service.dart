@@ -9,6 +9,7 @@ import '../models/language.dart';
 import '../models/public_settings.dart';
 import '../models/comment.dart';
 import '../models/scrolling_ad.dart';
+import '../models/visual_ad.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthException implements Exception {
@@ -378,6 +379,41 @@ class ApiService {
     } catch (e) {
       debugPrint('Error recording impression: $e');
     }
+  }
+
+  // --- VISUAL ADS ---
+
+  Future<VisualAd?> getActiveVisualAd() async {
+    try {
+      final response = await _dio.get('/visual-ads/active');
+      if (response.statusCode == 200 &&
+          response.data['status'] == true &&
+          response.data['data'] != null) {
+        return VisualAd.fromJson(response.data['data'] as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching visual ad: $e');
+      return null;
+    }
+  }
+
+  Future<void> trackVisualAdImpression(String uuid) async {
+    try {
+      await _dio.post('/visual-ads/$uuid/impression');
+    } catch (_) {}
+  }
+
+  Future<void> trackVisualAdSkip(String uuid) async {
+    try {
+      await _dio.post('/visual-ads/$uuid/skip');
+    } catch (_) {}
+  }
+
+  Future<void> trackVisualAdClick(String uuid) async {
+    try {
+      await _dio.post('/visual-ads/$uuid/click');
+    } catch (_) {}
   }
 
   Future<List<Category>> getCategories() async {

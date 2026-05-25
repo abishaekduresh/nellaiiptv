@@ -29,6 +29,8 @@ import '../profile/profile_screen.dart'; // Import ProfileScreen
 import '../settings/settings_screen.dart'; // Import SettingsScreen
 import '../../core/toast_service.dart'; // Import ToastService
 import 'channel_details_modal.dart'; // Import Channel Details Modal
+import '../../models/visual_ad.dart';
+import '../../widgets/video_ad_overlay.dart';
 
 class ClassicScreen extends StatefulWidget {
   final String? initialShareCode;
@@ -53,6 +55,12 @@ class _ClassicScreenState extends State<ClassicScreen> {
   // Scrolling Ad State
   List<ScrollingAd> _scrollingAds = [];
   int _currentScrollingAdIndex = 0;
+
+  // Visual Ad State
+  VisualAd? _currentVisualAd;
+  bool _showVisualAd = false;
+  final Map<String, int> _visualAdImpressions = {};
+  int _switchCount = 0;
   
   // Comment State
   List<Comment> _comments = [];
@@ -261,6 +269,51 @@ class _ClassicScreenState extends State<ClassicScreen> {
     });
   }
 
+  /// Fetch and show a visual pre-roll ad on channel switches.
+  /// Respects max_impressions_per_session and display_frequency.
+  Future<void> _tryShowVisualAd() async {
+    if (!mounted || _showVisualAd) return;
+
+    _switchCount++;
+
+    try {
+      final ad = await _api.getActiveVisualAd();
+      if (ad == null || !mounted) return;
+
+      // Check per-session impression cap
+      if (ad.maxImpressionsPerSession > 0) {
+        final seen = _visualAdImpressions[ad.uuid] ?? 0;
+        if (seen >= ad.maxImpressionsPerSession) return;
+      }
+
+      // Check display frequency (show every N switches)
+      final freq = ad.displayFrequency > 0 ? ad.displayFrequency : 1;
+      if (_switchCount % freq != 0) return;
+
+      // Record impression count before showing
+      _visualAdImpressions[ad.uuid] = (_visualAdImpressions[ad.uuid] ?? 0) + 1;
+
+      // Mute channel audio so only the ad is heard
+      _playerKey.currentState?.muteForAd(true);
+
+      setState(() {
+        _currentVisualAd = ad;
+        _showVisualAd = true;
+      });
+    } catch (e) {
+      debugPrint('[VisualAd] Error: $e');
+    }
+  }
+
+  void _onVisualAdComplete() {
+    if (!mounted) return;
+    _playerKey.currentState?.muteForAd(false);
+    setState(() {
+      _showVisualAd = false;
+      _currentVisualAd = null;
+    });
+  }
+
   /// Handles the refresh button tap — reloads channels, banner ads, and scrolling ads.
   Future<void> _handleRefresh() async {
     // Reset scrolling ad index so it starts fresh from the first ad
@@ -364,7 +417,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
         setState(() {
           _selectedChannel = exactChannel.first;
         });
-        _loadComments(); // Load comments for new channel
+        _loadComments();
+        _tryShowVisualAd();
       }
     }
 
@@ -374,7 +428,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
   }
 
   void _changeChannel(int offset) {
-    if (_selectedChannel == null) return;
+    if (_selectedChannel == null || _showVisualAd) return;
     
     final provider = context.read<ChannelProvider>();
     final channels = provider.filteredChannels.isNotEmpty ? provider.filteredChannels : provider.channels;
@@ -393,7 +447,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
     setState(() {
       _selectedChannel = channels[newIndex];
     });
-    _loadComments(); // Load comments for new channel
+    _loadComments();
+    _tryShowVisualAd();
   }
 
   void _resumePlayback() async {
@@ -687,7 +742,9 @@ class _ClassicScreenState extends State<ClassicScreen> {
                   orElse: () => _selectedChannel!
                 );
 
-          return Focus(
+          return Stack(
+            children: [
+              Focus(
             autofocus: false,
             focusNode: _rootFocusNode,
             onKeyEvent: (node, event) {
@@ -841,9 +898,10 @@ class _ClassicScreenState extends State<ClassicScreen> {
                               onChannelSelected: (channel) {
                                 setState(() {
                                   _selectedChannel = channel;
-                                  _showChannelOverlay = false; // Auto close on select
+                                  _showChannelOverlay = false;
                                 });
                                 _loadComments();
+                                _tryShowVisualAd();
                               },
                            ),
 
@@ -869,6 +927,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                               ),
                             ).animate().scale(duration: 200.ms, curve: Curves.easeOut),
                           ),
+
                       ],
                     ),
                   ),
@@ -1449,6 +1508,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                  onTap: () {
                                      setState(() => _selectedChannel = channels[index]);
                                      _loadComments();
+                                     _tryShowVisualAd();
                                  },
                                  index: index,
                                  totalColumns: 3,
@@ -1471,7 +1531,18 @@ class _ClassicScreenState extends State<ClassicScreen> {
 
       ],
     ),
-  );
+  ),
+  if (_showVisualAd && _currentVisualAd != null)
+    Positioned.fill(
+      child: VideoAdOverlay(
+        ad: _currentVisualAd!,
+        onComplete: _onVisualAdComplete,
+        onFullScreenToggle: () =>
+            setState(() => _isFullScreen = !_isFullScreen),
+      ),
+    ),
+],
+);
   },
       ),
       ),

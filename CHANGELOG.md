@@ -1,3 +1,15 @@
+## [1.13.0] - App - 2026-05-25
+
+### nellai_iptv_app (Flutter)
+- **Feature**: **Visual Pre-roll Ads** — YouTube-style video ad overlay triggered on every channel switch. Fetches the active ad from `GET /api/visual-ads/active`; respects `display_frequency` (show every N switches) and `max_impressions_per_session` (in-memory per-session cap). Channel audio is muted via `EmbeddedPlayerState.muteForAd()` during the ad and unmuted when it ends or is skipped.
+- **Added**: **`VideoAdOverlay` widget** (`lib/widgets/video_ad_overlay.dart`) — Full-screen overlay rendered above all app UI. Features: `FittedBox(fit: BoxFit.fill)` stretches the ad video to fill the screen, double-tap toggles parent fullscreen mode via `onFullScreenToggle` callback, top bar shows AD badge + monospace countdown, bottom bar shows title, description, "Visit Advertiser" click-through, mute/unmute toggle, skip controls (countdown then active "Skip Ad" button).
+- **Added**: **`VisualAd` model** (`lib/models/visual_ad.dart`) — Typed model with `fromJson` factory for all ad fields (`uuid`, `adUrl`, `clickUrl`, `isSkippable`, `skipAfterSeconds`, `durationSeconds`, `maxImpressionsPerSession`, `displayFrequency`).
+- **Added**: **Visual Ad API methods** in `ApiService` — `getActiveVisualAd()`, `trackVisualAdImpression(uuid)`, `trackVisualAdSkip(uuid)`, `trackVisualAdClick(uuid)`.
+- **Added**: **`muteForAd(bool)` method** on `EmbeddedPlayerState` — calls `setVolume(0.0/1.0)` on the channel's `VideoPlayerController` so channel audio is silenced during the ad without pausing or recreating the player.
+- **Modified**: **`ClassicScreen`** — Ad overlay placed in a root-level `Stack` (covers the full screen, both panels). All four channel-switch paths call `_tryShowVisualAd()`: channel card tap, D-pad `_changeChannel()`, number-dial `_navigateToChannelByNumber()`, STB overlay `onChannelSelected`. D-pad channel change is blocked while an ad is playing (`_showVisualAd` guard).
+
+---
+
 ## [1.63.1] - Website | [1.42.1] - Backend - 2026-05-25
 
 ### Website (Next.js)

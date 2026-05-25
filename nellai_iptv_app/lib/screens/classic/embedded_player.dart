@@ -581,6 +581,12 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     }
   }
 
+  /// Mute or unmute the channel video during visual ad playback.
+  /// Called by ClassicScreen via the GlobalKey before showing/hiding the ad.
+  void muteForAd(bool muted) {
+    _tvPlayer.videoController?.setVolume(muted ? 0.0 : 1.0);
+  }
+
   @override
   void dispose() {
     if (_isDisposed) {

@@ -11,6 +11,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.13.0+67
+- **Added**: **Visual Pre-roll Ads** — YouTube-style full-screen video ad overlay on every channel switch. Fetches the active ad from the API; respects `display_frequency` and `max_impressions_per_session`. `VideoAdOverlay` widget uses `FittedBox(fill)` to stretch the video to fill the screen. Double-tap toggles fullscreen. Channel audio is muted during the ad via `muteForAd()` on `EmbeddedPlayerState` and restored when the ad ends or is skipped.
+- **Added**: `VisualAd` model + `ApiService` methods: `getActiveVisualAd()`, `trackVisualAdImpression()`, `trackVisualAdSkip()`, `trackVisualAdClick()`.
+- **Changed**: `ClassicScreen` — overlay sits in a root-level `Stack` (full-screen coverage). All channel-switch paths trigger `_tryShowVisualAd()`; D-pad blocked while ad plays.
+
 ## Version: 1.12.5+66
 - **Improved**: **Player Contrast & Colour Matrix** — `ColorFilter.matrix` updated for stronger picture quality. Contrast scale: `1.08` → `1.22`. Cross-channel mix added (`0.03`) for natural warmth and saturation. Brightness bias: `-5` → `-16` to prevent highlight blow-out.
 

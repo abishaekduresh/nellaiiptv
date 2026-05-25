@@ -1,3 +1,15 @@
+## [1.13.0+67] - 2026-05-25
+
+### Added
+- **Visual Pre-roll Ads** — YouTube-style full-screen video ad overlay triggered on every channel switch. Fetches active ad from `GET /api/visual-ads/active`; respects `display_frequency` (every N switches) and `max_impressions_per_session` (in-memory per-session cap). Channel audio is muted via `muteForAd()` during the ad and restored on skip/complete.
+- **`VideoAdOverlay` widget** (`lib/widgets/video_ad_overlay.dart`) — `VideoPlayerController.networkUrl` with `VideoPlayerOptions(mixWithOthers: true)`. Video fills overlay via `FittedBox(fit: BoxFit.fill)` inside `SizedBox.expand`. Double-tap calls `onFullScreenToggle` callback. Top bar: amber AD badge + monospace "Xs remaining" countdown. Bottom bar: title, description, "Visit Advertiser" click-through (tracked), mute/unmute toggle, skip controls (countdown transitions to active "Skip Ad" button). Impression tracked once via `_impressionTracked` bool guard.
+- **`VisualAd` model** (`lib/models/visual_ad.dart`) — typed model with `fromJson` factory covering `uuid`, `adUrl`, `clickUrl`, `thumbnailUrl`, `isSkippable`, `skipAfterSeconds`, `durationSeconds`, `maxImpressionsPerSession`, `displayFrequency`.
+- **Visual Ad API methods** in `ApiService` — `getActiveVisualAd()`, `trackVisualAdImpression(uuid)`, `trackVisualAdSkip(uuid)`, `trackVisualAdClick(uuid)`.
+- **`muteForAd(bool)` method** on `EmbeddedPlayerState` (`embedded_player.dart`) — sets channel `VideoPlayerController` volume to `0.0` / `1.0`; channel keeps buffering silently during the ad.
+
+### Changed
+- **`ClassicScreen`** (`classic_screen.dart`) — Ad overlay placed in a root-level `Stack` wrapping the `Focus` widget so it covers the full screen (both panels). All four channel-switch paths now call `_tryShowVisualAd()`: channel card `onTap`, D-pad `_changeChannel()`, number-dial `_navigateToChannelByNumber()`, STB overlay `onChannelSelected`. `_changeChannel()` guards against switching while an ad is active via `_showVisualAd` check.
+
 ## [1.12.4+64] - 2026-05-21
 
 ### Changed
