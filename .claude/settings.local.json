@@ -6,7 +6,30 @@
       "Bash(php -r \":*)",
       "Bash(xargs ls:*)",
       "Bash(grep -rn ApiKeyMiddleware c:/wamp64/www/nellaiiptv/backend/ --include=*.php)",
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Bash(adb -s emulator-5554 logcat -d -t 100)",
+      "Bash(findstr /I \"flutter\\\\|nellaiiptv\\\\|crash\\\\|exception\\\\|fatal\\\\|error\")",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api *)",
+      "PowerShell($response = Invoke-RestMethod -Uri \"https://api.github.com/repos/abishaekduresh/nellaiiptv/contents/nellai_iptv_app/lib/core/tv_player_controller.dart?ref=403738a737bd7e6e15757010100188ddbf1ee529\" -Headers @{Accept=\"application/vnd.github.v3+json\"}; [System.Text.Encoding]::UTF8.GetString\\([System.Convert]::FromBase64String\\($response.content\\)\\))",
+      "PowerShell($response = Invoke-RestMethod -Uri \"https://api.github.com/repos/abishaekduresh/nellaiiptv/contents/nellai_iptv_app/lib/screens/classic/embedded_player.dart?ref=403738a737bd7e6e15757010100188ddbf1ee529\" -Headers @{Accept=\"application/vnd.github.v3+json\"}; [System.Text.Encoding]::UTF8.GetString\\([System.Convert]::FromBase64String\\($response.content\\)\\))",
+      "PowerShell($response = Invoke-RestMethod -Uri \"https://api.github.com/repos/abishaekduresh/nellaiiptv/contents/nellai_iptv_app/pubspec.yaml?ref=403738a737bd7e6e15757010100188ddbf1ee529\" -Headers @{Accept=\"application/vnd.github.v3+json\"}; [System.Text.Encoding]::UTF8.GetString\\([System.Convert]::FromBase64String\\($response.content\\)\\) | Select-String -Pattern \"video_player|media_kit|better_player\" | ForEach-Object { $_.Line })",
+      "Bash(flutter pub *)",
+      "Bash(flutter build *)",
+      "PowerShell(Get-Item \"C:\\\\wamp64\\\\www\\\\nellaiiptv\\\\single_channel_player_app\\\\android\\\\app\\\\src\\\\main\\\\res\\\\drawable-xhdpi\\\\tv_banner.png\" | Select-Object Name, @{N='SizeKB';E={[Math]::Round\\($_.Length/1KB,1\\)}})",
+      "Bash(dir \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\single_channel_player_app\\\\android\\\\app\\\\src\\\\main\\\\res\\\\drawable-xhdpi\\\\\")",
+      "Bash(npx tsc *)",
+      "Bash(New-Item -ItemType Directory -Force \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\website\\\\app\\\\admin\\\\channels\\\\renumber\")",
+      "Bash(Out-Null)",
+      "Bash(Write-Host \"done\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\website\\\\app\\\\admin\\\\channels\\\\renumber\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\nellai_iptv_app\" -Directory)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\nellaiiptv\" -Recurse)",
+      "Bash(Select-Object -First 100)",
+      "Bash(Format-Table FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\website\\\\app\\\\admin\\\\\" -Recurse | Select-Object -Property FullName, PSIsContainer | Sort-Object FullName | Format-Table -AutoSize)",
+      "PowerShell(cd \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\website\"; Get-ChildItem -Path \"public/assets\" -Recurse -File | ForEach-Object { $_.FullName.Replace\\(\\(Get-Location\\).Path + \"\\\\\", \"\"\\) + \" \\(\" + $_.Length + \" bytes\\)\" })"
     ]
   }
 }

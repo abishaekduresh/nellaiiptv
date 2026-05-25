@@ -67,7 +67,7 @@ export default function Home() {
   const { ref: ctaRef, inView: ctaInView } = useInView(0.2);
 
   const channelCount = useCountUp(200, 1800, statsInView);
-  const userCount = useCountUp(50000, 2000, statsInView);
+  const userCount = useCountUp(1000, 2000, statsInView);
   const uptimeCount = useCountUp(99, 1500, statsInView);
 
   useEffect(() => {
