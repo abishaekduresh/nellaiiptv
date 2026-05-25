@@ -33,3 +33,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Explicitly track all public assets (images, icons, logos, etc.)
+!public/assets/
+!public/assets/**
