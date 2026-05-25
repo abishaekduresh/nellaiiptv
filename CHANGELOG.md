@@ -1,3 +1,13 @@
+## [1.13.1] - App - 2026-05-25
+
+### nellai_iptv_app (Flutter)
+- **Fix**: **Visual Ads — silent failure on Android TV** — `TVPlayerController.load()` always called `play()` at the end of initialisation. When a channel switch and a visual ad overlapped, `load()` re-acquired exclusive ExoPlayer audio focus *after* `muteForAd()` had paused the old player. The ad's `VideoPlayerController(mixWithOthers: true)` could not claim audio focus on TV hardware, threw during init, called `_finish()`, and the overlay was removed before the first frame was drawn — making ads invisible.
+  - Added `_adPlaying` flag to `TVPlayerController`; `load()` skips `play()` when set.
+  - `muteForAd()` made `async`; sets flag before pause (fixes race with in-progress `load()`); awaits `pause()` + 150 ms hardware-settle delay.
+  - `_tryShowVisualAd()` in `ClassicScreen` now `await`s `muteForAd(true)` and guards `mounted` before `setState`.
+
+---
+
 ## [1.13.0] - App - 2026-05-25
 
 ### nellai_iptv_app (Flutter)

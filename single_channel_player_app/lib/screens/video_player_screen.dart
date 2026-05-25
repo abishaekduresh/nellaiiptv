@@ -7,8 +7,10 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../services/api_service.dart';
 import '../models/channel.dart';
+import '../models/visual_ad.dart';
 import '../widgets/pulse_loader.dart';
 import '../widgets/gesture_overlay.dart';
+import '../widgets/video_ad_overlay.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 import '../services/toast_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -60,6 +62,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   // View Count Logic
   Timer? _viewCountTimer;
   bool _hasIncrementedView = false;
+
+  // Visual Ad State
+  VisualAd? _currentVisualAd;
+  bool _showVisualAd = false;
+  final Map<String, int> _visualAdImpressions = {};
+  int _loadCount = 0;
 
   @override
   void initState() {
@@ -264,6 +272,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
       if (mounted) setState(() { _isLoading = false; });
 
       _startViewCountTimer();
+      _tryShowVisualAd();
     } catch (e) {
       debugPrint("Video Init Error: $e");
       if (mounted) _showError("Playback Failed");
@@ -293,6 +302,32 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
         _errorMessage = msg;
       });
     }
+  }
+
+  Future<void> _tryShowVisualAd() async {
+    if (!mounted || _showVisualAd) return;
+    _loadCount++;
+    try {
+      final ad = await _api.getActiveVisualAd();
+      if (ad == null || !mounted) return;
+      if (ad.maxImpressionsPerSession > 0) {
+        final seen = _visualAdImpressions[ad.uuid] ?? 0;
+        if (seen >= ad.maxImpressionsPerSession) return;
+      }
+      final freq = ad.displayFrequency > 0 ? ad.displayFrequency : 1;
+      if (_loadCount % freq != 0) return;
+      _visualAdImpressions[ad.uuid] = (_visualAdImpressions[ad.uuid] ?? 0) + 1;
+      _controller?.setVolume(0.0);
+      setState(() { _currentVisualAd = ad; _showVisualAd = true; });
+    } catch (e) {
+      debugPrint('[VisualAd] Error: $e');
+    }
+  }
+
+  void _onVisualAdComplete() {
+    if (!mounted) return;
+    _controller?.setVolume(1.0);
+    setState(() { _showVisualAd = false; _currentVisualAd = null; });
   }
 
   void _startViewCountTimer() {
@@ -364,7 +399,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                           child: SizedBox(
                             width: _controller!.value.size.width,
                             height: _controller!.value.size.height,
-                            child: VideoPlayer(_controller!),
+                            child: ColorFiltered(
+  colorFilter: const ColorFilter.matrix([
+  // R
+  1.08, 50.01, 0.01, 0, -40,
+
+  // G
+  1.01, 1.08, 0.01, 0, -40,
+
+  // B
+  0.01, 10.01, 1.08, 0, -40,
+
+  // A
+  0,    50,    0,    1,  10,
+]),
+                              child: VideoPlayer(_controller!),
+                            ),
                           ),
                         ),
                       )
@@ -489,7 +539,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                 ),
               ),
 
-            // 7. PiP Button (Top Right, hidden on TV)
+            // 7. Visual Ad Pre-roll Overlay
+            if (_showVisualAd && _currentVisualAd != null)
+              Positioned.fill(
+                child: VideoAdOverlay(
+                  ad: _currentVisualAd!,
+                  onComplete: _onVisualAdComplete,
+                ),
+              ),
+
+            // 8. PiP Button (Top Right, hidden on TV)
             if (!kIsWeb && !_isPipMode && !_isTV)
               Positioned(
                 top: 20,

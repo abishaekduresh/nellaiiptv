@@ -16,7 +16,7 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
-- **Version**: 1.13.0+67
+- **Version**: 1.13.1+68
 - **Key Features**: Visual Pre-roll Ads (YouTube-style full-screen video ads on channel switch — skippable/non-skippable, countdown, skip button, mute toggle, click-through tracking, impression/skip/click analytics, per-session frequency limiting, double-tap fullscreen, `FittedBox.fill` stretch), `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, Enhanced ColorFilter contrast/colour matrix (1.22× contrast, cross-channel warmth, −16 bias), `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
 ### `single_channel_player_app` (Flutter)
@@ -24,14 +24,10 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.13.0 App) — 2026-05-25
+## Recent Updates (v1.13.1 App) — 2026-05-25
 
 ### nellai_iptv_app (Flutter)
-- **Feature**: **Visual Pre-roll Ads** — YouTube-style full-screen video ad overlay on every channel switch. Respects `display_frequency` and `max_impressions_per_session`. Channel audio muted during ad and restored on skip/complete.
-- **Added**: `VideoAdOverlay` widget — `FittedBox(fill)` stretch, double-tap fullscreen toggle, AD badge + countdown bar, skip countdown → "Skip Ad" button, mute/unmute, "Visit Advertiser" click-through.
-- **Added**: `VisualAd` model, `getActiveVisualAd()` + tracking API methods (`impression`, `skip`, `click`) in `ApiService`.
-- **Added**: `muteForAd(bool)` on `EmbeddedPlayerState` — silences channel without pausing the stream.
-- **Modified**: `ClassicScreen` — overlay placed in root-level `Stack` (full screen). All four channel-switch paths trigger `_tryShowVisualAd()`; D-pad change blocked while ad is active.
+- **Fix**: **Visual Ads on Android TV** — Ads were invisible on TV because `TVPlayerController.load()` re-acquired exclusive ExoPlayer audio focus after `muteForAd()` paused the player, causing the ad to fail silently. Fixed via `_adPlaying` flag in `TVPlayerController` (guards `load()` from calling `play()` during ads), async `muteForAd()` that sets the flag before pausing, and awaiting `muteForAd(true)` in `_tryShowVisualAd()` before showing the overlay.
 
 ## Previous Updates (v1.63.1 Website | v1.42.1 Backend) — 2026-05-25
 

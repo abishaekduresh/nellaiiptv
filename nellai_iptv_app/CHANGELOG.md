@@ -1,3 +1,13 @@
+## [1.13.1+68] - 2026-05-25
+
+### Fixed
+- **Visual Ads — not showing on Android TV** (`tv_player_controller.dart`, `embedded_player.dart`, `classic_screen.dart`) — Root cause: `TVPlayerController.load()` always calls `play()` at the end, which re-acquires exclusive ExoPlayer audio focus *after* `muteForAd()` paused the old controller. On TV hardware (exclusive `AUDIOFOCUS_GAIN`) this blocked the ad's `VideoPlayerController(mixWithOthers: true)` from initialising audio, causing silent `_finish()` → overlay dismissed in one frame.
+  - **`TVPlayerController`** — Added `bool _adPlaying` flag + `setAdPlaying(bool)`. `load()` now skips the final `play()` call when `_adPlaying == true`, so the channel never acquires audio focus during an ad regardless of initialisation timing.
+  - **`EmbeddedPlayerState.muteForAd()`** — Now `async`; calls `setAdPlaying(true)` before pausing (guards any in-progress `load()`) and awaits `_tvPlayer.pause()` + 150 ms settle delay so TV hardware fully releases audio focus before the ad controller starts. On restore, clears the flag then calls `play()`.
+  - **`ClassicScreen._tryShowVisualAd()`** — Now awaits `muteForAd(true)` (via stored non-null `player` reference) and re-checks `mounted` before calling `setState`.
+
+---
+
 ## [1.13.0+67] - 2026-05-25
 
 ### Added

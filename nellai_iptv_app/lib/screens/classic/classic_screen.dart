@@ -293,9 +293,12 @@ class _ClassicScreenState extends State<ClassicScreen> {
       // Record impression count before showing
       _visualAdImpressions[ad.uuid] = (_visualAdImpressions[ad.uuid] ?? 0) + 1;
 
-      // Mute channel audio so only the ad is heard
-      _playerKey.currentState?.muteForAd(true);
+      // Pause channel player first — await so ExoPlayer fully releases
+      // audio focus before the ad controller initializes on TV hardware.
+      final player = _playerKey.currentState;
+      if (player != null) await player.muteForAd(true);
 
+      if (!mounted) return;
       setState(() {
         _currentVisualAd = ad;
         _showVisualAd = true;

@@ -11,6 +11,12 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.13.1+68
+- **Fixed**: **Visual Ads on Android TV** — Ads were silently dismissed on TV because `TVPlayerController.load()` always called `play()` after ExoPlayer initialised, re-acquiring exclusive audio focus after `muteForAd()` had paused the player. The ad's `VideoPlayerController(mixWithOthers: true)` could not acquire audio, threw on init, and was dismissed in one frame.
+  - `TVPlayerController` gains an `_adPlaying` flag (`setAdPlaying()`); `load()` skips `play()` when the flag is set.
+  - `muteForAd()` is now `async`, sets the flag before pausing (guards any racing `load()` call), awaits `pause()` + 150 ms settle so audio focus is fully released before the ad initialises.
+  - `_tryShowVisualAd()` awaits `muteForAd(true)` before calling `setState`.
+
 ## Version: 1.13.0+67
 - **Added**: **Visual Pre-roll Ads** — YouTube-style full-screen video ad overlay on every channel switch. Fetches the active ad from the API; respects `display_frequency` and `max_impressions_per_session`. `VideoAdOverlay` widget uses `FittedBox(fill)` to stretch the video to fill the screen. Double-tap toggles fullscreen. Channel audio is muted during the ad via `muteForAd()` on `EmbeddedPlayerState` and restored when the ad ends or is skipped.
 - **Added**: `VisualAd` model + `ApiService` methods: `getActiveVisualAd()`, `trackVisualAdImpression()`, `trackVisualAdSkip()`, `trackVisualAdClick()`.

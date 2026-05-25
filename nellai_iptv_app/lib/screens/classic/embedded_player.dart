@@ -581,10 +581,23 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     }
   }
 
-  /// Mute or unmute the channel video during visual ad playback.
-  /// Called by ClassicScreen via the GlobalKey before showing/hiding the ad.
-  void muteForAd(bool muted) {
-    _tvPlayer.videoController?.setVolume(muted ? 0.0 : 1.0);
+  /// Pause/resume the channel player around a visual ad.
+  ///
+  /// muted=true  → set _adPlaying flag first so that any in-progress
+  ///               load() call also skips play(), then pause and wait
+  ///               150 ms for TV hardware to release audio focus.
+  /// muted=false → clear flag, then resume channel playback.
+  Future<void> muteForAd(bool muted) async {
+    if (muted) {
+      _tvPlayer.setAdPlaying(true);   // Guard load() before we pause
+      _tvPlayer.setVolume(0);
+      await _tvPlayer.pause();
+      await Future.delayed(const Duration(milliseconds: 150));
+    } else {
+      _tvPlayer.setAdPlaying(false);
+      await _tvPlayer.play();
+      _tvPlayer.setVolume(100);
+    }
   }
 
   @override

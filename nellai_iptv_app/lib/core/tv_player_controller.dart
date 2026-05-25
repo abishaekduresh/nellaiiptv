@@ -3,6 +3,7 @@ import 'package:video_player/video_player.dart';
 
 class TVPlayerController {
   VideoPlayerController? _controller;
+  bool _adPlaying = false;
 
   static final List<TVPlayerController> _activeControllers = [];
 
@@ -27,6 +28,11 @@ class TVPlayerController {
     debugPrint('✅ TVPlayerController: All players stopped.');
   }
 
+  /// Called by EmbeddedPlayer before/after showing a visual ad.
+  /// When true, [load] will initialise but NOT call play(), so the channel
+  /// never acquires exclusive audio focus while the ad is running.
+  void setAdPlaying(bool value) => _adPlaying = value;
+
   /// Loads [url], initialises ExoPlayer, and begins playback.
   /// Blocks until the first frame is ready (video_player initialise() contract).
   Future<void> load(String url) async {
@@ -46,9 +52,14 @@ class TVPlayerController {
 
     await _controller!.initialize();
     await _controller!.setLooping(false);
-    await _controller!.play();
 
-    debugPrint('✅ TVPlayerController: Stream ready');
+    // Skip play() while an ad is active — the ad holds audio focus.
+    // muteForAd(false) will call play() once the ad ends.
+    if (!_adPlaying) {
+      await _controller!.play();
+    }
+
+    debugPrint('✅ TVPlayerController: Stream ready (adPlaying=$_adPlaying)');
   }
 
   Future<void> stop() async {

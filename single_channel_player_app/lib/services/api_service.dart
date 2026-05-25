@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import '../models/channel.dart';
+import '../models/visual_ad.dart';
 
 class ApiService {
   late Dio _dio;
@@ -155,5 +156,32 @@ class ApiService {
     } catch (e) {
       print("Decrement View Error: $e");
     }
+  }
+
+  Future<VisualAd?> getActiveVisualAd() async {
+    try {
+      final response = await _dio.get('/visual-ads/active');
+      if (response.statusCode == 200 &&
+          response.data['status'] == true &&
+          response.data['data'] != null) {
+        return VisualAd.fromJson(response.data['data'] as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching visual ad: $e');
+      return null;
+    }
+  }
+
+  Future<void> trackVisualAdImpression(String uuid) async {
+    try { await _dio.post('/visual-ads/$uuid/impression'); } catch (_) {}
+  }
+
+  Future<void> trackVisualAdSkip(String uuid) async {
+    try { await _dio.post('/visual-ads/$uuid/skip'); } catch (_) {}
+  }
+
+  Future<void> trackVisualAdClick(String uuid) async {
+    try { await _dio.post('/visual-ads/$uuid/click'); } catch (_) {}
   }
 }
