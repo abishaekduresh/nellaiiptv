@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.42.1)
+# Nellai IPTV - Backend API (v1.43.0)
 
-**Version 1.42.1** | RESTful API built with Slim PHP Framework
+**Version 1.43.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -13,7 +13,7 @@ The backend of **Nellai IPTV** is a RESTful API built with **Slim PHP 4** framew
 - **Authentication**: Firebase JWT (User Auth) + API Key (Public Access)
 - **Security**: Rate Limiting, Security Headers (HSTS, XSS Protection)
 - **Validation**: Valitron
-- **Database**: MySQL 8.0+ (MyISAM engine)
+- **Database**: MySQL 8.0+ / MySQL 9.1 (InnoDB engine)
 - **Dependency Injection**: PHP-DI
 - **HTTP**: PSR-7 compliant
 

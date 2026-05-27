@@ -1,3 +1,18 @@
+## [1.64.0] - 2026-05-27
+
+### Changed
+- **Stream Servers Admin — full Flussonic overhaul** — All `/admin/stream-servers` pages rebuilt to align with Flussonic Media Server. MistServer auth state panel, streaming endpoint sections, hardware specs, and feature flags removed.
+  - **List page** (`page.tsx`) — `StreamServer` interface updated to Flussonic fields: `server_host_ip`, `server_host_domain`, `api_port`, `api_version`, `region`, `timezone`, `health_status` (online/offline only), `last_ping_at`, `status` (active/inactive/expired/deleted). Table columns: #, Server (name + username), Host/Domain, API Endpoint (`:port/streamer/api/version`), Region, Last Ping, Health, Status, Actions. Filters: Status + Health only. Search placeholder updated to "name, IP, domain, or region".
+  - **Form** (`StreamServerForm.tsx`) — Replaced 9-section MistServer form with Flussonic form: Server Identity, Host/Connection, Flussonic API (port, version, username, password, bearer token), Location & Details, Status. Password labelled "leave blank to keep" on edit. Live API Base URL preview below port/version fields.
+  - **Details modal** (`StreamServerDetailsModal.tsx`) — Rebuilt for Flussonic: Hero section (health/status badges, connection grid, last ping), Flussonic API section (port, version, username, base URL, 4 quick-copy endpoint links), System & Lifecycle section. All MistServer-specific sections removed.
+
+### Added
+- **Test Connectivity button** (`StreamServerForm.tsx`) — Inline button POSTs to `POST /admin/stream-servers/test-connection`. Animated state machine: idle → testing (spinner) → success (Wifi icon, emerald) → error (WifiOff icon, red). Success banner shows liveness URL; error banner shows failure reason. Any connection field edit resets state to idle.
+- **Dashboard Stream Server stats** (`/admin/dashboard`) — Two new stat cards: "Stream Servers" (orange, total non-deleted) and "Online Servers" (emerald, health=online). Grid expanded to 5 columns (`xl:grid-cols-5`). New "Stream Servers" panel in the 3-column recent-activity section: each row shows a server icon (coloured by health), name, IP, and animated health badge.
+- **Admin Sidebar expandable Stream Servers group** (`AdminSidebar.tsx`) — "Stream Servers" converted from a flat link to a collapsible group with "All Servers" (`/admin/stream-servers`) and "Add Server" (`/admin/stream-servers/create`) children. Group defaults to open in `openMenus` initial state.
+
+---
+
 ## [1.63.1] - 2026-05-25
 
 ### Fixed

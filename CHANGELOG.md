@@ -1,3 +1,23 @@
+## [1.64.0] - Website | [1.43.0] - Backend - 2026-05-27
+
+### Website (Next.js) & Backend (Slim PHP)
+- **Migration**: **MistServer → Flussonic Media Server** — Complete platform replacement. All MistServer columns, challenge-response auth service, and MistServer UI removed; replaced with a clean 18-column Flussonic schema, `FlussonicApiService`, and Flussonic-aligned admin UI.
+
+### Website (Next.js)
+- **Changed**: **Stream Servers Admin** — List, create, edit, and details modal rebuilt for Flussonic API. Table shows API endpoint (`:port/streamer/api/version`), region, last ping, and health (online/offline). MistServer auth state panel, endpoint URLs, hardware specs, and feature flag sections removed.
+- **Feature**: **Test Connectivity** — Inline "Test Connectivity" button in `StreamServerForm.tsx`. POSTs to `test-connection` endpoint; animated idle/testing/success/error states with Wifi/WifiOff/PlugZap icons and inline success/error banners.
+- **Feature**: **Dashboard Stream Server cards** — "Stream Servers" (orange) and "Online Servers" (emerald) stat cards added. Dashboard grid expanded to 5 columns. New "Stream Servers" recent-activity table.
+- **Changed**: **Admin Sidebar** — "Stream Servers" is now an expandable group with "All Servers" and "Add Server" children, defaulting open.
+
+### Backend (Slim PHP)
+- **Feature**: **`FlussonicApiService`** — New service with TCP pre-check (`fsockopen`), HTTP→HTTPS auto-detection, HTTP Basic Auth and Bearer token auth, and cURL health check against Flussonic's `monitoring/liveness` endpoint.
+- **Feature**: **`POST /api/admin/stream-servers/test-connection`** — Dedicated connectivity-test endpoint decoupled from save; returns `{ url, scheme }` on success.
+- **Feature**: **Dashboard stats** — `/api/admin/dashboard/stats` now includes `total_servers` and `online_servers`.
+- **Changed**: **`stream_servers` table** — Rebuilt from 60+ MistServer columns to 18 clean Flussonic columns (InnoDB, utf8mb4).
+- **Removed**: **`MistAuthService`** — MistServer challenge-response auth service removed entirely.
+
+---
+
 ## [1.13.1] - App - 2026-05-25
 
 ### nellai_iptv_app (Flutter)

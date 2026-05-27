@@ -20,7 +20,13 @@ const menuItems = [
       { title: 'Channel Numbers',  href: '/admin/channels/renumber' },
     ],
   },
-  { title: 'Stream Servers', icon: Server,       href: '/admin/stream-servers' },
+  {
+    title: 'Stream Servers', icon: Server, href: '#',
+    children: [
+      { title: 'All Servers', href: '/admin/stream-servers' },
+      { title: 'Add Server',  href: '/admin/stream-servers/create' },
+    ],
+  },
   { title: 'Scrolling Ads',  icon: Megaphone,    href: '/admin/scrolling-ads' },
   { title: 'Visual Ads',     icon: Film,         href: '/admin/visual-ads' },
   {
@@ -52,6 +58,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
     Channels: true,
+    'Stream Servers': true,
     Reports: true,
   });
 

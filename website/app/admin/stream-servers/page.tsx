@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Search, Server, Wifi, WifiOff, AlertTriangle, Wrench, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Server, Wifi, WifiOff, Eye, ChevronLeft, ChevronRight, MapPin, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import StreamServerDetailsModal from '@/components/admin/StreamServerDetailsModal';
@@ -10,34 +10,28 @@ import StreamServerDetailsModal from '@/components/admin/StreamServerDetailsModa
 interface StreamServer {
   uuid: string;
   server_name: string;
-  server_code: string | null;
-  host_ipv4: string;
-  provider_name: string | null;
-  datacenter_region: string | null;
-  server_type: string;
-  health_status: 'online' | 'offline' | 'warning' | 'maintenance';
+  server_host_ip: string;
+  server_host_domain: string | null;
+  api_port: number;
+  api_version: string;
+  username: string;
+  region: string | null;
+  timezone: string | null;
+  health_status: 'online' | 'offline';
+  last_ping_at: string | null;
   status: string;
-  current_streams: number;
-  current_viewers: number;
-  max_streams: number | null;
-  max_viewers: number | null;
-  expiry_at: string | null;
-  ssl_enabled: boolean;
 }
 
 const HEALTH_CONFIG: Record<string, { label: string; classes: string; Icon: any }> = {
-  online:      { label: 'Online',      classes: 'bg-green-500/20 text-green-400',   Icon: Wifi },
-  offline:     { label: 'Offline',     classes: 'bg-red-500/20 text-red-400',       Icon: WifiOff },
-  warning:     { label: 'Warning',     classes: 'bg-yellow-500/20 text-yellow-400', Icon: AlertTriangle },
-  maintenance: { label: 'Maintenance', classes: 'bg-blue-500/20 text-blue-400',     Icon: Wrench },
+  online:  { label: 'Online',  classes: 'bg-green-500/20 text-green-400', Icon: Wifi },
+  offline: { label: 'Offline', classes: 'bg-red-500/20 text-red-400',     Icon: WifiOff },
 };
 
 const STATUS_CLASSES: Record<string, string> = {
-  active:    'bg-green-500/20 text-green-400',
-  inactive:  'bg-gray-500/20 text-gray-400',
-  expired:   'bg-orange-500/20 text-orange-400',
-  suspended: 'bg-red-500/20 text-red-400',
-  deleted:   'bg-red-900/20 text-red-600',
+  active:   'bg-green-500/20 text-green-400',
+  inactive: 'bg-gray-500/20 text-gray-400',
+  expired:  'bg-orange-500/20 text-orange-400',
+  deleted:  'bg-red-900/20 text-red-600',
 };
 
 export default function StreamServersPage() {
@@ -50,7 +44,6 @@ export default function StreamServersPage() {
 
   const [filterStatus, setFilterStatus] = useState('');
   const [filterHealth, setFilterHealth] = useState('');
-  const [filterType, setFilterType] = useState('');
 
   const [viewUuid, setViewUuid] = useState<string | null>(null);
 
@@ -64,7 +57,6 @@ export default function StreamServersPage() {
           search: search || undefined,
           status: filterStatus || undefined,
           health_status: filterHealth || undefined,
-          server_type: filterType || undefined,
         },
       });
       setServers(res.data.data.data);
@@ -77,13 +69,8 @@ export default function StreamServersPage() {
     }
   };
 
-  useEffect(() => {
-    setPage(1);
-  }, [search, filterStatus, filterHealth, filterType]);
-
-  useEffect(() => {
-    fetchServers();
-  }, [page, search, filterStatus, filterHealth, filterType]);
+  useEffect(() => { setPage(1); }, [search, filterStatus, filterHealth]);
+  useEffect(() => { fetchServers(); }, [page, search, filterStatus, filterHealth]);
 
   const handleDelete = async (uuid: string, name: string) => {
     if (!confirm(`Delete stream server "${name}"? This cannot be undone.`)) return;
@@ -97,7 +84,9 @@ export default function StreamServersPage() {
     }
   };
 
-  const selectCls = "bg-slate-800 border border-slate-700 text-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all";
+  const fmtDate = (d: string | null) => d ? new Date(d).toLocaleString() : '—';
+
+  const selectCls = 'bg-slate-800 border border-slate-700 text-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all';
 
   return (
     <div className="space-y-6">
@@ -107,7 +96,7 @@ export default function StreamServersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-up" style={{ animationDelay: '0.05s' }}>
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Stream Servers</h1>
-          {!loading && <p className="text-slate-400 text-sm mt-1">{total} server{total !== 1 ? 's' : ''} total</p>}
+          {!loading && <p className="text-slate-400 text-sm mt-1">{total} Flussonic server{total !== 1 ? 's' : ''}</p>}
         </div>
         <Link href="/admin/stream-servers/create"
           className="flex items-center gap-2 bg-primary hover:bg-cyan-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 self-start sm:self-auto">
@@ -119,30 +108,21 @@ export default function StreamServersPage() {
       <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3 animate-fade-up" style={{ animationDelay: '0.12s' }}>
         <div className="relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-          <input type="text" placeholder="Search by name, code, IP, or provider..." value={search} onChange={e => setSearch(e.target.value)}
+          <input type="text" placeholder="Search by name, IP, domain, or region..." value={search} onChange={e => setSearch(e.target.value)}
             className="w-full bg-slate-800 border border-slate-700 text-white pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all placeholder:text-slate-600" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={selectCls}>
             <option value="">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
             <option value="expired">Expired</option>
-            <option value="suspended">Suspended</option>
+            <option value="deleted">Deleted</option>
           </select>
           <select value={filterHealth} onChange={e => setFilterHealth(e.target.value)} className={selectCls}>
             <option value="">All Health</option>
             <option value="online">Online</option>
             <option value="offline">Offline</option>
-            <option value="warning">Warning</option>
-            <option value="maintenance">Maintenance</option>
-          </select>
-          <select value={filterType} onChange={e => setFilterType(e.target.value)} className={selectCls}>
-            <option value="">All Types</option>
-            <option value="vps">VPS</option>
-            <option value="dedicated">Dedicated</option>
-            <option value="cloud">Cloud</option>
-            <option value="baremetal">Baremetal</option>
           </select>
         </div>
       </div>
@@ -153,7 +133,7 @@ export default function StreamServersPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-800/40">
-                {['#', 'Server', 'Host', 'Provider / Region', 'Type', 'Streams', 'Health', 'Status', 'Actions'].map(h => (
+                {['#', 'Server', 'Host / Domain', 'API Endpoint', 'Region', 'Last Ping', 'Health', 'Status', 'Actions'].map(h => (
                   <th key={h} className="px-5 py-3.5 text-slate-400 font-semibold text-xs uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -173,7 +153,7 @@ export default function StreamServersPage() {
                 <tr><td colSpan={9} className="px-5 py-12 text-center">
                   <div className="flex flex-col items-center gap-2 text-slate-500">
                     <Server size={32} className="opacity-30" />
-                    <span className="text-sm">No stream servers found</span>
+                    <span className="text-sm">No Flussonic servers found</span>
                   </div>
                 </td></tr>
               ) : servers.map((server, index) => {
@@ -182,6 +162,7 @@ export default function StreamServersPage() {
                 return (
                   <tr key={server.uuid} className="hover:bg-slate-800/30 transition-colors">
                     <td className="px-5 py-3.5 text-slate-500 text-xs">{(page - 1) * 20 + index + 1}</td>
+
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
@@ -189,35 +170,52 @@ export default function StreamServersPage() {
                         </div>
                         <div>
                           <p className="text-white font-medium text-sm">{server.server_name}</p>
-                          {server.server_code && <span className="text-xs text-slate-500 font-mono">{server.server_code}</span>}
+                          <span className="text-xs text-slate-500 font-mono">{server.username}</span>
                         </div>
                       </div>
                     </td>
+
                     <td className="px-5 py-3.5">
-                      <p className="text-white font-mono text-xs">{server.host_ipv4}</p>
-                      {server.ssl_enabled && <span className="text-xs text-green-400">SSL</span>}
+                      <p className="text-white font-mono text-xs">{server.server_host_ip}</p>
+                      {server.server_host_domain && (
+                        <p className="text-xs text-slate-500">{server.server_host_domain}</p>
+                      )}
                     </td>
+
                     <td className="px-5 py-3.5">
-                      {server.provider_name && <p className="text-white text-sm">{server.provider_name}</p>}
-                      {server.datacenter_region && <p className="text-xs text-slate-500">{server.datacenter_region}</p>}
+                      <code className="text-xs text-cyan-400 font-mono">
+                        :{server.api_port}/streamer/api/{server.api_version}
+                      </code>
                     </td>
+
                     <td className="px-5 py-3.5">
-                      <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg text-xs capitalize">{server.server_type}</span>
+                      {server.region ? (
+                        <div className="flex items-center gap-1 text-slate-300 text-xs">
+                          <MapPin size={11} className="text-slate-500" />
+                          {server.region}
+                        </div>
+                      ) : <span className="text-slate-600 text-xs">—</span>}
                     </td>
-                    <td className="px-5 py-3.5 text-sm">
-                      <span className="text-white">{server.current_streams}</span>
-                      {server.max_streams && <span className="text-slate-500"> / {server.max_streams}</span>}
+
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-1 text-slate-400 text-xs">
+                        <Clock size={11} />
+                        {server.last_ping_at ? fmtDate(server.last_ping_at) : '—'}
+                      </div>
                     </td>
+
                     <td className="px-5 py-3.5">
                       <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${health.classes}`}>
                         <HealthIcon size={11} />{health.label}
                       </span>
                     </td>
+
                     <td className="px-5 py-3.5">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_CLASSES[server.status] ?? STATUS_CLASSES.inactive}`}>
                         {server.status}
                       </span>
                     </td>
+
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-1.5">
                         <button onClick={() => setViewUuid(server.uuid)}

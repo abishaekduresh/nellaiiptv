@@ -99,6 +99,7 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
 
         // Stream Servers Management
         $group->get('/stream-servers', [\App\Controllers\Admin\StreamServerController::class, 'index']);
+        $group->post('/stream-servers/test-connection', [\App\Controllers\Admin\StreamServerController::class, 'testConnection']);
         $group->post('/stream-servers', [\App\Controllers\Admin\StreamServerController::class, 'create']);
         $group->get('/stream-servers/{uuid}', [\App\Controllers\Admin\StreamServerController::class, 'show']);
         $group->put('/stream-servers/{uuid}', [\App\Controllers\Admin\StreamServerController::class, 'update']);

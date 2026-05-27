@@ -1,3 +1,23 @@
+## [1.43.0] - 2026-05-27
+
+### Added
+- **`FlussonicApiService`** (`backend/app/Services/Flussonic/FlussonicApiService.php`) — New service replacing `MistAuthService`. Implements TCP port pre-check (`fsockopen`, 5 s), HTTP→HTTPS auto-detection (`detectScheme`), HTTP Basic Auth and Bearer token auth, liveness check against `GET /streamer/api/{version}/monitoring/liveness`. cURL timeouts: connect 8 s, request 15 s. Detailed error messages include the URL that was attempted.
+  - `validateCredentials(host, port, version, username, password)` — validates plaintext credentials against a live Flussonic server; returns working scheme.
+  - `validateBearerToken(host, port, version, token)` — same flow using Bearer auth.
+  - `request(StreamServer, path)` — authenticated GET using AES-decrypted stored credentials.
+  - `buildUrl(host, port, version, path, scheme)` — public URL builder for Flussonic API paths.
+- **`POST /api/admin/stream-servers/test-connection`** — Dedicated connectivity-test endpoint, decoupled from save operations. Accepts `server_host_ip`, `api_port`, `api_version`, `username`, `password_encrypted`, `bearer_token`. Returns `{ url, scheme }` on success. Registered before generic `POST /stream-servers` to prevent route conflict.
+- **Dashboard stats** — `GET /api/admin/dashboard/stats` now returns `total_servers` (non-deleted stream servers) and `online_servers` (`health_status = online`) alongside existing stats.
+- **`stream_servers` schema** — Table rebuilt with 18 clean Flussonic columns: `uuid`, `server_name`, `server_host_ip`, `server_host_domain`, `api_port` (default 8080), `api_version` (default v3), `username`, `password_encrypted` (AES-256), `bearer_token` (AES-256, nullable), `timezone`, `region`, `health_status` (online/offline), `last_ping_at`, `status` (active/inactive/expired/deleted), `created_at`, `updated_at`, `deleted_at`. All 35+ MistServer columns removed. Engine changed to InnoDB.
+- **Migration files** — `create_stream_servers_table.sql` rebuilt for Flussonic schema. `modify_stream_servers_for_flussonic.sql` (ALTER TABLE path for existing installs). `add_mist_auth_fields_to_stream_servers.sql` marked OBSOLETE.
+- **`StreamServerService`** — Search fields updated to `server_name`, `server_host_ip`, `server_host_domain`, `region`. Sort fields: `id`, `server_name`, `created_at`, `status`, `health_status`, `last_ping_at`, `region`. `create()` encrypts both `password_encrypted` and `bearer_token`. `update()` re-encrypts password when provided; clears `bearer_token` when sent as empty string.
+
+### Removed
+- **`MistAuthService`** — Entire MistServer challenge-response MD5 auth service removed; superseded by `FlussonicApiService`.
+- **Mandatory connectivity checks on save** — `StreamServerController::create()` and `::update()` no longer require Flussonic reachability before persisting. Connectivity testing is advisory-only via the dedicated `test-connection` endpoint.
+
+---
+
 ## [1.42.1] - 2026-05-25
 
 ### Fixed

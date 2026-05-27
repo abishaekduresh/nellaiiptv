@@ -1,10 +1,16 @@
-# Nellai IPTV - Frontend v1.63.1
+# Nellai IPTV - Frontend v1.64.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.63.1)**
+### **Latest Updates (v1.64.0)**
+- **Changed**: **Stream Servers Admin** — All `/admin/stream-servers` pages rebuilt for Flussonic Media Server. List table now shows API endpoint (`:port/streamer/api/version`), region, last ping, and health (online/offline only). MistServer auth state panel, streaming endpoint URLs, hardware specs, and feature flag sections removed.
+- **Feature**: **Test Connectivity** — Inline button in `StreamServerForm.tsx` POSTs to `test-connection`; shows animated idle/testing/success/error states with Wifi/WifiOff/PlugZap icons and inline result banner.
+- **Feature**: **Dashboard Stream Server cards** — "Stream Servers" (orange) and "Online Servers" (emerald) stat cards. Dashboard grid is now 5 columns. New "Stream Servers" recent-activity panel.
+- **Changed**: **Admin Sidebar** — "Stream Servers" is now an expandable group (All Servers / Add Server), defaulting open.
+
+### **Previous Updates (v1.63.1)**
 - **Fix**: Visual Ad admin sidebar — added missing `AdminLayout` wrapper (`/admin/visual-ads/layout.tsx`).
 - **Fix**: Visual Ad not showing on channel switch — `useEffect` on `selectedChannel?.uuid` + raw `fetch()` replacing stale closure + api.ts interceptor bypass.
 - **Fix**: Visual Ad overlay hidden behind VideoPlayer — `z-[999]` + CSS `isolate` stacking context.

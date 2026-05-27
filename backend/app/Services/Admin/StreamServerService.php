@@ -16,9 +16,9 @@ class StreamServerService
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('server_name', 'LIKE', "%{$search}%")
-                  ->orWhere('server_code', 'LIKE', "%{$search}%")
-                  ->orWhere('host_ipv4', 'LIKE', "%{$search}%")
-                  ->orWhere('provider_name', 'LIKE', "%{$search}%");
+                  ->orWhere('server_host_ip', 'LIKE', "%{$search}%")
+                  ->orWhere('server_host_domain', 'LIKE', "%{$search}%")
+                  ->orWhere('region', 'LIKE', "%{$search}%");
             });
         }
 
@@ -30,18 +30,14 @@ class StreamServerService
             $query->where('health_status', $filters['health_status']);
         }
 
-        if (!empty($filters['server_type'])) {
-            $query->where('server_type', $filters['server_type']);
-        }
-
-        if (!empty($filters['provider_name'])) {
-            $query->where('provider_name', 'LIKE', "%{$filters['provider_name']}%");
+        if (!empty($filters['region'])) {
+            $query->where('region', 'LIKE', "%{$filters['region']}%");
         }
 
         $sortBy    = $filters['sort_by']    ?? 'id';
         $sortOrder = $filters['sort_order'] ?? 'desc';
 
-        $allowedSorts = ['id', 'server_name', 'created_at', 'status', 'health_status', 'expiry_at'];
+        $allowedSorts = ['id', 'server_name', 'created_at', 'status', 'health_status', 'last_ping_at', 'region'];
         if (!in_array($sortBy, $allowedSorts)) $sortBy = 'id';
         if (!in_array(strtolower($sortOrder), ['asc', 'desc'])) $sortOrder = 'desc';
 
@@ -57,12 +53,15 @@ class StreamServerService
 
     public function create(array $data): StreamServer
     {
-        // Encrypt plaintext password before persisting
-        if (!empty($data['mist_server_password'])) {
-            $data['mist_server_password'] = EncryptionHelper::encrypt($data['mist_server_password']);
+        if (!empty($data['password_encrypted'])) {
+            $data['password_encrypted'] = EncryptionHelper::encrypt($data['password_encrypted']);
         }
 
-        $server = new StreamServer();
+        if (!empty($data['bearer_token'])) {
+            $data['bearer_token'] = EncryptionHelper::encrypt($data['bearer_token']);
+        }
+
+        $server       = new StreamServer();
         $server->uuid = Uuid::uuid4()->toString();
         $server->fill($data);
         $server->save();
@@ -74,11 +73,19 @@ class StreamServerService
     {
         $server = StreamServer::where('uuid', $uuid)->whereNull('deleted_at')->firstOrFail();
 
-        // If password provided, encrypt; if empty/absent, preserve existing encrypted value
-        if (!empty($data['mist_server_password'])) {
-            $data['mist_server_password'] = EncryptionHelper::encrypt($data['mist_server_password']);
+        if (!empty($data['password_encrypted'])) {
+            $data['password_encrypted'] = EncryptionHelper::encrypt($data['password_encrypted']);
         } else {
-            unset($data['mist_server_password']);
+            unset($data['password_encrypted']);
+        }
+
+        if (array_key_exists('bearer_token', $data)) {
+            if (!empty($data['bearer_token'])) {
+                $data['bearer_token'] = EncryptionHelper::encrypt($data['bearer_token']);
+            } else {
+                // Empty string sent → clear the token
+                $data['bearer_token'] = null;
+            }
         }
 
         $server->fill($data);
@@ -91,7 +98,7 @@ class StreamServerService
     {
         $server = StreamServer::where('uuid', $uuid)->whereNull('deleted_at')->firstOrFail();
         $server->deleted_at = now();
-        $server->status = 'deleted';
+        $server->status     = 'deleted';
         return $server->save();
     }
 }
