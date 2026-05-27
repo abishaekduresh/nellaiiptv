@@ -6,8 +6,10 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Services\Admin\StreamServerService;
 use App\Services\Flussonic\FlussonicApiService;
+use App\Helpers\EncryptionHelper;
 use App\Helpers\ResponseFormatter;
 use App\Helpers\Validator;
+use App\Models\StreamServer;
 use Exception;
 
 class StreamServerController
@@ -101,9 +103,24 @@ class StreamServerController
         $user    = trim($data['username']           ?? '');
         $pass    = trim($data['password_encrypted'] ?? '');
         $bearer  = trim($data['bearer_token']       ?? '');
+        $uuid    = trim($data['uuid']               ?? '');
 
         if ($host === '') {
             return ResponseFormatter::error($response, 'Server Host IP is required.', 400);
+        }
+
+        // Edit mode: password/bearer are blank because the backend hides them.
+        // Load the stored (encrypted) credentials from the DB and decrypt them.
+        if ($bearer === '' && $pass === '' && $uuid !== '') {
+            $stored = StreamServer::where('uuid', $uuid)->whereNull('deleted_at')->first();
+            if ($stored) {
+                if (!empty($stored->bearer_token)) {
+                    $bearer = EncryptionHelper::decrypt($stored->bearer_token);
+                } elseif (!empty($stored->password_encrypted)) {
+                    $pass = EncryptionHelper::decrypt($stored->password_encrypted);
+                    if ($user === '') $user = $stored->username;
+                }
+            }
         }
 
         try {

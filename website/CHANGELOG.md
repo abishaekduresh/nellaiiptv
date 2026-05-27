@@ -1,3 +1,10 @@
+## [1.64.1] - 2026-05-27
+
+### Fixed
+- **Test Connectivity — edit mode fails with "Username and password are required"** (`StreamServerForm.tsx`) — In edit mode the password is not returned by the API (`$hidden`), so the test-connection payload contained an empty password and the backend rejected it. Fix: `uuid` is now included in the test-connection request body (`initialData?.uuid ?? ''`). The backend uses the UUID to load and decrypt the stored credentials when the password field is blank.
+
+---
+
 ## [1.64.0] - 2026-05-27
 
 ### Changed

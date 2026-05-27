@@ -1,3 +1,13 @@
+## [1.64.1] - Website | [1.43.1] - Backend - 2026-05-27
+
+### Website (Next.js)
+- **Fix**: **Test Connectivity — edit mode** (`StreamServerForm.tsx`) — `uuid` now sent in the test-connection payload so the backend can resolve stored credentials when the password field is blank (API hides it on load).
+
+### Backend (Slim PHP)
+- **Fix**: **`testConnection` — edit mode credential fallback** (`StreamServerController.php`) — When `uuid` is provided and both `bearer_token` and `password_encrypted` are blank, loads the stored `StreamServer` record and decrypts credentials via `EncryptionHelper` before running the liveness check.
+
+---
+
 ## [1.64.0] - Website | [1.43.0] - Backend - 2026-05-27
 
 ### Website (Next.js) & Backend (Slim PHP)

@@ -65,6 +65,7 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
 
     try {
       const res = await adminApi.post('/admin/stream-servers/test-connection', {
+        uuid:              initialData?.uuid ?? '',
         server_host_ip:    form.server_host_ip,
         api_port:          form.api_port    || 8080,
         api_version:       form.api_version || 'v3',

@@ -1,3 +1,10 @@
+## [1.43.1] - 2026-05-27
+
+### Fixed
+- **`testConnection` — edit mode always fails with "Username and password are required"** (`StreamServerController.php`) — The backend hides `password_encrypted` and `bearer_token` in API responses (`$hidden`), so the edit form loads with blank credential fields. When "Test Connectivity" was clicked without re-entering the password, the payload arrived with an empty password and the controller rejected it. Fix: if both `bearer_token` and `password_encrypted` are blank but a `uuid` is provided, the controller now loads the stored `StreamServer` record and decrypts its credentials via `EncryptionHelper::decrypt()` before running the liveness check. Added `use App\Helpers\EncryptionHelper` and `use App\Models\StreamServer` imports.
+
+---
+
 ## [1.43.0] - 2026-05-27
 
 ### Added

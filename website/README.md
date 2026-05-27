@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.64.0
+# Nellai IPTV - Frontend v1.64.1
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.64.0)**
+### **Latest Updates (v1.64.1)**
+- **Fix**: Test Connectivity edit mode — `uuid` sent in test-connection payload; backend resolves stored credentials when password is blank (API hides it on load).
+
+### **Previous Updates (v1.64.0)**
 - **Changed**: **Stream Servers Admin** — All `/admin/stream-servers` pages rebuilt for Flussonic Media Server. List table now shows API endpoint (`:port/streamer/api/version`), region, last ping, and health (online/offline only). MistServer auth state panel, streaming endpoint URLs, hardware specs, and feature flag sections removed.
 - **Feature**: **Test Connectivity** — Inline button in `StreamServerForm.tsx` POSTs to `test-connection`; shows animated idle/testing/success/error states with Wifi/WifiOff/PlugZap icons and inline result banner.
 - **Feature**: **Dashboard Stream Server cards** — "Stream Servers" (orange) and "Online Servers" (emerald) stat cards. Dashboard grid is now 5 columns. New "Stream Servers" recent-activity panel.
