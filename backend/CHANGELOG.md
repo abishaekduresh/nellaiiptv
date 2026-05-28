@@ -1,3 +1,18 @@
+## [1.44.0] - 2026-05-28
+
+### Added
+- **`Stream` resource** — Full admin CRUD API (`GET/POST /api/admin/streams`, `GET/PUT/DELETE /api/admin/streams/{uuid}`). `Stream` model with JSON `output_formats` cast, `health_status` (online/offline), `viewer_limit`, `current_viewers`, `bitrate`, soft delete. `StreamService` resolves `server_uuid` → `server_id` FK on create/update, normalises `output_formats` JSON. Filters: `search`, `server_uuid`, `status`, `health_status`. Sort: `id`, `stream_name`, `created_at`, `health_status`, `current_viewers`, `bitrate`.
+- **`ViewerSession` resource** — `GET /api/admin/viewer-sessions`, `POST /api/admin/viewer-sessions`. `ViewerSession` model (no timestamps), `protocol` enum (hls/dash/rtmp/webrtc). `ViewerSessionService` resolves `stream_uuid` → `stream_id`, uses `updateOrCreate` on `session_id`. Filters: `stream_uuid`, `protocol`, `country`, `search`.
+- **`ServerMonitoring` resource** — `GET /api/admin/monitoring` (latest snapshot per server), `GET /api/admin/monitoring/{serverUuid}/history`, `POST /api/admin/monitoring/{serverUuid}/record`, `POST /api/admin/monitoring/record-all`. `MonitoringService::recordAllFromFlussonic()` pulls live CPU/RAM/disk/network/stream/viewer data from each active server's Flussonic `monitoring` endpoint and persists snapshots.
+- **`Tenant` resource** — Full admin CRUD (`GET/POST /api/admin/tenants`, `GET/PUT/DELETE /api/admin/tenants/{uuid}`). `Tenant` model with JSON casts for `allowed_servers` and `channel_id`. `TenantService` normalises both JSON fields on create/update. Filters: `search`, `status`.
+- **`StreamServerPingService`** — `pingAll()` iterates all active servers, calls `monitoring/liveness` via `FlussonicApiService::request()`, updates `health_status` and `last_ping_at`, returns a `{total, online, offline, details}` summary.
+- **`POST /api/admin/stream-servers/ping-all`** — Manual trigger for `StreamServerPingService::pingAll()`. Registered before `{uuid}` routes to avoid conflict.
+- **`backend/cron/ping_stream_servers.php`** — Standalone CLI cron script. Bootstraps Eloquent from `.env` directly (no Slim). Self-throttles using `stream_server_ping_interval` setting (minutes) and `stream_server_last_ping_run` timestamp stored in the `settings` table. Schedule every 1 min in OS scheduler; the script skips execution if the interval has not elapsed.
+- **Database migrations** — `create_streams_table.sql`, `create_viewer_sessions_table.sql`, `create_server_monitoring_table.sql`, `create_tenants_table.sql`. All tables use InnoDB, utf8mb4, appropriate FK constraints and indexes.
+- **Settings keys** — `stream_server_ping_interval` (default 5 min), `stream_server_last_ping_run` (ISO timestamp, set by cron).
+
+---
+
 ## [1.43.1] - 2026-05-27
 
 ### Fixed

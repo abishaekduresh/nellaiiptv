@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.43.1)
+# Nellai IPTV - Backend API (v1.44.0)
 
-**Version 1.43.1** | RESTful API built with Slim PHP Framework
+**Version 1.44.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -137,7 +137,7 @@ For **root folder deployments**, the application automatically detects the base 
 ## Database Schema
 
 ### Main Tables
-- `channels`, `customers`, `subscription_plans`, `transactions`, `channel_views`, `contact_messages`, `feedback`, `stream_servers`
+- `channels`, `customers`, `subscription_plans`, `transactions`, `channel_views`, `contact_messages`, `feedback`, `stream_servers`, `streams`, `viewer_sessions`, `server_monitoring`, `tenants`
 
 ## Authentication
 
@@ -151,6 +151,12 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.44.0)
+- **Stream Infra — Streams, Viewer Sessions, Monitoring, Tenants**: Full admin CRUD for `streams` (`/api/admin/streams`), read/write for `viewer_sessions` (`/api/admin/viewer-sessions`), monitoring snapshots (`/api/admin/monitoring`), and `tenants` (`/api/admin/tenants`). New cron script `cron/ping_stream_servers.php` self-throttles via `stream_server_ping_interval` DB setting. `POST /api/admin/stream-servers/ping-all` manual trigger.
+
+## Latest Updates (v1.43.0–1.43.1)
+- **MistServer → Flussonic**: Replaced `MistAuthService` with `FlussonicApiService`. `stream_servers` table rebuilt to 18 Flussonic columns. Dedicated `POST /api/admin/stream-servers/test-connection` endpoint. Dashboard exposes `total_servers` + `online_servers` stats.
 
 ## Latest Updates (v1.41.0)
 - **Stream Servers**: Full admin CRUD API (`/api/admin/stream-servers`). MistServer API authentication with challenge-response flow. AES-256-CBC password encryption via `EncryptionHelper`. `mist_challenge` and `mist_final_hash` stored per record after successful validation. `MIST_ENCRYPTION_KEY` env variable required.

@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Services\Admin\StreamServerService;
+use App\Services\Admin\StreamServerPingService;
 use App\Services\Flussonic\FlussonicApiService;
 use App\Helpers\EncryptionHelper;
 use App\Helpers\ResponseFormatter;
@@ -16,13 +17,16 @@ class StreamServerController
 {
     private StreamServerService  $streamServerService;
     private FlussonicApiService  $flussonicApiService;
+    private StreamServerPingService $streamServerPingService;
 
     public function __construct(
         StreamServerService $streamServerService,
-        FlussonicApiService $flussonicApiService
+        FlussonicApiService $flussonicApiService,
+        StreamServerPingService $streamServerPingService
     ) {
-        $this->streamServerService = $streamServerService;
-        $this->flussonicApiService = $flussonicApiService;
+        $this->streamServerService     = $streamServerService;
+        $this->flussonicApiService     = $flussonicApiService;
+        $this->streamServerPingService = $streamServerPingService;
     }
 
     public function index(Request $request, Response $response): Response
@@ -89,6 +93,17 @@ class StreamServerController
         try {
             $this->streamServerService->delete($uuid);
             return ResponseFormatter::success($response, null, 'Stream server deleted successfully');
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
+        }
+    }
+
+    public function pingAll(Request $request, Response $response): Response
+    {
+        try {
+            $results = $this->streamServerPingService->pingAll();
+            $msg     = "Pinged {$results['total']} server(s): {$results['online']} online, {$results['offline']} offline";
+            return ResponseFormatter::success($response, $results, $msg);
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 500);
         }

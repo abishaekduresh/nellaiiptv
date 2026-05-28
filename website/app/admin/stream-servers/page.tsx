@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Search, Server, Wifi, WifiOff, Eye, ChevronLeft, ChevronRight, MapPin, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Server, Wifi, WifiOff, Eye, ChevronLeft, ChevronRight, MapPin, Clock, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import StreamServerDetailsModal from '@/components/admin/StreamServerDetailsModal';
@@ -46,6 +46,21 @@ export default function StreamServersPage() {
   const [filterHealth, setFilterHealth] = useState('');
 
   const [viewUuid, setViewUuid] = useState<string | null>(null);
+  const [pinging, setPinging] = useState(false);
+
+  const handlePingAll = async () => {
+    setPinging(true);
+    try {
+      const res = await adminApi.post('/admin/stream-servers/ping-all');
+      const { online, offline, total } = res.data.data;
+      toast.success(`Pinged ${total} server(s): ${online} online, ${offline} offline`);
+      fetchServers();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Ping failed');
+    } finally {
+      setPinging(false);
+    }
+  };
 
   const fetchServers = async () => {
     setLoading(true);
@@ -98,10 +113,17 @@ export default function StreamServersPage() {
           <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Stream Servers</h1>
           {!loading && <p className="text-slate-400 text-sm mt-1">{total} Flussonic server{total !== 1 ? 's' : ''}</p>}
         </div>
-        <Link href="/admin/stream-servers/create"
-          className="flex items-center gap-2 bg-primary hover:bg-cyan-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 self-start sm:self-auto">
-          <Plus size={16} /> Add Server
-        </Link>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button onClick={handlePingAll} disabled={pinging}
+            className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:-translate-y-0.5">
+            <RefreshCw size={15} className={pinging ? 'animate-spin' : ''} />
+            {pinging ? 'Pinging…' : 'Ping All'}
+          </button>
+          <Link href="/admin/stream-servers/create"
+            className="flex items-center gap-2 bg-primary hover:bg-cyan-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5">
+            <Plus size={16} /> Add Server
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}

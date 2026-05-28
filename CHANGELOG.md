@@ -1,3 +1,28 @@
+## [1.65.0] - Website | [1.44.0] - Backend - 2026-05-28
+
+### Website (Next.js)
+- **Feature**: **Streams admin** — Full CRUD at `/admin/streams`. List page with viewer progress bar, bitrate, health, output formats. `StreamForm` with server dropdown and output-format checkboxes.
+- **Feature**: **Viewer Sessions admin** — Read-only `/admin/viewer-sessions` with protocol badges, bandwidth, country.
+- **Feature**: **Server Monitoring admin** — `/admin/monitoring` with per-server tabs, `UsageBar` (CPU/RAM/disk), network cards, "Record Snapshot" button, history table.
+- **Feature**: **Tenants admin** — Full CRUD at `/admin/tenants`. `TenantForm` with server multi-select and channel-ID tag input; JSON-serialised `allowed_servers` + `channel_id` payloads.
+- **Changed**: **Admin Sidebar** — Stream Servers group expanded to 4 children (added Streams + Monitoring). New top-level items: Viewer Sessions, Tenants. Max-height raised to `max-h-56`.
+- **Changed**: **Stream Servers list** — "Ping All" button triggers `POST /admin/stream-servers/ping-all`.
+- **Changed**: **Settings page** — "Stream Server Health" section with configurable ping interval (1–60 min) and cron setup instructions.
+- **Fix**: **Missing `layout.tsx`** — Added `AdminLayout` wrapper for Viewer Sessions, Monitoring, and Tenants routes so sidebar renders.
+
+### Backend (Slim PHP)
+- **Feature**: **`Stream` resource** — Full admin CRUD (`GET/POST /api/admin/streams`, `GET/PUT/DELETE /api/admin/streams/{uuid}`). JSON `output_formats` cast, `health_status`, `viewer_limit`, `current_viewers`, `bitrate`, soft delete. `StreamService` resolves `server_uuid` → `server_id`.
+- **Feature**: **`ViewerSession` resource** — `GET/POST /api/admin/viewer-sessions`. `protocol` enum (hls/dash/rtmp/webrtc). `updateOrCreate` on `session_id`.
+- **Feature**: **`ServerMonitoring` resource** — `GET /api/admin/monitoring` (latest per server), history, `POST` record/record-all. `MonitoringService::recordAllFromFlussonic()` pulls live metrics from each active Flussonic server.
+- **Feature**: **`Tenant` resource** — Full admin CRUD (`GET/POST /api/admin/tenants`, `GET/PUT/DELETE /api/admin/tenants/{uuid}`). JSON `allowed_servers` + `channel_id` casts.
+- **Feature**: **`StreamServerPingService`** — `pingAll()` iterates active servers, calls `monitoring/liveness`, updates `health_status` + `last_ping_at`.
+- **Feature**: **`POST /api/admin/stream-servers/ping-all`** — Manual trigger for ping-all; registered before `{uuid}` routes.
+- **Feature**: **`backend/cron/ping_stream_servers.php`** — Standalone CLI cron. Self-throttles via `stream_server_ping_interval` setting. Schedule every 1 min in OS scheduler.
+- **Database**: **Migrations** — `create_streams_table.sql`, `create_viewer_sessions_table.sql`, `create_server_monitoring_table.sql`, `create_tenants_table.sql`.
+- **Config**: **Settings keys** — `stream_server_ping_interval` (default 5 min), `stream_server_last_ping_run` stored in `settings` table.
+
+---
+
 ## [1.64.1] - Website | [1.43.1] - Backend - 2026-05-27
 
 ### Website (Next.js)

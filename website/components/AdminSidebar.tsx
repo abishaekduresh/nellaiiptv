@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen,
   CreditCard, Mail, MessageSquare, BarChart2, ChevronDown, ThumbsUp,
-  Server, Megaphone, Film, Hash, X,
+  Server, Megaphone, Film, Hash, X, Radio, Monitor, Building2,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -25,8 +25,12 @@ const menuItems = [
     children: [
       { title: 'All Servers', href: '/admin/stream-servers' },
       { title: 'Add Server',  href: '/admin/stream-servers/create' },
+      { title: 'Streams',     href: '/admin/streams' },
+      { title: 'Monitoring',  href: '/admin/monitoring' },
     ],
   },
+  { title: 'Viewer Sessions', icon: Monitor,   href: '/admin/viewer-sessions' },
+  { title: 'Tenants',         icon: Building2, href: '/admin/tenants' },
   { title: 'Scrolling Ads',  icon: Megaphone,    href: '/admin/scrolling-ads' },
   { title: 'Visual Ads',     icon: Film,         href: '/admin/visual-ads' },
   {
@@ -183,7 +187,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     />
                   </button>
 
-                  <div className={`overflow-hidden transition-all duration-200 ${expanded ? 'max-h-40' : 'max-h-0'}`}>
+                  <div className={`overflow-hidden transition-all duration-200 ${expanded ? 'max-h-56' : 'max-h-0'}`}>
                     <div className="ml-6 mt-0.5 pl-3 border-l border-slate-800 space-y-0.5 pb-1">
                       {item.children!.map(child => {
                         const active = pathname === child.href;

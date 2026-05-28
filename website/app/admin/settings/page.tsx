@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import toast from 'react-hot-toast';
-import { Save, Lock, Image, Hammer, Monitor, Smartphone, Tv, LayoutGrid, Mail, CreditCard, FlaskConical, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Save, Lock, Image, Hammer, Monitor, Smartphone, Tv, LayoutGrid, Mail, CreditCard, FlaskConical, X, CheckCircle2, AlertCircle, Loader2, Server } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 /* ── Helper: load external script once ─────────────────────────────── */
@@ -818,6 +818,74 @@ export default function SettingsPage() {
           <p className="md:col-start-2 md:col-span-3 text-xs text-slate-500">
             Optional: Enter a URL to receive POST requests when new contact messages are submitted.
           </p>
+        </div>
+      </div>
+
+      {/* Stream Servers Settings */}
+      <div className="bg-gradient-to-br from-teal-900/20 to-teal-800/10 backdrop-blur-sm p-8 rounded-2xl border border-teal-700/30 shadow-2xl mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-teal-500/10 rounded-lg">
+            <Server className="text-teal-400" size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Stream Server Health</h2>
+            <p className="text-sm text-slate-400">Configure automatic health-check (ping) interval for Flussonic servers</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Ping Interval */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+            <div>
+              <label className="text-slate-300 font-semibold block">Ping Interval</label>
+              <p className="text-xs text-slate-500 mt-1">How often the cron job pings each server</p>
+            </div>
+            <div className="md:col-span-3 flex gap-3 items-center">
+              <select
+                value={settings.find(s => s.setting_key === 'stream_server_ping_interval')?.setting_value || '5'}
+                onChange={e => handleUpdate('stream_server_ping_interval', e.target.value)}
+                className="flex-1 bg-slate-900/60 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all"
+              >
+                <option value="1">Every 1 minute</option>
+                <option value="2">Every 2 minutes</option>
+                <option value="5">Every 5 minutes</option>
+                <option value="10">Every 10 minutes</option>
+                <option value="15">Every 15 minutes</option>
+                <option value="30">Every 30 minutes</option>
+                <option value="60">Every 60 minutes</option>
+              </select>
+              <button
+                onClick={() => handleSave('stream_server_ping_interval', settings.find(s => s.setting_key === 'stream_server_ping_interval')?.setting_value || '5')}
+                disabled={saving}
+                className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-teal-500/20 disabled:opacity-50"
+                title="Save"
+              >
+                <Save size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Cron setup info */}
+          <div className="p-5 bg-slate-900/60 rounded-xl border border-slate-700/30">
+            <p className="text-xs text-slate-400 font-semibold mb-2">Cron Setup</p>
+            <p className="text-xs text-slate-500 mb-3">
+              Schedule the cron script to run every 1 minute — it self-throttles based on the interval above.
+            </p>
+            <div className="space-y-2">
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Windows Task Scheduler:</p>
+                <code className="block bg-slate-800 text-teal-300 text-xs px-3 py-2 rounded-lg font-mono">
+                  php C:\wamp64\www\nellaiiptv\backend\cron\ping_stream_servers.php
+                </code>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Linux / cPanel crontab (every minute):</p>
+                <code className="block bg-slate-800 text-teal-300 text-xs px-3 py-2 rounded-lg font-mono">
+                  * * * * * php /var/www/html/nellaiiptv/backend/cron/ping_stream_servers.php
+                </code>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

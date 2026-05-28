@@ -1,3 +1,21 @@
+## [1.65.0] - 2026-05-28
+
+### Added
+- **Streams admin** (`/admin/streams`, `/admin/streams/create`, `/admin/streams/[uuid]`) — Full CRUD pages for Flussonic stream resources. List page shows viewer progress bar (red >80%, amber >50%, green), bitrate column (`fmtBitrate` helper), health badge, server name, output formats. `StreamForm` component fetches server dropdown, supports output-format checkboxes (hls/dash/rtmp/webrtc), links back to `/admin/stream-servers` on success.
+- **Viewer Sessions admin** (`/admin/viewer-sessions`) — Read-only session browser. Protocol badges (hls/dash/rtmp/webrtc), country, bandwidth column (`fmtBandwidth` helper), stream link.
+- **Server Monitoring admin** (`/admin/monitoring`) — Per-server tabbed dashboard. `UsageBar` shows CPU/RAM/disk with colour thresholds (red >85%, amber >60%). Network cards with `fmtBytes()` helper. "Record Snapshot" button calls `POST /admin/monitoring/record-all`. History table below.
+- **Tenants admin** (`/admin/tenants`, `/admin/tenants/create`, `/admin/tenants/[uuid]`) — Full CRUD pages for B2B tenants. `TenantForm` component: server multi-select (checkbox list from `/admin/stream-servers`), channel-ID tag input (Enter/comma to add, X to remove), `allowed_servers` and `channel_id` serialised as JSON in payload.
+- **`StreamForm` component** (`components/admin/StreamForm.tsx`) — Reusable create/edit form for streams.
+- **`TenantForm` component** (`components/admin/TenantForm.tsx`) — Reusable create/edit form for tenants.
+- **`layout.tsx` files** — Added missing `AdminLayout` wrapper for `/admin/viewer-sessions`, `/admin/monitoring`, and `/admin/tenants` routes so the sidebar renders consistently.
+
+### Changed
+- **Admin Sidebar** (`AdminSidebar.tsx`) — Stream Servers expandable group extended with "Streams" (`/admin/streams`) and "Monitoring" (`/admin/monitoring`) children (4 items total). Expanded-group max-height raised from `max-h-40` to `max-h-56`. New top-level items: "Viewer Sessions" (`Monitor` icon) and "Tenants" (`Building2` icon).
+- **Stream Servers list** (`/admin/stream-servers/page.tsx`) — "Ping All" button added (calls `POST /admin/stream-servers/ping-all`; `RefreshCw` spinning icon during request).
+- **Settings page** (`/admin/settings/page.tsx`) — New "Stream Server Health" section: `stream_server_ping_interval` dropdown (1/2/5/10/15/30/60 min) with Save button. Cron setup code blocks for both Windows Task Scheduler and Linux crontab displayed below.
+
+---
+
 ## [1.64.1] - 2026-05-27
 
 ### Fixed
