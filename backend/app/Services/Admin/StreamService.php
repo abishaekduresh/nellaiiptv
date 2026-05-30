@@ -134,13 +134,17 @@ class StreamService
             throw new Exception('No active online stream servers found to sync from.');
         }
 
-        $created = 0;
-        $updated = 0;
-        $errors  = [];
+        $created   = 0;
+        $updated   = 0;
+        $errors    = [];
+        $sampleRaw = null; // first raw stream object for debugging
 
         foreach ($servers as $server) {
             try {
                 $remoteStreams = $this->fetchFlussonicStreams($server);
+                if ($sampleRaw === null && !empty($remoteStreams)) {
+                    $sampleRaw = $remoteStreams[0];
+                }
                 foreach ($remoteStreams as $rs) {
                     $this->upsertStream($server, $rs, $created, $updated);
                 }
@@ -149,7 +153,7 @@ class StreamService
             }
         }
 
-        return compact('created', 'updated', 'errors');
+        return compact('created', 'updated', 'errors', 'sampleRaw');
     }
 
     private function fetchFlussonicStreams(StreamServer $server): array
@@ -165,18 +169,50 @@ class StreamService
         return [];
     }
 
+    /**
+     * Try every known Flussonic field path for the stream's input URL.
+     * Flussonic varies: input.url, input.src, input[0].url, src, input_url, source.
+     */
+    private function extractInputUrl(array $rs): string
+    {
+        // Top-level shorthand fields
+        foreach (['src', 'input_url', 'source', 'url'] as $key) {
+            if (!empty($rs[$key]) && is_string($rs[$key])) return $rs[$key];
+        }
+
+        $input = $rs['input'] ?? null;
+
+        if (is_string($input) && $input !== '') return $input;
+
+        if (is_array($input)) {
+            // Keyed object: input.url / input.src / input.backup_url
+            foreach (['url', 'src', 'backup_url', 'source'] as $key) {
+                if (!empty($input[$key]) && is_string($input[$key])) return $input[$key];
+            }
+            // Array of input objects: input[0].url
+            if (isset($input[0]) && is_array($input[0])) {
+                foreach (['url', 'src', 'backup_url'] as $key) {
+                    if (!empty($input[0][$key]) && is_string($input[0][$key])) return $input[0][$key];
+                }
+            }
+        }
+
+        return '';
+    }
+
     private function upsertStream(StreamServer $server, array $rs, int &$created, int &$updated): void
     {
         $streamKey  = $rs['name'] ?? null;
         if (!$streamKey) return;
 
         $streamName = $rs['title'] ?? $streamKey;
-        $inputUrl   = $rs['input']['url'] ?? ($rs['input']['backup_url'] ?? '');
-        $stats      = $rs['stats'] ?? [];
-        $bitrate    = (int)($stats['bitrate_in'] ?? 0);
-        $viewers    = (int)($stats['clients']    ?? 0);
-        $isAlive    = (bool)($stats['alive']     ?? false);
-        $health     = $isAlive ? 'online' : 'offline';
+        $inputUrl   = $this->extractInputUrl($rs);
+
+        $stats   = $rs['stats'] ?? [];
+        $bitrate = (int)($stats['bitrate_in'] ?? $stats['bitrate'] ?? $rs['bitrate_in'] ?? 0);
+        $viewers = (int)($stats['clients']    ?? $stats['viewers'] ?? $rs['clients']    ?? 0);
+        $isAlive = (bool)($stats['alive']     ?? $rs['alive']      ?? false);
+        $health  = $isAlive ? 'online' : 'offline';
 
         $formats = [];
         foreach (['hls', 'dash', 'rtmp', 'webrtc'] as $fmt) {

@@ -9,6 +9,12 @@ $app->get('/', function (Request $request, Response $response) {
     return $response->withHeader('Content-Type', 'application/json');
 });
 
+// ── Cron Routes (secret-key protected, no JWT) ───────────────────────────────
+$app->group('/api/cron', function (RouteCollectorProxy $group) {
+    $group->post('/sync-streams', [\App\Controllers\Cron\StreamSyncController::class, 'syncStreams']);
+})->add(new \App\Middleware\CronSecretMiddleware());
+
+// ── Public / Customer API ─────────────────────────────────────────────────────
 $app->group('/api', function (RouteCollectorProxy $group) {
     
     // System
