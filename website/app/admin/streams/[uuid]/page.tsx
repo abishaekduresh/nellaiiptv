@@ -1,10 +1,9 @@
 'use client';
 
-import { use } from 'react';
 import StreamForm from '@/components/admin/StreamForm';
 
-export default function EditStreamPage({ params }: { params: Promise<{ uuid: string }> }) {
-  const { uuid } = use(params);
+export default function EditStreamPage({ params }: { params: { uuid: string } }) {
+  const { uuid } = params;
   return (
     <div className="space-y-6 animate-fade-up">
       <div>

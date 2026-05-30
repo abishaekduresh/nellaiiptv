@@ -83,4 +83,19 @@ class StreamController
             return ResponseFormatter::error($response, $e->getMessage(), 500);
         }
     }
+
+    public function sync(Request $request, Response $response): Response
+    {
+        $serverUuid = $request->getQueryParams()['server_uuid'] ?? null;
+        try {
+            $result  = $this->streamService->syncFromServers($serverUuid ?: null);
+            $message = "Sync complete — {$result['created']} created, {$result['updated']} updated.";
+            if (!empty($result['errors'])) {
+                $message .= ' Some servers had errors.';
+            }
+            return ResponseFormatter::success($response, $result, $message);
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
+        }
+    }
 }

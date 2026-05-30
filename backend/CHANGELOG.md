@@ -1,3 +1,16 @@
+## [1.44.1] - 2026-05-30
+
+### Added
+- **`POST /api/admin/streams/sync`** — New endpoint registered before `{uuid}` routes. Fetches all streams from every active + online Flussonic server and upserts them into the local DB. Upsert key: `stream_key` + `server_id`. Creates new records (`uuid`, `viewer_limit=1000`, `status=active`); updates `health_status`, `bitrate`, `current_viewers`, `output_formats` on existing ones. Returns `{ created, updated, errors[] }`. Accepts optional `?server_uuid=` query param to target a single server.
+- **`StreamService::syncFromServers(?serverUuid)`** — Queries active + online servers, calls `fetchFlussonicStreams()` per server, delegates upsert to `upsertStream()`. Per-server errors are collected and returned (never abort the whole sync). Throws only when no eligible servers exist.
+
+### Improved
+- **`FlussonicApiService::request()`** — Added optional `$timeout` parameter (default `self::REQUEST_TIMEOUT = 15 s`). Sync calls pass `60 s`; liveness / ping calls remain at 15 s.
+- **`FlussonicApiService` scheme retry** — Timeout errors (`"timed out"`) are now treated as definitive in `requestWithSchemeRetry`. Previously, a timeout on HTTP caused a second 15 s wait on HTTPS on the same host/port; now the exception is thrown immediately, halving the worst-case wait.
+- **`describeCurlError()`** — Accepts `$timeout` param so the value shown in error messages reflects the actual limit used for that call.
+
+---
+
 ## [1.44.0] - 2026-05-28
 
 ### Added

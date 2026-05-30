@@ -4,12 +4,20 @@ namespace App\Services\Admin;
 
 use App\Models\Stream;
 use App\Models\StreamServer;
+use App\Services\Flussonic\FlussonicApiService;
 use Ramsey\Uuid\Uuid;
 use Exception;
 
 class StreamService
 {
     private const ALLOWED_SORTS = ['id', 'stream_name', 'created_at', 'health_status', 'current_viewers', 'bitrate', 'status'];
+
+    private FlussonicApiService $flussonic;
+
+    public function __construct(FlussonicApiService $flussonic)
+    {
+        $this->flussonic = $flussonic;
+    }
 
     public function getAll(array $filters = []): array
     {
@@ -106,5 +114,102 @@ class StreamService
             }
         }
         return $data;
+    }
+
+    /**
+     * Pull streams from one or all active Flussonic servers and upsert into the DB.
+     * Returns counts: created, updated, skipped (errors per server), errors.
+     */
+    public function syncFromServers(?string $serverUuid = null): array
+    {
+        $query = StreamServer::whereNull('deleted_at')
+            ->where('status', 'active')
+            ->where('health_status', 'online');
+        if ($serverUuid) {
+            $query->where('uuid', $serverUuid);
+        }
+        $servers = $query->get();
+
+        if ($servers->isEmpty()) {
+            throw new Exception('No active online stream servers found to sync from.');
+        }
+
+        $created = 0;
+        $updated = 0;
+        $errors  = [];
+
+        foreach ($servers as $server) {
+            try {
+                $remoteStreams = $this->fetchFlussonicStreams($server);
+                foreach ($remoteStreams as $rs) {
+                    $this->upsertStream($server, $rs, $created, $updated);
+                }
+            } catch (Exception $e) {
+                $errors[] = "[{$server->server_name}] {$e->getMessage()}";
+            }
+        }
+
+        return compact('created', 'updated', 'errors');
+    }
+
+    private function fetchFlussonicStreams(StreamServer $server): array
+    {
+        $data = $this->flussonic->request($server, 'streams', 60);
+        // Flussonic v3 returns {"total":N,"streams":[...]} or just an array
+        if (isset($data['streams']) && is_array($data['streams'])) {
+            return $data['streams'];
+        }
+        if (is_array($data) && isset($data[0])) {
+            return $data;
+        }
+        return [];
+    }
+
+    private function upsertStream(StreamServer $server, array $rs, int &$created, int &$updated): void
+    {
+        $streamKey  = $rs['name'] ?? null;
+        if (!$streamKey) return;
+
+        $streamName = $rs['title'] ?? $streamKey;
+        $inputUrl   = $rs['input']['url'] ?? ($rs['input']['backup_url'] ?? '');
+        $stats      = $rs['stats'] ?? [];
+        $bitrate    = (int)($stats['bitrate_in'] ?? 0);
+        $viewers    = (int)($stats['clients']    ?? 0);
+        $isAlive    = (bool)($stats['alive']     ?? false);
+        $health     = $isAlive ? 'online' : 'offline';
+
+        $formats = [];
+        foreach (['hls', 'dash', 'rtmp', 'webrtc'] as $fmt) {
+            if (!empty($rs[$fmt])) $formats[] = $fmt;
+        }
+
+        $existing = Stream::where('server_id', $server->id)
+            ->where('stream_key', $streamKey)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($existing) {
+            $existing->health_status    = $health;
+            $existing->bitrate          = $bitrate;
+            $existing->current_viewers  = $viewers;
+            if (!empty($formats)) $existing->output_formats = $formats;
+            $existing->save();
+            $updated++;
+        } else {
+            $stream                  = new Stream();
+            $stream->uuid            = Uuid::uuid4()->toString();
+            $stream->server_id       = $server->id;
+            $stream->stream_name     = $streamName;
+            $stream->stream_key      = $streamKey;
+            $stream->input_url       = $inputUrl;
+            $stream->output_formats  = $formats;
+            $stream->health_status   = $health;
+            $stream->bitrate         = $bitrate;
+            $stream->current_viewers = $viewers;
+            $stream->viewer_limit    = 1000;
+            $stream->status          = 'active';
+            $stream->save();
+            $created++;
+        }
     }
 }

@@ -1,10 +1,9 @@
 'use client';
 
-import { use } from 'react';
 import TenantForm from '@/components/admin/TenantForm';
 
-export default function EditTenantPage({ params }: { params: Promise<{ uuid: string }> }) {
-  const { uuid } = use(params);
+export default function EditTenantPage({ params }: { params: { uuid: string } }) {
+  const { uuid } = params;
   return (
     <div className="space-y-6 animate-fade-up">
       <div>

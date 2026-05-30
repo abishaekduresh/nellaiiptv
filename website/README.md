@@ -1,10 +1,21 @@
-# Nellai IPTV - Frontend v1.64.1
+# Nellai IPTV - Frontend v1.65.1
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.64.1)**
+### **Latest Updates (v1.65.1)**
+- **Feature**: **Streams — "Sync with Server" button** (`/admin/streams`) — Calls `POST /admin/streams/sync`; spinner during sync; success toast with created/updated counts; per-server error message on failure; auto-refresh after sync.
+- **Fix**: **Edit Stream page** (`/admin/streams/[uuid]/page.tsx`) — `use(params)` runtime crash fixed; `params` is a plain object in this Next.js version.
+- **Fix**: **Edit Tenant page** (`/admin/tenants/[uuid]/page.tsx`) — Same `use(params)` crash fixed.
+
+### **Previous Updates (v1.65.0)**
+- **Feature**: **Streams admin** (`/admin/streams`) — Full CRUD, viewer progress bar, bitrate, health badge, server column, output format chips.
+- **Feature**: **Viewer Sessions admin** (`/admin/viewer-sessions`) — Read-only browser with protocol badges, bandwidth, country.
+- **Feature**: **Server Monitoring admin** (`/admin/monitoring`) — Per-server tabbed dashboard with CPU/RAM/disk bars, network cards, snapshot button, history table.
+- **Feature**: **Tenants admin** (`/admin/tenants`) — Full CRUD with server multi-select and channel-ID tag input.
+
+### **Previous Updates (v1.64.1)**
 - **Fix**: Test Connectivity edit mode — `uuid` sent in test-connection payload; backend resolves stored credentials when password is blank (API hides it on load).
 
 ### **Previous Updates (v1.64.0)**

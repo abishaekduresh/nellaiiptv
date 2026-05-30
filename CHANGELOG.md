@@ -1,3 +1,16 @@
+## [1.65.1] - Website | [1.44.1] - Backend - 2026-05-30
+
+### Website (Next.js)
+- **Feature**: **Streams — "Sync with Server"** — Button on `/admin/streams` calls `POST /admin/streams/sync`. Spinner while in progress; success toast shows created/updated counts; error toast shows full per-server error message (8 s). Stream list refreshes automatically after sync.
+- **Fix**: **Edit Stream page crash** (`/admin/streams/[uuid]/page.tsx`) — `use(params)` threw a runtime error because `params` is a plain object, not a Promise. Fixed by direct destructuring.
+- **Fix**: **Edit Tenant page crash** (`/admin/tenants/[uuid]/page.tsx`) — Same `use(params)` bug. Fixed.
+
+### Backend (Slim PHP)
+- **Feature**: **`POST /api/admin/streams/sync`** — Syncs streams from all active + online Flussonic servers. Upserts by `stream_key` + `server_id`: creates new streams; updates `health_status`, `bitrate`, `current_viewers`, `output_formats` on existing ones. Returns `{ created, updated, errors[] }`. Optional `?server_uuid=` targets a single server.
+- **Improved**: **`FlussonicApiService`** — `request()` accepts an optional `$timeout` param (60 s for sync, 15 s default). Timeout errors are now definitive in scheme retry — no redundant HTTPS attempt on the same port, halving worst-case wait.
+
+---
+
 ## [1.65.0] - Website | [1.44.0] - Backend - 2026-05-28
 
 ### Website (Next.js)

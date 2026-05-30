@@ -71,7 +71,7 @@ const Footer = () => {
               className="inline-block transition-all duration-300 hover:-translate-y-1 hover:opacity-90 mb-8"
             >
               <Image
-                src="/assets/icons/get_it_on_google_playstore.webp"
+                src="/assets/icons/get_it_on_google_playstore.png"
                 alt="Get it on Google Play"
                 width={160}
                 height={48}

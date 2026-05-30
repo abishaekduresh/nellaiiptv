@@ -68,23 +68,58 @@ class FlussonicApiService
 
     /**
      * Make an authenticated GET request using a persisted StreamServer model.
+     * Uses server_host_ip, falling back to server_host_domain when IP is blank.
+     * Tries HTTP first; retries with HTTPS on connection-level failures.
      */
-    public function request(StreamServer $server, string $path): array
+    public function request(StreamServer $server, string $path, int $timeout = self::REQUEST_TIMEOUT): array
     {
-        $url = $this->buildUrl(
-            $server->server_host_ip,
-            (int) $server->api_port,
-            $server->api_version,
-            ltrim($path, '/')
-        );
+        $host = !empty($server->server_host_ip)
+            ? $server->server_host_ip
+            : $server->server_host_domain;
+
+        $cleanPath = ltrim($path, '/');
 
         if (!empty($server->bearer_token)) {
             $token = EncryptionHelper::decrypt($server->bearer_token);
-            return $this->get($url, null, null, $token);
+            return $this->requestWithSchemeRetry($host, (int)$server->api_port, $server->api_version, $cleanPath, null, null, $token, $timeout);
         }
 
         $password = EncryptionHelper::decrypt($server->password_encrypted);
-        return $this->get($url, $server->username, $password, null);
+        return $this->requestWithSchemeRetry($host, (int)$server->api_port, $server->api_version, $cleanPath, $server->username, $password, null, $timeout);
+    }
+
+    /**
+     * Try HTTP first, fall back to HTTPS on connection-level failures.
+     */
+    private function requestWithSchemeRetry(
+        string  $host,
+        int     $port,
+        string  $version,
+        string  $path,
+        ?string $username,
+        ?string $password,
+        ?string $bearerToken,
+        int     $timeout = self::REQUEST_TIMEOUT
+    ): array {
+        $lastException = null;
+
+        foreach (['http', 'https'] as $scheme) {
+            $url = $this->buildUrl($host, $port, $version, $path, $scheme);
+            try {
+                return $this->get($url, $username, $password, $bearerToken, $timeout);
+            } catch (Exception $e) {
+                // These errors are definitive — no point retrying with the other scheme
+                if (str_contains($e->getMessage(), 'HTTP 401') ||
+                    str_contains($e->getMessage(), 'HTTP 403') ||
+                    str_contains($e->getMessage(), 'Unexpected HTTP') ||
+                    str_contains($e->getMessage(), 'timed out')) {
+                    throw $e;
+                }
+                $lastException = $e;
+            }
+        }
+
+        throw $lastException;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -163,13 +198,14 @@ class FlussonicApiService
         string  $url,
         ?string $username,
         ?string $password,
-        ?string $bearerToken
+        ?string $bearerToken,
+        int     $timeout = self::REQUEST_TIMEOUT
     ): array {
         $ch = curl_init($url);
 
         $opts = [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => self::REQUEST_TIMEOUT,
+            CURLOPT_TIMEOUT        => $timeout,
             CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => 0,
@@ -194,7 +230,7 @@ class FlussonicApiService
         curl_close($ch);
 
         if ($raw === false || $errNo !== CURLE_OK) {
-            throw new Exception($this->describeCurlError($errNo, $errMsg, $url));
+            throw new Exception($this->describeCurlError($errNo, $errMsg, $url, $timeout));
         }
 
         if ($httpCode === 401 || $httpCode === 403) {
@@ -210,10 +246,10 @@ class FlussonicApiService
         return json_decode($raw, true) ?? [];
     }
 
-    private function describeCurlError(int $errno, string $error, string $url): string
+    private function describeCurlError(int $errno, string $error, string $url, int $timeout = self::REQUEST_TIMEOUT): string
     {
         $hints = [
-            CURLE_OPERATION_TIMEDOUT   => "Request to {$url} timed out after " . self::REQUEST_TIMEOUT . "s. The server may be slow or blocked by a firewall.",
+            CURLE_OPERATION_TIMEDOUT   => "Request to {$url} timed out after {$timeout}s. The server may be slow or blocked by a firewall.",
             CURLE_COULDNT_CONNECT      => "Could not connect to {$url}. The server may be down or the port is wrong.",
             CURLE_COULDNT_RESOLVE_HOST => "Could not resolve the hostname in {$url}. Check the IP / domain.",
             CURLE_SSL_CONNECT_ERROR    => "SSL handshake failed for {$url}.",

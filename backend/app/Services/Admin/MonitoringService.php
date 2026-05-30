@@ -85,7 +85,14 @@ class MonitoringService
 
     /**
      * Pull monitoring data from Flussonic API and record it for all active servers.
-     * Returns a summary of what was recorded.
+     *
+     * Strategy:
+     *  1. GET /streams — always available; gives stream count, viewer count, network bitrate.
+     *  2. GET /monitoring/system (or /monitoring, /cluster) — soft-fail; gives CPU/RAM/disk
+     *     when the Flussonic plan/version exposes it. Zeros recorded if unavailable.
+     *
+     * A snapshot is always recorded as long as we can reach the server.
+     * Only hard-fails on auth errors or complete unreachability.
      */
     public function recordAllFromFlussonic(): array
     {
@@ -98,20 +105,115 @@ class MonitoringService
         foreach ($servers as $server) {
             $results['total']++;
             try {
-                $raw = $this->flussonicApiService->request($server, 'monitoring');
+                // ── Step 1: stream / viewer / bitrate from /streams ──────────────
+                $activeStreams = 0;
+                $activeViewers = 0;
+                $netIn  = 0;
+                $netOut = 0;
+                $streamsError = null;
 
-                // Flussonic returns cpu/ram/disk as percentages or raw values — normalise defensively
-                $cpuUsage  = (float)($raw['cpu_usage']  ?? $raw['cpu']  ?? 0);
-                $ramUsage  = (float)($raw['ram_usage']  ?? $raw['ram']  ?? 0);
-                $diskUsage = (float)($raw['disk_usage'] ?? $raw['disk'] ?? 0);
+                try {
+                    $streamsRaw  = $this->flussonicApiService->request($server, 'streams');
 
-                // Network: may be bytes/s
-                $netIn  = (int)($raw['network_in']  ?? $raw['net_in']  ?? 0);
-                $netOut = (int)($raw['network_out'] ?? $raw['net_out'] ?? 0);
+                    // Key can be 'streams', 'items', 'channels', 'data', or flat array
+                    $streamsList = $streamsRaw['streams']  ??
+                                   $streamsRaw['items']    ??
+                                   $streamsRaw['channels'] ??
+                                   $streamsRaw['data']     ?? [];
+                    if (empty($streamsList) && isset($streamsRaw[0])) {
+                        $streamsList = $streamsRaw;
+                    }
 
-                $activeStreams  = (int)($raw['active_streams']  ?? $raw['streams_total']  ?? 0);
-                $activeViewers = (int)($raw['active_viewers']  ?? $raw['clients_total']  ?? 0);
+                    foreach ($streamsList as $s) {
+                        $activeStreams++;
 
+                        // Flussonic v3 stats sub-object — confirmed field names from API response
+                        $stats = is_array($s['stats'] ?? null) ? $s['stats'] : [];
+
+                        // Active viewers: Flussonic v3 uses playback_opened_sessions
+                        $activeViewers += (int)(
+                            $stats['playback_opened_sessions'] ??  // v3 confirmed
+                            $stats['clients']                  ??
+                            $stats['viewers']                  ??
+                            $s['clients']                      ??
+                            $s['viewers']                      ??
+                            $s['clients_count']                ?? 0
+                        );
+
+                        // Network: Flussonic v3 only exposes cumulative byte counters
+                        // (inputs_bytes / playback_bytes), not real-time bitrate.
+                        // Sum them across streams; the UI labels these as total transfer.
+                        $netIn  += (int)($stats['inputs_bytes']   ?? 0);
+                        $netOut += (int)($stats['playback_bytes'] ?? 0);
+                    }
+                } catch (Exception $e) {
+                    if (str_contains($e->getMessage(), 'HTTP 401') || str_contains($e->getMessage(), 'HTTP 403')) {
+                        throw $e; // auth failures are definitive
+                    }
+                    $streamsError = $e->getMessage();
+                }
+
+                // ── Step 1b: viewer count fallback from /sessions ─────────────
+                if ($activeViewers === 0 && $streamsError === null) {
+                    try {
+                        $sessRaw = $this->flussonicApiService->request($server, 'sessions');
+                        $sessList = $sessRaw['sessions'] ?? $sessRaw['items'] ?? $sessRaw['data'] ?? [];
+                        if (empty($sessList) && isset($sessRaw[0])) {
+                            $sessList = $sessRaw;
+                        }
+                        $activeViewers = is_array($sessList) ? count($sessList) : (int)($sessRaw['total'] ?? $sessRaw['count'] ?? 0);
+                    } catch (Exception $e) {
+                        // sessions endpoint optional — ignore errors
+                    }
+                }
+
+                // ── Step 2: system metrics (CPU / RAM / disk) — soft-fail ────────
+                $cpuUsage  = 0.0;
+                $ramUsage  = 0.0;
+                $diskUsage = 0.0;
+                $sysSource = null;
+
+                foreach (['monitoring/system', 'monitoring', 'cluster', 'server', 'sys'] as $ep) {
+                    try {
+                        $sysRaw = $this->flussonicApiService->request($server, $ep);
+
+                        $cpuUsage = (float)($sysRaw['cpu_usage'] ?? $sysRaw['cpu'] ?? 0);
+
+                        if (isset($sysRaw['ram_usage'])) {
+                            $ramUsage = (float)$sysRaw['ram_usage'];
+                        } elseif (isset($sysRaw['mem_usage'])) {
+                            $ramUsage = (float)$sysRaw['mem_usage'];
+                        } elseif (isset($sysRaw['mem_total']) && (float)$sysRaw['mem_total'] > 0) {
+                            $ramUsage = round((float)($sysRaw['mem'] ?? $sysRaw['mem_used'] ?? 0) / (float)$sysRaw['mem_total'] * 100, 2);
+                        } elseif (isset($sysRaw['memory']['used'], $sysRaw['memory']['total']) && $sysRaw['memory']['total'] > 0) {
+                            $ramUsage = round($sysRaw['memory']['used'] / $sysRaw['memory']['total'] * 100, 2);
+                        }
+
+                        if (isset($sysRaw['disk_usage'])) {
+                            $diskUsage = (float)$sysRaw['disk_usage'];
+                        } elseif (isset($sysRaw['disk_total']) && (float)$sysRaw['disk_total'] > 0) {
+                            $diskUsage = round((float)($sysRaw['disk'] ?? $sysRaw['disk_used'] ?? 0) / (float)$sysRaw['disk_total'] * 100, 2);
+                        } elseif (isset($sysRaw['disk']['used'], $sysRaw['disk']['total']) && $sysRaw['disk']['total'] > 0) {
+                            $diskUsage = round($sysRaw['disk']['used'] / $sysRaw['disk']['total'] * 100, 2);
+                        }
+
+                        // Prefer system-level network if streams didn't give us data
+                        if ($netIn === 0 && $netOut === 0) {
+                            $netIn  = (int)($sysRaw['bitrate_in']  ?? $sysRaw['network_in']  ?? $sysRaw['net_in']  ?? 0);
+                            $netOut = (int)($sysRaw['bitrate_out'] ?? $sysRaw['network_out'] ?? $sysRaw['net_out'] ?? 0);
+                        }
+
+                        $sysSource = $ep;
+                        break;
+                    } catch (Exception $e) {
+                        if (str_contains($e->getMessage(), 'HTTP 401') || str_contains($e->getMessage(), 'HTTP 403')) {
+                            throw $e;
+                        }
+                        // try next endpoint
+                    }
+                }
+
+                // ── Record whatever we have ──────────────────────────────────────
                 $metric = $this->record($server->uuid, [
                     'cpu_usage'      => $cpuUsage,
                     'ram_usage'      => $ramUsage,
@@ -123,7 +225,19 @@ class MonitoringService
                 ]);
 
                 $results['recorded']++;
-                $results['details'][] = ['server' => $server->server_name, 'status' => 'ok', 'metric_id' => $metric->uuid];
+                $isPartial = $sysSource === null;
+                $note = $sysSource === null
+                    ? 'CPU/RAM/disk not available on this Flussonic server'
+                    : "sys: {$sysSource}";
+                if ($streamsError) {
+                    $note .= " | streams error: {$streamsError}";
+                }
+                $results['details'][] = [
+                    'server'    => $server->server_name,
+                    'status'    => $isPartial ? 'partial' : 'ok',
+                    'metric_id' => $metric->uuid,
+                    'note'      => $note,
+                ];
             } catch (Exception $e) {
                 $results['failed']++;
                 $results['details'][] = ['server' => $server->server_name, 'status' => 'error', 'error' => $e->getMessage()];

@@ -6,12 +6,12 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.64.1
+- **Version**: 1.65.1
 - **Key Features**: **Flussonic Media Server** (stream servers admin rebuilt — Flussonic API columns, Test Connectivity button with live liveness check, `StreamServerDetailsModal` with Flussonic sections, dashboard Stream Server stat cards, expandable sidebar group), Visual Ads System (YouTube-style pre-roll video ads — `.m3u8`/`.mp4`, skippable/non-skippable, countdown timer, skip button, unmuted by default, channel audio muted during ad via `adPlaying` prop restored on skip/complete, click-through tracking, impression/skip/click analytics, session-based frequency limiting, plan-level + guest/free-user targeting, weighted random selection), Visual Ads Admin CRUD (`/admin/visual-ads` — sidebar via layout.tsx, full table with live stats, create/edit modal), AdSense Policy Compliance (script restricted to content pages only; `sitemap.xml` + `robots.txt` generated), Expanded About Page (FAQ, How It Works, Channel Categories, Platform details), Payment Gateway UI (enable/disable toggle per gateway with inline Test Transaction button; credentials managed via backend `.env`), Channel Manager Stream Preview (HLS player modal with loading/buffering/error/retry states, live badge, copy URL, no-controls clean view), Channel Manager Confirm-Save Modal (per-channel diff of number and status changes with thumbnail, arrow indicators, sorted by new number), Full Admin Portal Redesign (modern slate theme, animated, mobile-responsive sidebar, dashboard, all CRUD pages), Admin Layout Isolation (public Navbar/Footer hidden on admin/reseller routes), Admin Branding (logo on login page + sidebar, sidebar logo links to home), Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.43.1
+- **Version**: 1.44.1
 - **Key Features**: **Flussonic Media Server** (`FlussonicApiService` — TCP pre-check, HTTP→HTTPS auto-detection, Basic Auth + Bearer token, liveness endpoint; `test-connection` API endpoint; `stream_servers` table rebuilt to 18 clean Flussonic columns; `total_servers` + `online_servers` in dashboard stats; MistServer `MistAuthService` and challenge-response auth removed), Visual Ads API — `GET /api/visual-ads/active` (plan-aware, guest/free-user targeting, date range, weighted random), `POST /api/visual-ads/{uuid}/impression|skip|click` (analytics counters), Admin CRUD (`GET|POST|PUT|DELETE /api/admin/visual-ads`), `visual_ads` table migration, `show_visual_ads` column on `subscription_plans`. `ChannelController` `isTrustedApp` now checks `API_SECRET` env var first (fixes master-key 401). Payment Gateway Test API (`POST /api/admin/settings/test-payment`) — reads Razorpay/Cashfree credentials from `.env`; SSL-safe CA bundle resolution for WAMP. Batch Channel Update API (number + status, swap-safe two-phase update), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API, Channel View Details API.
 
 ### `nellai_iptv_app` (Flutter)
@@ -24,7 +24,30 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.64.1 Website | v1.43.1 Backend) — 2026-05-27
+## Recent Updates (v1.65.1 Website | v1.44.1 Backend) — 2026-05-30
+
+### Website (Next.js)
+- **Feature**: **Streams — "Sync with Server"** (`/admin/streams`) — New button calls `POST /admin/streams/sync`; spinner while in progress; success toast shows created/updated counts; per-server error details shown on failure; stream list auto-refreshes.
+- **Fix**: **Edit Stream page crash** (`/admin/streams/[uuid]/page.tsx`) — `use(params)` runtime error fixed; `params` is a plain object in this Next.js version.
+- **Fix**: **Edit Tenant page crash** (`/admin/tenants/[uuid]/page.tsx`) — Same `use(params)` crash fixed.
+
+### Backend (Slim PHP)
+- **Feature**: **`POST /api/admin/streams/sync`** — Syncs streams from all active + online Flussonic servers. Upserts by `stream_key` + `server_id`; returns `{ created, updated, errors[] }`. Optional `?server_uuid=` targets one server.
+- **Improved**: **`FlussonicApiService`** — `request()` accepts a `$timeout` param (60 s for sync, 15 s default). Timeout errors are now definitive in scheme retry — no redundant HTTPS attempt, halving worst-case wait.
+
+## Previous Updates (v1.65.0 Website | v1.44.0 Backend) — 2026-05-28
+
+### Website (Next.js)
+- **Feature**: **Streams admin** (`/admin/streams`) — Full CRUD, viewer progress bar, bitrate, health badge, server column, output format chips.
+- **Feature**: **Viewer Sessions admin** (`/admin/viewer-sessions`) — Read-only browser with protocol badges, bandwidth, country.
+- **Feature**: **Server Monitoring admin** (`/admin/monitoring`) — Per-server tabbed dashboard with CPU/RAM/disk bars, network cards, snapshot button, history table.
+- **Feature**: **Tenants admin** (`/admin/tenants`) — Full CRUD with server multi-select and channel-ID tag input.
+
+### Backend (Slim PHP)
+- **Feature**: **`Stream` / `ViewerSession` / `ServerMonitoring` / `Tenant` resources** — Full CRUD APIs for all four entities.
+- **Feature**: **`StreamServerPingService`** + **`POST /api/admin/stream-servers/ping-all`** — Manual and cron-driven server health checks.
+
+## Previous Updates (v1.64.1 Website | v1.43.1 Backend) — 2026-05-27
 
 ### Website (Next.js)
 - **Fix**: **Test Connectivity — edit mode** — `uuid` now sent in the test-connection payload. Backend resolves stored (decrypted) credentials when the password field is blank (API hides it on load).

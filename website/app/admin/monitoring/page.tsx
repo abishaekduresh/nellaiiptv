@@ -46,10 +46,11 @@ function UsageBar({ value, color }: { value: number; color: string }) {
 
 function fmtBytes(bytes: number): string {
   if (!bytes) return '—';
-  if (bytes >= 1_000_000_000) return `${(bytes / 1_000_000_000).toFixed(1)} GB/s`;
-  if (bytes >= 1_000_000)     return `${(bytes / 1_000_000).toFixed(1)} MB/s`;
-  if (bytes >= 1_000)         return `${(bytes / 1_000).toFixed(0)} KB/s`;
-  return `${bytes} B/s`;
+  if (bytes >= 1_099_511_627_776) return `${(bytes / 1_099_511_627_776).toFixed(1)} TB`;
+  if (bytes >= 1_073_741_824)     return `${(bytes / 1_073_741_824).toFixed(1)} GB`;
+  if (bytes >= 1_048_576)         return `${(bytes / 1_048_576).toFixed(1)} MB`;
+  if (bytes >= 1_024)             return `${(bytes / 1_024).toFixed(0)} KB`;
+  return `${bytes} B`;
 }
 
 export default function MonitoringPage() {
@@ -59,6 +60,7 @@ export default function MonitoringPage() {
   const [loadingMain,   setLoadingMain]  = useState(true);
   const [loadingHist,   setLoadingHist]  = useState(false);
   const [recording,     setRecording]    = useState(false);
+  const [recordErrors,  setRecordErrors] = useState<{ server: string; error: string }[]>([]);
 
   const fetchAll = async () => {
     setLoadingMain(true);
@@ -88,13 +90,24 @@ export default function MonitoringPage() {
 
   const handleRecordAll = async () => {
     setRecording(true);
+    setRecordErrors([]);
     try {
       const res = await adminApi.post('/admin/monitoring/record-all');
-      toast.success(res.data.message || 'Snapshots recorded');
-      await fetchAll();
-      if (selected) await fetchHistory(selected);
+      const results = res.data.data as { recorded: number; failed: number; details: { server: string; status: string; error?: string; note?: string }[] };
+      // Only surface hard failures — partial (no system metrics) is expected on most Flussonic installs
+      const hardErrors = results.details
+        .filter(d => d.status === 'error')
+        .map(d => ({ server: d.server, error: d.error ?? 'Unknown error' }));
+      setRecordErrors(hardErrors);
+      if (results.recorded > 0) {
+        toast.success(`Snapshot recorded — ${results.recorded}/${results.total} servers`);
+        await fetchAll();
+        if (selected) await fetchHistory(selected);
+      } else if (hardErrors.length === 0) {
+        toast.error('Nothing recorded — check server status');
+      }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Record failed');
+      setRecordErrors([{ server: 'Server', error: err.response?.data?.message || 'Request failed' }]);
     } finally {
       setRecording(false);
     }
@@ -143,6 +156,27 @@ export default function MonitoringPage() {
         </div>
       )}
 
+      {/* Error panel — only for hard failures (connection / auth errors) */}
+      {recordErrors.length > 0 && (
+        <div className="bg-red-950/40 border border-red-800/60 rounded-2xl p-5 animate-fade-up">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <p className="text-red-400 font-semibold text-sm">Snapshot recording failed</p>
+            <button onClick={() => setRecordErrors([])} className="text-slate-500 hover:text-slate-300 text-xs">Dismiss</button>
+          </div>
+          <div className="space-y-3">
+            {recordErrors.map((e, i) => (
+              <div key={i} className="text-xs">
+                <span className="text-red-300 font-semibold">{e.server}</span>
+                <p className="text-red-400/80 mt-1 font-mono break-all leading-relaxed">{e.error}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-slate-500 text-xs mt-4">
+            Verify the server host/port is reachable and the API credentials are correct.
+          </p>
+        </div>
+      )}
+
       {loadingMain ? (
         <div className="flex items-center justify-center py-16 text-slate-500">
           <svg className="animate-spin h-6 w-6 text-primary mr-3" viewBox="0 0 24 24" fill="none">
@@ -171,27 +205,40 @@ export default function MonitoringPage() {
               </p>
 
               {/* Usage bars */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                {[
-                  { label: 'CPU Usage', value: m.cpu_usage, icon: Cpu, color: 'bg-primary' },
-                  { label: 'RAM Usage', value: m.ram_usage, icon: MemoryStick, color: 'bg-purple-500' },
-                  { label: 'Disk Usage', value: m.disk_usage, icon: HardDrive, color: 'bg-amber-500' },
-                ].map(card => (
-                  <div key={card.label} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <card.icon size={16} className="text-slate-400" />
-                      <span className="text-slate-400 text-sm font-medium">{card.label}</span>
-                    </div>
-                    <UsageBar value={card.value} color={card.color} />
+              {(() => {
+                const hasSysMetrics = m.cpu_usage > 0 || m.ram_usage > 0 || m.disk_usage > 0;
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    {[
+                      { label: 'CPU Usage',  value: m.cpu_usage,  icon: Cpu,         color: 'bg-primary' },
+                      { label: 'RAM Usage',  value: m.ram_usage,  icon: MemoryStick,  color: 'bg-purple-500' },
+                      { label: 'Disk Usage', value: m.disk_usage, icon: HardDrive,    color: 'bg-amber-500' },
+                    ].map(card => (
+                      <div key={card.label} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+                        <div className="flex items-center gap-2 mb-3">
+                          <card.icon size={16} className="text-slate-400" />
+                          <span className="text-slate-400 text-sm font-medium">{card.label}</span>
+                        </div>
+                        {hasSysMetrics
+                          ? <UsageBar value={card.value} color={card.color} />
+                          : (
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-slate-700/50 rounded-full" />
+                              <span className="text-xs text-slate-600 font-medium w-12 text-right">N/A</span>
+                            </div>
+                          )
+                        }
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
 
               {/* Network + stream/viewer counts */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Network In',      value: fmtBytes(m.network_in),    icon: Network, color: 'text-cyan-400' },
-                  { label: 'Network Out',     value: fmtBytes(m.network_out),   icon: Network, color: 'text-teal-400' },
+                  { label: 'Total In',        value: fmtBytes(m.network_in),    icon: Network, color: 'text-cyan-400' },
+                  { label: 'Total Out',       value: fmtBytes(m.network_out),   icon: Network, color: 'text-teal-400' },
                   { label: 'Active Streams',  value: m.active_streams.toString(), icon: Radio,  color: 'text-blue-400' },
                   { label: 'Active Viewers',  value: m.active_viewers.toString(), icon: Users,  color: 'text-green-400' },
                 ].map(card => (
@@ -216,7 +263,7 @@ export default function MonitoringPage() {
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-800/40">
-                    {['Recorded At', 'CPU %', 'RAM %', 'Disk %', 'Net In', 'Net Out', 'Streams', 'Viewers'].map(h => (
+                    {['Recorded At', 'CPU %', 'RAM %', 'Disk %', 'Total In', 'Total Out', 'Streams', 'Viewers'].map(h => (
                       <th key={h} className="px-4 py-3 text-slate-400 font-semibold uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
@@ -229,9 +276,15 @@ export default function MonitoringPage() {
                   ) : history.map(h => (
                     <tr key={h.uuid} className="hover:bg-slate-800/30 transition-colors">
                       <td className="px-4 py-3 text-slate-400">{new Date(h.recorded_at).toLocaleString()}</td>
-                      <td className={`px-4 py-3 font-mono font-semibold ${h.cpu_usage > 85 ? 'text-red-400' : 'text-white'}`}>{h.cpu_usage.toFixed(1)}</td>
-                      <td className={`px-4 py-3 font-mono font-semibold ${h.ram_usage > 85 ? 'text-red-400' : 'text-white'}`}>{h.ram_usage.toFixed(1)}</td>
-                      <td className={`px-4 py-3 font-mono font-semibold ${h.disk_usage > 85 ? 'text-red-400' : 'text-white'}`}>{h.disk_usage.toFixed(1)}</td>
+                      {(() => {
+                        const noSys = h.cpu_usage === 0 && h.ram_usage === 0 && h.disk_usage === 0;
+                        const fmtSys = (v: number) => noSys ? <span className="text-slate-600">—</span> : <span className={v > 85 ? 'text-red-400' : 'text-white'}>{v.toFixed(1)}</span>;
+                        return (<>
+                          <td className="px-4 py-3 font-mono font-semibold">{fmtSys(h.cpu_usage)}</td>
+                          <td className="px-4 py-3 font-mono font-semibold">{fmtSys(h.ram_usage)}</td>
+                          <td className="px-4 py-3 font-mono font-semibold">{fmtSys(h.disk_usage)}</td>
+                        </>);
+                      })()}
                       <td className="px-4 py-3 text-slate-300 font-mono">{fmtBytes(h.network_in)}</td>
                       <td className="px-4 py-3 text-slate-300 font-mono">{fmtBytes(h.network_out)}</td>
                       <td className="px-4 py-3 text-blue-400 font-semibold">{h.active_streams}</td>

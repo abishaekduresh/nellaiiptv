@@ -109,6 +109,7 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         // Streams Management
         $group->get('/streams', [\App\Controllers\Admin\StreamController::class, 'index']);
         $group->post('/streams', [\App\Controllers\Admin\StreamController::class, 'create']);
+        $group->post('/streams/sync', [\App\Controllers\Admin\StreamController::class, 'sync']);
         $group->get('/streams/{uuid}', [\App\Controllers\Admin\StreamController::class, 'show']);
         $group->put('/streams/{uuid}', [\App\Controllers\Admin\StreamController::class, 'update']);
         $group->delete('/streams/{uuid}', [\App\Controllers\Admin\StreamController::class, 'delete']);

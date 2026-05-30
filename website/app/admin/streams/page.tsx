@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Search, Radio, Wifi, WifiOff, ChevronLeft, ChevronRight, Users, Zap } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Radio, Wifi, WifiOff, ChevronLeft, ChevronRight, Users, Zap, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 
@@ -42,6 +42,7 @@ function fmtBitrate(bps: number): string {
 export default function StreamsPage() {
   const [streams, setStreams]   = useState<Stream[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [syncing, setSyncing]   = useState(false);
   const [search,  setSearch]    = useState('');
   const [page,    setPage]      = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -68,6 +69,25 @@ export default function StreamsPage() {
   useEffect(() => { setPage(1); }, [search, filterStatus, filterHealth]);
   useEffect(() => { fetchStreams(); }, [page, search, filterStatus, filterHealth]);
 
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await adminApi.post('/admin/streams/sync');
+      const { created, updated, errors } = res.data.data;
+      const msg = `Synced — ${created} created, ${updated} updated.`;
+      if (errors?.length) {
+        errors.forEach((e: string) => toast.error(e, { duration: 8000 }));
+      } else {
+        toast.success(msg);
+      }
+      fetchStreams();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Sync failed');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const handleDelete = async (uuid: string, name: string) => {
     if (!confirm(`Delete stream "${name}"?`)) return;
     try {
@@ -90,10 +110,17 @@ export default function StreamsPage() {
           <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Streams</h1>
           {!loading && <p className="text-slate-400 text-sm mt-1">{total} stream{total !== 1 ? 's' : ''}</p>}
         </div>
-        <Link href="/admin/streams/create"
-          className="flex items-center gap-2 bg-primary hover:bg-cyan-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 self-start sm:self-auto">
-          <Plus size={16} /> Add Stream
-        </Link>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button onClick={handleSync} disabled={syncing}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">
+            <RefreshCw size={15} className={syncing ? 'animate-spin' : ''} />
+            {syncing ? 'Syncing…' : 'Sync with Server'}
+          </button>
+          <Link href="/admin/streams/create"
+            className="flex items-center gap-2 bg-primary hover:bg-cyan-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5">
+            <Plus size={16} /> Add Stream
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}

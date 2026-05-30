@@ -1,3 +1,14 @@
+## [1.65.1] - 2026-05-30
+
+### Added
+- **Streams — "Sync with Server" button** (`/admin/streams`) — New button in the page header calls `POST /admin/streams/sync`. Shows a spinning `RefreshCw` icon and "Syncing…" label while in progress. On success displays a toast with created/updated counts. On error shows the full per-server error message (8 s toast duration) so the root cause is immediately visible. Refreshes the stream list automatically after sync.
+
+### Fixed
+- **Edit Stream page crash** (`/admin/streams/[uuid]/page.tsx`) — `use(params)` threw "An unsupported type was passed to use(): [object Object]" because `params` is a plain object in this Next.js version, not a Promise. Replaced `use(params)` with direct destructuring `const { uuid } = params`.
+- **Edit Tenant page crash** (`/admin/tenants/[uuid]/page.tsx`) — Same `use(params)` issue. Applied the same fix.
+
+---
+
 ## [1.65.0] - 2026-05-28
 
 ### Added
