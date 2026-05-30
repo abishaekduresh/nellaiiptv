@@ -67,25 +67,46 @@ class FlussonicApiService
     }
 
     /**
+     * Validate credentials against a specific scheme — no auto-detection.
+     * Caller is responsible for choosing http vs https.
+     *
+     * @throws Exception on unreachable host, auth failure, or bad response
+     */
+    public function validateWithScheme(
+        string  $scheme,
+        string  $host,
+        int     $port,
+        string  $version,
+        ?string $username,
+        ?string $plainPassword,
+        ?string $bearerToken
+    ): void {
+        $this->assertPortOpen($host, $port);
+        $url = $this->buildUrl($host, $port, $version, 'monitoring/liveness', $scheme);
+        $this->get($url, $username, $plainPassword, $bearerToken);
+    }
+
+    /**
      * Make an authenticated GET request using a persisted StreamServer model.
-     * Uses server_host_ip, falling back to server_host_domain when IP is blank.
-     * Tries HTTP first; retries with HTTPS on connection-level failures.
+     * Prefers server_host_domain when set, falls back to server_host_ip.
+     * Uses the server's stored protocol as the preferred scheme.
      */
     public function request(StreamServer $server, string $path, int $timeout = self::REQUEST_TIMEOUT): array
     {
-        $host = !empty($server->server_host_ip)
-            ? $server->server_host_ip
-            : $server->server_host_domain;
+        $host = !empty($server->server_host_domain)
+            ? $server->server_host_domain
+            : $server->server_host_ip;
 
-        $cleanPath = ltrim($path, '/');
+        $cleanPath      = ltrim($path, '/');
+        $preferredScheme = !empty($server->protocol) ? $server->protocol : 'http';
 
         if (!empty($server->bearer_token)) {
             $token = EncryptionHelper::decrypt($server->bearer_token);
-            return $this->requestWithSchemeRetry($host, (int)$server->api_port, $server->api_version, $cleanPath, null, null, $token, $timeout);
+            return $this->requestWithSchemeRetry($host, (int)$server->api_port, $server->api_version, $cleanPath, null, null, $token, $timeout, $preferredScheme);
         }
 
         $password = EncryptionHelper::decrypt($server->password_encrypted);
-        return $this->requestWithSchemeRetry($host, (int)$server->api_port, $server->api_version, $cleanPath, $server->username, $password, null, $timeout);
+        return $this->requestWithSchemeRetry($host, (int)$server->api_port, $server->api_version, $cleanPath, $server->username, $password, null, $timeout, $preferredScheme);
     }
 
     /**
@@ -99,11 +120,13 @@ class FlussonicApiService
         ?string $username,
         ?string $password,
         ?string $bearerToken,
-        int     $timeout = self::REQUEST_TIMEOUT
+        int     $timeout = self::REQUEST_TIMEOUT,
+        string  $preferredScheme = 'http'
     ): array {
         $lastException = null;
+        $schemes = $preferredScheme === 'https' ? ['https', 'http'] : ['http', 'https'];
 
-        foreach (['http', 'https'] as $scheme) {
+        foreach ($schemes as $scheme) {
             $url = $this->buildUrl($host, $port, $version, $path, $scheme);
             try {
                 return $this->get($url, $username, $password, $bearerToken, $timeout);

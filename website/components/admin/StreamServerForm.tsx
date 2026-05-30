@@ -17,6 +17,7 @@ const defaultForm = {
   server_host_domain: '',
   api_port: 8080,
   api_version: 'v3',
+  protocol: 'http',
   username: '',
   password_encrypted: '',
   bearer_token: '',
@@ -33,6 +34,9 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
   const [loading, setLoading] = useState(false);
   const [testStatus, setTestStatus] = useState<TestStatus>('idle');
   const [testMessage, setTestMessage] = useState('');
+  const [testUsingDomain, setTestUsingDomain] = useState<boolean>(
+    !!initialData?.server_host_domain
+  );
 
   const buildInitial = () => {
     if (!initialData) return defaultForm;
@@ -48,15 +52,32 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
 
   const set = (field: string, value: any) => {
     setForm((prev: any) => ({ ...prev, [field]: value }));
-    // Reset test result whenever any connection field changes
-    const connFields = ['server_host_ip', 'api_port', 'api_version', 'username', 'password_encrypted', 'bearer_token'];
+    const connFields = [
+      'server_host_ip', 'server_host_domain', 'api_port', 'api_version',
+      'protocol', 'username', 'password_encrypted', 'bearer_token',
+    ];
     if (connFields.includes(field)) setTestStatus('idle');
+    // When domain is cleared, force test to use IP
+    if (field === 'server_host_domain' && !value) setTestUsingDomain(false);
+    // When domain is first set, default toggle to domain
+    if (field === 'server_host_domain' && value) setTestUsingDomain(true);
   };
+
+  // Derived: which host to use for test connectivity
+  const resolvedTestHost = testUsingDomain && form.server_host_domain
+    ? form.server_host_domain
+    : form.server_host_ip;
+
+  // Derived: base URL for the preview (domain preferred when set)
+  const previewHost = form.server_host_domain || form.server_host_ip;
+  const previewUrl = previewHost
+    ? `${form.protocol || 'http'}://${previewHost}:${form.api_port || 8080}/streamer/api/${form.api_version || 'v3'}`
+    : null;
 
   // ── Test Connectivity ────────────────────────────────────────────────────────
   const handleTestConnection = async () => {
-    if (!form.server_host_ip) {
-      toast.error('Enter the Server Host IP first.');
+    if (!resolvedTestHost) {
+      toast.error('Enter the Server Host IP or Domain first.');
       return;
     }
 
@@ -65,13 +86,14 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
 
     try {
       const res = await adminApi.post('/admin/stream-servers/test-connection', {
-        uuid:              initialData?.uuid ?? '',
-        server_host_ip:    form.server_host_ip,
-        api_port:          form.api_port    || 8080,
-        api_version:       form.api_version || 'v3',
-        username:          form.username,
+        uuid:               initialData?.uuid ?? '',
+        test_host:          resolvedTestHost,
+        protocol:           form.protocol || 'http',
+        api_port:           form.api_port    || 8080,
+        api_version:        form.api_version || 'v3',
+        username:           form.username,
         password_encrypted: form.password_encrypted,
-        bearer_token:      form.bearer_token,
+        bearer_token:       form.bearer_token,
       });
 
       const msg = res.data?.message || 'Connection successful';
@@ -119,9 +141,9 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
     }
   };
 
-  const inputCls   = 'w-full bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors';
-  const labelCls   = 'block text-sm font-medium text-slate-400 mb-1';
-  const sectionCls = 'border border-slate-800 rounded-lg p-5 space-y-4';
+  const inputCls    = 'w-full bg-slate-950 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors';
+  const labelCls    = 'block text-sm font-medium text-slate-400 mb-1';
+  const sectionCls  = 'border border-slate-800 rounded-lg p-5 space-y-4';
   const sectionTitle = 'text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4';
 
   const testBtnCls = (() => {
@@ -151,6 +173,7 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
       {/* ── Host / Connection ── */}
       <div className={sectionCls}>
         <p className={sectionTitle}>Host / Connection</p>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Server Host IP *</label>
@@ -170,6 +193,27 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
               className={inputCls}
               placeholder="flussonic.example.com"
             />
+          </div>
+        </div>
+
+        {/* Protocol selector */}
+        <div>
+          <label className={labelCls}>Protocol</label>
+          <div className="flex gap-2">
+            {(['http', 'https'] as const).map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => set('protocol', p)}
+                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                  form.protocol === p
+                    ? 'border-primary bg-primary/20 text-primary'
+                    : 'border-slate-700 bg-slate-800/60 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+                }`}
+              >
+                {p.toUpperCase()}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -250,10 +294,35 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
 
         {/* ── Test Connectivity ── */}
         <div className="space-y-2 pt-1">
+
+          {/* Domain / IP toggle — only shown when domain is set */}
+          {form.server_host_domain && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500">Test using:</span>
+              {(['ip', 'domain'] as const).map((mode) => {
+                const active = mode === 'domain' ? testUsingDomain : !testUsingDomain;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => { setTestUsingDomain(mode === 'domain'); setTestStatus('idle'); }}
+                    className={`px-3 py-1 rounded-md border text-xs font-medium transition-all ${
+                      active
+                        ? 'border-primary bg-primary/20 text-primary'
+                        : 'border-slate-700 bg-slate-800/60 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+                    }`}
+                  >
+                    {mode === 'ip' ? `IP  (${form.server_host_ip || '—'})` : `Domain  (${form.server_host_domain})`}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <button
             type="button"
             onClick={handleTestConnection}
-            disabled={testStatus === 'testing' || !form.server_host_ip}
+            disabled={testStatus === 'testing' || !resolvedTestHost}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${testBtnCls}`}
           >
             {testStatus === 'testing' ? (
@@ -279,7 +348,7 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
                 <p className="text-sm font-medium text-emerald-400">Flussonic reachable</p>
                 <p className="text-xs text-emerald-300/70 mt-0.5">{testMessage}</p>
                 <code className="block text-xs text-emerald-300/50 font-mono mt-1 truncate">
-                  {`http://${form.server_host_ip}:${form.api_port || 8080}/streamer/api/${form.api_version || 'v3'}/monitoring/liveness`}
+                  {`${form.protocol || 'http'}://${resolvedTestHost}:${form.api_port || 8080}/streamer/api/${form.api_version || 'v3'}/monitoring/liveness`}
                 </code>
               </div>
             </div>
@@ -297,12 +366,10 @@ export default function StreamServerForm({ initialData, isEditing = false }: Str
         </div>
 
         {/* Live API URL preview */}
-        {form.server_host_ip && (
+        {previewUrl && (
           <div className="rounded-lg border border-slate-700 bg-slate-900/50 p-3">
             <p className="text-xs text-slate-500 mb-1 font-semibold uppercase tracking-wider">API Base URL</p>
-            <code className="text-xs text-cyan-400 font-mono break-all">
-              {`http://${form.server_host_ip}:${form.api_port || 8080}/streamer/api/${form.api_version || 'v3'}`}
-            </code>
+            <code className="text-xs text-cyan-400 font-mono break-all">{previewUrl}</code>
           </div>
         )}
       </div>

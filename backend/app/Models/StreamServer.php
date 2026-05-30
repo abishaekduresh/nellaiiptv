@@ -15,6 +15,7 @@ class StreamServer extends Model
         'server_host_domain',
         'api_port',
         'api_version',
+        'protocol',
         'username',
         'password_encrypted',
         'bearer_token',

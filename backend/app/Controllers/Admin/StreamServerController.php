@@ -111,17 +111,22 @@ class StreamServerController
 
     public function testConnection(Request $request, Response $response): Response
     {
-        $data    = $request->getParsedBody() ?? [];
-        $host    = trim($data['server_host_ip']    ?? '');
-        $port    = (int)($data['api_port']          ?? 8080);
-        $version = trim($data['api_version']        ?? 'v3');
-        $user    = trim($data['username']           ?? '');
-        $pass    = trim($data['password_encrypted'] ?? '');
-        $bearer  = trim($data['bearer_token']       ?? '');
-        $uuid    = trim($data['uuid']               ?? '');
+        $data     = $request->getParsedBody() ?? [];
+        // test_host is the resolved host the frontend wants to test against (IP or domain).
+        // Falls back to server_host_ip for backwards compatibility.
+        $host     = trim($data['test_host']         ?? $data['server_host_ip'] ?? '');
+        $protocol = trim($data['protocol']          ?? 'http');
+        $port     = (int)($data['api_port']         ?? 8080);
+        $version  = trim($data['api_version']       ?? 'v3');
+        $user     = trim($data['username']          ?? '');
+        $pass     = trim($data['password_encrypted'] ?? '');
+        $bearer   = trim($data['bearer_token']      ?? '');
+        $uuid     = trim($data['uuid']              ?? '');
+
+        if (!in_array($protocol, ['http', 'https'])) $protocol = 'http';
 
         if ($host === '') {
-            return ResponseFormatter::error($response, 'Server Host IP is required.', 400);
+            return ResponseFormatter::error($response, 'Server host is required.', 400);
         }
 
         // Edit mode: password/bearer are blank because the backend hides them.
@@ -140,19 +145,19 @@ class StreamServerController
 
         try {
             if ($bearer !== '') {
-                $scheme = $this->flussonicApiService->validateBearerToken($host, $port, $version, $bearer);
+                $this->flussonicApiService->validateWithScheme($protocol, $host, $port, $version, null, null, $bearer);
             } else {
                 if ($user === '' || $pass === '') {
                     return ResponseFormatter::error($response, 'Username and password are required when no bearer token is provided.', 400);
                 }
-                $scheme = $this->flussonicApiService->validateCredentials($host, $port, $version, $user, $pass);
+                $this->flussonicApiService->validateWithScheme($protocol, $host, $port, $version, $user, $pass, null);
             }
 
-            $livenessUrl = $this->flussonicApiService->buildUrl($host, $port, $version, 'monitoring/liveness', $scheme);
+            $livenessUrl = $this->flussonicApiService->buildUrl($host, $port, $version, 'monitoring/liveness', $protocol);
 
             return ResponseFormatter::success($response, [
-                'url'    => $livenessUrl,
-                'scheme' => $scheme,
+                'url'      => $livenessUrl,
+                'scheme'   => $protocol,
             ], 'Connection successful — Flussonic server is reachable and credentials are valid.');
         } catch (Exception $e) {
             return ResponseFormatter::error($response, $e->getMessage(), 422);
