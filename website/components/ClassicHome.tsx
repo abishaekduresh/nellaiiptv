@@ -6,7 +6,7 @@ import { Channel } from '@/types';
 import Link from 'next/link';
 import VideoPlayer from './VideoPlayer';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu, ArrowLeft, Radio, RotateCcw, Loader2, RefreshCw, ChevronUp, Monitor, Volume2, Signal, Users, Clock } from 'lucide-react';
+import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu, ArrowLeft, Radio, RotateCcw, Loader2, RefreshCw, ChevronUp, Monitor, Volume2, Signal, Users, Clock, LogIn } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
 import AdBanner from './AdBanner';
 import ScrollingAdsTicker from './ScrollingAdsTicker';
@@ -684,12 +684,23 @@ function FilterTabItem({ label, index, isSelected, onSelect }: { label: string; 
                     </div>
                  </div>
 
-                  {!isOpenAccess && (
-                      <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
+                      {!user && (
+                        <Link
+                          href="/login"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/90 hover:bg-primary text-white text-xs font-semibold shadow-sm shadow-primary/30 transition-colors"
+                        >
+                          <LogIn size={13} />
+                          Login
+                        </Link>
+                      )}
+                      {!isOpenAccess && (
+                        <>
                           <ClassicBackButton />
                           <ClassicMenuButton onClick={() => setIsMenuOpen(true)} />
-                      </div>
-                  )}
+                        </>
+                      )}
+                  </div>
               </div>
 
              {/* Panel Tab Toggle: Channels / My Streams */}
