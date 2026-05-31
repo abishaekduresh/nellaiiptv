@@ -239,6 +239,36 @@ class StreamService
         return '';
     }
 
+    /**
+     * Extract stream uptime in seconds from Flussonic stats.
+     * Tries: stats.lifetime → stats.uptime / alive_time / run_time → stats.start_time (compute elapsed).
+     * Returns null if the stream is not alive or no usable field is found.
+     */
+    private function extractUptime(array $stats, bool $isAlive): ?int
+    {
+        if (!$isAlive) return null;
+
+        // Flussonic v3 canonical field
+        if (isset($stats['lifetime']) && $stats['lifetime'] > 0) {
+            return (int)$stats['lifetime'];
+        }
+
+        // Alternative direct uptime fields
+        foreach (['uptime', 'alive_time', 'run_time', 'running_time'] as $key) {
+            if (isset($stats[$key]) && $stats[$key] > 0) {
+                return (int)$stats[$key];
+            }
+        }
+
+        // start_time is a Unix epoch timestamp — compute elapsed seconds
+        if (isset($stats['start_time']) && $stats['start_time'] > 0) {
+            $elapsed = time() - (int)$stats['start_time'];
+            return $elapsed > 0 ? $elapsed : null;
+        }
+
+        return null;
+    }
+
     private function upsertStream(StreamServer $server, array $rs, int &$created, int &$updated): void
     {
         $streamName = $rs['name'] ?? null;
@@ -293,6 +323,10 @@ class StreamService
             'published_from'    => $stats['published_from'] ?? null,
             'stream_url_type'   => $stats['url'] ?? null,
             'max_sessions'      => $maxSessions,
+            // Uptime in seconds. Flussonic v3 may expose it directly as stats.uptime,
+            // or as stats.start_time (Unix epoch) — compute elapsed from that.
+            // Also fall back to stats.alive_time / stats.run_time for older builds.
+            'uptime'            => $this->extractUptime($stats, $isAlive),
         ];
 
         $existing = Stream::where('server_id', $server->id)

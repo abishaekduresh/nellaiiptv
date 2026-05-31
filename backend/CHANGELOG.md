@@ -1,3 +1,15 @@
+## [1.48.0] - 2026-06-01
+
+### Added
+- **`uptime` column** (`database/migrations/add_uptime_to_streams.sql`) — `BIGINT UNSIGNED NULL` added to `streams` table; stores milliseconds from Flussonic `stats.lifetime`.
+- **`Stream::$fillable` + cast** — `uptime` added as `integer` cast.
+- **`StreamService::extractUptime()`** — Dedicated helper; checks `stats.lifetime` first (canonical Flussonic v3 ms field), then `stats.uptime`, `stats.alive_time`, `stats.run_time`, finally computes from `stats.start_time` (Unix epoch). Returns `null` when stream is not alive.
+
+### Fixed
+- **Uptime field name** — Previous code checked `stats.uptime` first; Flussonic actually sends `stats.lifetime` in milliseconds. Field priority corrected.
+
+---
+
 ## [1.47.0] - 2026-06-01
 
 ### Added

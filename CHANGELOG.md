@@ -1,3 +1,13 @@
+## [1.70.0] - Website | [1.48.0] - Backend - 2026-06-01
+
+### Website (Next.js)
+- **Feature**: **Stream uptime** — `fmtUptime()` updated to accept ms; detail page shows `2d 19hrs 57min 45sec`; list page shows compact `2d 19h` chip in Stream column.
+
+### Backend (Slim PHP)
+- **Feature**: **`uptime` column + sync** — `add_uptime_to_streams.sql` migration; `extractUptime()` reads `stats.lifetime` (ms) as canonical field with fallback chain. `Stream` model updated.
+
+---
+
 ## [1.69.0] - Website | [1.47.0] - Backend - 2026-06-01
 
 ### Website (Next.js)

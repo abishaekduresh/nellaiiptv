@@ -37,6 +37,7 @@ interface StreamDetail {
   client_count: number | null;
   stream_url_type: string | null;
   max_sessions: number | null;
+  uptime: number | null;
   created_at: string | null;
   updated_at: string | null;
   server: {
@@ -97,6 +98,21 @@ function fmtBps(bps: number | null): string {
 function fmtDate(iso: string | null): string {
   if (!iso) return '—';
   return new Date(iso).toLocaleString();
+}
+
+function fmtUptime(ms: number | null): string {
+  if (!ms || ms <= 0) return '—';
+  const totalSecs = Math.floor(ms / 1000);
+  const d = Math.floor(totalSecs / 86400);
+  const h = Math.floor((totalSecs % 86400) / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+  const parts: string[] = [];
+  if (d > 0) parts.push(`${d}d`);
+  if (h > 0) parts.push(`${h}hrs`);
+  if (m > 0) parts.push(`${m}min`);
+  if (s > 0 || parts.length === 0) parts.push(`${s}sec`);
+  return parts.join(' ');
 }
 
 function fmtEpochMs(ms: number | null): string {
@@ -335,6 +351,7 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
           <StatRow label="Published From"  value={stream.published_from} />
           <StatRow label="URL Type"        value={stream.stream_url_type} />
           <StatRow label="Input URL"       value={stream.input_url} />
+          <StatRow label="Uptime"          value={fmtUptime(stream.uptime)} />
         </Card>
 
         {/* Video */}

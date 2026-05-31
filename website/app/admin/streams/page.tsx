@@ -35,6 +35,7 @@ interface Stream {
   client_count: number | null;
   stream_url_type: string | null;
   max_sessions: number | null;
+  uptime: number | null;
   server: { uuid: string; server_name: string; server_host_ip: string } | null;
 }
 
@@ -60,6 +61,17 @@ function fmtKbps(kbps: number | null): string {
   if (!kbps) return '—';
   if (kbps >= 1000) return `${(kbps / 1000).toFixed(1)} Mbps`;
   return `${kbps} Kbps`;
+}
+
+function fmtUptime(ms: number | null): string {
+  if (!ms || ms <= 0) return '';
+  const totalSecs = Math.floor(ms / 1000);
+  const d = Math.floor(totalSecs / 86400);
+  const h = Math.floor((totalSecs % 86400) / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
 }
 
 function fmtBps(bps: number | null): string {
@@ -259,6 +271,9 @@ export default function StreamsPage() {
                             )}
                             {stream.published_via && (
                               <span className="text-[10px] text-slate-500 font-mono">{stream.published_via}</span>
+                            )}
+                            {fmtUptime(stream.uptime) && (
+                              <span className="text-[10px] text-slate-500" title="Uptime">⏱ {fmtUptime(stream.uptime)}</span>
                             )}
                           </div>
                         </div>

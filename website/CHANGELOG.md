@@ -1,3 +1,13 @@
+## [1.70.0] - 2026-06-01
+
+### Added
+- **Stream uptime display** — `uptime` field (milliseconds from Flussonic `stats.lifetime`) added to `StreamDetail` and `Stream` interfaces. Detail page Publish Info card shows full format: `2d 19hrs 57min 45sec`. List page Stream column shows compact format: `2d 19h`.
+
+### Changed
+- **`fmtUptime(ms)`** (both pages) — Now accepts milliseconds (not seconds); divides by 1000 before computing days/hours/minutes/seconds. Detail page uses word-abbreviated format (`d`, `hrs`, `min`, `sec`); list page uses compact (`d`, `h`).
+
+---
+
 ## [1.69.0] - 2026-06-01
 
 ### Added

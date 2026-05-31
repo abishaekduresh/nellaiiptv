@@ -20,7 +20,7 @@ class Stream extends Model
         'video_width', 'video_height', 'video_codec', 'fps',
         'audio_codec', 'audio_bitrate', 'audio_sample_rate', 'audio_channels',
         'stream_status', 'published_via', 'published_from',
-        'client_count', 'stream_url_type', 'max_sessions',
+        'client_count', 'stream_url_type', 'max_sessions', 'uptime',
     ];
 
     protected $casts = [
@@ -40,6 +40,7 @@ class Stream extends Model
         'audio_channels'    => 'integer',
         'client_count'      => 'integer',
         'max_sessions'      => 'integer',
+        'uptime'            => 'integer',
     ];
 
     public $timestamps = true;
