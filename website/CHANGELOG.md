@@ -1,3 +1,15 @@
+## [1.69.0] - 2026-06-01
+
+### Added
+- **Enable/Disable + Restart buttons on stream detail page** (`app/admin/streams/[uuid]/page.tsx`) — `Power` (enable/disable) and `RotateCcw` (restart) buttons added to the page header alongside the existing Sync button. Same behaviour as the list page: Power is green when active / grey when inactive; Restart amber, only shown for active streams; restart simulates via disable → 2s → enable. All three header buttons (`toggle`, `restart`, `sync`) are mutually disabled during any in-flight operation.
+- **`toggling` and `restarting` boolean state** — Simple booleans (not maps) since there is only one stream in context.
+- **`handleToggle` and `handleRestart` handlers** — Added before `handleSync`; both call `POST /admin/streams/{uuid}/toggle` and reload the stream on completion.
+
+### Fixed
+- **Client Sessions duration `0s`** (`fmtDuration`) — Closed sessions with a sub-second duration now display `< 1s` instead of `0s`.
+
+---
+
 ## [1.68.0] - 2026-06-01
 
 ### Added

@@ -1,3 +1,11 @@
+## [1.69.0] - Website | [1.47.0] - Backend - 2026-06-01
+
+### Website (Next.js)
+- **Feature**: **Enable/Disable + Restart buttons on stream detail page** (`/admin/streams/[uuid]`) — Power and RotateCcw buttons added to the detail page header. Mutually disabled with Sync during any in-flight operation. Shows "Updating…" / "Restarting…" labels during loading.
+- **Fix**: **Client Sessions `< 1s` duration** — Sub-second closed sessions now show `< 1s` instead of `0s`.
+
+---
+
 ## [1.68.0] - Website | [1.47.0] - Backend - 2026-06-01
 
 ### Website (Next.js)

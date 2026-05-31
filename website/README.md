@@ -1,12 +1,12 @@
-# Nellai IPTV - Frontend v1.68.0
+# Nellai IPTV - Frontend v1.69.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.68.0)**
-- **Feature**: **Stream Enable/Disable button** (`/admin/streams`) — Power icon button per row; green when active, grey when inactive. Calls `POST /admin/streams/{uuid}/toggle`. Disabled during restart.
-- **Feature**: **Stream Restart button** (`/admin/streams`) — Amber RotateCcw icon button; only shown for active streams. Simulates restart by calling disable → 2s delay → enable. Spinner during sequence. Both buttons hidden for streams with no server or deleted status.
+### **Latest Updates (v1.69.0)**
+- **Feature**: **Enable/Disable + Restart buttons on stream detail page** (`/admin/streams/[uuid]`) — Same Power and RotateCcw buttons from the list page, now in the detail page header alongside Sync. All three buttons are mutually disabled during any in-flight operation. "Updating…" / "Restarting…" labels during loading.
+- **Fix**: **Client Sessions duration "0s"** — Sub-second closed sessions now display `< 1s` instead of `0s`.
 - **Feature**: **Stream 360° detail page** (`/admin/streams/[uuid]`) — New view with live viewer bar and 6 info cards: Publish Info, Video Track, Audio Track, Bandwidth, Stream Server, Record Info.
 - **Feature**: **Per-stream Sync button** — Header button on the detail page syncs that stream's server and refreshes the view.
 

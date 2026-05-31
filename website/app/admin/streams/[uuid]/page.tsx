@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Radio, Wifi, WifiOff, Activity, Monitor,
-  Volume2, Users, Signal, Server, Clock, RefreshCw, Globe,
+  Volume2, Users, Signal, Server, Clock, RefreshCw, Globe, Power, RotateCcw,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
@@ -109,6 +109,7 @@ function fmtDuration(openedMs: number | null, closedMs: number | null): string {
   const endMs = closedMs ?? Date.now();
   const secs = Math.floor((endMs - openedMs) / 1000);
   if (secs < 0) return '—';
+  if (secs === 0) return '< 1s';
   if (secs < 60) return `${secs}s`;
   if (secs < 3600) return `${Math.floor(secs / 60)}m ${secs % 60}s`;
   return `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`;
@@ -137,6 +138,8 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
   const [stream,  setStream]  = useState<StreamDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [toggling,   setToggling]   = useState(false);
+  const [restarting, setRestarting] = useState(false);
   const [error,   setError]   = useState('');
   const [clients,        setClients]        = useState<StreamClientRecord[]>([]);
   const [clientsLoading, setClientsLoading] = useState(true);
@@ -161,6 +164,37 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
     loadStream();
     loadClients();
   }, [loadStream, loadClients]);
+
+  const handleToggle = async () => {
+    if (!stream || !stream.server) return;
+    const enable = stream.status !== 'active';
+    setToggling(true);
+    try {
+      await adminApi.post(`/admin/streams/${stream.uuid}/toggle`, { enable });
+      toast.success(enable ? `${stream.stream_name} enabled.` : `${stream.stream_name} disabled.`);
+      loadStream();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Toggle failed');
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  const handleRestart = async () => {
+    if (!stream || !stream.server) return;
+    setRestarting(true);
+    try {
+      await adminApi.post(`/admin/streams/${stream.uuid}/toggle`, { enable: false });
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await adminApi.post(`/admin/streams/${stream.uuid}/toggle`, { enable: true });
+      toast.success(`${stream.stream_name} restarted.`);
+      loadStream();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Restart failed');
+    } finally {
+      setRestarting(false);
+    }
+  };
 
   const handleSync = async () => {
     if (!stream?.server?.uuid) return;
@@ -231,11 +265,44 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
             <p className="text-slate-500 text-sm font-mono mt-1">{stream.stream_key}</p>
           )}
         </div>
-        <button onClick={handleSync} disabled={syncing || !stream.server}
-          className="mt-1 flex items-center gap-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-700 text-slate-300 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0">
-          <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
-          {syncing ? 'Syncing…' : 'Sync'}
-        </button>
+        <div className="mt-1 flex items-center gap-2 shrink-0">
+          {/* Enable / Disable */}
+          {stream.server && stream.status !== 'deleted' && (
+            <button
+              onClick={handleToggle}
+              disabled={toggling || restarting || syncing}
+              title={stream.status === 'active' ? 'Disable stream' : 'Enable stream'}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                stream.status === 'active'
+                  ? 'bg-green-500/10 hover:bg-green-500/20 border-green-500/30 text-green-400'
+                  : 'bg-slate-700/40 hover:bg-slate-700/70 border-slate-600/40 text-slate-400'
+              }`}
+            >
+              {toggling ? <RefreshCw size={14} className="animate-spin" /> : <Power size={14} />}
+              {toggling ? 'Updating…' : stream.status === 'active' ? 'Disable' : 'Enable'}
+            </button>
+          )}
+
+          {/* Restart */}
+          {stream.server && stream.status === 'active' && (
+            <button
+              onClick={handleRestart}
+              disabled={restarting || toggling || syncing}
+              title="Restart stream (disable → 2s → enable)"
+              className="flex items-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RotateCcw size={14} className={restarting ? 'animate-spin' : ''} />
+              {restarting ? 'Restarting…' : 'Restart'}
+            </button>
+          )}
+
+          {/* Sync */}
+          <button onClick={handleSync} disabled={syncing || !stream.server || toggling || restarting}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-700 text-slate-300 px-4 py-2 rounded-xl text-sm font-semibold transition-all">
+            <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
+            {syncing ? 'Syncing…' : 'Sync'}
+          </button>
+        </div>
       </div>
 
       {/* Live client bar */}
