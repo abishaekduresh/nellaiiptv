@@ -1,10 +1,18 @@
-# Nellai IPTV - Frontend v1.71.0
+# Nellai IPTV - Frontend v1.72.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.71.0)**
+### **Latest Updates (v1.72.0)**
+- **Feature**: **Customer My Streams — Navbar dropdown** — "My Streams" panel inside the authenticated user menu. Per-stream health dot (green/red/grey), status badge, uptime, online clients, and out-bandwidth. **Sync** button (30 s cooldown) sends `?sync=1` to trigger a live Flussonic pull. **Restart** button (30 s cooldown) toggles the stream off then on with a 2 s delay.
+- **Feature**: **Customer My Streams — Classic Mode panel** — Collapsible "My Streams" card in the Classic Mode sidebar. Expandable per-stream rows with full video/audio/bandwidth details and a client sessions table (IP, Protocol, Country, Opened At, Duration).
+- **Fix**: **`useCallback` wrapping** (`Navbar.tsx`) — `useCallback` was imported but `fetchStreams` was not wrapped; fixed. Both `fetchStreams` and `fetchMyStreams` now use `useCallback` with `[]` deps.
+- **Fix**: **`try/finally` in sync handlers** — `setSyncing(false)` now always runs, preventing a stuck button when the Axios 500-interceptor returns a never-resolving promise in production.
+- **Fix**: **Restart button idle label** — Was rendering an empty string when idle; fixed to `'Restart'`.
+- **Fix**: **Cache-busting** — `?_t=Date.now()` appended to every `GET /customers/streams` request.
+
+### **Previous Updates (v1.71.0)**
 - **Feature**: **Customer stream assignment** (`/admin/customers`) — Cyan `Radio` icon button per customer opens `CustomerStreamsModal`. Modal shows currently assigned streams with a remove (trash) button per stream, and a searchable picker to assign new ones. Spinner feedback on every in-flight action.
 
 ### **Previous Updates (v1.70.0)**

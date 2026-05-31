@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.49.0)
+# Nellai IPTV - Backend API (v1.50.0)
 
-**Version 1.49.0** | RESTful API built with Slim PHP Framework
+**Version 1.50.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -151,6 +151,14 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.50.0)
+- **Live Flussonic sync on `?sync=1`**: `CustomerStreamController::getMyStreams()` detects `sync=1` and calls `StreamService::refreshAssignedStreams()` before reading the DB, so the response contains genuinely live stats rather than cron-cached values. Normal requests remain a fast DB-only read.
+- **`StreamService::refreshAssignedStreams(array $streamIds)`**: Groups the customer's assigned streams by server, calls Flussonic `GET /streams/{name}` per stream (10 s timeout), upserts via the existing private `upsertStream()`, then refreshes client sessions scoped to only those stream names.
+- **`StreamService::syncSessionsForStreams(StreamServer, array $streamNames)`**: Targeted session sync — fetches `/sessions` from Flussonic, deletes `stream_clients` rows only for the named streams, and re-inserts. Does not affect sessions for other customers' streams.
+
+## Latest Updates (v1.49.0)
+- **Customer stream assignment**: `customer_stream_assignments` pivot table, `Customer::assignedStreams()` + `Stream::assignedCustomers()` Eloquent BelongsToMany relationships, `CustomerStreamController` with `getStreams` / `assignStream` / `unassignStream`, three routes: `GET|POST|DELETE /api/admin/customers/{uuid}/streams[/{streamUuid}]`. Used `date('Y-m-d H:i:s')` instead of `now()` (standalone Eloquent has no Laravel global helpers).
 
 ## Latest Updates (v1.44.0)
 - **Stream Infra — Streams, Viewer Sessions, Monitoring, Tenants**: Full admin CRUD for `streams` (`/api/admin/streams`), read/write for `viewer_sessions` (`/api/admin/viewer-sessions`), monitoring snapshots (`/api/admin/monitoring`), and `tenants` (`/api/admin/tenants`). New cron script `cron/ping_stream_servers.php` self-throttles via `stream_server_ping_interval` DB setting. `POST /api/admin/stream-servers/ping-all` manual trigger.

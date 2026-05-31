@@ -429,4 +429,83 @@ class StreamService
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
     }
+
+    /**
+     * Pull live Flussonic data for a specific set of stream IDs and update the DB.
+     * Called when a customer triggers a manual sync. Groups by server to batch
+     * the session pull, then refreshes each stream individually.
+     */
+    public function refreshAssignedStreams(array $streamIds): void
+    {
+        if (empty($streamIds)) return;
+
+        $streams = Stream::with('server')
+            ->whereIn('id', $streamIds)
+            ->whereNull('deleted_at')
+            ->get();
+
+        // Group streams by server
+        $byServer = [];
+        foreach ($streams as $stream) {
+            if (!$stream->server) continue;
+            $byServer[$stream->server_id][] = $stream;
+        }
+
+        foreach ($byServer as $serverStreams) {
+            $server = $serverStreams[0]->server;
+
+            // Refresh each stream's live stats
+            foreach ($serverStreams as $stream) {
+                try {
+                    $encodedName = str_replace('/', '%2F', $stream->stream_name);
+                    $rs = $this->flussonic->request($server, "streams/{$encodedName}", 10);
+                    if (empty($rs)) continue;
+                    // Single-stream endpoint returns the object directly; ensure name is set
+                    if (empty($rs['name'])) $rs['name'] = $stream->stream_name;
+                    $dummy = 0;
+                    $this->upsertStream($server, $rs, $dummy, $dummy);
+                } catch (Exception $e) {
+                    // Mark offline if Flussonic can't be reached for this stream
+                    $stream->health_status = 'offline';
+                    $stream->save();
+                }
+            }
+
+            // Refresh client sessions for only these streams
+            try {
+                $names = array_map(fn($s) => $s->stream_name, $serverStreams);
+                $this->syncSessionsForStreams($server, $names);
+            } catch (Exception $e) {
+                // Non-fatal — stream stats are already updated above
+            }
+        }
+    }
+
+    /**
+     * Pull sessions from Flussonic and sync only for the given stream names.
+     * Deletes existing clients for those streams then re-inserts the fresh snapshot.
+     */
+    private function syncSessionsForStreams(StreamServer $server, array $streamNames): void
+    {
+        if (empty($streamNames)) return;
+
+        $data     = $this->flussonic->request($server, 'sessions', 30);
+        $sessions = $data['sessions'] ?? (isset($data[0]) ? $data : []);
+
+        $streamMap = Stream::where('server_id', $server->id)
+            ->whereIn('stream_name', $streamNames)
+            ->whereNull('deleted_at')
+            ->pluck('id', 'stream_name')
+            ->toArray();
+
+        // Wipe only the client records for these streams
+        StreamClient::whereIn('stream_name', $streamNames)->delete();
+
+        foreach ($sessions as $session) {
+            $name = $session['name'] ?? null;
+            if ($name && in_array($name, $streamNames)) {
+                $this->insertStreamClient($streamMap, $session);
+            }
+        }
+    }
 }

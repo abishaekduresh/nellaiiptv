@@ -6,12 +6,12 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.71.0
+- **Version**: 1.72.0
 - **Key Features**: **Flussonic Media Server** (stream servers admin rebuilt — Flussonic API columns, Test Connectivity button with live liveness check, `StreamServerDetailsModal` with Flussonic sections, dashboard Stream Server stat cards, expandable sidebar group), Visual Ads System (YouTube-style pre-roll video ads — `.m3u8`/`.mp4`, skippable/non-skippable, countdown timer, skip button, unmuted by default, channel audio muted during ad via `adPlaying` prop restored on skip/complete, click-through tracking, impression/skip/click analytics, session-based frequency limiting, plan-level + guest/free-user targeting, weighted random selection), Visual Ads Admin CRUD (`/admin/visual-ads` — sidebar via layout.tsx, full table with live stats, create/edit modal), AdSense Policy Compliance (script restricted to content pages only; `sitemap.xml` + `robots.txt` generated), Expanded About Page (FAQ, How It Works, Channel Categories, Platform details), Payment Gateway UI (enable/disable toggle per gateway with inline Test Transaction button; credentials managed via backend `.env`), Channel Manager Stream Preview (HLS player modal with loading/buffering/error/retry states, live badge, copy URL, no-controls clean view), Channel Manager Confirm-Save Modal (per-channel diff of number and status changes with thumbnail, arrow indicators, sorted by new number), Full Admin Portal Redesign (modern slate theme, animated, mobile-responsive sidebar, dashboard, all CRUD pages), Admin Layout Isolation (public Navbar/Footer hidden on admin/reseller routes), Admin Branding (logo on login page + sidebar, sidebar logo links to home), Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.49.0
+- **Version**: 1.50.0
 - **Key Features**: **Flussonic Media Server** (`FlussonicApiService` — TCP pre-check, HTTP→HTTPS auto-detection, Basic Auth + Bearer token, liveness endpoint; `test-connection` API endpoint; `stream_servers` table rebuilt to 18 clean Flussonic columns; `total_servers` + `online_servers` in dashboard stats; MistServer `MistAuthService` and challenge-response auth removed), Visual Ads API — `GET /api/visual-ads/active` (plan-aware, guest/free-user targeting, date range, weighted random), `POST /api/visual-ads/{uuid}/impression|skip|click` (analytics counters), Admin CRUD (`GET|POST|PUT|DELETE /api/admin/visual-ads`), `visual_ads` table migration, `show_visual_ads` column on `subscription_plans`. `ChannelController` `isTrustedApp` now checks `API_SECRET` env var first (fixes master-key 401). Payment Gateway Test API (`POST /api/admin/settings/test-payment`) — reads Razorpay/Cashfree credentials from `.env`; SSL-safe CA bundle resolution for WAMP. Batch Channel Update API (number + status, swap-safe two-phase update), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API, Channel View Details API.
 
 ### `nellai_iptv_app` (Flutter)
@@ -23,6 +23,20 @@ A premium multi-channel IPTV player built for Android and Android TV.
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
+
+## Recent Updates (v1.72.0 Website | v1.50.0 Backend) — 2026-06-01
+
+### Website (Next.js)
+- **Feature**: **Customer My Streams — Navbar dropdown** — Authenticated users see a "My Streams" panel in the user menu. Each assigned stream shows a health dot (green = online, red = offline), stream name, status badge, uptime, online clients, and out-bandwidth. **Sync** button (30 s cooldown) pulls live stats from Flussonic. **Restart** button (30 s cooldown) toggles the stream off then on with a 2 s gap. Button labels cycle through `Restart` → `…` → `<countdown>s` correctly (idle label was previously an empty string — fixed).
+- **Feature**: **Customer My Streams — Classic Mode panel** — Collapsible "My Streams" card in the Classic Mode sidebar. Expandable per-stream cards showing full video/audio/bandwidth details and a client sessions table (IP, Protocol, Country, Opened At, Duration). Sync button with 30 s cooldown.
+- **Fix**: **`fetchStreams` / `fetchMyStreams` wrapped in `useCallback`** — `useCallback` was imported in Navbar.tsx but the function was not wrapped; fixed. Both components now use `useCallback(async () => {…}, [])` for stable deps and ESLint compliance.
+- **Fix**: **`try/finally` in sync handlers** — `handleSync` and `handleSyncStreams` now use `try/finally` so `setSyncing(false)` always runs, even when the Axios 500-interceptor returns a never-resolving promise in production.
+- **Fix**: **Cache-busting on stream fetch** — `?_t=Date.now()` appended to all `GET /customers/streams` calls so browsers never return stale HTTP-cached responses.
+
+### Backend (Slim PHP)
+- **Feature**: **`GET /customers/streams?sync=1`** — When `sync=1` is present, `CustomerStreamController::getMyStreams()` calls `StreamService::refreshAssignedStreams()` before reading the DB, returning genuinely live Flussonic stats instead of cron-cached values. Normal load (no param) is a fast DB-only read.
+- **Feature**: **`StreamService::refreshAssignedStreams(array $streamIds)`** — Groups the customer's assigned stream IDs by server, calls Flussonic `GET /streams/{name}` per stream (10 s timeout), upserts stats via the existing `upsertStream()` private method, then refreshes client sessions scoped to only those stream names.
+- **Feature**: **`StreamService::syncSessionsForStreams(StreamServer, array $streamNames)`** — Targeted session sync: fetches `/sessions` from Flussonic, deletes existing `stream_clients` rows only for the given stream names, and re-inserts. Unlike `syncSessionsFromServer()`, this never touches sessions for other customers' streams.
 
 ## Recent Updates (v1.71.0 Website | v1.49.0 Backend) — 2026-06-01
 

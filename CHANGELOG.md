@@ -1,3 +1,20 @@
+## [1.72.0] - Website | [1.50.0] - Backend - 2026-06-01
+
+### Website (Next.js)
+- **Feature**: **Customer My Streams — Navbar dropdown** — Authenticated users see a "My Streams" panel inside the user menu. Each assigned stream shows a health dot (green = online, red = offline, grey = unknown), stream name, status badge, uptime, online clients, and out-bandwidth. Sync button (30 s cooldown) pulls live stats from Flussonic; Restart button (30 s cooldown) toggles the stream off then on.
+- **Feature**: **Customer My Streams — Classic Mode panel** — Collapsible "My Streams" card in the Classic Mode sidebar. Expandable per-stream cards show full video/audio/bandwidth details plus a client sessions table (IP, Protocol, Country, Opened At, Duration). Sync button with 30 s cooldown.
+- **Fix**: **`fetchStreams` / `fetchMyStreams` wrapped in `useCallback`** — `useCallback` was imported in Navbar.tsx but `fetchStreams` was not wrapped; both components now correctly use `useCallback(async () => {…}, [])`.
+- **Fix**: **`try/finally` in sync handlers** — `setSyncing(false)` now always runs even when the Axios 500-interceptor returns a never-resolving promise in production.
+- **Fix**: **Restart button idle label** (`Navbar.tsx`) — Was rendering an empty string when idle; fixed to show `'Restart'`.
+- **Fix**: **Cache-busting on stream fetch** — `?_t=Date.now()` appended to all `GET /customers/streams` calls.
+
+### Backend (Slim PHP)
+- **Feature**: **`GET /customers/streams?sync=1`** — `CustomerStreamController::getMyStreams()` detects the `sync` param, calls `refreshAssignedStreams()` for a live Flussonic pull, then re-reads the DB before responding.
+- **Feature**: **`StreamService::refreshAssignedStreams(array $streamIds)`** — Groups stream IDs by server, fetches each stream from Flussonic (`GET /streams/{name}`, 10 s timeout), upserts stats, then syncs client sessions for only those streams.
+- **Feature**: **`StreamService::syncSessionsForStreams(StreamServer, array $streamNames)`** — Targeted session sync scoped to the given stream names only; does not touch other servers' sessions.
+
+---
+
 ## [1.71.0] - Website | [1.49.0] - Backend - 2026-06-01
 
 ### Website (Next.js)

@@ -98,6 +98,10 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         $group->post('/channels/{uuid}/rate', [\App\Controllers\ChannelController::class, 'rate']);
         $group->post('/channels/{uuid}/comments', [\App\Controllers\ChannelController::class, 'addComment']);
 
+        // Customer Assigned Streams
+        $group->get('/customers/streams', [\App\Controllers\CustomerStreamController::class, 'getMyStreams']);
+        $group->post('/customers/streams/{streamUuid}/toggle', [\App\Controllers\CustomerStreamController::class, 'toggleStream']);
+
         // Favorites
         $group->get('/customers/favorites', [\App\Controllers\FavoriteController::class, 'index']);
         $group->get('/customers/favorites/ids', [\App\Controllers\FavoriteController::class, 'getIds']);

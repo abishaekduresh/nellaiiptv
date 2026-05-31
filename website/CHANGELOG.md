@@ -1,3 +1,17 @@
+## [1.72.0] - 2026-06-01
+
+### Added
+- **Customer My Streams — Navbar dropdown** (`components/Navbar.tsx`) — "My Streams" panel inside the authenticated user menu. Per-stream health dot, status badge, uptime, online clients, out-bandwidth. Sync button (30 s cooldown, `?sync=1` → live Flussonic pull). Restart button (30 s cooldown, toggle disable→wait 2 s→enable).
+- **Customer My Streams — Classic Mode panel** (`components/ClassicHome.tsx`) — Collapsible sidebar card with expandable per-stream rows. Full video/audio/bandwidth detail view plus a client sessions table. Sync button with 30 s cooldown.
+
+### Fixed
+- **`fetchStreams` wrapped in `useCallback`** (`components/Navbar.tsx`) — `useCallback` was imported but `fetchStreams` was defined as a plain `async` function; now correctly wrapped with `[]` deps.
+- **`try/finally` in `handleSync` and `handleSyncStreams`** — `setSyncing(false)` now always fires even when the Axios interceptor swallows the response on 500 errors in production.
+- **Restart button idle label** (`components/Navbar.tsx`) — Ternary was returning `''` when idle; fixed to `'Restart'`.
+- **Cache-busting** — `?_t=Date.now()` appended to every `GET /customers/streams` request to prevent browsers serving stale HTTP-cached responses.
+
+---
+
 ## [1.71.0] - 2026-06-01
 
 ### Added

@@ -1,15 +1,39 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { Settings, Search, X, Loader2, Menu, Maximize, Minimize, Crown, Tv, CreditCard } from 'lucide-react';
+import { Settings, Search, X, Loader2, Menu, Maximize, Minimize, Crown, Tv, CreditCard, Radio, RotateCcw } from 'lucide-react';
 import UserMenu from './UserMenu';
 import api from '@/lib/api';
 import { Channel } from '@/types';
 import { useTVFocus } from '@/hooks/useTVFocus';
+
+interface MyStream {
+  uuid: string;
+  stream_name: string;
+  health_status: 'online' | 'offline' | null;
+  stream_status: 'running' | 'stopped' | 'error' | null;
+  status: string;
+  published_via: string | null;
+  uptime: number | null;
+  online_clients: number | null;
+  max_sessions: number | null;
+  out_bandwidth: number | null;
+}
+
+function fmtUptime(ms: number | null): string {
+  if (!ms || ms <= 0) return '';
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
 
 export default function Navbar() {
   const { user, isAdmin } = useAuthStore();
@@ -24,6 +48,13 @@ export default function Navbar() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [logoUrl, setLogoUrl] = useState('/icon.jpg');
   const [scrolled, setScrolled] = useState(false);
+  const [myStreams, setMyStreams] = useState<MyStream[]>([]);
+  const [showStreams, setShowStreams] = useState(false);
+  const [restarting, setRestarting] = useState<string | null>(null);
+  const [restartCooldowns, setRestartCooldowns] = useState<Record<string, number>>({});
+  const [syncing, setSyncing] = useState(false);
+  const [syncCooldown, setSyncCooldown] = useState(0);
+  const streamsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api.get('/settings/public').then(res => {
@@ -39,6 +70,78 @@ export default function Navbar() {
 
   // Close mobile menu on route change
   useEffect(() => { setIsMobileMenuOpen(false); }, [pathname]);
+
+  // Fetch assigned streams for logged-in customer
+  const fetchStreams = useCallback(async (force = false) => {
+    try {
+      const params: Record<string, unknown> = { _t: Date.now() };
+      if (force) params.sync = 1;
+      const res = await api.get('/customers/streams', { params });
+      if (res.data?.status) setMyStreams(res.data.data || []);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!user) { setMyStreams([]); return; }
+    fetchStreams();
+  }, [user]);
+
+  // Sync cooldown tick
+  useEffect(() => {
+    if (syncCooldown <= 0) return;
+    const t = setTimeout(() => setSyncCooldown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [syncCooldown]);
+
+  // Restart cooldown tick — decrements all active per-stream cooldowns
+  useEffect(() => {
+    const active = Object.values(restartCooldowns).some(v => v > 0);
+    if (!active) return;
+    const t = setTimeout(() => {
+      setRestartCooldowns(prev => {
+        const next = { ...prev };
+        for (const k in next) if (next[k] > 0) next[k]--;
+        return next;
+      });
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [restartCooldowns]);
+
+  // Close streams panel on outside click
+  useEffect(() => {
+    if (!showStreams) return;
+    const handler = (e: MouseEvent) => {
+      if (streamsRef.current && !streamsRef.current.contains(e.target as Node)) {
+        setShowStreams(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showStreams]);
+
+  const handleSync = async () => {
+    if (syncing || syncCooldown > 0) return;
+    setSyncing(true);
+    try {
+      await fetchStreams(true); // force=true → ?sync=1 → triggers Flussonic pull
+    } finally {
+      setSyncing(false);
+      setSyncCooldown(30);
+    }
+  };
+
+  const handleStreamRestart = async (streamUuid: string) => {
+    if (restarting || (restartCooldowns[streamUuid] ?? 0) > 0) return;
+    setRestarting(streamUuid);
+    try {
+      await api.post(`/customers/streams/${streamUuid}/toggle`, { enable: false });
+      await new Promise(r => setTimeout(r, 2000));
+      await api.post(`/customers/streams/${streamUuid}/toggle`, { enable: true });
+      await fetchStreams();
+    } catch {}
+    setRestarting(null);
+    setRestartCooldowns(prev => ({ ...prev, [streamUuid]: 30 }));
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +230,78 @@ export default function Navbar() {
 
               {user ? (
                 <div className="flex items-center gap-2">
+                  {myStreams.length > 0 && (
+                    <div ref={streamsRef} className="relative">
+                      <button
+                        onClick={() => setShowStreams(v => !v)}
+                        className={`relative hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${
+                          showStreams
+                            ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
+                            : 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/15'
+                        }`}
+                        title="My Streams"
+                      >
+                        <Radio size={13} />
+                        My Streams
+                        <span className="ml-0.5 bg-cyan-500 text-slate-900 rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">
+                          {myStreams.length}
+                        </span>
+                      </button>
+
+                      {showStreams && (
+                        <div className="absolute right-0 top-full mt-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                          <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
+                            <Radio size={14} className="text-cyan-400" />
+                            <span className="text-white text-sm font-semibold">My Streams</span>
+                            <span className="text-slate-500 text-xs">{myStreams.length} assigned</span>
+                            <button
+                              onClick={handleSync}
+                              disabled={syncing || syncCooldown > 0}
+                              className="ml-auto flex items-center gap-1 px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-[10px] font-semibold"
+                              title="Sync streams"
+                            >
+                              <RotateCcw size={10} className={syncing ? 'animate-spin' : ''} />
+                              {syncing ? 'Syncing…' : syncCooldown > 0 ? `${syncCooldown}s` : 'Sync'}
+                            </button>
+                          </div>
+                          <div className="max-h-72 overflow-y-auto divide-y divide-slate-800/60">
+                            {myStreams.map(s => {
+                              const isHealthy = s.health_status === 'online';
+                              const stLabel = s.stream_status === 'running' ? 'Running' : s.stream_status === 'stopped' ? 'Stopped' : s.stream_status === 'error' ? 'Error' : null;
+                              const stColor = s.stream_status === 'running' ? 'text-emerald-400' : s.stream_status === 'error' ? 'text-red-400' : 'text-slate-500';
+                              const cd = restartCooldowns[s.uuid] ?? 0;
+                              const isRestarting = restarting === s.uuid;
+                              return (
+                                <div key={s.uuid} className="px-4 py-3 flex items-center gap-3">
+                                  <div className={`w-2 h-2 rounded-full shrink-0 ${isHealthy ? 'bg-green-400 shadow-sm shadow-green-400/50' : 'bg-red-500'}`} />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-white text-sm font-medium truncate">{s.stream_name}</p>
+                                    <div className="flex items-center gap-2 text-xs mt-0.5 flex-wrap">
+                                      <span className={isHealthy ? 'text-green-400' : 'text-red-400'}>
+                                        {isHealthy ? 'Online' : 'Offline'}
+                                      </span>
+                                      {stLabel && <span className={`${stColor} font-medium`}>· {stLabel}</span>}
+                                      {s.published_via && <span className="text-slate-500">· {s.published_via}</span>}
+                                      {s.uptime ? <span className="text-slate-500">· ⏱ {fmtUptime(s.uptime)}</span> : null}
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => handleStreamRestart(s.uuid)}
+                                    disabled={!!restarting || cd > 0}
+                                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 text-[10px] font-semibold min-w-[52px] justify-center"
+                                    title={cd > 0 ? `Available in ${cd}s` : 'Restart'}
+                                  >
+                                    <RotateCcw size={11} className={isRestarting ? 'animate-spin' : ''} />
+                                    {isRestarting ? '…' : cd > 0 ? `${cd}s` : 'Restart'}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {isAdmin && (
                     <Link
                       href="/admin/dashboard"
@@ -245,6 +420,34 @@ export default function Navbar() {
               <Link href="/profile" className="block text-slate-300 hover:text-white hover:bg-slate-800 px-4 py-2.5 rounded-xl text-sm transition-all">
                 My Profile
               </Link>
+              {myStreams.length > 0 && (
+                <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-700/50">
+                    <Radio size={13} className="text-cyan-400" />
+                    <span className="text-slate-300 text-sm font-medium">My Streams</span>
+                    <span className="ml-auto text-xs bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded-full">{myStreams.length}</span>
+                  </div>
+                  <div className="divide-y divide-slate-700/30 max-h-48 overflow-y-auto">
+                    {myStreams.map(s => (
+                      <div key={s.uuid} className="flex items-center gap-2.5 px-4 py-2.5">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${s.health_status === 'online' ? 'bg-green-400' : 'bg-red-500'}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-xs font-medium truncate">{s.stream_name}</p>
+                          {s.uptime ? <p className="text-slate-500 text-[11px]">⏱ {fmtUptime(s.uptime)}</p> : null}
+                        </div>
+                        <button
+                          onClick={() => handleStreamRestart(s.uuid)}
+                          disabled={restarting === s.uuid}
+                          className="p-1 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+                          title="Restart"
+                        >
+                          <RotateCcw size={12} className={restarting === s.uuid ? 'animate-spin' : ''} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {isAdmin && (
                 <Link href="/admin/dashboard" className="block text-secondary hover:text-yellow-300 hover:bg-slate-800 px-4 py-2.5 rounded-xl text-sm transition-all">
                   Admin Dashboard

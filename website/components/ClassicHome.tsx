@@ -6,7 +6,7 @@ import { Channel } from '@/types';
 import Link from 'next/link';
 import VideoPlayer from './VideoPlayer';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu, ArrowLeft } from 'lucide-react';
+import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu, ArrowLeft, Radio, RotateCcw, Loader2, RefreshCw, ChevronUp, Monitor, Volume2, Signal, Users, Clock } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
 import AdBanner from './AdBanner';
 import ScrollingAdsTicker from './ScrollingAdsTicker';
@@ -14,6 +14,7 @@ import api from '@/lib/api';
 import VideoAdOverlay, { VisualAd, getSessionImpressions, shouldAttemptAd } from './VideoAdOverlay';
 import Player from 'video.js/dist/types/player';
 import { useViewMode } from '@/context/ViewModeContext';
+import { useAuthStore } from '@/stores/authStore';
 import ClassicMenu from './ClassicMenu';
 import ChannelComments from './ChannelComments';
 import { resolveImageUrl } from '@/lib/utils';
@@ -23,6 +24,90 @@ interface ClassicHomeProps {
   channels: Channel[];
   topTrending?: Channel[];
   initialChannelUuid?: string | null;
+}
+
+interface StreamClientSession {
+  uuid: string;
+  ip: string | null;
+  protocol: string | null;
+  opened_at: number | null;
+  closed_at: number | null;
+  country: string | null;
+}
+
+interface MyStream {
+  uuid: string;
+  stream_name: string;
+  health_status: 'online' | 'offline' | null;
+  stream_status: string | null;
+  status: string;
+  published_via: string | null;
+  published_from: string | null;
+  uptime: number | null;
+  online_clients: number | null;
+  max_sessions: number | null;
+  client_count: number | null;
+  inputs_bandwidth: number | null;
+  out_bandwidth: number | null;
+  video_codec: string | null;
+  video_width: number | null;
+  video_height: number | null;
+  fps: number | null;
+  audio_codec: string | null;
+  audio_bitrate: number | null;
+  audio_sample_rate: number | null;
+  audio_channels: number | null;
+  assigned_at: string;
+  clients: StreamClientSession[];
+}
+
+function fmtUptimeClassic(ms: number | null): string {
+  if (!ms || ms <= 0) return '—';
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (d > 0) return `${d}d ${h}hrs ${m}min`;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+
+function fmtBw(bps: number | null): string {
+  if (!bps || bps <= 0) return '—';
+  if (bps >= 1_000_000) return `${(bps / 1_000_000).toFixed(1)} Mbps`;
+  if (bps >= 1_000) return `${(bps / 1_000).toFixed(0)} Kbps`;
+  return `${bps} bps`;
+}
+
+function fmtEpoch(ms: number | null): string {
+  if (!ms) return '—';
+  return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+const HEALTH_CFG: Record<string, { dot: string; label: string; badge: string }> = {
+  online:  { dot: 'bg-green-400 shadow shadow-green-400/50 animate-pulse', label: 'Online',  badge: 'bg-green-500/15 text-green-400 border-green-500/25' },
+  offline: { dot: 'bg-red-500',                                            label: 'Offline', badge: 'bg-red-500/15 text-red-400 border-red-500/25' },
+};
+
+const STREAM_STATUS_CFG: Record<string, { badge: string; label: string }> = {
+  running: { badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25', label: 'Running' },
+  stopped: { badge: 'bg-slate-600/30 text-slate-400 border-slate-600/30',       label: 'Stopped' },
+  error:   { badge: 'bg-red-500/15 text-red-400 border-red-500/25',             label: 'Error'   },
+};
+
+function fmtSessionDur(openedMs: number | null, closedMs: number | null): string {
+  if (!openedMs) return '—';
+  const endMs = closedMs || Date.now();
+  const secs = Math.floor((endMs - openedMs) / 1000);
+  if (secs < 1) return '< 1s';
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
 }
 
 export default function ClassicHome({ channels, topTrending = [], initialChannelUuid = null }: ClassicHomeProps) {
@@ -44,6 +129,57 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
   const [showAd, setShowAd]         = useState(false);
   const [logoUrl, setLogoUrl] = useState('/icon.jpg'); // Default fallback
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // My Streams panel
+  const { user } = useAuthStore();
+  const [rightPanel, setRightPanel] = useState<'channels' | 'streams'>('channels');
+  const [myStreams, setMyStreams] = useState<MyStream[]>([]);
+  const [restarting, setRestarting] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncCooldown, setSyncCooldown] = useState(0);
+  const [expandedStream, setExpandedStream] = useState<string | null>(null);
+  const fetchMyStreams = useCallback(async (force = false) => {
+    try {
+      const params: Record<string, unknown> = { _t: Date.now() };
+      if (force) params.sync = 1;
+      const res = await api.get('/customers/streams', { params });
+      if (res.data?.status) setMyStreams(res.data.data || []);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchMyStreams();
+  }, [user, fetchMyStreams]);
+
+  // Tick the cooldown counter down every second
+  useEffect(() => {
+    if (syncCooldown <= 0) return;
+    const t = setTimeout(() => setSyncCooldown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [syncCooldown]);
+
+  const handleSyncStreams = async () => {
+    if (syncing || syncCooldown > 0) return;
+    setSyncing(true);
+    try {
+      await fetchMyStreams(true); // force=true → ?sync=1 → triggers Flussonic pull
+    } finally {
+      setSyncing(false);
+      setSyncCooldown(30);
+    }
+  };
+
+  const handleStreamRestart = async (streamUuid: string) => {
+    setRestarting(streamUuid);
+    try {
+      await api.post(`/customers/streams/${streamUuid}/toggle`, { enable: false });
+      await new Promise(r => setTimeout(r, 2000));
+      await api.post(`/customers/streams/${streamUuid}/toggle`, { enable: true });
+      await fetchMyStreams();
+    } catch {}
+    setRestarting(null);
+  };
 
   // Filtering State
   const [showTopTrending, setShowTopTrending] = useState(true);
@@ -556,31 +692,247 @@ function FilterTabItem({ label, index, isSelected, onSelect }: { label: string; 
                   )}
               </div>
 
-             {/* Filters - TV Friendly Cycle Button */}
-             <div className="flex gap-2">
+             {/* Panel Tab Toggle: Channels / My Streams */}
+             {user && myStreams.length > 0 && (
+               <div className="flex gap-1 bg-slate-950 rounded-lg p-1 border border-slate-800">
                  <button
-                    {...groupFocus}
-                    className={`flex-1 flex items-center justify-between bg-slate-950 text-white text-xs p-2 lg:p-2.5 rounded border transition-all ${isGroupFocused ? 'border-primary ring-2 ring-primary/50 bg-slate-900' : 'border-slate-800'}`}
+                   onClick={() => setRightPanel('channels')}
+                   className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-xs font-semibold transition-all ${rightPanel === 'channels' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}
                  >
-                    <div className="flex items-center gap-2">
-                        <span className="text-slate-400 font-medium">Group by:</span>
-                        <span className="font-bold text-primary">
-                            {groupBy === 'all' && 'All Channels'}
-                            {groupBy === 'language' && 'Language'}
-                            {groupBy === 'category' && 'Category'}
-                        </span>
-                    </div>
-                    <ChevronDown size={14} className="text-slate-500" />
+                   <Eye size={12} /> Channels
                  </button>
-             </div>
-             
-             {/* Dynamic Filter Tabs */}
-             {renderFilterTabs()}
+                 <button
+                   onClick={() => setRightPanel('streams')}
+                   className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-xs font-semibold transition-all ${rightPanel === 'streams' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-500 hover:text-cyan-400'}`}
+                 >
+                   <Radio size={12} /> My Streams
+                   <span className="bg-cyan-500 text-slate-900 text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">{myStreams.length}</span>
+                 </button>
+               </div>
+             )}
+
+             {/* Filters - TV Friendly Cycle Button */}
+             {rightPanel === 'channels' && (
+               <>
+                 <div className="flex gap-2">
+                   <button
+                     {...groupFocus}
+                     className={`flex-1 flex items-center justify-between bg-slate-950 text-white text-xs p-2 lg:p-2.5 rounded border transition-all ${isGroupFocused ? 'border-primary ring-2 ring-primary/50 bg-slate-900' : 'border-slate-800'}`}
+                   >
+                     <div className="flex items-center gap-2">
+                       <span className="text-slate-400 font-medium">Group by:</span>
+                       <span className="font-bold text-primary">
+                         {groupBy === 'all' && 'All Channels'}
+                         {groupBy === 'language' && 'Language'}
+                         {groupBy === 'category' && 'Category'}
+                       </span>
+                     </div>
+                     <ChevronDown size={14} className="text-slate-500" />
+                   </button>
+                 </div>
+                 {renderFilterTabs()}
+               </>
+             )}
 
           </div>
           
-          <div className="overflow-visible lg:overflow-y-auto p-2 lg:p-3 flex-1 scrollbar-hide space-y-4 lg:space-y-6">
-            
+          {/* My Streams Panel */}
+          {rightPanel === 'streams' && (
+            <div className="overflow-y-auto flex-1 scrollbar-hide flex flex-col">
+              {/* Panel toolbar */}
+              <div className="flex items-center justify-between px-3 py-2 border-b border-slate-800/60 shrink-0">
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                  {myStreams.length} stream{myStreams.length !== 1 ? 's' : ''} assigned
+                </span>
+                <button
+                  onClick={handleSyncStreams}
+                  disabled={syncing || syncCooldown > 0}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-[10px] font-semibold"
+                >
+                  <RefreshCw size={10} className={syncing ? 'animate-spin' : ''} />
+                  {syncing ? 'Syncing…' : syncCooldown > 0 ? `${syncCooldown}s` : 'Sync'}
+                </button>
+              </div>
+
+              <div className="p-2 space-y-2">
+                {myStreams.map(s => {
+                  const health = HEALTH_CFG[s.health_status ?? 'offline'] ?? HEALTH_CFG.offline;
+                  const streamSt = STREAM_STATUS_CFG[s.stream_status ?? ''];
+                  const isExpanded = expandedStream === s.uuid;
+                  const clientPct = s.max_sessions && s.max_sessions > 0
+                    ? Math.min(100, Math.round(((s.online_clients ?? 0) / s.max_sessions) * 100))
+                    : 0;
+
+                  return (
+                    <div key={s.uuid} className="bg-slate-800/50 border border-slate-700/40 rounded-xl overflow-hidden">
+                      {/* Card header row */}
+                      <div className="flex items-center gap-2.5 p-3">
+                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${health.dot}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-xs font-semibold truncate leading-tight">{s.stream_name}</p>
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[9px] font-semibold ${health.badge}`}>
+                              {health.label}
+                            </span>
+                            {streamSt && (
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[9px] font-semibold ${streamSt.badge}`}>
+                                {streamSt.label}
+                              </span>
+                            )}
+                            {s.published_via && <span className="text-[10px] text-slate-500">{s.published_via}</span>}
+                            {s.uptime ? <span className="text-[10px] text-slate-500">⏱ {fmtUptimeClassic(s.uptime)}</span> : null}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => handleStreamRestart(s.uuid)}
+                            disabled={!!restarting}
+                            className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+                            title="Restart"
+                          >
+                            <RotateCcw size={11} className={restarting === s.uuid ? 'animate-spin' : ''} />
+                          </button>
+                          <button
+                            onClick={() => setExpandedStream(isExpanded ? null : s.uuid)}
+                            className="p-1.5 rounded-lg bg-slate-700/50 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                          >
+                            {isExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Expanded detail section */}
+                      {isExpanded && (
+                        <div className="border-t border-slate-700/40 px-3 pb-3 pt-2 space-y-3">
+
+                          {/* Stream Info */}
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                            <InfoRow label="Health" value={
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[9px] font-semibold ${health.badge}`}>
+                                {health.label}
+                              </span>
+                            } />
+                            <InfoRow label="Stream" value={
+                              streamSt
+                                ? <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[9px] font-semibold ${streamSt.badge}`}>{streamSt.label}</span>
+                                : <span className="text-slate-600">—</span>
+                            } />
+                            <InfoRow label="Protocol" value={s.published_via ?? '—'} />
+                            <InfoRow label="Source IP" value={s.published_from ?? '—'} />
+                            <InfoRow label="Uptime" value={fmtUptimeClassic(s.uptime)} />
+                          </div>
+
+                          {/* Video */}
+                          {(s.video_codec || s.video_width) && (
+                            <div>
+                              <SectionLabel icon={Monitor} label="Video" />
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-1">
+                                {s.video_codec && <InfoRow label="Codec" value={s.video_codec.toUpperCase()} />}
+                                {s.video_width && s.video_height && <InfoRow label="Resolution" value={`${s.video_width}×${s.video_height}`} />}
+                                {s.fps && <InfoRow label="FPS" value={`${s.fps}`} />}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Audio */}
+                          {(s.audio_codec || s.audio_channels) && (
+                            <div>
+                              <SectionLabel icon={Volume2} label="Audio" />
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-1">
+                                {s.audio_codec && <InfoRow label="Codec" value={s.audio_codec.toUpperCase()} />}
+                                {s.audio_channels && <InfoRow label="Channels" value={s.audio_channels === 2 ? 'Stereo' : `${s.audio_channels}ch`} />}
+                                {s.audio_bitrate && <InfoRow label="Bitrate" value={fmtBw(s.audio_bitrate)} />}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Bandwidth */}
+                          {(s.inputs_bandwidth || s.out_bandwidth) && (
+                            <div>
+                              <SectionLabel icon={Signal} label="Bandwidth" />
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-1">
+                                <InfoRow label="In" value={fmtBw(s.inputs_bandwidth)} />
+                                <InfoRow label="Out" value={fmtBw(s.out_bandwidth)} />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Clients */}
+                          <div>
+                            <SectionLabel icon={Users} label="Clients" />
+                            <div className="mt-1.5">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[10px] text-slate-400">
+                                  {s.online_clients ?? 0} / {s.max_sessions ?? '∞'} sessions
+                                </span>
+                                <span className="text-[10px] text-slate-500">{clientPct}%</span>
+                              </div>
+                              {s.max_sessions && s.max_sessions > 0 && (
+                                <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all ${clientPct >= 90 ? 'bg-red-400' : clientPct >= 70 ? 'bg-amber-400' : 'bg-green-400'}`}
+                                    style={{ width: `${clientPct}%` }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Client Sessions Table */}
+                          <div>
+                            <SectionLabel icon={Clock} label={`Client Sessions (${s.clients.length})`} />
+                            {s.clients.length === 0 ? (
+                              <p className="text-[10px] text-slate-600 mt-1 pl-1">No sessions recorded</p>
+                            ) : (
+                              <div className="mt-1.5 rounded-lg overflow-hidden border border-slate-700/50">
+                                <table className="w-full text-[10px]">
+                                  <thead>
+                                    <tr className="bg-slate-800/80">
+                                      <th className="text-left px-2 py-1.5 text-slate-500 font-semibold">IP</th>
+                                      <th className="text-left px-2 py-1.5 text-slate-500 font-semibold">Proto</th>
+                                      <th className="text-left px-2 py-1.5 text-slate-500 font-semibold">Started</th>
+                                      <th className="text-left px-2 py-1.5 text-slate-500 font-semibold">Duration</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-800/40">
+                                    {s.clients.map(c => (
+                                      <tr key={c.uuid} className="hover:bg-slate-800/40">
+                                        <td className="px-2 py-1.5 font-mono text-slate-300">{c.ip ?? '—'}</td>
+                                        <td className="px-2 py-1.5">
+                                          {c.protocol ? (
+                                            <span className="bg-slate-700/60 px-1 py-0.5 rounded text-cyan-400 font-mono">{c.protocol}</span>
+                                          ) : '—'}
+                                        </td>
+                                        <td className="px-2 py-1.5 text-slate-400">{fmtEpoch(c.opened_at)}</td>
+                                        <td className="px-2 py-1.5">
+                                          {c.closed_at ? (
+                                            <span className="text-slate-400">{fmtSessionDur(c.opened_at, c.closed_at)}</span>
+                                          ) : (
+                                            <span className="flex items-center gap-1 text-green-400 font-semibold">
+                                              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
+                                              Live
+                                            </span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Channels Panel */}
+          {rightPanel === 'channels' && <div className="overflow-visible lg:overflow-y-auto p-2 lg:p-3 flex-1 scrollbar-hide space-y-4 lg:space-y-6">
+
             {/* Top Trending Section */}
             {showTopTrending && topTrending.length > 0 && groupBy === 'all' && (
                 <div className="mb-2 lg:mb-4">
@@ -635,10 +987,28 @@ function FilterTabItem({ label, index, isSelected, onSelect }: { label: string; 
                   }, [])}
                 </div>
             </div>
-          </div>
+          </div>}
         </div>
       </div>
       <ClassicMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+    </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-2 py-0.5">
+      <span className="text-[10px] text-slate-500 shrink-0">{label}</span>
+      <span className="text-[10px] text-slate-300 font-medium text-right truncate">{value ?? '—'}</span>
+    </div>
+  );
+}
+
+function SectionLabel({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5 mt-0.5">
+      <Icon size={10} className="text-cyan-400 shrink-0" />
+      <span className="text-[10px] text-cyan-400 font-semibold uppercase tracking-wide">{label}</span>
     </div>
   );
 }

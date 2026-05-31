@@ -1,3 +1,12 @@
+## [1.50.0] - 2026-06-01
+
+### Added
+- **`StreamService::refreshAssignedStreams(array $streamIds)`** — Public method that groups stream IDs by server, calls Flussonic `GET /streams/{name}` (10 s timeout) per stream, upserts stats via the private `upsertStream()` method, and refreshes client sessions scoped to those stream names only.
+- **`StreamService::syncSessionsForStreams(StreamServer $server, array $streamNames)`** — Private method for targeted session sync. Fetches `/sessions` from Flussonic, deletes `stream_clients` rows only for the given stream names, and re-inserts fresh data. Scoped so it never affects sessions for other customers' streams.
+- **`CustomerStreamController::getMyStreams()` — `?sync=1` support** — When the `sync` query param is present, the controller calls `refreshAssignedStreams()` before reading the DB, returning genuinely live Flussonic stats. Normal requests (no param) remain a fast DB-only read.
+
+---
+
 ## [1.49.0] - 2026-06-01
 
 ### Added
