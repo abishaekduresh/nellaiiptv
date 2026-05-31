@@ -100,7 +100,7 @@ export default function MonitoringPage() {
         .map(d => ({ server: d.server, error: d.error ?? 'Unknown error' }));
       setRecordErrors(hardErrors);
       if (results.recorded > 0) {
-        toast.success(`Snapshot recorded — ${results.recorded}/${results.total} servers`);
+        toast.success(`Snapshot recorded — ${results.recorded}/${results.recorded + results.failed} servers`);
         await fetchAll();
         if (selected) await fetchHistory(selected);
       } else if (hardErrors.length === 0) {
