@@ -40,6 +40,9 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->delete('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'delete']);
         $group->post('/customers/{uuid}/wallet/topup', [\App\Controllers\Admin\AdminWalletController::class, 'topupWallet']);
         $group->get('/customers/{uuid}/wallet/transactions', [\App\Controllers\Admin\AdminWalletController::class, 'getWalletTransactions']);
+        $group->get('/customers/{uuid}/streams', [\App\Controllers\Admin\CustomerStreamController::class, 'getStreams']);
+        $group->post('/customers/{uuid}/streams/{streamUuid}', [\App\Controllers\Admin\CustomerStreamController::class, 'assignStream']);
+        $group->delete('/customers/{uuid}/streams/{streamUuid}', [\App\Controllers\Admin\CustomerStreamController::class, 'unassignStream']);
         
         // Settings Management
         $group->get('/settings', [\App\Controllers\Admin\SettingController::class, 'index']);

@@ -1,3 +1,15 @@
+## [1.71.0] - Website | [1.49.0] - Backend - 2026-06-01
+
+### Website (Next.js)
+- **Feature**: **Customer stream assignment UI** (`/admin/customers`) — Cyan `Radio` button per customer row opens `CustomerStreamsModal`. Modal shows assigned streams (with remove) and a searchable picker for adding new ones. Spinner per button during in-flight requests.
+
+### Backend (Slim PHP)
+- **Feature**: **Customer-stream mapping** — `customer_stream_assignments` pivot table (migration). `Customer::assignedStreams()` + `Stream::assignedCustomers()` BelongsToMany relationships. `CustomerStreamController` with `getStreams` / `assignStream` / `unassignStream`. Three new routes: `GET|POST|DELETE /api/admin/customers/{uuid}/streams[/{streamUuid}]`.
+- **Fix**: Used `date('Y-m-d H:i:s')` instead of `now()` — standalone Eloquent has no Laravel global helpers. Replaced `orderByPivot` with `orderBy` on the pivot table column for same reason.
+- **Database**: `create_customer_stream_assignments_table.sql` — `customer_id INT UNSIGNED` (matches `customers.id`); `stream_id BIGINT UNSIGNED` (matches `streams.id`). **Must be run on the live database.**
+
+---
+
 ## [1.70.0] - Website | [1.48.0] - Backend - 2026-06-01
 
 ### Website (Next.js)

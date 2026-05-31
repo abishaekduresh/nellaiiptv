@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Users, UserCheck, UserX, Crown, Eye, Wallet, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Users, UserCheck, UserX, Crown, Eye, Wallet, Radio, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import { Customer } from '@/types';
@@ -9,6 +9,7 @@ import Modal from '@/components/ui/Modal';
 import CustomerForm from '@/components/admin/CustomerForm';
 import CustomerOverviewModal from '@/components/admin/CustomerOverviewModal';
 import AdminTopupModal from '@/components/admin/AdminTopupModal';
+import CustomerStreamsModal from '@/components/admin/CustomerStreamsModal';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -25,6 +26,7 @@ export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [viewCustomerUuid, setViewCustomerUuid] = useState<string | null>(null);
   const [topupCustomer, setTopupCustomer] = useState<{ uuid: string; name: string; wallet_balance: number } | null>(null);
+  const [streamsCustomer, setStreamsCustomer] = useState<{ uuid: string; name: string } | null>(null);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, blocked: 0, premium: 0 });
 
   const fetchStats = async () => {
@@ -246,6 +248,10 @@ export default function CustomersPage() {
                           <Wallet size={14} />
                         </button>
                       )}
+                      <button onClick={() => setStreamsCustomer({ uuid: cu.uuid, name: cu.name })}
+                        className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors" title="Assigned Streams">
+                        <Radio size={14} />
+                      </button>
                       <button onClick={() => { setSelectedCustomer(cu.uuid); setIsModalOpen(true); }}
                         className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors" title="Edit">
                         <Edit size={14} />
@@ -293,6 +299,14 @@ export default function CustomersPage() {
       </Modal>
       {topupCustomer && (
         <AdminTopupModal customer={topupCustomer} onClose={() => setTopupCustomer(null)} onSuccess={() => { setTopupCustomer(null); fetchCustomers(); }} />
+      )}
+      {streamsCustomer && (
+        <CustomerStreamsModal
+          customerUuid={streamsCustomer.uuid}
+          customerName={streamsCustomer.name}
+          isOpen={!!streamsCustomer}
+          onClose={() => setStreamsCustomer(null)}
+        />
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Customer extends Model
 {
@@ -22,5 +23,12 @@ class Customer extends Model
     public function plan()
     {
         return $this->belongsTo(SubscriptionPlan::class, 'subscription_plan_id');
+    }
+
+    public function assignedStreams(): BelongsToMany
+    {
+        return $this->belongsToMany(Stream::class, 'customer_stream_assignments', 'customer_id', 'stream_id')
+                    ->withPivot('assigned_at')
+                    ->orderBy('customer_stream_assignments.assigned_at', 'desc');
     }
 }

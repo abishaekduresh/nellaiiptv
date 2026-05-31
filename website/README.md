@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.70.0
+# Nellai IPTV - Frontend v1.71.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.70.0)**
+### **Latest Updates (v1.71.0)**
+- **Feature**: **Customer stream assignment** (`/admin/customers`) — Cyan `Radio` icon button per customer opens `CustomerStreamsModal`. Modal shows currently assigned streams with a remove (trash) button per stream, and a searchable picker to assign new ones. Spinner feedback on every in-flight action.
+
+### **Previous Updates (v1.70.0)**
 - **Feature**: **Stream uptime synced from Flussonic** (`stats.lifetime` ms field) — Uptime stored in `streams.uptime` column and displayed as `2d 19hrs 57min 45sec` on the detail page Publish Info card and as compact `2d 19h` chip on the list page.
 - **Fix**: **Uptime `lifetime` field** — Backend now reads `stats.lifetime` (ms) as the canonical Flussonic uptime field; falls back to `uptime`, `alive_time`, `run_time`, then computed from `start_time`.
 - **Feature**: **Stream 360° detail page** (`/admin/streams/[uuid]`) — New view with live viewer bar and 6 info cards: Publish Info, Video Track, Audio Track, Bandwidth, Stream Server, Record Info.

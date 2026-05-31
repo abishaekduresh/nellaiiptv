@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\StreamClient;
 
@@ -58,5 +59,11 @@ class Stream extends Model
     public function clients(): HasMany
     {
         return $this->hasMany(StreamClient::class, 'stream_id');
+    }
+
+    public function assignedCustomers(): BelongsToMany
+    {
+        return $this->belongsToMany(Customer::class, 'customer_stream_assignments', 'stream_id', 'customer_id')
+                    ->withPivot('assigned_at');
     }
 }

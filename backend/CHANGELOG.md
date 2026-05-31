@@ -1,3 +1,24 @@
+## [1.49.0] - 2026-06-01
+
+### Added
+- **`customer_stream_assignments` pivot table** (`database/migrations/create_customer_stream_assignments_table.sql`) — `INT UNSIGNED customer_id` (FK → `customers.id` CASCADE) + `BIGINT UNSIGNED stream_id` (FK → `streams.id` CASCADE) + `assigned_at`. UNIQUE KEY on `(customer_id, stream_id)`. **Note**: `customer_id` is `INT UNSIGNED` to match `customers.id`; using `BIGINT UNSIGNED` caused MySQL error 3780 (incompatible FK types).
+- **`Customer::assignedStreams()`** (`app/Models/Customer.php`) — `BelongsToMany` to `Stream` via pivot, `withPivot('assigned_at')`, ordered by `assigned_at DESC`.
+- **`Stream::assignedCustomers()`** (`app/Models/Stream.php`) — Inverse `BelongsToMany` back to `Customer`.
+- **`CustomerStreamController`** (`app/Controllers/Admin/CustomerStreamController.php`) — Three methods:
+  - `getStreams($uuid)` — Fetches assigned streams for a customer; maps pivot `assigned_at` via `$s->pivot->assigned_at`.
+  - `assignStream($uuid, $streamUuid)` — Attaches stream to customer; guards against duplicates (409); uses `date('Y-m-d H:i:s')` (not `now()` — standalone Eloquent has no Laravel helpers).
+  - `unassignStream($uuid, $streamUuid)` — Detaches stream from customer.
+- **Routes** (`app/Routes/admin.php`) — Three new routes under customers:
+  - `GET /api/admin/customers/{uuid}/streams`
+  - `POST /api/admin/customers/{uuid}/streams/{streamUuid}`
+  - `DELETE /api/admin/customers/{uuid}/streams/{streamUuid}`
+
+### Fixed
+- **`now()` unavailable** — Replaced with `date('Y-m-d H:i:s')` in `assignStream()`; `now()` is a Laravel global helper not present in standalone `illuminate/database`.
+- **`orderByPivot()` unavailable** — Replaced with `->orderBy('customer_stream_assignments.assigned_at', 'desc')`; `orderByPivot` requires full Laravel framework.
+
+---
+
 ## [1.48.0] - 2026-06-01
 
 ### Added

@@ -1,3 +1,15 @@
+## [1.71.0] - 2026-06-01
+
+### Added
+- **`CustomerStreamsModal`** (`components/admin/CustomerStreamsModal.tsx`) — New modal for managing stream assignments per customer. Two-panel layout: "Currently Assigned" list (stream name, status dot, published_via, compact uptime chip, assigned date, remove button) and "Add Stream" picker (search input + scrollable list of unassigned streams, each with Assign button). All API calls show `Loader2` spinner on the active button while in-flight.
+- **Radio icon button** (`app/admin/customers/page.tsx`) — Cyan `Radio` icon button added to the Actions column for every customer row. Opens `CustomerStreamsModal` for that customer.
+- **`streamsCustomer` state** (`app/admin/customers/page.tsx`) — `{ uuid, name }` state drives the modal; `null` when closed.
+
+### Changed
+- **Lucide imports** (`app/admin/customers/page.tsx`) — Added `Radio`.
+
+---
+
 ## [1.70.0] - 2026-06-01
 
 ### Added
