@@ -1,3 +1,16 @@
+## [1.67.0] - 2026-06-01
+
+### Added
+- **Stream client sessions table** (`app/admin/streams/[uuid]/page.tsx`) — New "Client Sessions" section below the info cards grid. Fetches `GET /admin/streams/{uuid}/clients` via `loadClients` callback on mount and after each sync. Table columns: IP (monospace), Protocol (monospace chip), Country, Opened At (formatted from ms epoch), Duration/Status (pulsing green "Active" badge for sessions with no `closed_at`; elapsed time string for closed ones), User Agent (truncated with full text on hover). Session count badge in section header. Loading spinner and empty state handled.
+- **`StreamClientRecord` interface** — `{ id, uuid, stream_name, ip, user_agent, protocol, opened_at, closed_at, country }`.
+- **Helper functions** — `fmtEpochMs(ms)` formats millisecond epoch timestamps; `fmtDuration(openedMs, closedMs)` returns human-readable elapsed time (e.g. `2h 14m`, `45s`).
+
+### Changed
+- **`handleSync`** — Now also calls `loadClients()` after a successful sync so the sessions table refreshes alongside the stream stats.
+- **Sync toast** — Updated to include client count: `${clients} clients`.
+
+---
+
 ## [1.66.0] - 2026-05-31
 
 ### Added

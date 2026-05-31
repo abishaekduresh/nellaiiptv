@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\Stream;
+use App\Models\StreamClient;
 use App\Models\StreamServer;
 use App\Services\Flussonic\FlussonicApiService;
 use Ramsey\Uuid\Uuid;
@@ -84,7 +85,7 @@ class StreamService
     public function delete(string $uuid): bool
     {
         $stream = Stream::where('uuid', $uuid)->whereNull('deleted_at')->firstOrFail();
-        $stream->deleted_at = now();
+        $stream->deleted_at = date('Y-m-d H:i:s');
         $stream->status     = 'deleted';
         return $stream->save();
     }
@@ -111,6 +112,16 @@ class StreamService
         return $data;
     }
 
+    public function getClients(string $uuid): array
+    {
+        $stream = Stream::where('uuid', $uuid)->whereNull('deleted_at')->firstOrFail();
+        return StreamClient::where('stream_id', $stream->id)
+            ->orderByDesc('opened_at')
+            ->limit(200)
+            ->get()
+            ->toArray();
+    }
+
     /**
      * Pull streams from one or all active Flussonic servers and upsert into the DB.
      * Uses /streamer/api/v3/streams endpoint.
@@ -130,10 +141,12 @@ class StreamService
             throw new Exception('No active online stream servers found to sync from.');
         }
 
-        $created   = 0;
-        $updated   = 0;
-        $errors    = [];
-        $sampleRaw = null;
+        $created     = 0;
+        $updated     = 0;
+        $deactivated = 0;
+        $clients     = 0;
+        $errors      = [];
+        $sampleRaw   = null;
 
         foreach ($servers as $server) {
             try {
@@ -141,15 +154,27 @@ class StreamService
                 if ($sampleRaw === null && !empty($remoteStreams)) {
                     $sampleRaw = $remoteStreams[0];
                 }
+
+                $seenNames = [];
                 foreach ($remoteStreams as $rs) {
+                    $name = $rs['name'] ?? null;
+                    if ($name) $seenNames[] = $name;
                     $this->upsertStream($server, $rs, $created, $updated);
                 }
+
+                // Streams present in DB but absent from Flussonic response → deleted
+                if (!empty($seenNames)) {
+                    $deactivated += $this->markAbsentAsDeleted($server, $seenNames);
+                }
+
+                // Sync active sessions into stream_clients
+                $clients += $this->syncSessionsFromServer($server);
             } catch (Exception $e) {
                 $errors[] = "[{$server->server_name}] {$e->getMessage()}";
             }
         }
 
-        return compact('created', 'updated', 'errors', 'sampleRaw');
+        return compact('created', 'updated', 'deactivated', 'clients', 'errors', 'sampleRaw');
     }
 
     private function fetchFlussonicStreams(StreamServer $server): array
@@ -215,11 +240,13 @@ class StreamService
         }
 
         $maxSessions = isset($rs['on_play']['max_sessions']) ? (int)$rs['on_play']['max_sessions'] : null;
+        $isDisabled  = !empty($rs['disabled']);
 
         $data = [
             'stream_key'        => $streamName,
             'input_url'         => $inputUrl !== '' ? $inputUrl : 'publish://',
             'output_formats'    => [],
+            'status'            => $isDisabled ? 'inactive' : 'active',
             'health_status'     => $health,
             'current_viewers'   => (int)($stats['online_clients'] ?? $stats['client_count'] ?? 0),
             'bitrate'           => (int)($stats['bitrate'] ?? $stats['input_bitrate'] ?? 0),
@@ -262,10 +289,90 @@ class StreamService
             $stream->uuid        = Uuid::uuid4()->toString();
             $stream->server_id   = $server->id;
             $stream->stream_name = $streamName;
-            $stream->status      = 'active';
             $stream->fill($data);
             $stream->save();
             $created++;
         }
+    }
+
+    /**
+     * Pull active sessions from /streamer/api/v3/sessions, wipe previous records
+     * for this server's streams, then insert the fresh snapshot.
+     * Returns the number of sessions inserted.
+     */
+    private function syncSessionsFromServer(StreamServer $server): int
+    {
+        $data = $this->flussonic->request($server, 'sessions', 60);
+
+        $sessions = [];
+        if (isset($data['sessions']) && is_array($data['sessions'])) {
+            $sessions = $data['sessions'];
+        } elseif (is_array($data) && isset($data[0])) {
+            $sessions = $data;
+        }
+
+        // Wipe all previous clients for this server's streams
+        $serverStreamNames = Stream::where('server_id', $server->id)
+            ->whereNull('deleted_at')
+            ->pluck('stream_name')
+            ->toArray();
+
+        if (!empty($serverStreamNames)) {
+            StreamClient::whereIn('stream_name', $serverStreamNames)->delete();
+        }
+
+        if (empty($sessions)) return 0;
+
+        // Build stream_name → stream_id map for this server (avoid N+1)
+        $sessionNames = array_unique(array_filter(array_column($sessions, 'name')));
+        $streamMap    = Stream::where('server_id', $server->id)
+            ->whereIn('stream_name', $sessionNames)
+            ->whereNull('deleted_at')
+            ->pluck('id', 'stream_name')
+            ->toArray();
+
+        $count = 0;
+        foreach ($sessions as $session) {
+            $this->insertStreamClient($streamMap, $session);
+            $count++;
+        }
+        return $count;
+    }
+
+    private function insertStreamClient(array $streamMap, array $session): void
+    {
+        $sessionUuid = $session['id'] ?? null;
+        $streamName  = $session['name'] ?? null;
+        if (!$sessionUuid || !$streamName) return;
+
+        $client              = new StreamClient();
+        $client->uuid        = $sessionUuid;
+        $client->stream_id   = $streamMap[$streamName] ?? null;
+        $client->stream_name = $streamName;
+        $client->ip          = $session['ip'] ?? null;
+        $client->user_agent  = $session['user_agent'] ?? null;
+        $client->protocol    = $session['proto'] ?? $session['protocol'] ?? null;
+        $client->opened_at   = isset($session['opened_at']) ? (int)$session['opened_at'] : null;
+        $client->closed_at   = isset($session['closed_at']) ? (int)$session['closed_at'] : null;
+        $client->country     = $session['country'] ?? null;
+        $client->save();
+    }
+
+    /**
+     * Mark streams belonging to this server that were NOT returned by the Flussonic
+     * response as deleted (soft-delete + status=deleted).
+     * Safety guard: only runs when $seenNames is non-empty to avoid wiping
+     * everything if the API returned an unexpectedly empty list.
+     */
+    private function markAbsentAsDeleted(StreamServer $server, array $seenNames): int
+    {
+        return (int) Stream::where('server_id', $server->id)
+            ->whereNull('deleted_at')
+            ->whereNotIn('stream_name', $seenNames)
+            ->update([
+                'status'     => 'deleted',
+                'deleted_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
     }
 }

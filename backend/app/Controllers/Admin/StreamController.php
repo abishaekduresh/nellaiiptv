@@ -84,12 +84,22 @@ class StreamController
         }
     }
 
+    public function clients(Request $request, Response $response, string $uuid): Response
+    {
+        try {
+            $clients = $this->streamService->getClients($uuid);
+            return ResponseFormatter::success($response, $clients, 'Stream clients retrieved');
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, 'Stream not found', 404);
+        }
+    }
+
     public function sync(Request $request, Response $response): Response
     {
         $serverUuid = $request->getQueryParams()['server_uuid'] ?? null;
         try {
             $result  = $this->streamService->syncFromServers($serverUuid ?: null);
-            $message = "Sync complete — {$result['created']} created, {$result['updated']} updated.";
+            $message = "Sync complete — {$result['created']} created, {$result['updated']} updated, {$result['deactivated']} removed, {$result['clients']} clients synced.";
             if (!empty($result['errors'])) {
                 $message .= ' Some servers had errors.';
             }

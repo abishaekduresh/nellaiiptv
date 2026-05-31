@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Radio, Wifi, WifiOff, Activity, Monitor,
-  Volume2, Users, Signal, Server, Clock, RefreshCw,
+  Volume2, Users, Signal, Server, Clock, RefreshCw, Globe,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
@@ -48,6 +48,18 @@ interface StreamDetail {
   } | null;
 }
 
+interface StreamClientRecord {
+  id: number;
+  uuid: string;
+  stream_name: string;
+  ip: string | null;
+  user_agent: string | null;
+  protocol: string | null;
+  opened_at: number | null;
+  closed_at: number | null;
+  country: string | null;
+}
+
 function StatRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between py-2.5 border-b border-slate-800/60 last:border-0">
@@ -87,6 +99,21 @@ function fmtDate(iso: string | null): string {
   return new Date(iso).toLocaleString();
 }
 
+function fmtEpochMs(ms: number | null): string {
+  if (!ms) return '—';
+  return new Date(ms).toLocaleString();
+}
+
+function fmtDuration(openedMs: number | null, closedMs: number | null): string {
+  if (!openedMs) return '—';
+  const endMs = closedMs ?? Date.now();
+  const secs = Math.floor((endMs - openedMs) / 1000);
+  if (secs < 0) return '—';
+  if (secs < 60) return `${secs}s`;
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ${secs % 60}s`;
+  return `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`;
+}
+
 const HEALTH_CFG: Record<string, { label: string; classes: string; Icon: any }> = {
   online:  { label: 'Online',  classes: 'bg-green-500/20 text-green-400 border border-green-500/30',  Icon: Wifi },
   offline: { label: 'Offline', classes: 'bg-red-500/20 text-red-400 border border-red-500/30',        Icon: WifiOff },
@@ -111,6 +138,8 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [error,   setError]   = useState('');
+  const [clients,        setClients]        = useState<StreamClientRecord[]>([]);
+  const [clientsLoading, setClientsLoading] = useState(true);
 
   const loadStream = useCallback(() => {
     setLoading(true);
@@ -120,7 +149,18 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
       .finally(() => setLoading(false));
   }, [params.uuid]);
 
-  useEffect(() => { loadStream(); }, [loadStream]);
+  const loadClients = useCallback(() => {
+    setClientsLoading(true);
+    adminApi.get(`/admin/streams/${params.uuid}/clients`)
+      .then(res => setClients(res.data.data ?? []))
+      .catch(() => setClients([]))
+      .finally(() => setClientsLoading(false));
+  }, [params.uuid]);
+
+  useEffect(() => {
+    loadStream();
+    loadClients();
+  }, [loadStream, loadClients]);
 
   const handleSync = async () => {
     if (!stream?.server?.uuid) return;
@@ -129,13 +169,14 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
       const res = await adminApi.post('/admin/streams/sync', null, {
         params: { server_uuid: stream.server.uuid },
       });
-      const { created, updated, errors } = res.data.data;
+      const { created, updated, deactivated, clients: cnt, errors } = res.data.data;
       if (errors?.length) {
         errors.forEach((e: string) => toast.error(e, { duration: 8000 }));
       } else {
-        toast.success(`Synced — ${created} created, ${updated} updated.`);
+        toast.success(`Synced — ${created} created, ${updated} updated, ${deactivated} removed, ${cnt} clients.`);
       }
       loadStream();
+      loadClients();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Sync failed');
     } finally {
@@ -247,8 +288,8 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
 
         {/* Bandwidth */}
         <Card icon={Signal} title="Bandwidth">
-          <StatRow label="Output BW"  value={fmtKbps(stream.out_bandwidth)} />
-          <StatRow label="Input BW"   value={fmtBps(stream.inputs_bandwidth)} />
+          <StatRow label="Output BW"    value={fmtKbps(stream.out_bandwidth)} />
+          <StatRow label="Input BW"     value={fmtBps(stream.inputs_bandwidth)} />
           <StatRow label="Max Sessions" value={stream.max_sessions != null ? stream.max_sessions.toString() : null} />
         </Card>
 
@@ -262,9 +303,9 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
 
         {/* Record Info */}
         <Card icon={Clock} title="Record Info">
-          <StatRow label="UUID"       value={<span className="font-mono text-[10px]">{stream.uuid}</span>} />
-          <StatRow label="Created"    value={fmtDate(stream.created_at)} />
-          <StatRow label="Last Sync"  value={fmtDate(stream.updated_at)} />
+          <StatRow label="UUID"      value={<span className="font-mono text-[10px]">{stream.uuid}</span>} />
+          <StatRow label="Created"   value={fmtDate(stream.created_at)} />
+          <StatRow label="Last Sync" value={fmtDate(stream.updated_at)} />
           {stream.output_formats && stream.output_formats.length > 0 && (
             <StatRow label="Formats" value={
               <div className="flex flex-wrap gap-1 justify-end">
@@ -276,6 +317,75 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
           )}
         </Card>
 
+      </div>
+
+      {/* Client Sessions */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <Globe size={15} className="text-primary" />
+            <h3 className="text-slate-300 text-sm font-semibold">Client Sessions</h3>
+            {!clientsLoading && (
+              <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">{clients.length}</span>
+            )}
+          </div>
+        </div>
+
+        {clientsLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <svg className="animate-spin h-5 w-5 text-slate-500" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+          </div>
+        ) : clients.length === 0 ? (
+          <div className="text-center py-10 text-slate-600 text-sm">No client sessions recorded yet.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-slate-800 text-slate-500">
+                  <th className="text-left px-5 py-3 font-medium">IP</th>
+                  <th className="text-left px-3 py-3 font-medium">Protocol</th>
+                  <th className="text-left px-3 py-3 font-medium">Country</th>
+                  <th className="text-left px-3 py-3 font-medium">Opened</th>
+                  <th className="text-left px-3 py-3 font-medium">Duration / Status</th>
+                  <th className="text-left px-3 py-3 font-medium">User Agent</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map(c => {
+                  const isActive = c.closed_at == null;
+                  return (
+                    <tr key={c.uuid} className="border-b border-slate-800/50 last:border-0 hover:bg-slate-800/30 transition-colors">
+                      <td className="px-5 py-3 font-mono text-slate-300 whitespace-nowrap">{c.ip ?? '—'}</td>
+                      <td className="px-3 py-3">
+                        {c.protocol ? (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 uppercase">{c.protocol}</span>
+                        ) : <span className="text-slate-600">—</span>}
+                      </td>
+                      <td className="px-3 py-3 text-slate-400">{c.country ?? '—'}</td>
+                      <td className="px-3 py-3 text-slate-400 whitespace-nowrap">{fmtEpochMs(c.opened_at)}</td>
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        {isActive ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/15 text-green-400 border border-green-500/25">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                            Active
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">{fmtDuration(c.opened_at, c.closed_at)}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-slate-500 max-w-[220px] truncate" title={c.user_agent ?? ''}>
+                        {c.user_agent ?? '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

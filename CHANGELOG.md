@@ -1,3 +1,15 @@
+## [1.67.0] - Website | [1.46.0] - Backend - 2026-06-01
+
+### Website (Next.js)
+- **Feature**: **Stream client sessions table** (`/admin/streams/[uuid]`) — "Client Sessions" section added below the info cards. Fetches `GET /admin/streams/{uuid}/clients` on load and after sync. Columns: IP, Protocol, Country, Opened At (ms epoch formatted), Duration/Status (pulsing green "Active" badge for open sessions, elapsed time for closed), User Agent. Count badge in header.
+
+### Backend (Slim PHP)
+- **Feature**: **`stream_clients` table + session sync** — New `create_stream_clients_table.sql` migration. `StreamClient` Eloquent model. `StreamService::syncSessionsFromServer()` calls `/streamer/api/v3/sessions`, wipes previous records for the server's streams, inserts fresh snapshot. `getClients()` method returns latest 200 sessions per stream.
+- **Feature**: **`GET /api/admin/streams/{uuid}/clients`** — New route + `StreamController::clients()` method serving the session list for a stream.
+- **Changed**: Sync response and toasts now include `clients` count.
+
+---
+
 ## [1.66.0] - Website | [1.45.0] - Backend - 2026-05-31
 
 ### Website (Next.js)

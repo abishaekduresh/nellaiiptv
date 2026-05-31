@@ -110,12 +110,12 @@ export default function StreamsPage() {
     setSyncing(true);
     try {
       const res = await adminApi.post('/admin/streams/sync');
-      const { created, updated, errors, sampleRaw } = res.data.data;
+      const { created, updated, deactivated, clients, errors, sampleRaw } = res.data.data;
       if (sampleRaw) console.log('[Sync] Raw stream sample from Flussonic:', JSON.stringify(sampleRaw, null, 2));
       if (errors?.length) {
         errors.forEach((e: string) => toast.error(e, { duration: 8000 }));
       } else {
-        toast.success(`Synced — ${created} created, ${updated} updated.`);
+        toast.success(`Synced — ${created} created, ${updated} updated, ${deactivated} removed, ${clients} clients.`);
       }
       fetchStreams();
     } catch (err: any) {

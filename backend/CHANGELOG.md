@@ -1,3 +1,21 @@
+## [1.46.0] - 2026-06-01
+
+### Added
+- **`stream_clients` table** (`database/migrations/create_stream_clients_table.sql`) — New table storing Flussonic session snapshots. Columns: `uuid` (Flussonic session id, UNIQUE), `stream_id` (FK → `streams.id` ON DELETE SET NULL), `stream_name`, `ip`, `user_agent`, `protocol`, `opened_at` / `closed_at` (ms epoch, BIGINT UNSIGNED), `country`. **Run migration on live database before deploying.**
+- **`StreamClient` model** (`app/Models/StreamClient.php`) — Eloquent model for `stream_clients`; fillable, integer casts for `stream_id`/`opened_at`/`closed_at`; `belongsTo(Stream)` relationship.
+- **`StreamService::syncSessionsFromServer()`** — Calls `/streamer/api/v3/sessions` per server. Before inserting, deletes all existing `stream_clients` for that server's streams (wipe-and-replace snapshot semantics). Builds `stream_name → stream_id` map in one query to avoid N+1. Inserts fresh records via `insertStreamClient()`. Returns count of sessions inserted.
+- **`StreamService::insertStreamClient()`** — Maps Flussonic session fields: `id→uuid`, `name→stream_name`, `proto→protocol`, `opened_at`/`closed_at` cast to int.
+- **`StreamService::getClients(string $uuid)`** — Returns latest 200 `stream_clients` for a stream ordered by `opened_at DESC`.
+- **`Stream` model** — Added `clients()` HasMany → `StreamClient` relationship.
+- **`StreamController::clients()`** — `GET /api/admin/streams/{uuid}/clients` returns the session list for a stream.
+- **Route** (`app/Routes/admin.php`) — `GET /streams/{uuid}/clients` registered before `GET /streams/{uuid}`.
+
+### Changed
+- **`StreamService::syncFromServers()`** — Added `$clients` counter; calls `syncSessionsFromServer()` per server inside the sync loop; includes `clients` in the returned result array.
+- **`StreamController::sync()`** — Sync response message now includes `{clients} clients synced`.
+
+---
+
 ## [1.45.0] - 2026-05-31
 
 ### Changed
