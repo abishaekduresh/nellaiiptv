@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Server, Plus, Radio, Monitor, Eye, ChevronRight } from 'lucide-react';
+import { Server, Radio, Monitor, Eye, ChevronRight } from 'lucide-react';
 
 const NAV = [
   {
@@ -10,7 +10,6 @@ const NAV = [
     icon: Server,
     items: [
       { label: 'All Servers', href: '/admin/stream-servers' },
-      { label: 'Add Server',  href: '/admin/stream-servers/create' },
     ],
   },
   {

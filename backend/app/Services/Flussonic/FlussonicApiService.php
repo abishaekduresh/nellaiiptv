@@ -110,6 +110,27 @@ class FlussonicApiService
     }
 
     /**
+     * Make an authenticated PUT request using a persisted StreamServer model.
+     */
+    public function requestPut(StreamServer $server, string $path, array $body = [], int $timeout = self::REQUEST_TIMEOUT): array
+    {
+        $host = !empty($server->server_host_domain)
+            ? $server->server_host_domain
+            : $server->server_host_ip;
+
+        $cleanPath       = ltrim($path, '/');
+        $preferredScheme = !empty($server->protocol) ? $server->protocol : 'http';
+
+        if (!empty($server->bearer_token)) {
+            $token = EncryptionHelper::decrypt($server->bearer_token);
+            return $this->putWithSchemeRetry($host, (int)$server->api_port, $server->api_version, $cleanPath, null, null, $token, $body, $timeout, $preferredScheme);
+        }
+
+        $password = EncryptionHelper::decrypt($server->password_encrypted);
+        return $this->putWithSchemeRetry($host, (int)$server->api_port, $server->api_version, $cleanPath, $server->username, $password, null, $body, $timeout, $preferredScheme);
+    }
+
+    /**
      * Try HTTP first, fall back to HTTPS on connection-level failures.
      */
     private function requestWithSchemeRetry(
@@ -132,6 +153,39 @@ class FlussonicApiService
                 return $this->get($url, $username, $password, $bearerToken, $timeout);
             } catch (Exception $e) {
                 // These errors are definitive — no point retrying with the other scheme
+                if (str_contains($e->getMessage(), 'HTTP 401') ||
+                    str_contains($e->getMessage(), 'HTTP 403') ||
+                    str_contains($e->getMessage(), 'Unexpected HTTP') ||
+                    str_contains($e->getMessage(), 'timed out')) {
+                    throw $e;
+                }
+                $lastException = $e;
+            }
+        }
+
+        throw $lastException;
+    }
+
+    private function putWithSchemeRetry(
+        string  $host,
+        int     $port,
+        string  $version,
+        string  $path,
+        ?string $username,
+        ?string $password,
+        ?string $bearerToken,
+        array   $body = [],
+        int     $timeout = self::REQUEST_TIMEOUT,
+        string  $preferredScheme = 'http'
+    ): array {
+        $lastException = null;
+        $schemes = $preferredScheme === 'https' ? ['https', 'http'] : ['http', 'https'];
+
+        foreach ($schemes as $scheme) {
+            $url = $this->buildUrl($host, $port, $version, $path, $scheme);
+            try {
+                return $this->put($url, $username, $password, $bearerToken, $body, $timeout);
+            } catch (Exception $e) {
                 if (str_contains($e->getMessage(), 'HTTP 401') ||
                     str_contains($e->getMessage(), 'HTTP 403') ||
                     str_contains($e->getMessage(), 'Unexpected HTTP') ||
@@ -260,6 +314,63 @@ class FlussonicApiService
             throw new Exception(
                 "Authentication failed (HTTP {$httpCode}) — check username / password or bearer token."
             );
+        }
+
+        if ($httpCode < 200 || $httpCode >= 300) {
+            throw new Exception("Unexpected HTTP {$httpCode} from {$url}");
+        }
+
+        return json_decode($raw, true) ?? [];
+    }
+
+    private function put(
+        string  $url,
+        ?string $username,
+        ?string $password,
+        ?string $bearerToken,
+        array   $body = [],
+        int     $timeout = self::REQUEST_TIMEOUT
+    ): array {
+        $ch   = curl_init($url);
+        $json = json_encode($body);
+
+        $headers = ['Content-Type: application/json', 'Accept: application/json'];
+        if ($bearerToken !== null) {
+            $headers[] = "Authorization: Bearer {$bearerToken}";
+        }
+
+        $opts = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 3,
+            CURLOPT_CUSTOMREQUEST  => 'PUT',
+            CURLOPT_POSTFIELDS     => $json,
+            CURLOPT_HTTPHEADER     => $headers,
+        ];
+
+        if ($bearerToken === null && $username !== null && $password !== null) {
+            $opts[CURLOPT_USERPWD]  = "{$username}:{$password}";
+            $opts[CURLOPT_HTTPAUTH] = CURLAUTH_BASIC;
+        }
+
+        curl_setopt_array($ch, $opts);
+
+        $raw      = curl_exec($ch);
+        $errNo    = curl_errno($ch);
+        $errMsg   = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($raw === false || $errNo !== CURLE_OK) {
+            throw new Exception($this->describeCurlError($errNo, $errMsg, $url, $timeout));
+        }
+
+        if ($httpCode === 401 || $httpCode === 403) {
+            throw new Exception("Authentication failed (HTTP {$httpCode}) — check username / password or bearer token.");
         }
 
         if ($httpCode < 200 || $httpCode >= 300) {

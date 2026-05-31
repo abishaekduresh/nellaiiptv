@@ -112,6 +112,26 @@ class StreamService
         return $data;
     }
 
+    /**
+     * Enable or disable a stream on its Flussonic server, then update the local DB status.
+     * Uses PUT /streamer/api/v3/streams/{encoded_name} with {"disabled": true/false}.
+     * Stream names containing "/" are URL-encoded as per Flussonic docs (live/foo → live%2Ffoo).
+     */
+    public function toggleStream(string $uuid, bool $enable): Stream
+    {
+        $stream = Stream::where('uuid', $uuid)->whereNull('deleted_at')->firstOrFail();
+        $server = $stream->server;
+        if (!$server) throw new Exception('Stream has no associated server.');
+
+        $encodedName = str_replace('/', '%2F', $stream->stream_name);
+        $this->flussonic->requestPut($server, "streams/{$encodedName}", ['disabled' => !$enable]);
+
+        $stream->status = $enable ? 'active' : 'inactive';
+        $stream->save();
+
+        return $stream->fresh();
+    }
+
     public function getClients(string $uuid): array
     {
         $stream = Stream::where('uuid', $uuid)->whereNull('deleted_at')->firstOrFail();

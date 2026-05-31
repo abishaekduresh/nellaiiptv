@@ -1,3 +1,16 @@
+## [1.68.0] - Website | [1.47.0] - Backend - 2026-06-01
+
+### Website (Next.js)
+- **Feature**: **Stream Enable/Disable button** (`/admin/streams`) — Power icon per row; green = active, grey = inactive. Calls `POST /admin/streams/{uuid}/toggle`. Hidden for deleted streams or streams with no server.
+- **Feature**: **Stream Restart button** (`/admin/streams`) — Amber RotateCcw icon for active streams. Frontend-driven restart: disable → 2s wait → enable, with spinner during sequence. Disables other action buttons while running.
+
+### Backend (Slim PHP)
+- **Feature**: **`POST /api/admin/streams/{uuid}/toggle`** — New endpoint to enable/disable a stream on Flussonic via `PUT /streamer/api/v3/streams/{name}` with `{"disabled": true/false}`. Updates local `status` column on success.
+- **Feature**: **`FlussonicApiService::requestPut()`** — Authenticated HTTP PUT support with scheme-retry, Basic Auth + Bearer token, JSON body.
+- **Changed**: Sidebar "Add Server" link removed from Stream Servers group.
+
+---
+
 ## [1.67.0] - Website | [1.46.0] - Backend - 2026-06-01
 
 ### Website (Next.js)

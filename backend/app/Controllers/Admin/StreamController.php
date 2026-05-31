@@ -84,6 +84,19 @@ class StreamController
         }
     }
 
+    public function toggle(Request $request, Response $response, string $uuid): Response
+    {
+        $body   = $request->getParsedBody() ?? [];
+        $enable = filter_var($body['enable'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        try {
+            $stream  = $this->streamService->toggleStream($uuid, $enable);
+            $message = $enable ? 'Stream enabled successfully.' : 'Stream disabled successfully.';
+            return ResponseFormatter::success($response, $stream, $message);
+        } catch (Exception $e) {
+            return ResponseFormatter::error($response, $e->getMessage(), 500);
+        }
+    }
+
     public function clients(Request $request, Response $response, string $uuid): Response
     {
         try {

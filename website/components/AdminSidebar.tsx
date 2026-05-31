@@ -24,7 +24,6 @@ const menuItems = [
     title: 'Stream Servers', icon: Server, href: '#',
     children: [
       { title: 'All Servers', href: '/admin/stream-servers' },
-      { title: 'Add Server',  href: '/admin/stream-servers/create' },
       { title: 'Streams',     href: '/admin/streams' },
       { title: 'Monitoring',  href: '/admin/monitoring' },
     ],

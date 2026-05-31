@@ -1,3 +1,17 @@
+## [1.47.0] - 2026-06-01
+
+### Added
+- **`FlussonicApiService::requestPut()`** — New public method for authenticated HTTP PUT requests to Flussonic. Mirrors `request()`: prefers stored scheme, supports Basic Auth and Bearer token, with scheme-retry fallback. Backed by new `putWithSchemeRetry()` and `put()` private methods (cURL with `CURLOPT_CUSTOMREQUEST = 'PUT'`, JSON body, `Content-Type: application/json`).
+- **`StreamService::toggleStream(string $uuid, bool $enable)`** — Enables or disables a stream on its Flussonic server via `PUT /streamer/api/v3/streams/{encoded_name}` with `{"disabled": !$enable}`. Stream names containing `/` are URL-encoded as `%2F` per Flussonic docs. Updates local DB `status` to `active` or `inactive` on success. Returns fresh `Stream` model.
+- **`StreamController::toggle()`** — Reads `enable` boolean from POST body (`filter_var` FILTER_VALIDATE_BOOLEAN). Returns success with updated stream and action message.
+- **Route** (`app/Routes/admin.php`) — `POST /streams/{uuid}/toggle` registered between `show` and `clients` routes.
+
+### Changed
+- **Admin sidebar** (`AdminSidebar.tsx`) — "Add Server" entry removed from Stream Servers dropdown group.
+- **`StreamInfraSubNav`** — "Add Server" item and unused `Plus` import removed.
+
+---
+
 ## [1.46.0] - 2026-06-01
 
 ### Added

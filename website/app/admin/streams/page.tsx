@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Eye, Search, Radio, Wifi, WifiOff, ChevronLeft, ChevronRight, Users, RefreshCw, Activity, Signal } from 'lucide-react';
+import { Eye, Search, Radio, Wifi, WifiOff, ChevronLeft, ChevronRight, Users, RefreshCw, Activity, Signal, Power, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
@@ -80,6 +80,8 @@ export default function StreamsPage() {
   const [filterStatus, setFilterStatus]       = useState('');
   const [filterHealth, setFilterHealth]       = useState('');
   const [filterStreamStatus, setFilterStreamStatus] = useState('');
+  const [toggling,   setToggling]   = useState<Record<string, boolean>>({});
+  const [restarting, setRestarting] = useState<Record<string, boolean>>({});
 
   const fetchStreams = async () => {
     setLoading(true);
@@ -125,6 +127,35 @@ export default function StreamsPage() {
     }
   };
 
+
+  const handleToggle = async (stream: Stream) => {
+    const enable = stream.status !== 'active';
+    setToggling(prev => ({ ...prev, [stream.uuid]: true }));
+    try {
+      await adminApi.post(`/admin/streams/${stream.uuid}/toggle`, { enable });
+      toast.success(enable ? `${stream.stream_name} enabled.` : `${stream.stream_name} disabled.`);
+      fetchStreams();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Toggle failed');
+    } finally {
+      setToggling(prev => ({ ...prev, [stream.uuid]: false }));
+    }
+  };
+
+  const handleRestart = async (stream: Stream) => {
+    setRestarting(prev => ({ ...prev, [stream.uuid]: true }));
+    try {
+      await adminApi.post(`/admin/streams/${stream.uuid}/toggle`, { enable: false });
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await adminApi.post(`/admin/streams/${stream.uuid}/toggle`, { enable: true });
+      toast.success(`${stream.stream_name} restarted.`);
+      fetchStreams();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Restart failed');
+    } finally {
+      setRestarting(prev => ({ ...prev, [stream.uuid]: false }));
+    }
+  };
 
   const selectCls = 'bg-slate-800 border border-slate-700 text-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary transition-all';
 
@@ -318,12 +349,45 @@ export default function StreamsPage() {
                       </div>
                     </td>
 
-                    {/* Actions — view details */}
+                    {/* Actions */}
                     <td className="px-4 py-3.5">
-                      <Link href={`/admin/streams/${stream.uuid}`}
-                        className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors inline-flex" title="View details">
-                        <Eye size={14} />
-                      </Link>
+                      <div className="flex items-center gap-1.5">
+                        {/* View */}
+                        <Link href={`/admin/streams/${stream.uuid}`}
+                          className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors inline-flex" title="View details">
+                          <Eye size={14} />
+                        </Link>
+
+                        {/* Enable / Disable */}
+                        {stream.server && stream.status !== 'deleted' && (
+                          <button
+                            onClick={() => handleToggle(stream)}
+                            disabled={toggling[stream.uuid] || restarting[stream.uuid]}
+                            title={stream.status === 'active' ? 'Disable stream' : 'Enable stream'}
+                            className={`p-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed inline-flex ${
+                              stream.status === 'active'
+                                ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
+                                : 'bg-slate-700/40 text-slate-400 hover:bg-slate-700/70'
+                            }`}
+                          >
+                            {toggling[stream.uuid]
+                              ? <RefreshCw size={14} className="animate-spin" />
+                              : <Power size={14} />}
+                          </button>
+                        )}
+
+                        {/* Restart */}
+                        {stream.server && stream.status === 'active' && (
+                          <button
+                            onClick={() => handleRestart(stream)}
+                            disabled={restarting[stream.uuid] || toggling[stream.uuid]}
+                            title="Restart stream (disable → 2s → enable)"
+                            className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed inline-flex"
+                          >
+                            <RotateCcw size={14} className={restarting[stream.uuid] ? 'animate-spin' : ''} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

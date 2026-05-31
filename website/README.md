@@ -1,11 +1,12 @@
-# Nellai IPTV - Frontend v1.67.0
+# Nellai IPTV - Frontend v1.68.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.67.0)**
-- **Feature**: **Stream client sessions table** (`/admin/streams/[uuid]`) — Client Sessions section added below the info cards. Fetches `GET /admin/streams/{uuid}/clients` on load and after sync. Table columns: IP, Protocol, Country, Opened At, Duration/Status (pulsing "Active" badge for open sessions), User Agent (truncated). Count badge in section header.
+### **Latest Updates (v1.68.0)**
+- **Feature**: **Stream Enable/Disable button** (`/admin/streams`) — Power icon button per row; green when active, grey when inactive. Calls `POST /admin/streams/{uuid}/toggle`. Disabled during restart.
+- **Feature**: **Stream Restart button** (`/admin/streams`) — Amber RotateCcw icon button; only shown for active streams. Simulates restart by calling disable → 2s delay → enable. Spinner during sequence. Both buttons hidden for streams with no server or deleted status.
 - **Feature**: **Stream 360° detail page** (`/admin/streams/[uuid]`) — New view with live viewer bar and 6 info cards: Publish Info, Video Track, Audio Track, Bandwidth, Stream Server, Record Info.
 - **Feature**: **Per-stream Sync button** — Header button on the detail page syncs that stream's server and refreshes the view.
 

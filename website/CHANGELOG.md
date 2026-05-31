@@ -1,3 +1,16 @@
+## [1.68.0] - 2026-06-01
+
+### Added
+- **Stream Enable/Disable button** (`app/admin/streams/page.tsx`) — `Power` icon button per row. Green when `status === 'active'`, grey when inactive. Calls `POST /admin/streams/{uuid}/toggle` with `{ enable: boolean }`. Disabled while toggle or restart is in progress. Hidden for streams with no server or `status === 'deleted'`.
+- **Stream Restart button** (`app/admin/streams/page.tsx`) — Amber `RotateCcw` icon button, shown only for active streams. Simulates restart: calls `toggle(disable)` → waits 2 seconds → calls `toggle(enable)`. Spins during the full sequence. Prevents concurrent enable/disable clicks while running.
+- **Per-UUID loading state** — `toggling` and `restarting` maps (`Record<string, boolean>`) track in-flight operations individually so only the affected row's buttons reflect loading state.
+
+### Changed
+- **Lucide imports** — Added `Power`, `RotateCcw`.
+- **Actions column** — Now renders up to 3 buttons: Eye (always), Power (enable/disable), RotateCcw (restart, active streams only).
+
+---
+
 ## [1.67.0] - 2026-06-01
 
 ### Added
