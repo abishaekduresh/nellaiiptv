@@ -1,3 +1,19 @@
+## [1.66.0] - 2026-05-31
+
+### Added
+- **Stream 360° detail page** (`app/admin/streams/[uuid]/page.tsx`) — Completely new view replacing the old `StreamForm` edit page. Loads stream via `GET /admin/streams/{uuid}`. Components: live viewer capacity bar (colour-coded: green/amber/red by % full); six info cards using shared `Card` + `StatRow` layout components; back-arrow button; Sync button.
+- **Per-stream Sync button** (`/admin/streams/[uuid]`) — `POST /admin/streams/sync?server_uuid={server.uuid}` scoped to the stream's own server. Shows `RefreshCw` spinner; success/error toast; calls `loadStream()` on completion to refresh all stats cards.
+
+### Changed
+- **Streams list** (`app/admin/streams/page.tsx`) — Table columns replaced: `Formats` → `Video` (codec, WxH, fps, bitrate), `Viewers` → `Clients` (online_clients / max_sessions with progress bar + source IP below), `Bitrate` removed, new `Audio` (codec, channels) and `Bandwidth` (out_bandwidth Mbps + inputs_bandwidth) columns. `Status` row now stacked (health badge + record status badge).
+- **Streams list — Actions column** — Edit (`Link`+`Edit` icon) replaced with Eye (`Link`+`Eye` icon) linking to `/admin/streams/{uuid}`. Delete button and `handleDelete` function removed. "Add Stream" header button removed.
+- **Streams list — Filters** — Third dropdown added: `stream_status` (All / Running / Stopped). Search placeholder updated to mention source IP.
+- **`Stream` TypeScript interface** — All 17 new fields added as optional: `inputs_bandwidth`, `out_bandwidth`, `online_clients`, `video_width`, `video_height`, `video_codec`, `fps`, `audio_codec`, `audio_bitrate`, `audio_sample_rate`, `audio_channels`, `stream_status`, `published_via`, `published_from`, `client_count`, `stream_url_type`, `max_sessions`.
+- **Lucide imports** — `Edit`, `Trash2`, `Plus`, `Zap` removed; `Eye`, `Activity`, `Signal` added.
+- **Helper functions** — `fmtBitrate` kept; `fmtKbps` (for out_bandwidth, assumed Kbps) and `fmtBps` (for inputs_bandwidth, assumed bps) added.
+
+---
+
 ## [1.65.1] - 2026-05-30
 
 ### Added

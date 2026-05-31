@@ -1,3 +1,18 @@
+## [1.66.0] - Website | [1.45.0] - Backend - 2026-05-31
+
+### Website (Next.js)
+- **Feature**: **Streams list redesigned** (`/admin/streams`) — Table restructured with Video (codec, WxH, fps, bitrate), Audio (codec, channels), Clients (online_clients / max_sessions with progress bar + source IP), Bandwidth (out_bandwidth Mbps) columns. Edit button replaced with Eye icon linking to the 360° detail page. "Add Stream" and `POST /admin/streams` removed — streams are Flussonic-synced. New `stream_status` filter (running / stopped).
+- **Feature**: **Stream 360° detail page** (`/admin/streams/[uuid]`) — New view replacing the old edit form. Live viewer capacity bar. Six info cards: Publish Info, Video Track, Audio Track, Bandwidth, Stream Server, Record Info. Back arrow + Sync button in the header.
+- **Feature**: **Per-stream Sync button** — Calls `POST /admin/streams/sync?server_uuid=…` scoped to the stream's own server; reloads the detail view on completion.
+
+### Backend (Slim PHP)
+- **Changed**: **`StreamService` sync rewritten for Flussonic API v3** — `upsertStream()` extracts all 17 new stats fields; upsert key is now `stream_name`; video/audio tracks parsed from `stats.media_info.tracks`; `on_play.max_sessions` stored; `update()` method removed.
+- **Changed**: **Routes** (`admin.php`) — `POST /admin/streams` and `PUT /admin/streams/{uuid}` removed; streams are read-only from Flussonic. Remaining: `GET`, `POST /sync`, `GET /{uuid}`, `DELETE /{uuid}`.
+- **Changed**: **`Stream` model** — 17 new fillable fields + casts: `inputs_bandwidth`, `out_bandwidth`, `online_clients`, `video_width`, `video_height`, `video_codec`, `fps`, `audio_codec`, `audio_bitrate`, `audio_sample_rate`, `audio_channels`, `stream_status`, `published_via`, `published_from`, `client_count`, `stream_url_type`, `max_sessions`.
+- **Database**: **`add_stream_stats_columns.sql`** — ALTER TABLE adds 17 columns to `streams`; makes `input_url` and `output_formats` nullable. **Must be run on the live database.**
+
+---
+
 ## [1.65.1] - Website | [1.44.1] - Backend - 2026-05-30
 
 ### Website (Next.js)

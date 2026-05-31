@@ -10,7 +10,10 @@ use Exception;
 
 class StreamService
 {
-    private const ALLOWED_SORTS = ['id', 'stream_name', 'created_at', 'health_status', 'current_viewers', 'bitrate', 'status'];
+    private const ALLOWED_SORTS = [
+        'id', 'stream_name', 'created_at', 'health_status', 'stream_status',
+        'current_viewers', 'online_clients', 'bitrate', 'out_bandwidth', 'status',
+    ];
 
     private FlussonicApiService $flussonic;
 
@@ -28,7 +31,8 @@ class StreamService
             $s = $filters['search'];
             $query->where(function ($q) use ($s) {
                 $q->where('stream_name', 'LIKE', "%{$s}%")
-                  ->orWhere('stream_key', 'LIKE', "%{$s}%");
+                  ->orWhere('stream_key', 'LIKE', "%{$s}%")
+                  ->orWhere('published_from', 'LIKE', "%{$s}%");
             });
         }
 
@@ -43,6 +47,10 @@ class StreamService
 
         if (!empty($filters['health_status'])) {
             $query->where('health_status', $filters['health_status']);
+        }
+
+        if (!empty($filters['stream_status'])) {
+            $query->where('stream_status', $filters['stream_status']);
         }
 
         $sortBy    = in_array($filters['sort_by'] ?? '', self::ALLOWED_SORTS) ? $filters['sort_by'] : 'id';
@@ -67,19 +75,6 @@ class StreamService
 
         $stream       = new Stream();
         $stream->uuid = Uuid::uuid4()->toString();
-        $stream->fill($data);
-        $stream->save();
-
-        return $stream->fresh()->load('server:id,uuid,server_name');
-    }
-
-    public function update(string $uuid, array $data): Stream
-    {
-        $stream = Stream::where('uuid', $uuid)->whereNull('deleted_at')->firstOrFail();
-
-        $data = $this->resolveServer($data);
-        $data = $this->normalizeOutputFormats($data);
-
         $stream->fill($data);
         $stream->save();
 
@@ -118,7 +113,8 @@ class StreamService
 
     /**
      * Pull streams from one or all active Flussonic servers and upsert into the DB.
-     * Returns counts: created, updated, skipped (errors per server), errors.
+     * Uses /streamer/api/v3/streams endpoint.
+     * Returns counts: created, updated, errors, sampleRaw.
      */
     public function syncFromServers(?string $serverUuid = null): array
     {
@@ -137,7 +133,7 @@ class StreamService
         $created   = 0;
         $updated   = 0;
         $errors    = [];
-        $sampleRaw = null; // first raw stream object for debugging
+        $sampleRaw = null;
 
         foreach ($servers as $server) {
             try {
@@ -158,11 +154,13 @@ class StreamService
 
     private function fetchFlussonicStreams(StreamServer $server): array
     {
+        // Calls /streamer/api/v3/streams via FlussonicApiService::request()
         $data = $this->flussonic->request($server, 'streams', 60);
-        // Flussonic v3 returns {"total":N,"streams":[...]} or just an array
+        // API v3 returns {"streams":[...], "estimated_count":N, ...}
         if (isset($data['streams']) && is_array($data['streams'])) {
             return $data['streams'];
         }
+        // Fallback: bare array
         if (is_array($data) && isset($data[0])) {
             return $data;
         }
@@ -170,30 +168,26 @@ class StreamService
     }
 
     /**
-     * Try every known Flussonic field path for the stream's input URL.
-     * Flussonic varies: input.url, input.src, input[0].url, src, input_url, source.
+     * Extract the input source URL from various Flussonic response shapes.
      */
     private function extractInputUrl(array $rs): string
     {
-        // Top-level shorthand fields
+        // inputs[0].url is the canonical v3 location
+        $inputs = $rs['inputs'] ?? null;
+        if (is_array($inputs) && isset($inputs[0]['url']) && is_string($inputs[0]['url'])) {
+            return $inputs[0]['url'];
+        }
+
+        // Top-level shorthand fields (older API versions)
         foreach (['src', 'input_url', 'source', 'url'] as $key) {
             if (!empty($rs[$key]) && is_string($rs[$key])) return $rs[$key];
         }
 
         $input = $rs['input'] ?? null;
-
         if (is_string($input) && $input !== '') return $input;
-
         if (is_array($input)) {
-            // Keyed object: input.url / input.src / input.backup_url
             foreach (['url', 'src', 'backup_url', 'source'] as $key) {
                 if (!empty($input[$key]) && is_string($input[$key])) return $input[$key];
-            }
-            // Array of input objects: input[0].url
-            if (isset($input[0]) && is_array($input[0])) {
-                foreach (['url', 'src', 'backup_url'] as $key) {
-                    if (!empty($input[0][$key]) && is_string($input[0][$key])) return $input[0][$key];
-                }
             }
         }
 
@@ -202,48 +196,74 @@ class StreamService
 
     private function upsertStream(StreamServer $server, array $rs, int &$created, int &$updated): void
     {
-        $streamKey  = $rs['name'] ?? null;
-        if (!$streamKey) return;
+        $streamName = $rs['name'] ?? null;
+        if (!$streamName) return;
 
-        $streamName = $rs['title'] ?? $streamKey;
-        $inputUrl   = $this->extractInputUrl($rs);
+        $stats    = $rs['stats'] ?? [];
+        $isAlive  = (bool)($stats['running'] ?? $stats['alive'] ?? false);
+        $health   = $isAlive ? 'online' : 'offline';
+        $inputUrl = $this->extractInputUrl($rs);
 
-        $stats   = $rs['stats'] ?? [];
-        $bitrate = (int)($stats['bitrate_in'] ?? $stats['bitrate'] ?? $rs['bitrate_in'] ?? 0);
-        $viewers = (int)($stats['clients']    ?? $stats['viewers'] ?? $rs['clients']    ?? 0);
-        $isAlive = (bool)($stats['alive']     ?? $rs['alive']      ?? false);
-        $health  = $isAlive ? 'online' : 'offline';
-
-        $formats = [];
-        foreach (['hls', 'dash', 'rtmp', 'webrtc'] as $fmt) {
-            if (!empty($rs[$fmt])) $formats[] = $fmt;
+        // Extract video and audio tracks from media_info
+        $tracks     = $stats['media_info']['tracks'] ?? [];
+        $videoTrack = null;
+        $audioTrack = null;
+        foreach ($tracks as $track) {
+            $content = $track['content'] ?? '';
+            if ($content === 'video' && $videoTrack === null) $videoTrack = $track;
+            if ($content === 'audio' && $audioTrack === null) $audioTrack = $track;
         }
 
+        $maxSessions = isset($rs['on_play']['max_sessions']) ? (int)$rs['on_play']['max_sessions'] : null;
+
+        $data = [
+            'stream_key'        => $streamName,
+            'input_url'         => $inputUrl !== '' ? $inputUrl : 'publish://',
+            'output_formats'    => [],
+            'health_status'     => $health,
+            'current_viewers'   => (int)($stats['online_clients'] ?? $stats['client_count'] ?? 0),
+            'bitrate'           => (int)($stats['bitrate'] ?? $stats['input_bitrate'] ?? 0),
+            'viewer_limit'      => $maxSessions ?? 1000,
+            // Bandwidth
+            'inputs_bandwidth'  => (int)($stats['inputs_bandwidth'] ?? 0),
+            'out_bandwidth'     => (int)($stats['out_bandwidth'] ?? 0),
+            // Clients
+            'online_clients'    => (int)($stats['online_clients'] ?? 0),
+            'client_count'      => (int)($stats['client_count'] ?? 0),
+            // Video track
+            'video_width'       => $videoTrack ? (((int)($videoTrack['width']  ?? 0)) ?: null) : null,
+            'video_height'      => $videoTrack ? (((int)($videoTrack['height'] ?? 0)) ?: null) : null,
+            'video_codec'       => $videoTrack['codec'] ?? null,
+            'fps'               => $videoTrack ? (((float)($videoTrack['fps']  ?? 0)) ?: null) : null,
+            // Audio track
+            'audio_codec'       => $audioTrack['codec'] ?? null,
+            'audio_bitrate'     => $audioTrack ? (((int)($audioTrack['bitrate']      ?? 0)) ?: null) : null,
+            'audio_sample_rate' => $audioTrack ? (((int)($audioTrack['sample_rate']  ?? 0)) ?: null) : null,
+            'audio_channels'    => $audioTrack ? (((int)($audioTrack['channels']     ?? 0)) ?: null) : null,
+            // Runtime status
+            'stream_status'     => $stats['status'] ?? null,
+            'published_via'     => $stats['published_via'] ?? null,
+            'published_from'    => $stats['published_from'] ?? null,
+            'stream_url_type'   => $stats['url'] ?? null,
+            'max_sessions'      => $maxSessions,
+        ];
+
         $existing = Stream::where('server_id', $server->id)
-            ->where('stream_key', $streamKey)
+            ->where('stream_name', $streamName)
             ->whereNull('deleted_at')
             ->first();
 
         if ($existing) {
-            $existing->health_status    = $health;
-            $existing->bitrate          = $bitrate;
-            $existing->current_viewers  = $viewers;
-            if (!empty($formats)) $existing->output_formats = $formats;
+            $existing->fill($data);
             $existing->save();
             $updated++;
         } else {
-            $stream                  = new Stream();
-            $stream->uuid            = Uuid::uuid4()->toString();
-            $stream->server_id       = $server->id;
-            $stream->stream_name     = $streamName;
-            $stream->stream_key      = $streamKey;
-            $stream->input_url       = $inputUrl;
-            $stream->output_formats  = $formats;
-            $stream->health_status   = $health;
-            $stream->bitrate         = $bitrate;
-            $stream->current_viewers = $viewers;
-            $stream->viewer_limit    = 1000;
-            $stream->status          = 'active';
+            $stream              = new Stream();
+            $stream->uuid        = Uuid::uuid4()->toString();
+            $stream->server_id   = $server->id;
+            $stream->stream_name = $streamName;
+            $stream->status      = 'active';
+            $stream->fill($data);
             $stream->save();
             $created++;
         }

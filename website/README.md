@@ -1,10 +1,15 @@
-# Nellai IPTV - Frontend v1.65.1
+# Nellai IPTV - Frontend v1.66.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.65.1)**
+### **Latest Updates (v1.66.0)**
+- **Feature**: **Streams list redesigned** (`/admin/streams`) — New columns: Video (codec, WxH, fps), Audio (codec, channels), Clients (online/max + source IP), Bandwidth (out Mbps). Edit button replaced with Eye → detail page. "Add Stream" removed. Third filter for `stream_status`.
+- **Feature**: **Stream 360° detail page** (`/admin/streams/[uuid]`) — New view with live viewer bar and 6 info cards: Publish Info, Video Track, Audio Track, Bandwidth, Stream Server, Record Info.
+- **Feature**: **Per-stream Sync button** — Header button on the detail page syncs that stream's server and refreshes the view.
+
+### **Previous Updates (v1.65.1)**
 - **Feature**: **Streams — "Sync with Server" button** (`/admin/streams`) — Calls `POST /admin/streams/sync`; spinner during sync; success toast with created/updated counts; per-server error message on failure; auto-refresh after sync.
 - **Fix**: **Edit Stream page** (`/admin/streams/[uuid]/page.tsx`) — `use(params)` runtime crash fixed; `params` is a plain object in this Next.js version.
 - **Fix**: **Edit Tenant page** (`/admin/tenants/[uuid]/page.tsx`) — Same `use(params)` crash fixed.

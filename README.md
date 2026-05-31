@@ -6,12 +6,12 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.65.1
+- **Version**: 1.66.0
 - **Key Features**: **Flussonic Media Server** (stream servers admin rebuilt — Flussonic API columns, Test Connectivity button with live liveness check, `StreamServerDetailsModal` with Flussonic sections, dashboard Stream Server stat cards, expandable sidebar group), Visual Ads System (YouTube-style pre-roll video ads — `.m3u8`/`.mp4`, skippable/non-skippable, countdown timer, skip button, unmuted by default, channel audio muted during ad via `adPlaying` prop restored on skip/complete, click-through tracking, impression/skip/click analytics, session-based frequency limiting, plan-level + guest/free-user targeting, weighted random selection), Visual Ads Admin CRUD (`/admin/visual-ads` — sidebar via layout.tsx, full table with live stats, create/edit modal), AdSense Policy Compliance (script restricted to content pages only; `sitemap.xml` + `robots.txt` generated), Expanded About Page (FAQ, How It Works, Channel Categories, Platform details), Payment Gateway UI (enable/disable toggle per gateway with inline Test Transaction button; credentials managed via backend `.env`), Channel Manager Stream Preview (HLS player modal with loading/buffering/error/retry states, live badge, copy URL, no-controls clean view), Channel Manager Confirm-Save Modal (per-channel diff of number and status changes with thumbnail, arrow indicators, sorted by new number), Full Admin Portal Redesign (modern slate theme, animated, mobile-responsive sidebar, dashboard, all CRUD pages), Admin Layout Isolation (public Navbar/Footer hidden on admin/reseller routes), Admin Branding (logo on login page + sidebar, sidebar logo links to home), Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
 RESTful API with role-based access control and subscription management.
-- **Version**: 1.44.1
+- **Version**: 1.45.0
 - **Key Features**: **Flussonic Media Server** (`FlussonicApiService` — TCP pre-check, HTTP→HTTPS auto-detection, Basic Auth + Bearer token, liveness endpoint; `test-connection` API endpoint; `stream_servers` table rebuilt to 18 clean Flussonic columns; `total_servers` + `online_servers` in dashboard stats; MistServer `MistAuthService` and challenge-response auth removed), Visual Ads API — `GET /api/visual-ads/active` (plan-aware, guest/free-user targeting, date range, weighted random), `POST /api/visual-ads/{uuid}/impression|skip|click` (analytics counters), Admin CRUD (`GET|POST|PUT|DELETE /api/admin/visual-ads`), `visual_ads` table migration, `show_visual_ads` column on `subscription_plans`. `ChannelController` `isTrustedApp` now checks `API_SECRET` env var first (fixes master-key 401). Payment Gateway Test API (`POST /api/admin/settings/test-payment`) — reads Razorpay/Cashfree credentials from `.env`; SSL-safe CA bundle resolution for WAMP. Batch Channel Update API (number + status, swap-safe two-phase update), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API, Channel View Details API.
 
 ### `nellai_iptv_app` (Flutter)
@@ -24,7 +24,19 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.65.1 Website | v1.44.1 Backend) — 2026-05-30
+## Recent Updates (v1.66.0 Website | v1.45.0 Backend) — 2026-05-31
+
+### Website (Next.js)
+- **Feature**: **Streams list redesigned** (`/admin/streams`) — Table replaced with Video / Audio / Clients / Bandwidth columns sourced from Flussonic v3 API stats. Edit button removed; replaced with Eye (view) button linking to the 360° detail page. "Add Stream" button removed (streams are Flussonic-synced). New `stream_status` filter (running / stopped).
+- **Feature**: **Stream 360° detail page** (`/admin/streams/[uuid]`) — Completely new view replacing the old edit form. Six detail cards: Publish Info, Video Track, Audio Track, Bandwidth, Stream Server, Record Info. Live viewer bar with capacity %. Per-page **Sync** button scoped to that stream's server.
+- **Changed**: **Sync button on detail page** — `POST /admin/streams/sync?server_uuid=…` reloads just the current server's streams and refreshes the detail view.
+
+### Backend (Slim PHP)
+- **Feature**: **Streams sync rewritten for Flussonic API v3** — `StreamService::syncFromServers()` now extracts all 17 new stats fields from `/streamer/api/v3/streams`. Upsert key changed from `stream_key` to `stream_name`. `update()` method removed.
+- **Changed**: **Routes** — `POST /admin/streams` (create) and `PUT /admin/streams/{uuid}` (update) removed; streams are read-only from Flussonic.
+- **Database**: **`add_stream_stats_columns.sql`** — Adds 17 columns to `streams`: `inputs_bandwidth`, `out_bandwidth`, `online_clients`, `video_width`, `video_height`, `video_codec`, `fps`, `audio_codec`, `audio_bitrate`, `audio_sample_rate`, `audio_channels`, `stream_status`, `published_via`, `published_from`, `client_count`, `stream_url_type`, `max_sessions`. `input_url` and `output_formats` made nullable.
+
+## Previous Updates (v1.65.1 Website | v1.44.3a Backend) — 2026-05-30
 
 ### Website (Next.js)
 - **Feature**: **Streams — "Sync with Server"** (`/admin/streams`) — New button calls `POST /admin/streams/sync`; spinner while in progress; success toast shows created/updated counts; per-server error details shown on failure; stream list auto-refreshes.

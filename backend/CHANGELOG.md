@@ -1,3 +1,17 @@
+## [1.45.0] - 2026-05-31
+
+### Changed
+- **`StreamService::upsertStream()`** — Completely rewritten to consume Flussonic API v3 response shape. Extracts video and audio tracks from `stats.media_info.tracks[]` by `content` field. Maps all 17 new stats columns. Upsert key changed from `stream_key` to `stream_name`. Input URL sourced from `inputs[0].url` first (canonical v3 location) then falls back to legacy field paths.
+- **`StreamService::getAll()`** — Added `stream_status` query filter; `ALLOWED_SORTS` extended with `stream_status`, `online_clients`, `out_bandwidth`; search now also matches `published_from`.
+- **`StreamService`** — `update()` method removed; streams are read-only from Flussonic.
+- **Routes** (`app/Routes/admin.php`) — `POST /admin/streams` (create) and `PUT /admin/streams/{uuid}` (update) routes removed.
+
+### Added
+- **`Stream` model** — 17 new fillable fields and casts: `inputs_bandwidth` (BIGINT), `out_bandwidth` (BIGINT), `online_clients` (INT), `video_width` (INT), `video_height` (INT), `video_codec` (VARCHAR 50), `fps` (DECIMAL 6,2 → float cast), `audio_codec` (VARCHAR 50), `audio_bitrate` (INT), `audio_sample_rate` (INT), `audio_channels` (TINYINT), `stream_status` (VARCHAR 50), `published_via` (VARCHAR 50), `published_from` (VARCHAR 100), `client_count` (INT), `stream_url_type` (VARCHAR 255), `max_sessions` (INT).
+- **Migration** (`database/migrations/add_stream_stats_columns.sql`) — `ALTER TABLE streams` adds all 17 columns; modifies `input_url` and `output_formats` to nullable. **Run on live database.**
+
+---
+
 ## [1.44.1] - 2026-05-30
 
 ### Added
