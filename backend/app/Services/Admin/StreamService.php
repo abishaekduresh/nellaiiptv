@@ -593,14 +593,23 @@ class StreamService
             ->pluck('id', 'stream_name')
             ->toArray();
 
-        // Wipe only the client records for these streams
+        // Filter to only the sessions belonging to requested streams
+        $filtered = array_filter($sessions, function ($s) use ($streamNames) {
+            $name = $s['name'] ?? null;
+            return $name && in_array($name, $streamNames);
+        });
+
+        // Geocode all unique public IPs concurrently
+        $uniqueIPs = array_values(array_unique(array_filter(array_column($filtered, 'ip'))));
+        $geoCache  = $this->geocodeIPs($uniqueIPs);
+
+        // Wipe only the client records for these streams, then re-insert
         StreamClient::whereIn('stream_name', $streamNames)->delete();
 
-        foreach ($sessions as $session) {
-            $name = $session['name'] ?? null;
-            if ($name && in_array($name, $streamNames)) {
-                $this->insertStreamClient($streamMap, $session);
-            }
+        foreach ($filtered as $session) {
+            $ip  = $session['ip'] ?? null;
+            $geo = ($ip !== null && isset($geoCache[$ip])) ? $geoCache[$ip] : [];
+            $this->insertStreamClient($streamMap, $session, $geo);
         }
     }
 }

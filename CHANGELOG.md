@@ -1,3 +1,19 @@
+## [1.75.0] - Website | [1.53.0] - Backend - 2026-06-02
+
+### Website (Next.js)
+- **Added**: **My Streams card grid** — 3-column card grid in the Classic Mode My Streams panel. Each card shows health dot, stream name, status badges, viewer count/capacity and uptime chip. Hover reveals a Restart button.
+- **Added**: **Full-screen stream detail modal** — Clicking a stream card opens a full-screen overlay (`fixed inset-0`) with top-bar (stream name, health/status badges, Sync and Restart buttons), OpenStreetMap client sessions map, two-column stream info layout (Video / Audio / Bandwidth cards), and enriched client sessions table.
+- **Added**: **Sync button in modal** — Triggers live Flussonic sync for the stream and auto-refreshes all modal data (map, sessions table, stats) in place without closing the modal. 30 s cooldown.
+- **Added**: **Country centroid fallback in map** — `ClientSessionsMap` now shows amber dashed pins for sessions that have a country code but no exact lat/lng. Multiple IPs from the same country are grouped into one approximate pin with total session count.
+- **Added**: **Enriched client sessions table in Classic modal** — IP + type badge, Protocol, Location (city/region/country + continent/country_code/postal sub-row), ISP/Org/domain, Opened (full date+time), Duration/Status (Active badge), User Agent columns — matching the admin panel layout.
+- **Changed**: Uniform font-size increase across the stream detail modal (top bar, section headers, InfoRow, SectionLabel, table).
+
+### Backend (Slim PHP)
+- **Fixed**: `StreamService::syncSessionsForStreams()` — was calling `insertStreamClient()` without geo data, leaving all geo fields null after a customer-triggered sync. Now collects unique IPs from the filtered sessions, calls `geocodeIPs()` concurrently via `curl_multi`, and passes the geo map into each insert — matching the behaviour of the full `syncSessionsFromServer()`.
+- **Added**: `CustomerStreamController::getMyStreams()` — client sessions now return all 21 fields (`uuid`, `ip`, `user_agent`, `protocol`, `opened_at`, `closed_at`, `country`, `ip_type`, `continent`, `continent_code`, `country_code`, `region`, `region_code`, `city`, `latitude`, `longitude`, `postal`, `org`, `isp`, `domain`). Previously only 6 fields were returned.
+
+---
+
 ## [1.74.0] - Website | [1.52.0] - Backend - 2026-06-02
 
 ### Website (Next.js)

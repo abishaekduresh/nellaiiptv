@@ -37,14 +37,33 @@ class CustomerStreamController
                 $clients = $s->clients()
                     ->orderByDesc('opened_at')
                     ->limit(20)
-                    ->get(['uuid', 'ip', 'protocol', 'opened_at', 'closed_at', 'country'])
+                    ->get([
+                        'uuid', 'ip', 'user_agent', 'protocol', 'opened_at', 'closed_at',
+                        'country', 'ip_type', 'continent', 'continent_code', 'country_code',
+                        'region', 'region_code', 'city', 'latitude', 'longitude',
+                        'postal', 'org', 'isp', 'domain',
+                    ])
                     ->map(fn($c) => [
-                        'uuid'      => $c->uuid,
-                        'ip'        => $c->ip,
-                        'protocol'  => $c->protocol,
-                        'opened_at' => $c->opened_at,
-                        'closed_at' => $c->closed_at,
-                        'country'   => $c->country,
+                        'uuid'           => $c->uuid,
+                        'ip'             => $c->ip,
+                        'user_agent'     => $c->user_agent,
+                        'protocol'       => $c->protocol,
+                        'opened_at'      => $c->opened_at,
+                        'closed_at'      => $c->closed_at,
+                        'country'        => $c->country,
+                        'ip_type'        => $c->ip_type,
+                        'continent'      => $c->continent,
+                        'continent_code' => $c->continent_code,
+                        'country_code'   => $c->country_code,
+                        'region'         => $c->region,
+                        'region_code'    => $c->region_code,
+                        'city'           => $c->city,
+                        'latitude'       => $c->latitude,
+                        'longitude'      => $c->longitude,
+                        'postal'         => $c->postal,
+                        'org'            => $c->org,
+                        'isp'            => $c->isp,
+                        'domain'         => $c->domain,
                     ])->values();
 
                 return [

@@ -1,10 +1,17 @@
-# Nellai IPTV - Frontend v1.74.0
+# Nellai IPTV - Frontend v1.75.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.74.0)**
+### **Latest Updates (v1.75.0)**
+- **Feature**: **My Streams card grid (Classic Mode)** — 3-column card grid replaces the old list. Each card shows health dot, stream name, status badges, viewer count/capacity, uptime. Hover reveals Restart.
+- **Feature**: **Full-screen stream detail modal** — Clicking a card opens a full-screen overlay with Sync + Restart buttons, OSM map, two-column stream info (Video / Audio / Bandwidth), and enriched client sessions table matching the admin panel (IP type, Location with city/region/country/postal, ISP/Org/domain, Active badge, User Agent).
+- **Feature**: **Sync button in modal** — Triggers live Flussonic sync and auto-refreshes map + sessions in place (30 s cooldown).
+- **Feature**: **Country centroid map fallback** — `ClientSessionsMap` shows amber dashed pins for sessions with no exact GPS but a known country code; IPs from same country grouped into one approximate pin.
+- **Changed**: Uniform font-size increase across the stream detail modal.
+
+### **Previous Updates (v1.74.0)**
 - **Feature**: **OpenStreetMap client session map** — Interactive map on `/admin/streams/[uuid]` above the sessions table. Custom SVG teardrop pin icons (green = active, sky-blue = closed; session count inside pin). Auto-fits bounds to all points. "Fit points" button re-centers the view. `react-leaflet@4` + `leaflet` (OpenStreetMap tiles, no API key).
 - **Feature**: **Enriched sessions table** — New `Location` column (city → region → country, with continent / country-code / postal sub-row) and `ISP / Org` column. IP cell shows `IPv4`/`IPv6` type badge.
 
