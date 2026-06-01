@@ -1,3 +1,16 @@
+## [1.73.0] - Website | [1.51.0] - Backend - 2026-06-01
+
+### Website (Next.js)
+- **Added**: **Keyboard shortcuts for `/channel/[uuid]` player** (`VideoPlayer.tsx`, `PlayerOverlay.tsx`) — `Space`/`K` play/pause, `M` mute, `F` fullscreen, `P` picture-in-picture, `↑`/`↓` next/prev channel, `→`/`←` volume, `L` channel list sidebar, `R` reload stream, `?` shortcuts help panel. Semi-transparent help overlay with `<kbd>`-styled key chips. Keyboard icon hint button in the top-right corner when controls are visible. `requestOpen` prop added to `PlayerOverlay` so `L` key in `VideoPlayer` can toggle the sidebar.
+- **Removed**: Viewer Sessions admin page (`app/admin/viewer-sessions/`) and nav entry from `AdminSidebar` + `StreamInfraSubNav`.
+- **Removed**: Tenants admin pages (`app/admin/tenants/`), `TenantForm.tsx` component, and nav entry from `AdminSidebar`.
+
+### Backend (Slim PHP)
+- **Removed**: `ViewerSessionController`, `ViewerSession` model, `ViewerSessionService`, `create_viewer_sessions_table.sql` — `GET|POST /admin/viewer-sessions` routes deleted.
+- **Removed**: `TenantController`, `Tenant` model, `TenantService`, `create_tenants_table.sql` — `GET|POST|PUT|DELETE /admin/tenants[/{uuid}]` routes deleted.
+
+---
+
 ## [1.14.0+69] - App (Flutter) - 2026-06-01
 
 ### Added

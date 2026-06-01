@@ -1,3 +1,18 @@
+## [1.51.0] - 2026-06-01
+
+### Removed
+- **`ViewerSessionController`** (`app/Controllers/Admin/ViewerSessionController.php`) — Deleted; `GET /admin/viewer-sessions` and `POST /admin/viewer-sessions` endpoints removed.
+- **`ViewerSession` model** (`app/Models/ViewerSession.php`) — Deleted.
+- **`ViewerSessionService`** (`app/Services/Admin/ViewerSessionService.php`) — Deleted.
+- **`create_viewer_sessions_table.sql`** (`database/migrations/`) — Migration file deleted.
+- **`TenantController`** (`app/Controllers/Admin/TenantController.php`) — Deleted; `GET|POST /admin/tenants` and `GET|PUT|DELETE /admin/tenants/{uuid}` endpoints removed.
+- **`Tenant` model** (`app/Models/Tenant.php`) — Deleted.
+- **`TenantService`** (`app/Services/Admin/TenantService.php`) — Deleted.
+- **`create_tenants_table.sql`** (`database/migrations/`) — Migration file deleted.
+- **Routes** (`app/Routes/admin.php`) — Viewer Sessions and Tenants route groups removed from the admin middleware group.
+
+---
+
 ## [1.50.0] - 2026-06-01
 
 ### Added

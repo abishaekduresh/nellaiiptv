@@ -1,3 +1,30 @@
+## [1.73.0] - 2026-06-01
+
+### Added
+- **Keyboard shortcuts for `/channel/[uuid]` player** (`components/VideoPlayer.tsx`, `components/PlayerOverlay.tsx`) — Full keyboard control while a channel is playing:
+  - `Space` / `K` — Play / Pause
+  - `M` — Mute / Unmute
+  - `F` — Toggle Fullscreen
+  - `P` — Picture-in-Picture (non-YouTube streams only)
+  - `↑` / `↓` — Next / Previous Channel
+  - `→` / `←` — Volume Up / Down (+/− 0.1)
+  - `L` — Open / Close Channel List sidebar
+  - `R` — Reload / Retry stream
+  - `?` — Show / Hide keyboard shortcuts help panel
+  - `Esc` — Close help panel first, then navigate back
+- **Keyboard shortcuts help panel** (`VideoPlayer.tsx`) — Semi-transparent dark overlay listing all shortcuts with `<kbd>`-styled key chips. Toggled with `?` key or the Keyboard icon button. Click outside or press `?` again to dismiss.
+- **Keyboard hint button** (`VideoPlayer.tsx`) — `Keyboard` icon button in the top-right corner (next to the report button), visible when controls are shown. Opens the shortcuts help panel on click.
+- **`requestOpen` prop on `PlayerOverlay`** — `VideoPlayer` increments a counter each time `L` is pressed; `PlayerOverlay` watches the counter and toggles `sidebarOpen` so the channel list can be opened from outside the overlay's own keyboard handler.
+
+### Removed
+- **Viewer Sessions admin page** (`app/admin/viewer-sessions/`) — Page and layout deleted; section had no active data source.
+- **Tenants admin pages** (`app/admin/tenants/`) — List, create, and `[uuid]` edit pages plus layout deleted.
+- **`TenantForm` component** (`components/admin/TenantForm.tsx`) — Deleted alongside the tenant pages.
+- **Admin sidebar entries** (`components/AdminSidebar.tsx`) — "Viewer Sessions" and "Tenants" nav entries removed; unused `Monitor` and `Building2` lucide imports cleaned up.
+- **`StreamInfraSubNav` Viewer Sessions section** (`components/admin/StreamInfraSubNav.tsx`) — Viewer Sessions section and unused `Eye` import removed.
+
+---
+
 ## [1.72.0] - 2026-06-01
 
 ### Added
