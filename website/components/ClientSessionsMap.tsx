@@ -185,12 +185,12 @@ export default function ClientSessionsMap({ clients }: { clients: StreamClientRe
   const hasApprox = points.some(p => p.approximate);
 
   return (
-    <div className="relative">
+    <div className="relative flex flex-col" style={{ height: '100%' }}>
       <MapContainer
         center={[20, 0]}
         zoom={2}
         scrollWheelZoom={true}
-        style={{ height: '320px', width: '100%' }}
+        style={{ flex: '1 1 0', width: '100%', minHeight: '360px' }}
         className="z-0"
       >
         <TileLayer

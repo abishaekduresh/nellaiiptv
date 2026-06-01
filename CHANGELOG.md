@@ -1,3 +1,11 @@
+## [1.76.0] - Website - 2026-06-02
+
+### Website (Next.js)
+- **Changed**: **Stream detail modal layout restructure** — Map column moved to left (3/5 grid width); Stream Info card moved into the right column alongside Video, Audio, and Bandwidth cards (2/5 grid width). CSS Grid `items-stretch` keeps both columns the same height.
+- **Fix**: **Map height chain in `ClientSessionsMap`** — Root wrapper now uses `flex flex-col` + `height: 100%`; `MapContainer` uses `flex: 1 1 0` so tiles fill the entire left column height. Eliminates the black gap that appeared below the map tiles when the container was taller than the minimum height.
+
+---
+
 ## [1.75.0] - Website | [1.53.0] - Backend - 2026-06-02
 
 ### Website (Next.js)
