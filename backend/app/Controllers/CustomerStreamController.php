@@ -5,6 +5,7 @@ namespace App\Controllers;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Models\Customer;
+use App\Models\StreamClient;
 use App\Services\Admin\StreamService;
 use App\Helpers\ResponseFormatter;
 use Exception;
@@ -42,29 +43,10 @@ class CustomerStreamController
                         'country', 'ip_type', 'continent', 'continent_code', 'country_code',
                         'region', 'region_code', 'city', 'latitude', 'longitude',
                         'postal', 'org', 'isp', 'domain',
-                    ])
-                    ->map(fn($c) => [
-                        'uuid'           => $c->uuid,
-                        'ip'             => $c->ip,
-                        'user_agent'     => $c->user_agent,
-                        'protocol'       => $c->protocol,
-                        'opened_at'      => $c->opened_at,
-                        'closed_at'      => $c->closed_at,
-                        'country'        => $c->country,
-                        'ip_type'        => $c->ip_type,
-                        'continent'      => $c->continent,
-                        'continent_code' => $c->continent_code,
-                        'country_code'   => $c->country_code,
-                        'region'         => $c->region,
-                        'region_code'    => $c->region_code,
-                        'city'           => $c->city,
-                        'latitude'       => $c->latitude,
-                        'longitude'      => $c->longitude,
-                        'postal'         => $c->postal,
-                        'org'            => $c->org,
-                        'isp'            => $c->isp,
-                        'domain'         => $c->domain,
-                    ])->values();
+                    ]);
+
+                // Enrich any sessions that are still missing geo data
+                $clients = $this->enrichMissingGeo($clients);
 
                 return [
                     'uuid'             => $s->uuid,
@@ -89,7 +71,28 @@ class CustomerStreamController
                     'audio_sample_rate'=> $s->audio_sample_rate,
                     'audio_channels'   => $s->audio_channels,
                     'assigned_at'      => $s->pivot->assigned_at,
-                    'clients'          => $clients,
+                    'clients'          => $clients->map(fn($c) => [
+                        'uuid'           => $c->uuid,
+                        'ip'             => $c->ip,
+                        'user_agent'     => $c->user_agent,
+                        'protocol'       => $c->protocol,
+                        'opened_at'      => $c->opened_at,
+                        'closed_at'      => $c->closed_at,
+                        'country'        => $c->country,
+                        'ip_type'        => $c->ip_type,
+                        'continent'      => $c->continent,
+                        'continent_code' => $c->continent_code,
+                        'country_code'   => $c->country_code,
+                        'region'         => $c->region,
+                        'region_code'    => $c->region_code,
+                        'city'           => $c->city,
+                        'latitude'       => $c->latitude,
+                        'longitude'      => $c->longitude,
+                        'postal'         => $c->postal,
+                        'org'            => $c->org,
+                        'isp'            => $c->isp,
+                        'domain'         => $c->domain,
+                    ])->values(),
                 ];
             });
 
@@ -97,6 +100,134 @@ class CustomerStreamController
         } catch (Exception $e) {
             return ResponseFormatter::error($response, 'Failed to load streams', 500);
         }
+    }
+
+    /**
+     * For any client session where city is null, call ipwho.is to fetch geo data,
+     * persist it back to stream_clients, and update the model in-place.
+     */
+    private function enrichMissingGeo($clients)
+    {
+        // Collect unique public IPs that are missing geo data
+        $needsGeo = $clients->filter(fn($c) => $c->ip && $c->city === null);
+
+        if ($needsGeo->isEmpty()) return $clients;
+
+        $uniqueIPs = $needsGeo->pluck('ip')->unique()->filter(fn($ip) => !$this->isPrivateIp($ip))->values()->toArray();
+
+        if (empty($uniqueIPs)) return $clients;
+
+        $geoCache = $this->geocodeIPs($uniqueIPs);
+
+        if (empty($geoCache)) return $clients;
+
+        // Apply geo data to matching client models and persist
+        foreach ($clients as $client) {
+            if ($client->ip === null || $client->city !== null) continue;
+            $geo = $geoCache[$client->ip] ?? null;
+            if (!$geo) continue;
+
+            $client->ip_type        = $geo['ip_type']        ?? null;
+            $client->continent      = $geo['continent']      ?? null;
+            $client->continent_code = $geo['continent_code'] ?? null;
+            $client->country        = $geo['country']        ?? $client->country;
+            $client->country_code   = $geo['country_code']   ?? null;
+            $client->region         = $geo['region']         ?? null;
+            $client->region_code    = $geo['region_code']    ?? null;
+            $client->city           = $geo['city']           ?? null;
+            $client->latitude       = isset($geo['latitude'])  ? (float)$geo['latitude']  : null;
+            $client->longitude      = isset($geo['longitude']) ? (float)$geo['longitude'] : null;
+            $client->postal         = $geo['postal']         ?? null;
+            $client->org            = $geo['org']            ?? null;
+            $client->isp            = $geo['isp']            ?? null;
+            $client->domain         = $geo['domain']         ?? null;
+
+            // Persist back so next read doesn't need to geocode again
+            StreamClient::where('uuid', $client->uuid)->update([
+                'ip_type'        => $client->ip_type,
+                'continent'      => $client->continent,
+                'continent_code' => $client->continent_code,
+                'country'        => $client->country,
+                'country_code'   => $client->country_code,
+                'region'         => $client->region,
+                'region_code'    => $client->region_code,
+                'city'           => $client->city,
+                'latitude'       => $client->latitude,
+                'longitude'      => $client->longitude,
+                'postal'         => $client->postal,
+                'org'            => $client->org,
+                'isp'            => $client->isp,
+                'domain'         => $client->domain,
+            ]);
+        }
+
+        return $clients;
+    }
+
+    /**
+     * Concurrently geocode IPs via ipwho.is using curl_multi.
+     */
+    private function geocodeIPs(array $ips): array
+    {
+        $multi   = curl_multi_init();
+        $handles = [];
+
+        foreach ($ips as $ip) {
+            $ch = curl_init("https://ipwho.is/{$ip}");
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+                CURLOPT_USERAGENT      => 'NellaiIPTV/1.0',
+            ]);
+            curl_multi_add_handle($multi, $ch);
+            $handles[$ip] = $ch;
+        }
+
+        $running = 0;
+        do {
+            $status = curl_multi_exec($multi, $running);
+            if ($status > CURLM_OK) break;
+            if ($running > 0) curl_multi_select($multi, 1.0);
+        } while ($running > 0);
+
+        $results = [];
+        foreach ($handles as $ip => $ch) {
+            $raw = curl_multi_getcontent($ch);
+            curl_multi_remove_handle($multi, $ch);
+            curl_close($ch);
+
+            if (!$raw) continue;
+            $data = json_decode($raw, true);
+            if (!isset($data['success']) || !$data['success']) continue;
+
+            $results[$ip] = [
+                'ip_type'        => $data['type']                    ?? null,
+                'continent'      => $data['continent']               ?? null,
+                'continent_code' => $data['continent_code']          ?? null,
+                'country'        => $data['country']                 ?? null,
+                'country_code'   => $data['country_code']            ?? null,
+                'region'         => $data['region']                  ?? null,
+                'region_code'    => $data['region_code']             ?? null,
+                'city'           => $data['city']                    ?? null,
+                'latitude'       => isset($data['latitude'])  ? (float)$data['latitude']  : null,
+                'longitude'      => isset($data['longitude']) ? (float)$data['longitude'] : null,
+                'postal'         => $data['postal']                  ?? null,
+                'org'            => $data['connection']['org']       ?? null,
+                'isp'            => $data['connection']['isp']       ?? null,
+                'domain'         => $data['connection']['domain']    ?? null,
+            ];
+        }
+
+        curl_multi_close($multi);
+        return $results;
+    }
+
+    private function isPrivateIp(string $ip): bool
+    {
+        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
     }
 
     public function toggleStream(Request $request, Response $response, string $streamUuid): Response

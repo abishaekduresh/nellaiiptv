@@ -6,7 +6,7 @@ import { Channel } from '@/types';
 import Link from 'next/link';
 import VideoPlayer from './VideoPlayer';
 import { useTVFocus } from '@/hooks/useTVFocus';
-import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu, ArrowLeft, Radio, RotateCcw, Loader2, RefreshCw, ChevronUp, Monitor, Volume2, Signal, Users, Clock, LogIn, X } from 'lucide-react';
+import { Play, Eye, MapPin, Star, ChevronDown, Heart, Crown, Menu, ArrowLeft, Radio, RotateCcw, Loader2, RefreshCw, ChevronUp, Monitor, Volume2, Users, Clock, LogIn, X } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
 import AdBanner from './AdBanner';
 import ScrollingAdsTicker from './ScrollingAdsTicker';
@@ -1078,15 +1078,6 @@ function StreamDetailModal({
                     </div>
                   )}
 
-                  {(s.inputs_bandwidth || s.out_bandwidth) && (
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-1">
-                      <SectionLabel icon={Signal} label="Bandwidth" />
-                      <div className="mt-1 space-y-1">
-                        <InfoRow label="In"  value={fmtBw(s.inputs_bandwidth)} />
-                        <InfoRow label="Out" value={fmtBw(s.out_bandwidth)} />
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             );

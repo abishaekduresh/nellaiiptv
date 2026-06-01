@@ -1,10 +1,13 @@
-# Nellai IPTV - Frontend v1.77.0
+# Nellai IPTV - Frontend v1.78.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.77.0)**
+### **Latest Updates (v1.78.0)**
+- **Fix**: **Removed Bandwidth section from My Streams modal** — `Bandwidth` card (In / Out) removed from the Classic Mode stream detail modal. `Signal` icon import cleaned up.
+
+### **Previous Updates (v1.77.0)**
 - **Feature**: **Cron URL cards on admin pages** — Stream Servers, Streams, and Monitoring pages each display a ready-to-copy cron endpoint URL (with the live secret key embedded). Uses the shared `CronUrlCard` component; links to Settings when no key is configured.
 - **Feature**: **Cron Keys & Automation section in Settings** — Generate or regenerate a 48-char hex cron secret key stored in the DB. Shows the key (masked, with reveal toggle + copy), and lists all three cron endpoint URLs (`ping-servers`, `sync-streams`, `record-monitoring`) with per-URL copy buttons.
 

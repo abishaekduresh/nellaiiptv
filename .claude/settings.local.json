@@ -91,7 +91,21 @@
       "Bash(git -C 'c:\\\\wamp64\\\\www\\\\nellaiiptv' commit -m ' *)",
       "Bash(Get-ChildItem -Path \"C:\\\\wamp64\\\\www\\\\nellaiiptv\" -MaxDepth 1 -Name \"*.md\")",
       "Bash(Get-ChildItem -Path \"C:\\\\wamp64\\\\www\\\\nellaiiptv\\\\backend\" -MaxDepth 1 -Name \"*.md\")",
-      "Bash(Get-ChildItem -Path \"C:\\\\wamp64\\\\www\\\\nellaiiptv\\\\website\" -MaxDepth 1 -Name \"*.md\")"
+      "Bash(Get-ChildItem -Path \"C:\\\\wamp64\\\\www\\\\nellaiiptv\\\\website\" -MaxDepth 1 -Name \"*.md\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\wamp64\\\\www\\\\nellaiiptv\\\\nellai_iptv_app\\\\lib\\\\\" -Recurse -Force | Select-Object FullName, PSIsContainer | Sort-Object FullName)",
+      "Bash(Remove-Item -Recurse -Force \"website\\\\app\\\\admin\\\\viewer-sessions\")",
+      "Bash(Remove-Item -Recurse -Force \"website\\\\app\\\\admin\\\\tenants\")",
+      "Bash(Remove-Item -Force \"website\\\\components\\\\admin\\\\TenantForm.tsx\")",
+      "Bash(Remove-Item -Force \"backend\\\\app\\\\Controllers\\\\Admin\\\\ViewerSessionController.php\")",
+      "Bash(Remove-Item -Force \"backend\\\\app\\\\Models\\\\ViewerSession.php\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\website\\\\app\\\\channel\\\\[uuid]\\\\\" -Recurse -File)",
+      "Bash(Get-ChildItem \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\website\\\\components\" -Recurse -Filter \"*.tsx\")",
+      "Bash(Select-Object -First 20 -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Recurse -Filter \"*.php\")",
+      "Bash(Select-String \"cron\")",
+      "Bash(Test-Path \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\website\\\\components\\\\admin\\\\CronUrlCard.tsx\")",
+      "Bash(Test-Path \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\backend\\\\app\\\\Controllers\\\\Cron\\\\PingServersCronController.php\")",
+      "Bash(Test-Path \"c:\\\\wamp64\\\\www\\\\nellaiiptv\\\\backend\\\\app\\\\Controllers\\\\Cron\\\\RecordMonitoringCronController.php\")"
     ]
   }
 }

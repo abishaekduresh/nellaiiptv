@@ -152,6 +152,9 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
+## Latest Updates (v1.55.0)
+- **Fix**: **On-read geo enrichment in `CustomerStreamController`** — `getMyStreams()` now calls `enrichMissingGeo()` after loading client sessions from DB. Any session where `city` is null has its IP geocoded via `ipwho.is` using `curl_multi` (concurrent), the result is applied to the model and persisted back to `stream_clients` immediately so subsequent reads are instant. Fixes customer stream sync not showing Location / ISP / Org data when the sync-time geocoding silently failed.
+
 ## Latest Updates (v1.54.0)
 - **Feature**: **Cron HTTP endpoints** — `GET /api/cron/ping-servers` (pings all active Flussonic servers) and `GET /api/cron/record-monitoring` (records a metrics snapshot for all servers). Both protected by `CronSecretMiddleware` alongside the existing `POST /api/cron/sync-streams`.
 - **Feature**: **DB-managed cron secret** — `CronSecretMiddleware` now reads `cron_secret` from the `settings` table first (falls back to `CRON_SECRET` env var). `GET /api/admin/settings/cron-key` returns the active key and its source; `POST /api/admin/settings/regenerate-cron-key` generates a new 48-char hex secret and stores it in DB.

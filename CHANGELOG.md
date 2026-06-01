@@ -1,3 +1,13 @@
+## [1.78.0] - Website | [1.55.0] - Backend - 2026-06-02
+
+### Website (Next.js)
+- **Removed**: **Bandwidth card from My Streams modal** (`ClassicHome.tsx`) — `Bandwidth` section (In / Out fields) removed from the Classic Mode stream detail modal. Unused `Signal` icon import also removed.
+
+### Backend (Slim PHP)
+- **Fixed**: **`CustomerStreamController::getMyStreams()`** — added `enrichMissingGeo()` method that runs after loading client sessions from DB. Sessions where `city` is null are geocoded on-demand via `ipwho.is` using concurrent `curl_multi` requests. Results are written back to `stream_clients` so future reads skip the API call. Fixes Location / ISP / Org / city data not appearing in the customer My Streams modal after sync (caused by sync-time geocoding failing silently inside a swallowed exception).
+
+---
+
 ## [1.77.0] - Website | [1.54.0] - Backend - 2026-06-02
 
 ### Website (Next.js)
