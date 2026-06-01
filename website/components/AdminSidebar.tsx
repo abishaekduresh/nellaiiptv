@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen,
   CreditCard, Mail, MessageSquare, BarChart2, ChevronDown, ThumbsUp,
-  Server, Megaphone, Film, Hash, X, Radio, Monitor, Building2,
+  Server, Megaphone, Film, Hash, X, Radio,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -28,8 +28,6 @@ const menuItems = [
       { title: 'Monitoring',  href: '/admin/monitoring' },
     ],
   },
-  { title: 'Viewer Sessions', icon: Monitor,   href: '/admin/viewer-sessions' },
-  { title: 'Tenants',         icon: Building2, href: '/admin/tenants' },
   { title: 'Scrolling Ads',  icon: Megaphone,    href: '/admin/scrolling-ads' },
   { title: 'Visual Ads',     icon: Film,         href: '/admin/visual-ads' },
   {

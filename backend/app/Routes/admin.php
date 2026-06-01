@@ -117,22 +117,11 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/streams/{uuid}/clients', [\App\Controllers\Admin\StreamController::class, 'clients']);
         $group->delete('/streams/{uuid}', [\App\Controllers\Admin\StreamController::class, 'delete']);
 
-        // Viewer Sessions
-        $group->get('/viewer-sessions', [\App\Controllers\Admin\ViewerSessionController::class, 'index']);
-        $group->post('/viewer-sessions', [\App\Controllers\Admin\ViewerSessionController::class, 'create']);
-
         // Server Monitoring
         $group->get('/monitoring', [\App\Controllers\Admin\MonitoringController::class, 'index']);
         $group->post('/monitoring/record-all', [\App\Controllers\Admin\MonitoringController::class, 'recordAll']);
         $group->get('/monitoring/{serverUuid}/history', [\App\Controllers\Admin\MonitoringController::class, 'history']);
         $group->post('/monitoring/{serverUuid}/record', [\App\Controllers\Admin\MonitoringController::class, 'record']);
-
-        // Tenants Management
-        $group->get('/tenants', [\App\Controllers\Admin\TenantController::class, 'index']);
-        $group->post('/tenants', [\App\Controllers\Admin\TenantController::class, 'create']);
-        $group->get('/tenants/{uuid}', [\App\Controllers\Admin\TenantController::class, 'show']);
-        $group->put('/tenants/{uuid}', [\App\Controllers\Admin\TenantController::class, 'update']);
-        $group->delete('/tenants/{uuid}', [\App\Controllers\Admin\TenantController::class, 'delete']);
 
         // Reports
         $group->group('/reports', function (RouteCollectorProxy $group) {

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Server, Radio, Monitor, Eye, ChevronRight } from 'lucide-react';
+import { Server, Radio, Monitor, ChevronRight } from 'lucide-react';
 
 const NAV = [
   {
@@ -18,13 +18,6 @@ const NAV = [
     items: [
       { label: 'All Streams', href: '/admin/streams' },
       { label: 'Add Stream',  href: '/admin/streams/create' },
-    ],
-  },
-  {
-    label: 'Viewer Sessions',
-    icon: Eye,
-    items: [
-      { label: 'Sessions', href: '/admin/viewer-sessions' },
     ],
   },
   {
