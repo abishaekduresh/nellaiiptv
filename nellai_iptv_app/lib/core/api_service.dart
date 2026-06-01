@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/channel.dart';
 import '../models/ad.dart';
 import '../models/category.dart';
+import '../models/customer_stream.dart';
 import '../models/language.dart';
 import '../models/public_settings.dart';
 import '../models/comment.dart';
@@ -557,6 +558,37 @@ class ApiService {
       return null;
     }
   }
+
+  // --- CUSTOMER STREAMS ---
+
+  Future<List<CustomerStream>> getMyStreams({bool sync = false}) async {
+    final response = await _dio.get(
+      '/customers/streams',
+      queryParameters: {
+        if (sync) 'sync': '1',
+        '_ts': DateTime.now().millisecondsSinceEpoch, // bust any HTTP-level cache
+      },
+      options: Options(headers: {'Cache-Control': 'no-cache'}),
+    );
+    if (response.statusCode == 200 && response.data['status'] == true) {
+      final List data = response.data['data'] ?? [];
+      return data.map((json) => CustomerStream.fromJson(json as Map<String, dynamic>)).toList();
+    }
+    throw Exception(response.data['message'] ?? 'Failed to load streams');
+  }
+
+  Future<Map<String, dynamic>> toggleStream(String streamUuid, bool enable) async {
+    final response = await _dio.post(
+      '/customers/streams/$streamUuid/toggle',
+      data: {'enable': enable},
+    );
+    if (response.statusCode == 200 && response.data['status'] == true) {
+      return response.data['data'] ?? {};
+    }
+    throw Exception(response.data['message'] ?? 'Failed to update stream');
+  }
+
+  // --- END CUSTOMER STREAMS ---
 
   Future<bool> logout() async {
     try {

@@ -16,13 +16,25 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
-- **Version**: 1.13.1+68
-- **Key Features**: Visual Pre-roll Ads (YouTube-style full-screen video ads on channel switch — skippable/non-skippable, countdown, skip button, mute toggle, click-through tracking, impression/skip/click analytics, per-session frequency limiting, double-tap fullscreen, `FittedBox.fill` stretch), `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, Enhanced ColorFilter contrast/colour matrix (1.22× contrast, cross-channel warmth, −16 bias), `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
+- **Version**: 1.14.0+69
+- **Key Features**: My Streams Screen (customer-facing stream management — stream cards with status/health/codec details, client sessions table, Sync button with 30 s cooldown, per-stream Restart with 2 s disable→enable sequence and 30 s cooldown, pull-to-refresh), Profile Screen portrait + landscape orientation support, Visual Pre-roll Ads (YouTube-style full-screen video ads on channel switch — skippable/non-skippable, countdown, skip button, mute toggle, click-through tracking, impression/skip/click analytics, per-session frequency limiting, double-tap fullscreen, `FittedBox.fill` stretch), `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, Enhanced ColorFilter contrast/colour matrix (1.22× contrast, cross-channel warmth, −16 bias), `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
+
+## Recent Updates (v1.14.0+69 App) — 2026-06-01
+
+### Flutter App
+- **Added**: **My Streams Screen** — Customer-facing stream management screen (Profile → My Streams). Stream cards show status dot (running = green, waiting = amber, others = red), stream name, stream-status + health-status badges, enabled/disabled pill, uptime, viewer count, codec chips, and a Restart button (only when enabled).
+- **Added**: **Client Sessions panel** — Collapsible section per stream listing active/closed sessions (IP, protocol, country, duration, active indicator dot).
+- **Added**: **Sync with 30 s cooldown** — AppBar Sync button fetches `GET /customers/streams?sync=1` with `Cache-Control: no-cache` + `_ts` cache-bust. Label shows countdown ("Sync (28s)") during lockout.
+- **Added**: **Per-stream Restart with 30 s cooldown** — Restart button executes disable → 2 s wait → re-enable → fresh API fetch; label shows countdown ("Restart (28s)") during lockout.
+- **Added**: `CustomerStream` + `StreamClientSession` models and `ApiService.getMyStreams()` / `ApiService.toggleStream()` methods.
+- **Changed**: **Profile Screen** — OrientationBuilder support; landscape = two-pane layout (user-info + subscription/buttons).
+
+---
 
 ## Recent Updates (v1.72.0 Website | v1.50.0 Backend) — 2026-06-01
 

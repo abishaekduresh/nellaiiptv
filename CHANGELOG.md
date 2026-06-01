@@ -1,3 +1,18 @@
+## [1.14.0+69] - App (Flutter) - 2026-06-01
+
+### Added
+- **My Streams Screen** (`lib/screens/profile/my_streams_screen.dart`) — New screen accessible from Profile → My Streams. Stream cards: status dot (running = green, waiting = amber, others = red), stream name, stream-status badge, health-status badge (online = green, offline = red), enabled/disabled pill, uptime, viewer count, codec chips, Restart button (visible only when enabled).
+- **Client Sessions** — Collapsible `ExpansionTile` per stream card showing each session: IP, protocol chip, country, duration, active/inactive dot.
+- **Sync button with 30 s cooldown** — AppBar sync calls `GET /customers/streams?sync=1` with `Cache-Control: no-cache` + `_ts` cache-bust; locked for 30 s with live countdown.
+- **Per-stream Restart with 30 s cooldown** — Restart executes disable → 2 s wait → re-enable → fresh fetch; locked for 30 s with live countdown.
+- **`CustomerStream` + `StreamClientSession` models** (`lib/models/customer_stream.dart`).
+- **`ApiService.getMyStreams({bool sync})`** and **`ApiService.toggleStream(uuid, enable)`** methods.
+
+### Changed
+- **Profile Screen** — `OrientationBuilder` portrait/landscape support; landscape = two-pane layout (220 px user-info pane + expanded subscription/buttons pane).
+
+---
+
 ## [1.72.0] - Website | [1.50.0] - Backend - 2026-06-01
 
 ### Website (Next.js)

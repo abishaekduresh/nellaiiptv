@@ -1,3 +1,22 @@
+## [1.14.0+69] - 2026-06-01
+
+### Added
+- **My Streams Screen** (`lib/screens/profile/my_streams_screen.dart`) — New screen accessible from Profile → My Streams. Shows all streams assigned to the logged-in customer with real-time status details.
+  - **Stream cards** — Each card shows: status dot (running = green, waiting = amber, others = red), stream name, stream-status badge, health-status badge (online = green, offline = red), enabled/disabled pill, uptime, viewer count (current / max), published-via label, video/audio codec chips, and a Restart button (visible only when stream is enabled).
+  - **Client Sessions** — Collapsible `ExpansionTile` per stream showing each active/closed session: IP, protocol chip, country, session duration, and an active/inactive indicator dot.
+  - **Sync button** (AppBar) — Calls `GET /customers/streams?sync=1` with `Cache-Control: no-cache` + `_ts` cache-bust param to pull live Flussonic stats. Disabled for 30 s after each sync with a live countdown label ("Sync (28s)").
+  - **Restart button** (per stream) — Executes a true restart: `POST /customers/streams/{uuid}/toggle` disable → 2 s delay → re-enable → fresh data fetch. Disabled for 30 s after each restart with a live countdown label ("Restart (28s)").
+  - **Pull-to-refresh** — `RefreshIndicator` triggers a sync fetch.
+  - **Last synced** bar — Shows "Last synced: HH:mm:ss" below the linear progress indicator.
+- **`CustomerStream` model** (`lib/models/customer_stream.dart`) — Typed model for stream data including `StreamClientSession` (ip, protocol, country, openedAt, closedAt, isActive, sessionDuration).
+- **`ApiService.getMyStreams({bool sync})`** — `GET /customers/streams` with optional `sync=1` param, `Cache-Control: no-cache`, and `_ts` timestamp for HTTP cache-busting.
+- **`ApiService.toggleStream(uuid, enable)`** — `POST /customers/streams/{uuid}/toggle` with `{enable: bool}` body.
+
+### Changed
+- **Profile Screen** (`lib/screens/profile/profile_screen.dart`) — Now supports both portrait and landscape orientation via `SystemChrome.setPreferredOrientations` in `initState` / `dispose`. `OrientationBuilder` switches between a single-column portrait layout and a two-pane landscape layout (fixed 220 px user-info pane + expanded subscription/buttons pane). Shared `_buildBtn` helper replaces per-button boilerplate.
+
+---
+
 ## [1.13.1+68] - 2026-05-25
 
 ### Fixed

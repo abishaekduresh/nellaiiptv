@@ -6,6 +6,7 @@ import '../auth/manage_devices_screen.dart';
 import '../auth/login_screen.dart';
 import '../../core/toast_service.dart';
 import 'feedback_screen.dart';
+import 'my_streams_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,23 +19,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ApiService _api = ApiService();
   Map<String, dynamic>? _profileData;
   bool _isLoading = true;
-  bool _isLoggingOut = false; // Track if user is logging out
-  
+  bool _isLoggingOut = false;
+
   // Focus Nodes
   late FocusNode _manageDevicesFocusNode;
+  late FocusNode _myStreamsFocusNode;
   late FocusNode _feedbackFocusNode;
   late FocusNode _logoutFocusNode;
 
   @override
   void initState() {
     super.initState();
-    
-    // Enforce Portrait for Profile Screen
+    // Allow free rotation — layout adapts via OrientationBuilder
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
     ]);
-    
     _manageDevicesFocusNode = FocusNode();
+    _myStreamsFocusNode = FocusNode();
     _feedbackFocusNode = FocusNode();
     _logoutFocusNode = FocusNode();
     _loadProfile();
@@ -42,16 +46,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
-    // Only restore landscape if NOT logging out (going back to ClassicScreen)
-    // If logging out, portrait was already set in logout handler
     if (!_isLoggingOut) {
+      // Restore landscape for ClassicScreen
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
     }
-    
     _manageDevicesFocusNode.dispose();
+    _myStreamsFocusNode.dispose();
     _feedbackFocusNode.dispose();
     _logoutFocusNode.dispose();
     super.dispose();
@@ -59,7 +62,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfile() async {
     setState(() => _isLoading = true);
-    
     try {
       final profile = await _api.getUserProfile();
       if (mounted) {
@@ -77,17 +79,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleLogout() async {
-    bool confirm = await showDialog(
+    final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("Confirm Logout", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: const Text("Are you sure you want to log out?", style: TextStyle(color: Colors.white70)),
+        title: const Text('Confirm Logout',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text('Are you sure you want to log out?',
+            style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel", style: TextStyle(color: Colors.white60)),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -95,32 +99,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Logout", style: TextStyle(color: Colors.white)),
+            child: const Text('Logout', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
-    ) ?? false;
+    );
 
-    if (!confirm) return;
+    if (confirm != true) return;
 
-    // Set flag to prevent dispose from changing orientation
     _isLoggingOut = true;
-
-    // Call backend to remove session from database
     await _api.logout();
-
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
 
     if (!mounted) return;
 
-    ToastService().show("Logged out successfully", type: ToastType.success);
-    
-    // Set portrait orientation for login screen
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-
+    ToastService().show('Logged out successfully', type: ToastType.success);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (_) => false,
@@ -130,13 +125,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _navigateToManageDevices() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-    
-    if (token != null) {
+    if (token != null && mounted) {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => ManageDevicesScreen(tempToken: token)),
       );
     }
   }
+
+  // ─── Build ────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -144,64 +140,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E293B),
-        title: const Text('My Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('My Profile',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF06B6D4)))
           : _profileData == null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline, color: Colors.redAccent, size: 60),
-                      const SizedBox(height: 16),
-                      const Text('Failed to load profile', style: TextStyle(color: Colors.white, fontSize: 18)),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _loadProfile,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Retry'),
-                        focusNode: FocusNode()..requestFocus(), // Autofocus on retry
-                      ),
-                    ],
-                  ),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // User Info Card
-                      _buildUserInfoCard(),
-                      const SizedBox(height: 20),
-                      
-                      // Subscription Card
-                      _buildSubscriptionCard(),
-                      const SizedBox(height: 20),
-                      
-                      // Manage Devices Button
-                      _buildManageDevicesButton(),
-                      const SizedBox(height: 16),
-
-                      // Feedback Button
-                      _buildFeedbackButton(),
-                      const SizedBox(height: 16),
-
-                      // Logout Button
-                      _buildLogoutButton(),
-                    ],
-                  ),
+              ? _buildErrorState()
+              : OrientationBuilder(
+                  builder: (context, orientation) {
+                    return orientation == Orientation.landscape
+                        ? _buildLandscapeLayout()
+                        : _buildPortraitLayout();
+                  },
                 ),
     );
   }
 
-  Widget _buildUserInfoCard() {
-    final user = _profileData!;
-    
-    return Container(
+  // ─── Portrait ─────────────────────────────────────────────────────────────
+
+  Widget _buildPortraitLayout() {
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildUserInfoCard(compact: false),
+          const SizedBox(height: 20),
+          _buildSubscriptionCard(),
+          const SizedBox(height: 20),
+          _buildActionButtons(),
+        ],
+      ),
+    );
+  }
+
+  // ─── Landscape ────────────────────────────────────────────────────────────
+
+  Widget _buildLandscapeLayout() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Left pane — user card fixed width
+        SizedBox(
+          width: 220,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: _buildUserInfoCard(compact: true),
+          ),
+        ),
+        // Divider
+        Container(width: 1, color: Colors.white10),
+        // Right pane — subscription + buttons
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildSubscriptionCard(),
+                const SizedBox(height: 16),
+                _buildActionButtons(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Shared widgets ───────────────────────────────────────────────────────
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, color: Colors.redAccent, size: 60),
+          const SizedBox(height: 16),
+          const Text('Failed to load profile',
+              style: TextStyle(color: Colors.white, fontSize: 18)),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: _loadProfile,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserInfoCard({required bool compact}) {
+    final user = _profileData!;
+    final avatarSize = compact ? 56.0 : 80.0;
+    final avatarIconSize = compact ? 28.0 : 40.0;
+    final nameSize = compact ? 18.0 : 24.0;
+
+    return Container(
+      padding: EdgeInsets.all(compact ? 16 : 20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF1E293B), Color(0xFF334155)],
@@ -213,68 +252,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Column(
         children: [
-          // Avatar
           Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
+            width: avatarSize,
+            height: avatarSize,
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 colors: [Color(0xFF06B6D4), Color(0xFF0EA5E9)],
               ),
             ),
-            child: const Icon(Icons.person, size: 40, color: Colors.white),
+            child: Icon(Icons.person, size: avatarIconSize, color: Colors.white),
           ),
-          const SizedBox(height: 16),
-          
-          // Name
+          SizedBox(height: compact ? 10 : 16),
           Text(
             user['name']?.toString() ?? 'User',
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: nameSize,
               fontWeight: FontWeight.bold,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
-          
-          // Email
+          SizedBox(height: compact ? 6 : 8),
           if (user['email'] != null)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.email, size: 16, color: Colors.white60),
-                const SizedBox(width: 8),
-                Text(
-                  user['email'].toString(),
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
-            ),
-          const SizedBox(height: 8),
-          
-          // Phone
+            _buildContactRow(Icons.email, user['email'].toString(), compact),
+          SizedBox(height: compact ? 4 : 8),
           if (user['phone'] != null)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.phone, size: 16, color: Colors.white60),
-                const SizedBox(width: 8),
-                Text(
-                  user['phone'].toString(),
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
-            ),
+            _buildContactRow(Icons.phone, user['phone'].toString(), compact),
         ],
       ),
     );
   }
 
+  Widget _buildContactRow(IconData icon, String text, bool compact) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: compact ? 13 : 16, color: Colors.white60),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: compact ? 12 : 14,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSubscriptionCard() {
-    // Backend returns plan data under 'plan' key, not 'subscription'
     final plan = _profileData!['plan'];
-    
+
     if (plan == null) {
       return Container(
         padding: const EdgeInsets.all(20),
@@ -283,19 +315,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white10),
         ),
-        child: Column(
+        child: const Column(
           children: [
-            const Icon(Icons.subscriptions_outlined, size: 48, color: Colors.white30),
-            const SizedBox(height: 12),
-            const Text(
-              'No Active Subscription',
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Subscribe to enjoy premium content',
-              style: TextStyle(color: Colors.white38, fontSize: 12),
-            ),
+            Icon(Icons.subscriptions_outlined, size: 48, color: Colors.white30),
+            SizedBox(height: 12),
+            Text('No Active Subscription',
+                style: TextStyle(color: Colors.white70, fontSize: 16)),
+            SizedBox(height: 8),
+            Text('Subscribe to enjoy premium content',
+                style: TextStyle(color: Colors.white38, fontSize: 12)),
           ],
         ),
       );
@@ -312,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF10B981).withOpacity(0.3),
+            color: const Color(0xFF10B981).withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -321,125 +349,128 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Icon(Icons.workspace_premium, color: Colors.white, size: 28),
-              const SizedBox(width: 12),
-              const Text(
-                'Active Subscription',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Icon(Icons.workspace_premium, color: Colors.white, size: 28),
+              SizedBox(width: 12),
+              Text('Active Subscription',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 16),
-          
-          // Plan Name - backend uses 'name' field
           if (plan['name'] != null)
             _buildSubscriptionRow(
-              icon: Icons.card_membership,
-              label: 'Plan',
-              value: plan['name'].toString(),
-            ),
-          
-          // Expiry Date - check both possible field names
-          if (_profileData!['expiry_date'] != null || _profileData!['expires_at'] != null)
+                icon: Icons.card_membership,
+                label: 'Plan',
+                value: plan['name'].toString()),
+          if (_profileData!['expiry_date'] != null ||
+              _profileData!['expires_at'] != null)
             _buildSubscriptionRow(
               icon: Icons.calendar_today,
               label: 'Expires',
-              value: _formatDate((_profileData!['expiry_date'] ?? _profileData!['expires_at']).toString()),
+              value: _formatDate(
+                  (_profileData!['expiry_date'] ?? _profileData!['expires_at'])
+                      .toString()),
             ),
-          
-          // Device Limit - from plan
           if (plan['device_limit'] != null)
             _buildSubscriptionRow(
               icon: Icons.devices,
               label: 'Devices',
-              value: '${_profileData!['active_devices'] ?? 0} / ${plan['device_limit']}',
+              value:
+                  '${_profileData!['active_devices'] ?? 0} / ${plan['device_limit']}',
             ),
         ],
       ),
     );
   }
 
-  Widget _buildSubscriptionRow({required IconData icon, required String label, required String value}) {
+  Widget _buildSubscriptionRow(
+      {required IconData icon, required String label, required String value}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
           Icon(icon, size: 18, color: Colors.white70),
           const SizedBox(width: 12),
-          Text(
-            '$label: ',
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
-          ),
+          Text('$label: ',
+              style: const TextStyle(color: Colors.white70, fontSize: 14)),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: Text(value,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildManageDevicesButton() {
-    return ElevatedButton.icon(
-      focusNode: _manageDevicesFocusNode,
-      autofocus: true, // Default focus for TV
-      onPressed: _navigateToManageDevices,
-      icon: const Icon(Icons.devices),
-      label: const Text('Manage Devices'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF0EA5E9),
-        foregroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 4,
-      ),
+  Widget _buildActionButtons() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildBtn(
+          focusNode: _manageDevicesFocusNode,
+          autofocus: true,
+          icon: Icons.devices,
+          label: 'Manage Devices',
+          color: const Color(0xFF0EA5E9),
+          onTap: _navigateToManageDevices,
+        ),
+        const SizedBox(height: 12),
+        _buildBtn(
+          focusNode: _myStreamsFocusNode,
+          icon: Icons.wifi_tethering,
+          label: 'My Streams',
+          color: const Color(0xFF1E3A5F),
+          onTap: () => Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const MyStreamsScreen())),
+        ),
+        const SizedBox(height: 12),
+        _buildBtn(
+          focusNode: _feedbackFocusNode,
+          icon: Icons.thumb_up_alt_outlined,
+          label: 'Share Feedback',
+          color: const Color(0xFF334155),
+          onTap: () => Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const FeedbackScreen())),
+        ),
+        const SizedBox(height: 12),
+        _buildBtn(
+          focusNode: _logoutFocusNode,
+          icon: Icons.logout,
+          label: 'Logout',
+          color: Colors.redAccent,
+          onTap: _handleLogout,
+        ),
+      ],
     );
   }
 
-  Widget _buildFeedbackButton() {
+  Widget _buildBtn({
+    required FocusNode focusNode,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+    bool autofocus = false,
+  }) {
     return ElevatedButton.icon(
-      focusNode: _feedbackFocusNode,
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const FeedbackScreen()),
-        );
-      },
-      icon: const Icon(Icons.thumb_up_alt_outlined),
-      label: const Text('Share Feedback'),
+      focusNode: focusNode,
+      autofocus: autofocus,
+      onPressed: onTap,
+      icon: Icon(icon),
+      label: Text(label),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF334155),
+        backgroundColor: color,
         foregroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 56),
+        minimumSize: const Size(double.infinity, 52),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 2,
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton() {
-    return ElevatedButton.icon(
-      focusNode: _logoutFocusNode,
-      onPressed: _handleLogout,
-      icon: const Icon(Icons.logout),
-      label: const Text('Logout'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.redAccent,
-        foregroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 4,
       ),
     );
   }
@@ -448,7 +479,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final date = DateTime.parse(dateStr);
       return '${date.day}/${date.month}/${date.year}';
-    } catch (e) {
+    } catch (_) {
       return dateStr;
     }
   }

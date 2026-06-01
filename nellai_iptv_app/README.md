@@ -11,6 +11,15 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.14.0+69
+- **Added**: **My Streams Screen** — New screen (Profile → My Streams) showing all streams assigned to the logged-in customer. Each stream card displays: status dot (running = green, waiting = amber, others = red), stream name, stream-status and health-status badges, enabled/disabled pill, uptime, viewer count, published-via label, and video/audio codec chips.
+- **Added**: **Client Sessions** — Collapsible section per stream card listing each active/closed session with IP, protocol chip, country, and session duration.
+- **Added**: **Sync with Cooldown** — AppBar Sync button calls `GET /customers/streams?sync=1` with cache-busting; disabled for 30 s post-sync with a live countdown label.
+- **Added**: **Restart with Cooldown** — Per-stream Restart button (shown only when stream is enabled) executes disable → 2 s wait → re-enable → fresh fetch; disabled for 30 s post-restart with a live countdown label.
+- **Added**: **`CustomerStream` + `StreamClientSession` models** (`lib/models/customer_stream.dart`).
+- **Added**: `ApiService.getMyStreams()` and `ApiService.toggleStream()` methods.
+- **Changed**: **Profile Screen** — Supports portrait and landscape orientation via `OrientationBuilder`; landscape uses a two-pane layout (user-info pane + subscription/buttons pane).
+
 ## Version: 1.13.1+68
 - **Fixed**: **Visual Ads on Android TV** — Ads were silently dismissed on TV because `TVPlayerController.load()` always called `play()` after ExoPlayer initialised, re-acquiring exclusive audio focus after `muteForAd()` had paused the player. The ad's `VideoPlayerController(mixWithOthers: true)` could not acquire audio, threw on init, and was dismissed in one frame.
   - `TVPlayerController` gains an `_adPlaying` flag (`setAdPlaying()`); `load()` skips `play()` when the flag is set.
