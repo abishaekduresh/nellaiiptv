@@ -52,6 +52,7 @@ interface Props {
   onTogglePiP?: () => void;
   isPiP?: boolean;
   onAirPlay?: () => void;
+  requestOpen?: number;
 }
 
   // Helper for TV Focusable Buttons
@@ -104,7 +105,8 @@ export default function PlayerOverlay({
   onGroupSelect,
   onTogglePiP,
   isPiP,
-  onAirPlay
+  onAirPlay,
+  requestOpen = 0,
 }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -128,6 +130,11 @@ export default function PlayerOverlay({
         setSidebarOpen(false);
     }
   }, [isFullscreen]);
+
+  // Open sidebar when VideoPlayer signals L key press
+  useEffect(() => {
+    if (requestOpen > 0) setSidebarOpen(prev => !prev);
+  }, [requestOpen]);
 
   // Determine what list to show
   // If activeTab is 'trending', always show trending channels.
@@ -298,6 +305,10 @@ export default function PlayerOverlay({
                 break;
              case 'm':
                 if (onToggleMute) onToggleMute();
+                break;
+             case 'l':
+             case 'L':
+                setSidebarOpen(prev => !prev);
                 break;
              case 's':
                  setShowSettings(prev => !prev);

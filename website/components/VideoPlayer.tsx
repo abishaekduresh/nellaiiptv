@@ -6,7 +6,7 @@ import Hls from 'hls.js';
 import { useTVFocus } from '@/hooks/useTVFocus';
 import { useRouter } from 'next/navigation';
 import ReportModal from './ReportModal';
-import { AlertTriangle, RefreshCw, Lock, Crown } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Lock, Crown, Keyboard, X } from 'lucide-react';
 import PlayerOverlay from './PlayerOverlay';
 import { Channel } from '@/types';
 import { useViewMode } from '@/context/ViewModeContext';
@@ -104,6 +104,8 @@ function VideoPlayer({
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const [showReport, setShowReport] = useState(false);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [sidebarOpenRequest, setSidebarOpenRequest] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
   const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
@@ -500,42 +502,106 @@ function VideoPlayer({
 
   // Custom key handler for player
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    showControls(); 
-    
+    showControls();
+
+    const tag = (document.activeElement as HTMLElement)?.tagName;
+    const isInput = tag === 'INPUT' || tag === 'TEXTAREA';
+
     switch (e.key) {
+      // Play / Pause
       case 'Enter':
-      case ' ': 
-        if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'BUTTON') return; 
+      case ' ':
+        if (isInput || tag === 'BUTTON') return;
         e.preventDefault();
         handlePlayPause();
         break;
+      case 'k':
+      case 'K':
+        if (isInput) return;
+        e.preventDefault();
+        handlePlayPause();
+        break;
+
+      // Channel navigation
       case 'ArrowUp':
-        if (document.activeElement?.tagName === 'BUTTON') return;
+        if (tag === 'BUTTON') return;
         e.preventDefault();
         handleNextChannel();
         break;
       case 'ArrowDown':
-        if (document.activeElement?.tagName === 'BUTTON') return;
+        if (tag === 'BUTTON') return;
         e.preventDefault();
         handlePrevChannel();
         break;
+
+      // Volume
       case 'ArrowRight':
-         if (document.activeElement?.tagName === 'BUTTON') return;
-         e.preventDefault();
-         handleVolumeChange(volume + 0.1);
+        if (tag === 'BUTTON') return;
+        e.preventDefault();
+        handleVolumeChange(volume + 0.1);
         break;
       case 'ArrowLeft':
-         if (document.activeElement?.tagName === 'BUTTON') return;
-         e.preventDefault();
-         handleVolumeChange(volume - 0.1);
+        if (tag === 'BUTTON') return;
+        e.preventDefault();
+        handleVolumeChange(volume - 0.1);
         break;
+
+      // Mute
+      case 'm':
+      case 'M':
+        if (isInput) return;
+        e.preventDefault();
+        handleToggleMute();
+        break;
+
+      // Fullscreen
+      case 'f':
+      case 'F':
+        if (isInput) return;
+        e.preventDefault();
+        toggleFullscreen();
+        break;
+
+      // Picture-in-Picture
+      case 'p':
+      case 'P':
+        if (isInput || isYoutube) return;
+        e.preventDefault();
+        togglePiP();
+        break;
+
+      // Reload stream
+      case 'r':
+      case 'R':
+        if (isInput) return;
+        e.preventDefault();
+        handleRetry();
+        break;
+
+      // Channel list sidebar
+      case 'l':
+      case 'L':
+        if (isInput) return;
+        e.preventDefault();
+        setSidebarOpenRequest(prev => prev + 1);
+        break;
+
+      // Shortcuts help panel
+      case '?':
+        if (isInput) return;
+        e.preventDefault();
+        setShowShortcutsHelp(prev => !prev);
+        break;
+
       case 'Backspace':
       case 'Escape':
+        if (showShortcutsHelp) { setShowShortcutsHelp(false); break; }
         e.preventDefault();
         router.back();
         break;
     }
-  }, [router, handlePlayPause, handleVolumeChange, volume, showControls, handleNextChannel, handlePrevChannel, isYoutube]);
+  }, [router, handlePlayPause, handleVolumeChange, volume, showControls, handleNextChannel, handlePrevChannel,
+      handleToggleMute, toggleFullscreen, togglePiP, handleRetry, isYoutube, showShortcutsHelp]);
 
   // -- Hls.js Logic --
   useEffect(() => {
@@ -928,8 +994,7 @@ function VideoPlayer({
       onTogglePiP={!isYoutube ? togglePiP : undefined}
       isPiP={isPiP}
       onAirPlay={showAirPlay ? triggerAirPlay : undefined}
-      
-
+      requestOpen={sidebarOpenRequest}
     />,
     mountTarget as Element
   ) : null;
@@ -1069,13 +1134,75 @@ function VideoPlayer({
 
       {/* Manual Report Button */}
       {!errorMessage && (controlsVisible || !isPlaying || isLoading || isFallbackPlaying) && !isPaidRestricted && (
-        <TVReportButton 
+        <TVReportButton
             onClick={(e) => {
                 e.stopPropagation();
                 setShowReport(true);
             }}
             className="absolute top-4 right-4 z-[60] bg-black/40 hover:bg-red-600 text-white p-2.5 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto"
         />
+      )}
+
+      {/* Keyboard Shortcuts Hint Button */}
+      {!errorMessage && !isPaidRestricted && !isPlatformRestricted && (controlsVisible || !isPlaying) && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setShowShortcutsHelp(prev => !prev); }}
+          className="absolute top-4 right-16 z-[60] bg-black/40 hover:bg-white/20 text-white p-2.5 rounded-full backdrop-blur-md transition-all duration-300 pointer-events-auto"
+          title="Keyboard Shortcuts (?)"
+        >
+          <Keyboard size={18} />
+        </button>
+      )}
+
+      {/* Keyboard Shortcuts Help Panel */}
+      {showShortcutsHelp && (
+        <div
+          className="absolute inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-auto"
+          onClick={() => setShowShortcutsHelp(false)}
+        >
+          <div
+            className="bg-slate-900/95 border border-white/10 rounded-2xl p-5 w-full max-w-xs mx-4 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Keyboard size={17} className="text-primary" />
+                <h3 className="text-white font-bold text-sm">Keyboard Shortcuts</h3>
+              </div>
+              <button onClick={() => setShowShortcutsHelp(false)} className="text-slate-400 hover:text-white p-1 -mr-1">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-1 text-sm">
+              {([
+                { keys: ['Space', 'K'], label: 'Play / Pause' },
+                { keys: ['M'],         label: 'Mute / Unmute' },
+                { keys: ['F'],         label: 'Fullscreen' },
+                { keys: ['P'],         label: 'Picture-in-Picture' },
+                { keys: ['↑'],         label: 'Next Channel' },
+                { keys: ['↓'],         label: 'Previous Channel' },
+                { keys: ['→'],         label: 'Volume Up' },
+                { keys: ['←'],         label: 'Volume Down' },
+                { keys: ['L'],         label: 'Channel List' },
+                { keys: ['R'],         label: 'Reload Stream' },
+                { keys: ['?'],         label: 'Show / Hide Shortcuts' },
+                { keys: ['Esc'],       label: 'Go Back' },
+              ] as { keys: string[]; label: string }[]).map(({ keys, label }) => (
+                <div key={label} className="flex items-center justify-between gap-4 py-1.5 border-b border-white/5 last:border-0">
+                  <span className="text-slate-400">{label}</span>
+                  <div className="flex gap-1 shrink-0">
+                    {keys.map(k => (
+                      <kbd key={k} className="px-2 py-0.5 bg-white/10 text-white text-xs rounded font-mono border border-white/20 leading-tight">
+                        {k}
+                      </kbd>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-slate-600 text-xs mt-3 text-center">Click outside or press ? to dismiss</p>
+          </div>
+        </div>
       )}
 
       {/* Inject Portal */}
