@@ -11,7 +11,9 @@ $app->get('/', function (Request $request, Response $response) {
 
 // ── Cron Routes (secret-key protected, no JWT) ───────────────────────────────
 $app->group('/api/cron', function (RouteCollectorProxy $group) {
-    $group->post('/sync-streams', [\App\Controllers\Cron\StreamSyncController::class, 'syncStreams']);
+    $group->post('/sync-streams',        [\App\Controllers\Cron\StreamSyncController::class,       'syncStreams']);
+    $group->get('/ping-servers',         [\App\Controllers\Cron\PingServersCronController::class,  'ping']);
+    $group->get('/record-monitoring',    [\App\Controllers\Cron\RecordMonitoringCronController::class, 'record']);
 })->add(new \App\Middleware\CronSecretMiddleware());
 
 // ── Public / Customer API ─────────────────────────────────────────────────────

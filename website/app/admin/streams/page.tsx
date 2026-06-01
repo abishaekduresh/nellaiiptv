@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Eye, Search, Radio, Wifi, WifiOff, ChevronLeft, ChevronRight, Users, RefreshCw, Activity, Signal, Power, RotateCcw } from 'lucide-react';
+import CronUrlCard from '@/components/admin/CronUrlCard';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
@@ -187,6 +188,9 @@ export default function StreamsPage() {
           </button>
         </div>
       </div>
+
+      {/* Cron URL */}
+      <CronUrlCard endpoints={[{ method: 'POST', label: 'Sync Streams', path: '/cron/sync-streams' }]} />
 
       {/* Filters */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3 animate-fade-up" style={{ animationDelay: '0.12s' }}>

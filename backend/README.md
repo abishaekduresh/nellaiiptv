@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.53.0)
+# Nellai IPTV - Backend API (v1.54.0)
 
-**Version 1.53.0** | RESTful API built with Slim PHP Framework
+**Version 1.54.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -151,6 +151,10 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.54.0)
+- **Feature**: **Cron HTTP endpoints** — `GET /api/cron/ping-servers` (pings all active Flussonic servers) and `GET /api/cron/record-monitoring` (records a metrics snapshot for all servers). Both protected by `CronSecretMiddleware` alongside the existing `POST /api/cron/sync-streams`.
+- **Feature**: **DB-managed cron secret** — `CronSecretMiddleware` now reads `cron_secret` from the `settings` table first (falls back to `CRON_SECRET` env var). `GET /api/admin/settings/cron-key` returns the active key and its source; `POST /api/admin/settings/regenerate-cron-key` generates a new 48-char hex secret and stores it in DB.
 
 ## Latest Updates (v1.53.0)
 - **Fixed**: `StreamService::syncSessionsForStreams()` — was calling `insertStreamClient()` without geo data, leaving all 13 geo fields null after a customer-triggered sync (`?sync=1`). Now collects unique IPs from the filtered session list, calls `geocodeIPs()` concurrently, and passes the `$geo` map into each insert — matching the behaviour of `syncSessionsFromServer()`.

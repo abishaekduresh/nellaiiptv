@@ -1,10 +1,14 @@
-# Nellai IPTV - Frontend v1.76.0
+# Nellai IPTV - Frontend v1.77.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.76.0)**
+### **Latest Updates (v1.77.0)**
+- **Feature**: **Cron URL cards on admin pages** — Stream Servers, Streams, and Monitoring pages each display a ready-to-copy cron endpoint URL (with the live secret key embedded). Uses the shared `CronUrlCard` component; links to Settings when no key is configured.
+- **Feature**: **Cron Keys & Automation section in Settings** — Generate or regenerate a 48-char hex cron secret key stored in the DB. Shows the key (masked, with reveal toggle + copy), and lists all three cron endpoint URLs (`ping-servers`, `sync-streams`, `record-monitoring`) with per-URL copy buttons.
+
+### **Previous Updates (v1.76.0)**
 - **Changed**: **Stream detail modal layout restructure** — Map moved to left column (3/5 width), Stream Info card moved into right column alongside Video / Audio / Bandwidth cards (2/5 width). CSS Grid with `items-stretch` ensures both columns share equal height.
 - **Fix**: **Map height chain** — `ClientSessionsMap` root div now uses `flex flex-col` with `height: 100%`; `MapContainer` uses `flex: 1 1 0` so the map tiles fill the full column height with no black gap below.
 

@@ -72,6 +72,29 @@ class SettingController
         return ResponseFormatter::success($response, ['disclaimer' => $disclaimer]);
     }
 
+    public function getCronKey(Request $request, Response $response): Response
+    {
+        $dbKey  = Setting::get('cron_secret', '');
+        $envKey = $_ENV['CRON_SECRET'] ?? '';
+
+        if ($dbKey !== '') {
+            return ResponseFormatter::success($response, ['key' => $dbKey, 'source' => 'db']);
+        }
+
+        if ($envKey !== '') {
+            return ResponseFormatter::success($response, ['key' => $envKey, 'source' => 'env']);
+        }
+
+        return ResponseFormatter::success($response, ['key' => null, 'source' => 'none']);
+    }
+
+    public function regenerateCronKey(Request $request, Response $response): Response
+    {
+        $newKey = bin2hex(random_bytes(24)); // 48-char hex string
+        Setting::set('cron_secret', $newKey);
+        return ResponseFormatter::success($response, ['key' => $newKey, 'source' => 'db'], 'Cron key regenerated');
+    }
+
     /**
      * Return a valid CA bundle path, or false to skip verification (dev only).
      * Handles broken WAMP cacert paths like "C:/wamp64/bin/php/php<your_version>/...".

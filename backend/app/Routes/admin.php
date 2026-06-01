@@ -46,6 +46,8 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         
         // Settings Management
         $group->get('/settings', [\App\Controllers\Admin\SettingController::class, 'index']);
+        $group->get('/settings/cron-key', [\App\Controllers\Admin\SettingController::class, 'getCronKey']);
+        $group->post('/settings/regenerate-cron-key', [\App\Controllers\Admin\SettingController::class, 'regenerateCronKey']);
         $group->put('/settings/{key}', [\App\Controllers\Admin\SettingController::class, 'update']);
         $group->post('/settings/logo', [\App\Controllers\Admin\SettingController::class, 'uploadLogo']);
         $group->post('/settings/logo-png', [\App\Controllers\Admin\SettingController::class, 'uploadAppLogoPng']);

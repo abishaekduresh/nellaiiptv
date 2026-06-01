@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Cpu, HardDrive, MemoryStick, Network, Radio, Users, RefreshCw, Server, Wifi, WifiOff } from 'lucide-react';
+import CronUrlCard from '@/components/admin/CronUrlCard';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 
@@ -136,6 +137,9 @@ export default function MonitoringPage() {
           {recording ? 'Recording…' : 'Record Snapshot'}
         </button>
       </div>
+
+      {/* Cron URL */}
+      <CronUrlCard endpoints={[{ method: 'GET', label: 'Record Monitoring', path: '/cron/record-monitoring' }]} />
 
       {/* Server tabs */}
       {!loadingMain && servers.length > 0 && (

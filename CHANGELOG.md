@@ -1,3 +1,21 @@
+## [1.77.0] - Website | [1.54.0] - Backend - 2026-06-02
+
+### Website (Next.js)
+- **Added**: **`CronUrlCard` component** (`components/admin/CronUrlCard.tsx`) — shared card that fetches the live cron secret from `GET /admin/settings/cron-key` and renders ready-to-copy endpoint URLs with method badge, truncated URL, and clipboard button. Links to Settings when no key is set.
+- **Added**: **Cron URL on Stream Servers page** — `GET /cron/ping-servers?secret=…` displayed below the page header.
+- **Added**: **Cron URL on Streams page** — `POST /cron/sync-streams?secret=…` displayed below the page header.
+- **Added**: **Cron URL on Monitoring page** — `GET /cron/record-monitoring?secret=…` displayed below the page header.
+- **Added**: **Cron Keys & Automation section in Settings** — violet-themed card with masked key display (show/hide toggle + copy), Regenerate button (with confirmation), and all three cron endpoint URLs with per-URL copy buttons.
+
+### Backend (Slim PHP)
+- **Added**: `GET /api/cron/ping-servers` — pings all active Flussonic servers and updates `health_status`. Protected by `CronSecretMiddleware`. Handled by new `PingServersCronController`.
+- **Added**: `GET /api/cron/record-monitoring` — records a metrics snapshot for all servers via `MonitoringService::recordAllFromFlussonic()`. Protected by `CronSecretMiddleware`. Handled by new `RecordMonitoringCronController`.
+- **Added**: `GET /api/admin/settings/cron-key` — returns the active cron secret key and its source (`db` or `env`).
+- **Added**: `POST /api/admin/settings/regenerate-cron-key` — generates a new 48-char hex secret via `random_bytes(24)`, stores as `cron_secret` in the `settings` table.
+- **Changed**: `CronSecretMiddleware` — now checks `cron_secret` setting in DB first; falls back to `CRON_SECRET` env var. Admin can rotate the key from the UI without a server redeploy.
+
+---
+
 ## [1.76.0] - Website - 2026-06-02
 
 ### Website (Next.js)

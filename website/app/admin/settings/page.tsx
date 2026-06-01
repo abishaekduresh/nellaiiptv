@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import toast from 'react-hot-toast';
-import { Save, Lock, Image, Hammer, Monitor, Smartphone, Tv, LayoutGrid, Mail, CreditCard, FlaskConical, X, CheckCircle2, AlertCircle, Loader2, Server } from 'lucide-react';
+import { Save, Lock, Image, Hammer, Monitor, Smartphone, Tv, LayoutGrid, Mail, CreditCard, FlaskConical, X, CheckCircle2, AlertCircle, Loader2, Server, Terminal, Eye, EyeOff, Copy, RefreshCw } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 /* ── Helper: load external script once ─────────────────────────────── */
@@ -189,6 +189,18 @@ export default function SettingsPage() {
   const [changingPassword, setChangingPassword] = useState(false);
 
   const [testGateway, setTestGateway] = useState<'razorpay' | 'cashfree' | null>(null);
+
+  // Cron key state
+  const [cronKey,          setCronKey]          = useState<string | null>(null);
+  const [cronKeySource,    setCronKeySource]     = useState<'db' | 'env' | 'none'>('none');
+  const [cronKeyVisible,   setCronKeyVisible]    = useState(false);
+  const [regenerating,     setRegenerating]      = useState(false);
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/backend/public/api';
+  const cronUrls = [
+    { method: 'GET',  label: 'Ping Servers',        path: '/cron/ping-servers' },
+    { method: 'POST', label: 'Sync Streams',         path: '/cron/sync-streams' },
+    { method: 'GET',  label: 'Record Monitoring',    path: '/cron/record-monitoring' },
+  ];
   
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,7 +316,38 @@ export default function SettingsPage() {
       }
     };
     fetchSettings();
+
+    const fetchCronKey = async () => {
+      try {
+        const res = await adminApi.get('/admin/settings/cron-key');
+        setCronKey(res.data.data.key);
+        setCronKeySource(res.data.data.source);
+      } catch { /* ignore */ }
+    };
+    fetchCronKey();
   }, []);
+
+  const handleRegenerateCronKey = async () => {
+    if (!confirm('Generate a new cron secret key? All existing cron URLs using the old key will stop working immediately.')) return;
+    setRegenerating(true);
+    try {
+      const res = await adminApi.post('/admin/settings/regenerate-cron-key');
+      setCronKey(res.data.data.key);
+      setCronKeySource('db');
+      setCronKeyVisible(true);
+      toast.success('New cron key generated');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to regenerate key');
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  const copyCronUrl = (path: string) => {
+    const url = `${apiBase}${path}?secret=${cronKey ?? ''}`;
+    navigator.clipboard.writeText(url);
+    toast.success('URL copied');
+  };
 
   const handleUpdate = async (key: string, value: string) => {
     // Optimistic update
@@ -885,6 +928,82 @@ export default function SettingsPage() {
                 </code>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Cron Keys & Automation */}
+      <div className="bg-gradient-to-br from-violet-900/20 to-violet-800/10 backdrop-blur-sm p-8 rounded-2xl border border-violet-700/30 shadow-2xl mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-violet-500/10 rounded-lg">
+            <Terminal className="text-violet-400" size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Cron Keys &amp; Automation</h2>
+            <p className="text-sm text-slate-400">Secret key for authenticating scheduled HTTP cron jobs</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Key display */}
+          <div className="p-5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              <div className="flex-1">
+                <label className="text-slate-300 font-semibold block mb-1">Cron Secret Key</label>
+                {cronKeySource === 'env' && (
+                  <p className="text-xs text-amber-400 mb-2">Read from <code className="bg-slate-700 px-1 rounded">.env CRON_SECRET</code>. Generate a DB key below to manage from this panel.</p>
+                )}
+                {cronKeySource === 'none' && (
+                  <p className="text-xs text-red-400 mb-2">No key configured. Click &quot;Generate Key&quot; to create one.</p>
+                )}
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 bg-slate-900 border border-slate-700 text-violet-300 px-3 py-2 rounded-lg text-sm font-mono break-all">
+                    {cronKey
+                      ? (cronKeyVisible ? cronKey : '●'.repeat(Math.min(cronKey.length, 48)))
+                      : <span className="text-slate-500 italic">No key set</span>
+                    }
+                  </code>
+                  {cronKey && (
+                    <button onClick={() => setCronKeyVisible(v => !v)} title={cronKeyVisible ? 'Hide' : 'Show'}
+                      className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors shrink-0">
+                      {cronKeyVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  )}
+                  {cronKey && (
+                    <button onClick={() => { navigator.clipboard.writeText(cronKey); toast.success('Key copied'); }}
+                      title="Copy key"
+                      className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors shrink-0">
+                      <Copy size={16} />
+                    </button>
+                  )}
+                  <button onClick={handleRegenerateCronKey} disabled={regenerating}
+                    className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shrink-0">
+                    <RefreshCw size={14} className={regenerating ? 'animate-spin' : ''} />
+                    {cronKey ? 'Regenerate' : 'Generate Key'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Cron URLs */}
+          <div className="p-5 bg-slate-900/60 rounded-xl border border-slate-700/30 space-y-3">
+            <p className="text-xs text-slate-400 font-semibold mb-1">Cron Endpoint URLs</p>
+            <p className="text-xs text-slate-500">Use these URLs in your cron scheduler. Provide the secret via <code className="bg-slate-800 px-1 rounded">?secret=KEY</code> or <code className="bg-slate-800 px-1 rounded">X-Cron-Secret</code> header.</p>
+            {cronUrls.map(({ method, label, path }) => {
+              const url = `${apiBase}${path}?secret=${cronKey ?? 'YOUR_KEY'}`;
+              return (
+                <div key={path} className="flex items-center gap-2">
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 ${method === 'GET' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>{method}</span>
+                  <span className="text-xs text-slate-400 shrink-0 w-36">{label}</span>
+                  <code className="flex-1 bg-slate-800 text-violet-300 text-xs px-3 py-2 rounded-lg font-mono truncate">{url}</code>
+                  <button onClick={() => copyCronUrl(path)} title="Copy URL"
+                    className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors shrink-0">
+                    <Copy size={14} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

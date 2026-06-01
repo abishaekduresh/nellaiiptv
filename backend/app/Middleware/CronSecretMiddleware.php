@@ -13,10 +13,12 @@ class CronSecretMiddleware implements MiddlewareInterface
 {
     public function process(Request $request, RequestHandler $handler): Response
     {
-        $expected = $_ENV['CRON_SECRET'] ?? '';
+        // DB setting takes precedence over env var so admin can rotate without a deploy
+        $dbSecret = \App\Models\Setting::get('cron_secret', '');
+        $expected = ($dbSecret !== '') ? $dbSecret : ($_ENV['CRON_SECRET'] ?? '');
 
         if ($expected === '') {
-            return ResponseFormatter::error(new SlimResponse(), 'Cron secret not configured on server.', 500);
+            return ResponseFormatter::error(new SlimResponse(), 'Cron secret not configured. Generate one in Settings → Cron Keys.', 500);
         }
 
         // Accept secret via X-Cron-Secret header OR ?secret= query param

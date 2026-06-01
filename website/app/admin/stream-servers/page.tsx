@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2, Search, Server, Wifi, WifiOff, Eye, ChevronLeft, Ch
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import StreamServerDetailsModal from '@/components/admin/StreamServerDetailsModal';
+import CronUrlCard from '@/components/admin/CronUrlCard';
 
 interface StreamServer {
   uuid: string;
@@ -125,6 +126,9 @@ export default function StreamServersPage() {
           </Link>
         </div>
       </div>
+
+      {/* Cron URL */}
+      <CronUrlCard endpoints={[{ method: 'GET', label: 'Ping Servers', path: '/cron/ping-servers' }]} />
 
       {/* Filters */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3 animate-fade-up" style={{ animationDelay: '0.12s' }}>
