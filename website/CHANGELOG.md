@@ -1,3 +1,15 @@
+## [1.74.0] - 2026-06-02
+
+### Added
+- **OpenStreetMap client session viewer** (`components/ClientSessionsMap.tsx`, `app/admin/streams/[uuid]/page.tsx`) — Interactive map in the Client Sessions section of the stream detail page. Uses `react-leaflet` + `leaflet` (OpenStreetMap tiles, no API key). Points rendered as **custom SVG teardrop pins** — green = active sessions, sky-blue = closed sessions; pin width scales with session count; session count shown inside the white circle in the pin centre. `FitBounds` inner component auto-zooms the map to show all markers on first render. **"Fit points" button** (bottom-right of map) re-applies `fitBounds` at any time so users can return to the overview after panning/zooming.
+- **IP geolocation in sessions table** — `Location` column (city, region, country + continent/country-code/postal sub-row) and `ISP / Org` column (ISP name, org, domain) added to the Client Sessions table. IP cell gains an `IPv4`/`IPv6` type badge.
+- **`leaflet`, `react-leaflet@4`, `@types/leaflet`** added to dependencies (v4 used for React 18 compatibility).
+
+### Changed
+- **`StreamClientRecord` interface** — Extended with 13 new geo fields: `ip_type`, `continent`, `continent_code`, `country_code`, `region`, `region_code`, `city`, `latitude`, `longitude`, `postal`, `org`, `isp`, `domain`. All nullable.
+
+---
+
 ## [1.73.0] - 2026-06-01
 
 ### Added

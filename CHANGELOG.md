@@ -1,3 +1,17 @@
+## [1.74.0] - Website | [1.52.0] - Backend - 2026-06-02
+
+### Website (Next.js)
+- **Added**: **OpenStreetMap client session map** (`/admin/streams/[uuid]`) — Interactive map above the sessions table. Custom SVG teardrop pin icons (green = active, sky-blue = closed; count inside pin, size scales with sessions). Auto-fits to all points on load. **"Fit points" button** re-centers the view. Uses `react-leaflet@4` + `leaflet` (OpenStreetMap tiles, no API key required).
+- **Added**: **Enriched sessions table** — New `Location` column (city, region, country + continent / country-code / postal chip) and `ISP / Org` column (ISP name, org, domain). IP cell shows `IPv4`/`IPv6` type badge.
+
+### Backend (Slim PHP)
+- **Added**: **IP geo-enrichment on stream sync** — `syncSessionsFromServer()` geocodes all unique public IPs via `https://ipwho.is/{ip}` using `curl_multi_*` (concurrent, no extra dependency). Each `stream_clients` row now stores city, region, country, lat/lng, postal, ISP, org, domain.
+- **Added**: `geocodeIPs()` + `isPrivateIp()` private helpers in `StreamService`.
+- **Added**: `add_geo_columns_to_stream_clients.sql` migration (13 new columns on `stream_clients`). **Run on live DB.**
+- **Changed**: `StreamClient` model — 13 new fillable geo fields, `latitude`/`longitude` cast to `float`.
+
+---
+
 ## [1.73.0] - Website | [1.51.0] - Backend - 2026-06-01
 
 ### Website (Next.js)

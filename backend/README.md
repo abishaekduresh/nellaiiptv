@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.51.0)
+# Nellai IPTV - Backend API (v1.52.0)
 
-**Version 1.51.0** | RESTful API built with Slim PHP Framework
+**Version 1.52.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -152,7 +152,14 @@ The API uses a dual-layer security model:
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
 
-## Latest Updates (v1.50.0)
+## Latest Updates (v1.52.0)
+- **IP geo-enrichment on session sync**: `StreamService::syncSessionsFromServer()` now geocodes all unique public IPs via `https://ipwho.is/{ip}` using `curl_multi_*` (concurrent, no extra dependency). Each `stream_clients` row now stores `ip_type`, `continent`, `continent_code`, `country_code`, `region`, `region_code`, `city`, `latitude`, `longitude`, `postal`, `org`, `isp`, `domain`.
+- **`geocodeIPs(array $ips)`**: New private helper — filters private/reserved IPs, fires all requests in parallel via `curl_multi`, returns `ip → geo` map. Average overhead: ~1 HTTP round-trip for all unique IPs in the session snapshot.
+- **`isPrivateIp(string $ip)`**: Reliable private IP check using `filter_var(FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)`.
+- **`StreamClient` model**: 13 new `$fillable` geo fields; `latitude` and `longitude` cast to `float`.
+- **Migration `add_geo_columns_to_stream_clients.sql`**: `ALTER TABLE` adding all 13 columns. **Must be run on the live database.**
+
+## Latest Updates (v1.50.0 – v1.51.0)
 - **Live Flussonic sync on `?sync=1`**: `CustomerStreamController::getMyStreams()` detects `sync=1` and calls `StreamService::refreshAssignedStreams()` before reading the DB, so the response contains genuinely live stats rather than cron-cached values. Normal requests remain a fast DB-only read.
 - **`StreamService::refreshAssignedStreams(array $streamIds)`**: Groups the customer's assigned streams by server, calls Flussonic `GET /streams/{name}` per stream (10 s timeout), upserts via the existing private `upsertStream()`, then refreshes client sessions scoped to only those stream names.
 - **`StreamService::syncSessionsForStreams(StreamServer, array $streamNames)`**: Targeted session sync — fetches `/sessions` from Flussonic, deletes `stream_clients` rows only for the named streams, and re-inserts. Does not affect sessions for other customers' streams.

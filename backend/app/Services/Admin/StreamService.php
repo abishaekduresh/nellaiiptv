@@ -385,31 +385,126 @@ class StreamService
             ->pluck('id', 'stream_name')
             ->toArray();
 
+        // Geocode all unique public IPs concurrently via ipwho.is
+        $uniqueIPs = array_values(array_unique(array_filter(array_column($sessions, 'ip'))));
+        $geoCache  = $this->geocodeIPs($uniqueIPs);
+
         $count = 0;
         foreach ($sessions as $session) {
-            $this->insertStreamClient($streamMap, $session);
+            $ip  = $session['ip'] ?? null;
+            $geo = ($ip !== null && isset($geoCache[$ip])) ? $geoCache[$ip] : [];
+            $this->insertStreamClient($streamMap, $session, $geo);
             $count++;
         }
         return $count;
     }
 
-    private function insertStreamClient(array $streamMap, array $session): void
+    private function insertStreamClient(array $streamMap, array $session, array $geo = []): void
     {
         $sessionUuid = $session['id'] ?? null;
         $streamName  = $session['name'] ?? null;
         if (!$sessionUuid || !$streamName) return;
 
-        $client              = new StreamClient();
-        $client->uuid        = $sessionUuid;
-        $client->stream_id   = $streamMap[$streamName] ?? null;
-        $client->stream_name = $streamName;
-        $client->ip          = $session['ip'] ?? null;
-        $client->user_agent  = $session['user_agent'] ?? null;
-        $client->protocol    = $session['proto'] ?? $session['protocol'] ?? null;
-        $client->opened_at   = isset($session['opened_at']) ? (int)$session['opened_at'] : null;
-        $client->closed_at   = isset($session['closed_at']) ? (int)$session['closed_at'] : null;
-        $client->country     = $session['country'] ?? null;
+        $client                 = new StreamClient();
+        $client->uuid           = $sessionUuid;
+        $client->stream_id      = $streamMap[$streamName] ?? null;
+        $client->stream_name    = $streamName;
+        $client->ip             = $session['ip'] ?? null;
+        $client->user_agent     = $session['user_agent'] ?? null;
+        $client->protocol       = $session['proto'] ?? $session['protocol'] ?? null;
+        $client->opened_at      = isset($session['opened_at']) ? (int)$session['opened_at'] : null;
+        $client->closed_at      = isset($session['closed_at']) ? (int)$session['closed_at'] : null;
+
+        // Prefer ipwho.is enriched data; fall back to whatever Flussonic provides
+        $client->country        = $geo['country']        ?? $session['country'] ?? null;
+        $client->ip_type        = $geo['ip_type']        ?? null;
+        $client->continent      = $geo['continent']      ?? null;
+        $client->continent_code = $geo['continent_code'] ?? null;
+        $client->country_code   = $geo['country_code']   ?? null;
+        $client->region         = $geo['region']         ?? null;
+        $client->region_code    = $geo['region_code']    ?? null;
+        $client->city           = $geo['city']           ?? null;
+        $client->latitude       = $geo['latitude']       ?? null;
+        $client->longitude      = $geo['longitude']      ?? null;
+        $client->postal         = $geo['postal']         ?? null;
+        $client->org            = $geo['org']            ?? null;
+        $client->isp            = $geo['isp']            ?? null;
+        $client->domain         = $geo['domain']         ?? null;
         $client->save();
+    }
+
+    /**
+     * Concurrently geocode a list of IPs via ipwho.is using curl_multi.
+     * Private/reserved IPs are skipped. Returns ip → geo array map.
+     */
+    private function geocodeIPs(array $ips): array
+    {
+        $public = array_values(array_unique(array_filter(
+            $ips,
+            fn($ip) => $ip && !$this->isPrivateIp($ip)
+        )));
+
+        if (empty($public)) return [];
+
+        $multi   = curl_multi_init();
+        $handles = [];
+
+        foreach ($public as $ip) {
+            $ch = curl_init("https://ipwho.is/{$ip}");
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+                CURLOPT_USERAGENT      => 'NellaiIPTV/1.0',
+            ]);
+            curl_multi_add_handle($multi, $ch);
+            $handles[$ip] = $ch;
+        }
+
+        $running = 0;
+        do {
+            $status = curl_multi_exec($multi, $running);
+            if ($status > CURLM_OK) break;
+            if ($running > 0) curl_multi_select($multi, 1.0);
+        } while ($running > 0);
+
+        $results = [];
+        foreach ($handles as $ip => $ch) {
+            $raw = curl_multi_getcontent($ch);
+            curl_multi_remove_handle($multi, $ch);
+            curl_close($ch);
+
+            if (!$raw) continue;
+            $data = json_decode($raw, true);
+            if (!isset($data['success']) || !$data['success']) continue;
+
+            $results[$ip] = [
+                'ip_type'        => $data['type']              ?? null,
+                'continent'      => $data['continent']         ?? null,
+                'continent_code' => $data['continent_code']    ?? null,
+                'country'        => $data['country']           ?? null,
+                'country_code'   => $data['country_code']      ?? null,
+                'region'         => $data['region']            ?? null,
+                'region_code'    => $data['region_code']       ?? null,
+                'city'           => $data['city']              ?? null,
+                'latitude'       => isset($data['latitude'])   ? (float)$data['latitude']  : null,
+                'longitude'      => isset($data['longitude'])  ? (float)$data['longitude'] : null,
+                'postal'         => $data['postal']            ?? null,
+                'org'            => $data['connection']['org']    ?? null,
+                'isp'            => $data['connection']['isp']    ?? null,
+                'domain'         => $data['connection']['domain'] ?? null,
+            ];
+        }
+
+        curl_multi_close($multi);
+        return $results;
+    }
+
+    private function isPrivateIp(string $ip): bool
+    {
+        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
     }
 
     /**

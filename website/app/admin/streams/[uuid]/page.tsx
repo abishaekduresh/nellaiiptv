@@ -2,12 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import {
   ArrowLeft, Radio, Wifi, WifiOff, Activity, Monitor,
   Volume2, Users, Signal, Server, Clock, RefreshCw, Globe, Power, RotateCcw,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
+
+const ClientSessionsMap = dynamic(() => import('@/components/ClientSessionsMap'), { ssr: false });
 
 interface StreamDetail {
   uuid: string;
@@ -59,6 +62,19 @@ interface StreamClientRecord {
   opened_at: number | null;
   closed_at: number | null;
   country: string | null;
+  ip_type: string | null;
+  continent: string | null;
+  continent_code: string | null;
+  country_code: string | null;
+  region: string | null;
+  region_code: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  postal: string | null;
+  org: string | null;
+  isp: string | null;
+  domain: string | null;
 }
 
 function StatRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -413,7 +429,19 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
               <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">{clients.length}</span>
             )}
           </div>
+          {!clientsLoading && clients.length > 0 && (
+            <div className="flex items-center gap-3 text-[10px] text-slate-500">
+              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500/70" />Active</span>
+              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-sky-400/70" />Closed</span>
+            </div>
+          )}
         </div>
+
+        {!clientsLoading && clients.length > 0 && (
+          <div className="border-b border-slate-800">
+            <ClientSessionsMap clients={clients} />
+          </div>
+        )}
 
         {clientsLoading ? (
           <div className="flex items-center justify-center py-10">
@@ -431,7 +459,8 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
                 <tr className="border-b border-slate-800 text-slate-500">
                   <th className="text-left px-5 py-3 font-medium">IP</th>
                   <th className="text-left px-3 py-3 font-medium">Protocol</th>
-                  <th className="text-left px-3 py-3 font-medium">Country</th>
+                  <th className="text-left px-3 py-3 font-medium">Location</th>
+                  <th className="text-left px-3 py-3 font-medium">ISP / Org</th>
                   <th className="text-left px-3 py-3 font-medium">Opened</th>
                   <th className="text-left px-3 py-3 font-medium">Duration / Status</th>
                   <th className="text-left px-3 py-3 font-medium">User Agent</th>
@@ -440,16 +469,60 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
               <tbody>
                 {clients.map(c => {
                   const isActive = c.closed_at == null;
+                  const locationParts = [c.city, c.region, c.country].filter(Boolean);
+                  const location = locationParts.length > 0 ? locationParts.join(', ') : null;
                   return (
                     <tr key={c.uuid} className="border-b border-slate-800/50 last:border-0 hover:bg-slate-800/30 transition-colors">
-                      <td className="px-5 py-3 font-mono text-slate-300 whitespace-nowrap">{c.ip ?? '—'}</td>
+                      {/* IP + type badge */}
+                      <td className="px-5 py-3 whitespace-nowrap">
+                        <div className="font-mono text-slate-300">{c.ip ?? '—'}</div>
+                        {c.ip_type && (
+                          <span className="mt-0.5 inline-block px-1.5 py-px rounded text-[9px] font-mono bg-slate-800 text-slate-500 uppercase">{c.ip_type}</span>
+                        )}
+                      </td>
+
+                      {/* Protocol */}
                       <td className="px-3 py-3">
                         {c.protocol ? (
                           <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 uppercase">{c.protocol}</span>
                         ) : <span className="text-slate-600">—</span>}
                       </td>
-                      <td className="px-3 py-3 text-slate-400">{c.country ?? '—'}</td>
+
+                      {/* Location */}
+                      <td className="px-3 py-3 min-w-[160px]">
+                        {location ? (
+                          <div>
+                            <div className="text-slate-300">{location}</div>
+                            <div className="text-slate-600 text-[10px] mt-0.5 flex items-center gap-1.5">
+                              {c.continent && <span>{c.continent}</span>}
+                              {c.country_code && <span className="px-1 py-px rounded bg-slate-800 font-mono uppercase">{c.country_code}</span>}
+                              {c.postal && <span>{c.postal}</span>}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-slate-600">—</span>
+                        )}
+                      </td>
+
+                      {/* ISP / Org */}
+                      <td className="px-3 py-3 min-w-[180px]">
+                        {c.isp || c.org || c.domain ? (
+                          <div>
+                            {c.isp && <div className="text-slate-300 truncate max-w-[200px]" title={c.isp}>{c.isp}</div>}
+                            {c.org && c.org !== c.isp && (
+                              <div className="text-slate-500 text-[10px] truncate max-w-[200px]" title={c.org}>{c.org}</div>
+                            )}
+                            {c.domain && <div className="text-slate-600 text-[10px] font-mono">{c.domain}</div>}
+                          </div>
+                        ) : (
+                          <span className="text-slate-600">—</span>
+                        )}
+                      </td>
+
+                      {/* Opened */}
                       <td className="px-3 py-3 text-slate-400 whitespace-nowrap">{fmtEpochMs(c.opened_at)}</td>
+
+                      {/* Duration / Status */}
                       <td className="px-3 py-3 whitespace-nowrap">
                         {isActive ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/15 text-green-400 border border-green-500/25">
@@ -460,7 +533,9 @@ export default function StreamDetailPage({ params }: { params: { uuid: string } 
                           <span className="text-slate-500">{fmtDuration(c.opened_at, c.closed_at)}</span>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-slate-500 max-w-[220px] truncate" title={c.user_agent ?? ''}>
+
+                      {/* User Agent */}
+                      <td className="px-3 py-3 text-slate-500 max-w-[200px] truncate" title={c.user_agent ?? ''}>
                         {c.user_agent ?? '—'}
                       </td>
                     </tr>

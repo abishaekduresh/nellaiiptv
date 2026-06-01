@@ -1,10 +1,14 @@
-# Nellai IPTV - Frontend v1.73.0
+# Nellai IPTV - Frontend v1.74.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.73.0)**
+### **Latest Updates (v1.74.0)**
+- **Feature**: **OpenStreetMap client session map** — Interactive map on `/admin/streams/[uuid]` above the sessions table. Custom SVG teardrop pin icons (green = active, sky-blue = closed; session count inside pin). Auto-fits bounds to all points. "Fit points" button re-centers the view. `react-leaflet@4` + `leaflet` (OpenStreetMap tiles, no API key).
+- **Feature**: **Enriched sessions table** — New `Location` column (city → region → country, with continent / country-code / postal sub-row) and `ISP / Org` column. IP cell shows `IPv4`/`IPv6` type badge.
+
+### **Previous Updates (v1.73.0)**
 - **Feature**: **Keyboard shortcuts for channel player** — Full keyboard control on `/channel/[uuid]`: `Space`/`K` play/pause, `M` mute, `F` fullscreen, `P` PiP, `↑`/`↓` next/prev channel, `→`/`←` volume, `L` channel list, `R` reload, `?` shortcuts help panel. Keyboard icon hint button appears alongside the report button when controls are visible.
 - **Removed**: **Viewer Sessions admin page** — `/admin/viewer-sessions` page and sidebar entry removed.
 - **Removed**: **Tenants admin pages** — `/admin/tenants` list/create/edit pages, `TenantForm` component, and sidebar entry removed.

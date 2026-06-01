@@ -19,12 +19,27 @@ class StreamClient extends Model
         'opened_at',
         'closed_at',
         'country',
+        'ip_type',
+        'continent',
+        'continent_code',
+        'country_code',
+        'region',
+        'region_code',
+        'city',
+        'latitude',
+        'longitude',
+        'postal',
+        'org',
+        'isp',
+        'domain',
     ];
 
     protected $casts = [
         'stream_id'  => 'integer',
         'opened_at'  => 'integer',
         'closed_at'  => 'integer',
+        'latitude'   => 'float',
+        'longitude'  => 'float',
     ];
 
     public function stream(): BelongsTo

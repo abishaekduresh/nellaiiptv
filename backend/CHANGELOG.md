@@ -1,3 +1,17 @@
+## [1.52.0] - 2026-06-02
+
+### Added
+- **IP geo-enrichment on session sync** (`app/Services/Admin/StreamService.php`) — `syncSessionsFromServer()` now collects all unique public IPs from the Flussonic session snapshot and passes them to the new `geocodeIPs()` method before inserting records. Each `stream_clients` row is now populated with city-level location data and ISP details.
+- **`StreamService::geocodeIPs(array $ips): array`** — Concurrent HTTP lookup using **`curl_multi_*`** (native PHP, no extra dependency). Sends all unique public IPs to `https://ipwho.is/{ip}` in parallel; collects `ip_type`, `continent`, `continent_code`, `country`, `country_code`, `region`, `region_code`, `city`, `latitude`, `longitude`, `postal`, `connection.org`, `connection.isp`, `connection.domain`. Private/reserved IPs skipped via `filter_var(FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)`.
+- **`StreamService::isPrivateIp(string $ip): bool`** — Helper using PHP `filter_var` for reliable private/reserved IP detection.
+- **`StreamClient` model** (`app/Models/StreamClient.php`) — 13 new fillable fields added; `latitude` and `longitude` cast to `float`.
+- **`add_geo_columns_to_stream_clients.sql`** (`database/migrations/`) — `ALTER TABLE` migration adding 13 geo columns. **Must be run on the live database.**
+
+### Changed
+- **`StreamService::insertStreamClient()`** — Now accepts a `$geo` array (from `geocodeIPs`) and writes all 13 geo fields. Falls back to Flussonic's native `country` field if the IP lookup missed or the IP was private.
+
+---
+
 ## [1.51.0] - 2026-06-01
 
 ### Removed
