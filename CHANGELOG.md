@@ -1,3 +1,10 @@
+## [1.80.0] - Website - 2026-06-02
+
+### Website (Next.js)
+- **Added**: **SEO layout for `/stream`** (`app/stream/layout.tsx`) — Server-side `Metadata` export with title "RTMP & SRT Streaming Services | Nellai IPTV", detailed description, 20 targeted keywords (RTMP hosting India, SRT streaming, HLS delivery, OBS server, Tamil Nadu, white label, etc.), canonical URL, robots directives, Open Graph (`locale: en_IN`, image, site name), Twitter Card (`summary_large_image`), and `Service` JSON-LD structured data schema with full `OfferCatalog` covering all 7 plans (4 monthly + 3 annual) with INR prices and billing cycles.
+
+---
+
 ## [1.79.0] - Website - 2026-06-02
 
 ### Website (Next.js)

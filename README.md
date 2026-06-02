@@ -6,7 +6,7 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.79.0
+- **Version**: 1.80.0
 - **Key Features**: **Flussonic Media Server** (stream servers admin rebuilt — Flussonic API columns, Test Connectivity button with live liveness check, `StreamServerDetailsModal` with Flussonic sections, dashboard Stream Server stat cards, expandable sidebar group), Visual Ads System (YouTube-style pre-roll video ads — `.m3u8`/`.mp4`, skippable/non-skippable, countdown timer, skip button, unmuted by default, channel audio muted during ad via `adPlaying` prop restored on skip/complete, click-through tracking, impression/skip/click analytics, session-based frequency limiting, plan-level + guest/free-user targeting, weighted random selection), Visual Ads Admin CRUD (`/admin/visual-ads` — sidebar via layout.tsx, full table with live stats, create/edit modal), AdSense Policy Compliance (script restricted to content pages only; `sitemap.xml` + `robots.txt` generated), Expanded About Page (FAQ, How It Works, Channel Categories, Platform details), Payment Gateway UI (enable/disable toggle per gateway with inline Test Transaction button; credentials managed via backend `.env`), Channel Manager Stream Preview (HLS player modal with loading/buffering/error/retry states, live badge, copy URL, no-controls clean view), Channel Manager Confirm-Save Modal (per-channel diff of number and status changes with thumbnail, arrow indicators, sorted by new number), Full Admin Portal Redesign (modern slate theme, animated, mobile-responsive sidebar, dashboard, all CRUD pages), Admin Layout Isolation (public Navbar/Footer hidden on admin/reseller routes), Admin Branding (logo on login page + sidebar, sidebar logo links to home), Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
@@ -24,14 +24,10 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.79.0 Website) — 2026-06-02
+## Recent Updates (v1.80.0 Website) — 2026-06-02
 
 ### Website (Next.js)
-- **Added**: **`/stream` page** — Dedicated landing page for Nellai IPTV Stream (RTMP & SRT broadcasting services). Animated hero with live dashboard mockup, stats strip, features grid, self-control section with phone app mockup, monthly plans (₹499 / ₹799 / ₹999 / ₹1899) and annual bandwidth packages (4TB ₹8,999 / 8TB ₹12,999 / 16TB ₹19,999), how-it-works section, and contact CTA.
-- **Added**: **WhatsApp floating button on `/stream`** — Fixed bottom-right button with pulsing animation and pre-filled message linking to `wa.me/917708443543`.
-- **Added**: **Streaming promo section on home page** — Placed above the Universal Player section; highlights RTMP/SRT/HLS features with a link to `/stream` and annual pricing strip.
-- **Added**: **Contact details on `/stream` and `/contact`** — Phone +91 77084 43543 and email support@nellaiiptv.com shown as clickable `tel:` / `mailto:` links.
-- **Changed**: **Navbar** — "Streaming" link added between "Watch TV" and "Plans" in desktop nav and mobile sidebar.
+- **Added**: **SEO layout for `/stream`** — `app/stream/layout.tsx` exports server-side `Metadata` with title, 20 targeted keywords, canonical URL, Open Graph (`locale: en_IN`), Twitter Card, and `Service` JSON-LD structured data with full `OfferCatalog` for all 7 plans.
 
 ---
 

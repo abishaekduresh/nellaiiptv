@@ -1,10 +1,20 @@
-# Nellai IPTV - Frontend v1.78.0
+# Nellai IPTV - Frontend v1.80.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.78.0)**
+### **Latest Updates (v1.80.0)**
+- **Added**: **SEO layout for `/stream`** (`app/stream/layout.tsx`) — Server-side `Metadata` with title "RTMP & SRT Streaming Services | Nellai IPTV", description, 20 targeted keywords, canonical URL, robots, Open Graph (`locale: en_IN`), Twitter Card (`summary_large_image`), and `Service` JSON-LD schema with `OfferCatalog` listing all 7 plans (4 monthly + 3 annual) with INR prices and billing cycles.
+
+### **Previous Updates (v1.79.0)**
+- **Added**: **`/stream` page** — Dedicated landing page for Nellai IPTV Stream (RTMP & SRT broadcasting services). Animated hero with live dashboard mockup, stats strip, features grid, self-control section with phone app mockup, monthly plans (₹499 / ₹799 / ₹999 / ₹1899) and annual bandwidth packages (4TB ₹8,999 / 8TB ₹12,999 / 16TB ₹19,999), how-it-works section, and contact CTA.
+- **Added**: **WhatsApp floating button on `/stream`** — Fixed bottom-right button with pulsing animation and pre-filled message.
+- **Added**: **Streaming promo section on home page** — Card above the Universal Player section; highlights RTMP/SRT/HLS features with "Explore Plans" CTA and annual pricing strip.
+- **Added**: **Contact details on `/stream` and `/contact`** — Phone +91 77084 43543 and email shown as clickable `tel:` / `mailto:` links.
+- **Changed**: **Navbar** — "Streaming" link added between "Watch TV" and "Plans".
+
+### **Previous Updates (v1.78.0)**
 - **Fix**: **Removed Bandwidth section from My Streams modal** — `Bandwidth` card (In / Out) removed from the Classic Mode stream detail modal. `Signal` icon import cleaned up.
 
 ### **Previous Updates (v1.77.0)**
