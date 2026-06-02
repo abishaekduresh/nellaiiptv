@@ -209,6 +209,7 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-1">
               <NavLink href="/" label="Home" pathname={pathname} />
               <NavLink href="/channels" label="Watch TV" pathname={pathname} />
+              <NavLink href="/stream" label="Streaming" pathname={pathname} />
               {isReseller
                 ? <NavLink href="/reseller" label="Reseller" pathname={pathname} />
                 : <NavLink href="/plans" label="Plans" pathname={pathname} />
@@ -381,6 +382,7 @@ export default function Navbar() {
             {[
               { href: '/',         label: 'Home',               icon: null    },
               { href: '/channels', label: 'Watch TV',           icon: Tv      },
+              { href: '/stream',   label: 'Streaming',          icon: Radio   },
               { href: isReseller ? '/reseller' : '/plans', label: isReseller ? 'Reseller Panel' : 'Subscription Plans', icon: CreditCard },
             ].map(({ href, label, icon: Icon }) => (
               <Link

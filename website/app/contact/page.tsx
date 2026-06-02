@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, MapPin, Send, MessageSquare } from 'lucide-react';
+import { Mail, MapPin, Phone, Send, MessageSquare } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '@/lib/api';
 
@@ -37,8 +37,9 @@ export default function ContactPage() {
   };
 
   const contactInfo = [
-    { icon: Mail,   title: 'Email',   value: 'nellaiiptv@gmail.com', delay: '0.25s' },
-    { icon: MapPin, title: 'Address', value: 'Tirunelveli, Tamil Nadu, India', delay: '0.32s' },
+    { icon: Phone,  title: 'Phone',   value: '+91 77084 43543', href: 'tel:+917708443543', delay: '0.18s' },
+    { icon: Mail,   title: 'Email',   value: 'nellaiiptv@gmail.com', href: 'mailto:nellaiiptv@gmail.com', delay: '0.25s' },
+    { icon: MapPin, title: 'Address', value: 'Tirunelveli, Tamil Nadu, India', href: null, delay: '0.32s' },
   ];
 
   return (
@@ -65,7 +66,7 @@ export default function ContactPage() {
 
           {/* Left — info cards */}
           <div className="lg:col-span-1 space-y-4">
-            {contactInfo.map(({ icon: Icon, title, value, delay }) => (
+            {contactInfo.map(({ icon: Icon, title, value, href, delay }) => (
               <div
                 key={title}
                 className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all duration-300 animate-fade-up"
@@ -77,7 +78,13 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold mb-1 text-sm">{title}</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">{value}</p>
+                    {href ? (
+                      <a href={href} className="text-slate-400 text-sm leading-relaxed hover:text-primary transition-colors">
+                        {value}
+                      </a>
+                    ) : (
+                      <p className="text-slate-400 text-sm leading-relaxed">{value}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -90,7 +97,7 @@ export default function ContactPage() {
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-green-400 text-xs font-semibold">Typically replies within 24h</span>
+                <span className="text-green-400 text-xs font-semibold">Typically replies within 1h</span>
               </div>
               <p className="text-slate-500 text-xs leading-relaxed">
                 We aim to respond to all enquiries within one business day.

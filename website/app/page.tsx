@@ -13,6 +13,7 @@ import {
   Users,
   ChevronRight,
   CheckCircle,
+  Radio,
 } from "lucide-react";
 import { useTVFocus } from "@/hooks/useTVFocus";
 import { useRouter } from "next/navigation";
@@ -345,6 +346,86 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Streaming Services Promo ─────────────────────── */}
+      <section className="py-20 px-4">
+        <div className="container-custom">
+          <div className="relative rounded-3xl overflow-hidden border border-yellow-500/20 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 shadow-2xl">
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-500/5 blur-[100px] rounded-full" />
+              <div className="absolute bottom-0 left-0 w-72 h-72 bg-primary/8 blur-[80px] rounded-full" />
+            </div>
+            <div className="grid md:grid-cols-2 gap-0">
+              {/* Left — text */}
+              <div className="relative z-10 p-8 md:p-12 flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="px-2.5 py-1 bg-yellow-500 text-black text-[10px] font-black rounded-lg uppercase tracking-wide">
+                    SPECIAL OFFER
+                  </div>
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                    <span className="text-green-400 text-[10px] font-bold uppercase tracking-wide">Live Broadcasting</span>
+                  </div>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-black mb-4 leading-tight">
+                  Nellai IPTV{" "}
+                  <span className="text-primary italic">Stream</span>
+                  <br />
+                  <span className="text-2xl md:text-3xl text-slate-300 font-bold">
+                    Professional RTMP & SRT Hosting
+                  </span>
+                </h2>
+                <p className="text-slate-400 leading-relaxed mb-6 text-sm md:text-base max-w-md">
+                  Launch your own live stream channel with dedicated servers, HLS delivery,
+                  free domain & SSL. Full self-control from our dashboard and app.
+                </p>
+                <div className="flex flex-wrap gap-2 mb-7">
+                  {["RTMP Ingest", "SRT Support", "HLS Delivery", "Full HD", "Free Domain & SSL"].map((t) => (
+                    <span key={t} className="px-3 py-1 bg-slate-800/80 border border-slate-700 rounded-full text-slate-300 text-xs font-medium">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/stream"
+                    className="inline-flex items-center gap-2 bg-primary hover:bg-cyan-500 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 group text-sm"
+                  >
+                    <Radio size={15} />
+                    Explore Plans
+                    <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <span className="text-slate-400 text-sm">
+                    Starts at <strong className="text-white">₹499/month</strong>
+                  </span>
+                </div>
+              </div>
+
+              {/* Right — pricing strip */}
+              <div className="relative z-10 p-8 md:p-12 border-t md:border-t-0 md:border-l border-slate-800/60 flex flex-col justify-center gap-4">
+                <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Annual Packages</p>
+                {[
+                  { bw: "4 TB", price: "₹8,999", period: "/year", color: "border-primary/30 bg-primary/5" },
+                  { bw: "8 TB", price: "₹12,999", period: "/year", color: "border-yellow-500/30 bg-yellow-500/5" },
+                  { bw: "16 TB", price: "₹19,999", period: "/year", color: "border-purple-500/20 bg-purple-500/5" },
+                ].map(({ bw, price, period, color }) => (
+                  <div key={bw} className={`flex items-center justify-between px-4 py-3 rounded-xl border ${color} group cursor-default`}>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-primary/60" />
+                      <span className="text-white font-bold text-sm">{bw} Bandwidth</span>
+                    </div>
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="text-white font-black text-lg">{price}</span>
+                      <span className="text-slate-500 text-xs">{period}</span>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-slate-600 text-xs mt-1">Dedicated server · Unlimited viewers · Free domain & SSL</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

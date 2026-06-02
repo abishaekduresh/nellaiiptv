@@ -1,3 +1,15 @@
+## [1.79.0] - Website - 2026-06-02
+
+### Website (Next.js)
+- **Added**: **`/stream` page** — New dedicated landing page for Nellai IPTV Stream (RTMP & SRT streaming services). Includes animated hero section with live dashboard mockup, stats strip, platform features grid, self-control section with phone app mockup, pricing plans (monthly: ₹499/799/999/1899 and annual bandwidth packages: 4TB ₹8,999 / 8TB ₹12,999 / 16TB ₹19,999), three-step how-it-works section, and CTA with direct phone & email contact links.
+- **Added**: **WhatsApp floating button on `/stream`** — Fixed bottom-right button with pulsing ring animation, WhatsApp brand colour, and pre-filled message ("Hi, I'm interested in Nellai IPTV Stream services. Please share more details.") linking to `wa.me/917708443543`.
+- **Added**: **Nellai IPTV Stream promo section on home page** — Card above the Universal Player section promoting the streaming service with RTMP/SRT/HLS feature tags, "Explore Plans" CTA, and an annual bandwidth packages pricing strip (4TB / 8TB / 16TB).
+- **Added**: **Contact details on `/stream` CTA** — Phone (+91 77084 43543) and email (support@nellaiiptv.com) displayed as clickable `tel:` and `mailto:` pill buttons.
+- **Added**: **Phone number card on `/contact`** — `+91 77084 43543` added as a clickable `tel:` link card above the email card; email card now also links via `mailto:`.
+- **Changed**: **Navbar** — "Streaming" link added between "Watch TV" and "Plans" in both desktop nav and mobile sidebar, pointing to `/stream`.
+
+---
+
 ## [1.78.0] - Website | [1.55.0] - Backend - 2026-06-02
 
 ### Website (Next.js)
