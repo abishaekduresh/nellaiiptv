@@ -14,6 +14,7 @@ import {
   ChevronRight,
   CheckCircle,
   Radio,
+  ClipboardList,
 } from "lucide-react";
 import { useTVFocus } from "@/hooks/useTVFocus";
 import { useRouter } from "next/navigation";
@@ -425,6 +426,37 @@ export default function Home() {
                 ))}
                 <p className="text-slate-600 text-xs mt-1">Dedicated server · Unlimited viewers · Free domain & SSL</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Channel Onboarding CTA ───────────────────────── */}
+      <section className="py-12 px-4">
+        <div className="container-custom max-w-4xl">
+          <div className="relative rounded-2xl overflow-hidden border border-primary/20 bg-gradient-to-r from-primary/10 via-slate-900 to-slate-900 px-8 py-8 md:px-12 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 blur-[80px] rounded-full" />
+            </div>
+            <div className="relative z-10 w-14 h-14 rounded-2xl bg-primary/10 border border-primary/25 flex items-center justify-center shrink-0">
+              <ClipboardList size={26} className="text-primary" />
+            </div>
+            <div className="relative z-10 flex-1 text-center md:text-left">
+              <h3 className="text-xl md:text-2xl font-black text-white mb-1.5">
+                Own a Channel? Get Listed on Nellai IPTV
+              </h3>
+              <p className="text-slate-400 text-sm md:text-base">
+                Reach thousands of Tamil viewers. Submit your channel for review and we&apos;ll add it to our platform.
+              </p>
+            </div>
+            <div className="relative z-10 shrink-0">
+              <Link
+                href="/channel-onboard"
+                className="inline-flex items-center gap-2 bg-primary hover:bg-cyan-500 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 group text-sm whitespace-nowrap"
+              >
+                Submit Your Channel
+                <ChevronRight size={15} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </div>
         </div>

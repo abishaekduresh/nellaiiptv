@@ -1,3 +1,18 @@
+## [1.81.0] - 2026-06-03
+
+### Added
+- **Channel Onboarding public form** (`app/channel-onboard/page.tsx`) — Multi-section form with logo file upload. Client-side validation: `.png`/`.webp` only, max 1 MB, exactly 1080×1080 px via `new Image()`. Thumbnail preview with remove button; success screen on submit. Submits as `multipart/form-data`.
+- **Channel Onboarding admin page** (`app/admin/channel-onboarding/page.tsx`) — Status filter tabs (All / Pending / Approved / Rejected), logo thumbnail, contact details, stream URL link, inline review panel with admin notes and Approve / Reject / Pending buttons, delete action.
+- **"Ch. Onboarding" sidebar entry** (`components/AdminSidebar.tsx`) — `ClipboardList` icon, placed after the Channels group, links to `/admin/channel-onboarding`.
+- **Channel Onboarding CTA banner on home page** (`app/page.tsx`) — Horizontal banner between Streaming Services Promo and Universal Player sections with "Submit Your Channel" CTA.
+- **"Add Your Channel" footer link** (`components/Footer.tsx`) — Added to Quick Links column with `ClipboardList` icon.
+
+### Fixed
+- **`manifest.json` icon 404** (`public/manifest.json`) — Replaced missing `icon-192.png` / `icon-512.png` references with `/png_logo.png`.
+- **Google Play badge broken in footer** (`components/Footer.tsx`) — Corrected file extension from `.png` to `.webp`.
+
+---
+
 ## [1.74.0] - 2026-06-02
 
 ### Added

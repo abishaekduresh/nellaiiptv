@@ -1,3 +1,22 @@
+## [1.81.0] - Website | [1.56.0] - Backend - 2026-06-03
+
+### Website (Next.js)
+- **Added**: **Channel Onboarding public form** (`app/channel-onboard/page.tsx`) — Multi-section form (Channel Info, Stream Details, Contact Info) with logo file upload. Client-side validation: `.png`/`.webp` only, max 1 MB, exactly 1080×1080 px checked via `new Image()`. Shows live thumbnail preview with remove button; success screen on submit. Submits as `multipart/form-data`.
+- **Added**: **Channel Onboarding admin page** (`app/admin/channel-onboarding/page.tsx`) — Table with status filter tabs (All / Pending / Approved / Rejected), logo thumbnail, contact details, stream URL link, inline "Review" expand panel with admin notes textarea and Approve / Reject / Pending action buttons, delete action.
+- **Added**: **"Ch. Onboarding" sidebar item** (`components/AdminSidebar.tsx`) — `ClipboardList` icon entry after the Channels group, pointing to `/admin/channel-onboarding`.
+- **Added**: **Channel Onboarding CTA banner on home page** (`app/page.tsx`) — Horizontal banner between the Streaming Services Promo and Universal Player sections; `ClipboardList` icon, heading, description, and "Submit Your Channel" button linking to `/channel-onboard`.
+- **Added**: **"Add Your Channel" footer link** (`components/Footer.tsx`) — `ClipboardList` link added to Quick Links column.
+- **Fixed**: **`manifest.json` icon 404** (`website/public/manifest.json`) — `icon-192.png` and `icon-512.png` (missing files) replaced with `/png_logo.png`.
+- **Fixed**: **Google Play badge broken in footer** (`components/Footer.tsx`) — Extension corrected from `.png` to `.webp`.
+
+### Backend (Slim PHP)
+- **Added**: **`channel_onboarding` DB migration** (`database/migrations/create_channel_onboarding_table.sql`) — Table with `uuid`, `channel_name`, `logo_url`, `category`, `language`, `stream_url`, `website_url`, `contact_name`, `contact_email`, `contact_phone`, `description`, `status` (enum: pending/approved/rejected), `admin_notes`, `created_at`.
+- **Added**: **`ChannelOnboarding` model** (`app/Models/ChannelOnboarding.php`) — Eloquent model for the `channel_onboarding` table.
+- **Added**: **Public `POST /api/channel-onboarding`** (`app/Controllers/ChannelOnboardingController.php`) — Accepts `multipart/form-data`; validates required fields; handles optional logo upload (PNG/WebP, ≤1 MB, 1080×1080 via `getimagesize()`); saves file to `public/uploads/channel-logos/`; stores relative path in `logo_url`.
+- **Added**: **Admin channel onboarding routes** (`app/Routes/admin.php`) — `GET /api/admin/channel-onboarding` (paginated list, filterable by status), `PUT /api/admin/channel-onboarding/{uuid}/status` (approve/reject/pending + admin notes), `DELETE /api/admin/channel-onboarding/{uuid}`.
+
+---
+
 ## [1.80.0] - Website - 2026-06-02
 
 ### Website (Next.js)

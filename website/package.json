@@ -1,6 +1,6 @@
-{
+﻿{
   "name": "nellai-iptv-frontend",
-  "version": "1.78.0",
+  "version": "1.81.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -53,3 +53,4 @@
     "typescript": "^5"
   }
 }
+

@@ -63,6 +63,9 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         // Feedback
         $group->post('/feedback', [\App\Controllers\FeedbackController::class, 'submit']);
 
+        // Channel Onboarding
+        $group->post('/channel-onboarding', [\App\Controllers\ChannelOnboardingController::class, 'submit']);
+
         // Settings (Public)
         $group->get('/settings/disclaimer', [\App\Controllers\Admin\SettingController::class, 'getDisclaimer']);
         $group->get('/settings/public', [\App\Controllers\Api\PublicSettingController::class, 'getPublicSettings']);

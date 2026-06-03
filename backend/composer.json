@@ -1,7 +1,7 @@
-{
+﻿{
     "name": "nellai-iptv/backend",
     "description": "Nellai IPTV REST API Backend",
-    "version": "1.55.0",
+    "version": "1.56.0",
     "type": "project",
     "require": {
         "php": "^8.0",
@@ -38,3 +38,4 @@
         "start": "php -S localhost:8080 -t public"
     }
 }
+

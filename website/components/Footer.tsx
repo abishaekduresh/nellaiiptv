@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Tv, Mail, MessageCircle, FileText, Shield, AlertTriangle, Home, CreditCard, Info } from 'lucide-react';
+import { Tv, Mail, MessageCircle, FileText, Shield, AlertTriangle, Home, CreditCard, Info, ClipboardList } from 'lucide-react';
 import api from '@/lib/api';
 
 const Footer = () => {
@@ -21,7 +21,8 @@ const Footer = () => {
     { href: '/plans',    label: 'Plans',      icon: CreditCard  },
     { href: '/about',    label: 'About Us',   icon: Info        },
     { href: '/contact',  label: 'Contact',    icon: Mail        },
-    { href: '/feedback', label: 'Feedback',   icon: MessageCircle },
+    { href: '/feedback',        label: 'Feedback',        icon: MessageCircle  },
+    { href: '/channel-onboard', label: 'Add Your Channel', icon: ClipboardList  },
   ];
 
   const legalLinks = [
@@ -71,7 +72,7 @@ const Footer = () => {
               className="inline-block transition-all duration-300 hover:-translate-y-1 hover:opacity-90 mb-8"
             >
               <Image
-                src="/assets/icons/get_it_on_google_playstore.png"
+                src="/assets/icons/get_it_on_google_playstore.webp"
                 alt="Get it on Google Play"
                 width={160}
                 height={48}

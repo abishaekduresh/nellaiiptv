@@ -1,3 +1,17 @@
+## [1.56.0] - 2026-06-03
+
+### Added
+- **`channel_onboarding` DB migration** (`database/migrations/create_channel_onboarding_table.sql`) — New table: `uuid`, `channel_name`, `logo_url`, `category`, `language`, `stream_url`, `website_url`, `contact_name`, `contact_email`, `contact_phone`, `description`, `status` (enum: `pending`/`approved`/`rejected`), `admin_notes`, `created_at`. Indexes on `status` and `created_at`.
+- **`ChannelOnboarding` model** (`app/Models/ChannelOnboarding.php`) — Eloquent model mapping to `channel_onboarding` table; no auto-update timestamp.
+- **`POST /api/channel-onboarding`** (`app/Controllers/ChannelOnboardingController.php`) — Public endpoint; accepts `multipart/form-data`; validates required fields + email + URL; handles optional `logo` file upload (allowed: `image/png`, `image/webp`; max 1 MB; dimensions verified via `getimagesize()` — must be 1080×1080 px); saves to `public/uploads/channel-logos/`; stores relative path.
+- **Admin routes** (`app/Routes/admin.php`):
+  - `GET /api/admin/channel-onboarding` — Paginated list, filterable by `status`.
+  - `PUT /api/admin/channel-onboarding/{uuid}/status` — Update status (`pending`/`approved`/`rejected`) and optional `admin_notes`.
+  - `DELETE /api/admin/channel-onboarding/{uuid}` — Hard delete.
+- **`Admin\ChannelOnboardingController`** (`app/Controllers/Admin/ChannelOnboardingController.php`) — `index()`, `updateStatus()`, `delete()` methods.
+
+---
+
 ## [1.52.0] - 2026-06-02
 
 ### Added

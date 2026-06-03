@@ -1,10 +1,17 @@
-# Nellai IPTV - Frontend v1.80.0
+# Nellai IPTV - Frontend v1.81.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.80.0)**
+### **Latest Updates (v1.81.0)**
+- **Added**: **Channel Onboarding public form** (`app/channel-onboard/page.tsx`) — Multi-section form with logo file upload (PNG/WebP, max 1 MB, 1080×1080 px validated client-side), category/language selects, success screen.
+- **Added**: **Channel Onboarding admin page** (`app/admin/channel-onboarding/page.tsx`) — Status filter tabs, inline review panel with Approve / Reject / Pending actions and admin notes.
+- **Added**: **Sidebar entry, home page CTA banner, and footer link** for channel onboarding.
+- **Fixed**: **`manifest.json` icon 404** — replaced missing `icon-192.png` with `/png_logo.png`.
+- **Fixed**: **Google Play badge in footer** — corrected extension `.png` → `.webp`.
+
+### **Previous Updates (v1.80.0)**
 - **Added**: **SEO layout for `/stream`** (`app/stream/layout.tsx`) — Server-side `Metadata` with title "RTMP & SRT Streaming Services | Nellai IPTV", description, 20 targeted keywords, canonical URL, robots, Open Graph (`locale: en_IN`), Twitter Card (`summary_large_image`), and `Service` JSON-LD schema with `OfferCatalog` listing all 7 plans (4 monthly + 3 annual) with INR prices and billing cycles.
 
 ### **Previous Updates (v1.79.0)**

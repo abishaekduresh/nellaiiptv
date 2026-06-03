@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `channel_onboarding` (
+  `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `uuid`          VARCHAR(36)     NOT NULL UNIQUE,
+  `channel_name`  VARCHAR(255)    NOT NULL,
+  `logo_url`      VARCHAR(500)    DEFAULT NULL,
+  `category`      VARCHAR(100)    NOT NULL,
+  `language`      VARCHAR(100)    NOT NULL,
+  `stream_url`    VARCHAR(500)    NOT NULL,
+  `website_url`   VARCHAR(500)    DEFAULT NULL,
+  `contact_name`  VARCHAR(255)    NOT NULL,
+  `contact_email` VARCHAR(255)    NOT NULL,
+  `contact_phone` VARCHAR(30)     NOT NULL,
+  `description`   TEXT            DEFAULT NULL,
+  `status`        ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `admin_notes`   TEXT            DEFAULT NULL,
+  `created_at`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_status` (`status`),
+  INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
