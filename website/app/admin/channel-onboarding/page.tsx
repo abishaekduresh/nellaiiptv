@@ -8,6 +8,9 @@ import {
 import adminApi from '@/lib/adminApi';
 import { toast } from 'react-hot-toast';
 
+const BACKEND_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost/backend/public/api').replace(/\/api$/, '');
+const logoSrc = (url: string | null) => (!url ? null : url.startsWith('http') ? url : BACKEND_BASE + url);
+
 interface OnboardingRequest {
   uuid: string;
   channel_name: string;
@@ -171,8 +174,8 @@ export default function ChannelOnboardingPage() {
                     {/* Channel */}
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2.5">
-                        {req.logo_url ? (
-                          <img src={req.logo_url} alt={req.channel_name} className="w-8 h-8 rounded-lg object-contain bg-slate-800 border border-slate-700 shrink-0" />
+                        {logoSrc(req.logo_url) ? (
+                          <img src={logoSrc(req.logo_url)!} alt={req.channel_name} className="w-8 h-8 rounded-lg object-contain bg-slate-800 border border-slate-700 shrink-0" />
                         ) : (
                           <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs shrink-0">
                             {req.channel_name.charAt(0).toUpperCase()}

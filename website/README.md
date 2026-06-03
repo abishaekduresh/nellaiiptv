@@ -1,10 +1,15 @@
-# Nellai IPTV - Frontend v1.81.0
+# Nellai IPTV - Frontend v1.82.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.81.0)**
+### **Latest Updates (v1.82.0)**
+- **Added**: Admin `layout.tsx` for `/admin/channel-onboarding` — ensures sidebar and mobile header render correctly.
+- **Fixed**: Channel logo not displaying in admin page — `logoSrc()` helper prepends backend base URL to relative upload paths.
+- **Fixed**: `package.json` UTF-8 BOM corruption causing Next.js JSON parse failure.
+
+### **Previous Updates (v1.81.0)**
 - **Added**: **Channel Onboarding public form** (`app/channel-onboard/page.tsx`) — Multi-section form with logo file upload (PNG/WebP, max 1 MB, 1080×1080 px validated client-side), category/language selects, success screen.
 - **Added**: **Channel Onboarding admin page** (`app/admin/channel-onboarding/page.tsx`) — Status filter tabs, inline review panel with Approve / Reject / Pending actions and admin notes.
 - **Added**: **Sidebar entry, home page CTA banner, and footer link** for channel onboarding.

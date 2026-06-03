@@ -1,3 +1,12 @@
+## [1.82.0] - Website - 2026-06-03
+
+### Website (Next.js)
+- **Added**: **Admin layout for channel onboarding** (`app/admin/channel-onboarding/layout.tsx`) — wraps the page in `AdminLayout` so the sidebar and mobile header render correctly.
+- **Fixed**: **Channel logo not displaying in admin page** (`app/admin/channel-onboarding/page.tsx`) — Logo stored as a relative backend path (`/uploads/channel-logos/…`) was rendered as-is; added `BACKEND_BASE` derived from `NEXT_PUBLIC_API_URL` (stripping `/api`) and a `logoSrc()` helper that prepends it for relative paths, passes through absolute URLs unchanged.
+- **Fixed**: **`package.json` UTF-8 BOM corruption** — PowerShell `Set-Content -Encoding utf8` added a BOM that caused Next.js JSON parse to fail (`Unexpected token`); stripped via Node.js.
+
+---
+
 ## [1.81.0] - Website | [1.56.0] - Backend - 2026-06-03
 
 ### Website (Next.js)

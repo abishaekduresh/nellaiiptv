@@ -1,3 +1,14 @@
+## [1.82.0] - 2026-06-03
+
+### Added
+- **Admin layout for channel onboarding** (`app/admin/channel-onboarding/layout.tsx`) — wraps in `AdminLayout` so sidebar and mobile header render correctly.
+
+### Fixed
+- **Channel logo not showing in admin page** (`app/admin/channel-onboarding/page.tsx`) — Added `BACKEND_BASE` (derived from `NEXT_PUBLIC_API_URL` minus `/api`) and `logoSrc()` helper to resolve relative backend upload paths to full URLs.
+- **`package.json` UTF-8 BOM** — stripped BOM added by PowerShell to prevent Next.js JSON parse error.
+
+---
+
 ## [1.81.0] - 2026-06-03
 
 ### Added

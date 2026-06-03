@@ -6,7 +6,7 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.81.0
+- **Version**: 1.82.0
 - **Key Features**: **Flussonic Media Server** (stream servers admin rebuilt — Flussonic API columns, Test Connectivity button with live liveness check, `StreamServerDetailsModal` with Flussonic sections, dashboard Stream Server stat cards, expandable sidebar group), Visual Ads System (YouTube-style pre-roll video ads — `.m3u8`/`.mp4`, skippable/non-skippable, countdown timer, skip button, unmuted by default, channel audio muted during ad via `adPlaying` prop restored on skip/complete, click-through tracking, impression/skip/click analytics, session-based frequency limiting, plan-level + guest/free-user targeting, weighted random selection), Visual Ads Admin CRUD (`/admin/visual-ads` — sidebar via layout.tsx, full table with live stats, create/edit modal), AdSense Policy Compliance (script restricted to content pages only; `sitemap.xml` + `robots.txt` generated), Expanded About Page (FAQ, How It Works, Channel Categories, Platform details), Payment Gateway UI (enable/disable toggle per gateway with inline Test Transaction button; credentials managed via backend `.env`), Channel Manager Stream Preview (HLS player modal with loading/buffering/error/retry states, live badge, copy URL, no-controls clean view), Channel Manager Confirm-Save Modal (per-channel diff of number and status changes with thumbnail, arrow indicators, sorted by new number), Full Admin Portal Redesign (modern slate theme, animated, mobile-responsive sidebar, dashboard, all CRUD pages), Admin Layout Isolation (public Navbar/Footer hidden on admin/reseller routes), Admin Branding (logo on login page + sidebar, sidebar logo links to home), Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
@@ -24,21 +24,12 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.2+7
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
 
-## Recent Updates (v1.81.0 Website | v1.56.0 Backend) — 2026-06-03
+## Recent Updates (v1.82.0 Website) — 2026-06-03
 
 ### Website (Next.js)
-- **Added**: **Channel Onboarding public form** (`app/channel-onboard/page.tsx`) — Multi-section form (Channel Info, Stream Details, Contact) with logo file upload; client-side validation: PNG/WebP, max 1 MB, exactly 1080×1080 px. Shows preview thumbnail; submits as `multipart/form-data`.
-- **Added**: **Channel Onboarding admin page** (`app/admin/channel-onboarding/page.tsx`) — Filterable table (All / Pending / Approved / Rejected), inline review panel with admin notes, Approve / Reject / Pending actions, and delete.
-- **Added**: **Admin sidebar** — "Ch. Onboarding" entry with `ClipboardList` icon after Channels group.
-- **Added**: **Home page CTA banner** — "Own a Channel? Get Listed" banner between Streaming Services Promo and Universal Player sections.
-- **Added**: **Footer link** — "Add Your Channel" in Quick Links column.
-- **Fixed**: `manifest.json` icon-192.png 404 — changed to `/png_logo.png`.
-- **Fixed**: Google Play badge in footer — extension `.png` → `.webp`.
-
-### Backend (Slim PHP)
-- **Added**: `channel_onboarding` DB migration — table with status enum (pending/approved/rejected), logo_url, contact fields, admin_notes.
-- **Added**: `POST /api/channel-onboarding` — public submission endpoint with multipart file upload; validates PNG/WebP ≤1 MB, 1080×1080 px via `getimagesize()`; saves to `public/uploads/channel-logos/`.
-- **Added**: Admin routes — `GET /api/admin/channel-onboarding`, `PUT /api/admin/channel-onboarding/{uuid}/status`, `DELETE /api/admin/channel-onboarding/{uuid}`.
+- **Added**: Admin `layout.tsx` for `/admin/channel-onboarding` — wraps page in `AdminLayout` so sidebar and mobile header render correctly.
+- **Fixed**: Channel logo not showing in admin onboarding page — `logoSrc()` helper prepends backend base URL (derived from `NEXT_PUBLIC_API_URL`) to relative upload paths.
+- **Fixed**: `package.json` UTF-8 BOM corruption causing Next.js `Unexpected token` JSON parse failure.
 
 ---
 
