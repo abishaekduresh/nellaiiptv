@@ -1,3 +1,15 @@
+## [1.3.4+10] - SCPA (Flutter) - 2026-06-15
+
+### Single Channel Player App
+- **Fixed**: **Pinkish video tint** (`VideoPlayerScreen`) — Removed a broken `ColorFilter.matrix` wrapping `VideoPlayer`. The matrix had `50.01` in the red channel's green contribution, causing severe pink tint across the whole frame. Natural colour restored.
+- **Fixed**: **Deprecated colour API** — Replaced four `Color.withOpacity()` calls with `Color.withValues(alpha:)` to avoid precision loss and eliminate Flutter SDK deprecation warnings.
+- **Changed**: **Exit modal — blue theme** — All red accents in the exit confirmation dialog (power icon, circular background, Exit button) replaced with the app brand cyan `#06B6D4`.
+- **Changed**: **HLS pipeline hint** — `formatHint: VideoFormat.hls` added to `VideoPlayerController.networkUrl()` so ExoPlayer enters its HLS-optimised extractor path immediately without probing the URL.
+- **Changed**: **Background playback** — `allowBackgroundPlayback: false` set explicitly in `VideoPlayerOptions` to prevent background audio context resource contention.
+- **Added**: **App icons regenerated** — `dart run flutter_launcher_icons` re-generated all Android mipmap density folders and iOS `AppIcon.appiconset` sizes from `assets/icon/app-logo.png`.
+
+---
+
 ## [1.82.0] - Website - 2026-06-03
 
 ### Website (Next.js)

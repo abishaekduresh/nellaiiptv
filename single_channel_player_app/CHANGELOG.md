@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.4+10] - 2026-06-15
+
+### Fixed
+- **Pinkish Video Tint** — Removed a broken `ColorFilter.matrix` that was applied to the `VideoPlayer` widget. The matrix had a value of `50.01` in the red channel's green contribution, which pumped excessive red into bright pixels and caused a pink tint across the entire video. Video now renders with natural colours.
+- **Deprecated `withOpacity` calls** — Replaced four `Color.withOpacity()` usages in `VideoPlayerScreen` with `Color.withValues(alpha:)` to eliminate Flutter SDK deprecation warnings and prevent precision loss.
+
+### Changed
+- **Exit Confirmation Modal — Blue Theme** — Replaced all red accents in the exit dialog (icon, circular background, Exit button) with the app's brand cyan (`#06B6D4`) for a consistent theme.
+- **HLS Pipeline** — Added `formatHint: VideoFormat.hls` to `VideoPlayerController.networkUrl()` so ExoPlayer uses its HLS-optimised decoder path immediately without format probing.
+- **Background Playback** — Explicitly set `allowBackgroundPlayback: false` in `VideoPlayerOptions` to prevent resource contention from background audio contexts.
+
+### Added
+- **App Icons Regenerated** — Ran `flutter_launcher_icons` to regenerate all Android mipmap and iOS `AppIcon.appiconset` sizes from the source `assets/icon/app-logo.png`.
+
 ## [1.3.3+9] - 2026-05-21
 
 ### Fixed

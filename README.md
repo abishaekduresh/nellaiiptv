@@ -21,8 +21,20 @@ A premium multi-channel IPTV player built for Android and Android TV.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
-- **Version**: 1.3.2+7
-- **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe).
+- **Version**: 1.3.4+10
+- **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe), HLS-optimised ExoPlayer pipeline (`formatHint: VideoFormat.hls`), blue-themed exit dialog.
+
+## Recent Updates (v1.3.4+10 SCPA) — 2026-06-15
+
+### Single Channel Player App (Flutter)
+- **Fixed**: Pinkish video tint caused by a broken `ColorFilter.matrix` (red channel's green contribution set to `50.01`) — removed entirely; video renders with natural colours.
+- **Fixed**: Four deprecated `Color.withOpacity()` calls replaced with `Color.withValues(alpha:)`.
+- **Changed**: Exit confirmation modal recoloured to app brand cyan (`#06B6D4`) — icon, circle background, and Exit button.
+- **Changed**: Added `formatHint: VideoFormat.hls` to `VideoPlayerController` so ExoPlayer uses its HLS-optimised pipeline immediately.
+- **Changed**: `allowBackgroundPlayback: false` set explicitly in `VideoPlayerOptions`.
+- **Added**: App icons regenerated via `flutter_launcher_icons` from `assets/icon/app-logo.png`.
+
+---
 
 ## Recent Updates (v1.82.0 Website) — 2026-06-03
 

@@ -7,7 +7,7 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
     <application
-        android:label="BUDDHA TV"
+        android:label="ATHITHOOTHAR TV"
         android:banner="@drawable/tv_banner"
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"

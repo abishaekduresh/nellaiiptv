@@ -260,7 +260,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
 
       _controller = VideoPlayerController.networkUrl(
         Uri.parse(url),
-        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: false),
+        formatHint: VideoFormat.hls,
+        videoPlayerOptions: VideoPlayerOptions(
+          mixWithOthers: false,
+          allowBackgroundPlayback: false,
+        ),
       );
       _controller!.addListener(_playerListener);
 
@@ -399,22 +403,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                           child: SizedBox(
                             width: _controller!.value.size.width,
                             height: _controller!.value.size.height,
-                            child: ColorFiltered(
-  colorFilter: const ColorFilter.matrix([
-  // R
-  1.08, 50.01, 0.01, 0, -40,
-
-  // G
-  1.01, 1.08, 0.01, 0, -40,
-
-  // B
-  0.01, 10.01, 1.08, 0, -40,
-
-  // A
-  0,    50,    0,    1,  10,
-]),
-                              child: VideoPlayer(_controller!),
-                            ),
+                            child: VideoPlayer(_controller!),
                           ),
                         ),
                       )
@@ -503,7 +492,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -592,7 +581,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
   Future<bool> _showExitConfirmation() async {
     return await showDialog(
           context: context,
-          barrierColor: Colors.black.withOpacity(0.8),
+          barrierColor: Colors.black.withValues(alpha: 0.8),
           builder: (context) => Dialog(
             backgroundColor: const Color(0xFF1E293B),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -605,10 +594,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.power_settings_new, color: Colors.red, size: 32),
+                    child: const Icon(Icons.power_settings_new, color: Color(0xFF06B6D4), size: 32),
                   ),
                   const SizedBox(height: 20),
                   Text(
@@ -639,7 +628,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                                side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
                               ),
                             ),
                             child: const Text(
@@ -653,7 +642,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
                           child: ElevatedButton(
                             onPressed: () => Navigator.of(context).pop(true),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
+                              backgroundColor: const Color(0xFF06B6D4),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
