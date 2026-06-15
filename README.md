@@ -21,8 +21,19 @@ A premium multi-channel IPTV player built for Android and Android TV.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
-- **Version**: 1.3.4+10
-- **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe), HLS-optimised ExoPlayer pipeline (`formatHint: VideoFormat.hls`), blue-themed exit dialog.
+- **Version**: 1.3.5+11
+- **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe), HLS-optimised ExoPlayer pipeline (`formatHint: VideoFormat.hls`), blue-themed exit dialog, Screenshot blocking (`FLAG_SECURE`), debug/root/emulator detection (`ENABLE_DEBUG_BLOCK`).
+
+## Recent Updates (v1.3.5+11 SCPA) — 2026-06-15
+
+### Single Channel Player App (Flutter)
+- **Fixed**: Security checks (`SecurityManager.init()`) were never called at startup — now invoked in `main()` after dotenv loads so screenshot and debug blocking actually take effect.
+- **Fixed**: `flutter run` / debugger crashing — all `SecurityManager` checks are now skipped in `kDebugMode`; enforcement applies to release builds only.
+- **Fixed**: `isSafeToRun()` fetched `isRealDevice` but never used it; now checks rooted, emulator, and dev-mode flags together.
+- **Changed**: `_handleDebugDetection()` now calls `exit(0)` on rooted device, emulator, or developer mode (previously only logged).
+- **Changed**: `.env` — `ENABLE_SCREENSHOT_BLOCK=true`, `ENABLE_DEBUG_BLOCK=true` enabled for production.
+
+---
 
 ## Recent Updates (v1.3.4+10 SCPA) — 2026-06-15
 

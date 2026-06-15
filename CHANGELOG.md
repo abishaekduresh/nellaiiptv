@@ -1,3 +1,14 @@
+## [1.3.5+11] - SCPA (Flutter) - 2026-06-15
+
+### Single Channel Player App
+- **Fixed**: `SecurityManager.init()` was never called in `main()` — screenshot and debug blocking had no effect despite `.env` flags being set.
+- **Fixed**: `flutter run` / debugger connection dropped — all security checks now short-circuit on `kDebugMode`; release builds enforce as normal.
+- **Fixed**: `isSafeToRun()` unused `isRealDevice` variable — now evaluated alongside `isJailBroken` and `isDevMode` in a single condition.
+- **Changed**: `_handleDebugDetection()` calls `exit(0)` on rooted device, emulator, or developer mode active (was previously a no-op — only logged).
+- **Changed**: `.env` — `ENABLE_SCREENSHOT_BLOCK=true` and `ENABLE_DEBUG_BLOCK=true` enabled for production distribution.
+
+---
+
 ## [1.3.4+10] - SCPA (Flutter) - 2026-06-15
 
 ### Single Channel Player App

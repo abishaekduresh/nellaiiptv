@@ -4,11 +4,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/splash_screen.dart';
 import 'widgets/connectivity_wrapper.dart';
 import 'services/toast_service.dart';
+import 'utils/security_manager.dart';
 
 Future<void> main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
     await dotenv.load(fileName: ".env");
+    await SecurityManager().init();
     runApp(const MyApp());
   }, (error, stack) {
     print("CRASH CAUGHT: $error");

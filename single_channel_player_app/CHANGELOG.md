@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.5+11] - 2026-06-15
+
+### Fixed
+- **Security checks crashing `flutter run`** — All `SecurityManager` checks are now skipped when `kDebugMode` is `true`, so `flutter run` and debugger connections work normally. Enforcement only applies to release builds.
+- **`isSafeToRun()` unused variable** — `isRealDevice` was fetched but never evaluated. Now consistently checks rooted, emulator, and developer-mode flags in one condition.
+
+### Changed
+- **`SecurityManager.init()` wired up** — Was never called at startup; now invoked in `main()` after dotenv loads so screenshot and debug blocking actually take effect in release builds.
+- **Debug detection now blocks** — `_handleDebugDetection()` calls `exit(0)` on rooted device, emulator, or developer mode enabled (when `ENABLE_DEBUG_BLOCK=true`). Previously only logged.
+- **`.env` defaults** — `ENABLE_SCREENSHOT_BLOCK=true`, `ENABLE_DEBUG_BLOCK=true` enabled for production builds.
+
 ## [1.3.4+10] - 2026-06-15
 
 ### Fixed
