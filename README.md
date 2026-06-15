@@ -24,6 +24,13 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.5+11
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe), HLS-optimised ExoPlayer pipeline (`formatHint: VideoFormat.hls`), blue-themed exit dialog, Screenshot blocking (`FLAG_SECURE`), debug/root/emulator detection (`ENABLE_DEBUG_BLOCK`).
 
+## Recent Updates (v1.3.6+12 SCPA) — 2026-06-15
+
+### Single Channel Player App (Flutter)
+- **Fixed**: Play Store package name rejection — renamed from `com.nellaiiptv.buddhatv` to `com.nellaiiptv.com.athithoothartv` across Android (`build.gradle.kts`, `MainActivity.kt`), iOS (`project.pbxproj`), macOS (`AppInfo.xcconfig`), and Linux (`CMakeLists.txt`).
+
+---
+
 ## Recent Updates (v1.3.5+11 SCPA) — 2026-06-15
 
 ### Single Channel Player App (Flutter)

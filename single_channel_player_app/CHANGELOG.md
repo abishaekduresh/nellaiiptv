@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.6+12] - 2026-06-15
+
+### Fixed
+- **Play Store package name rejection** — Renamed app package from `com.nellaiiptv.buddhatv` to `com.nellaiiptv.com.athithoothartv` across all platforms to match the Play Console registration.
+  - `android/app/build.gradle.kts` — `namespace` and `applicationId` updated.
+  - `MainActivity.kt` — moved to `kotlin/com/nellaiiptv/com/athithoothartv/` and package declaration updated.
+  - `ios/Runner.xcodeproj/project.pbxproj` — all `PRODUCT_BUNDLE_IDENTIFIER` entries (Runner + RunnerTests) updated.
+  - `macos/Runner/Configs/AppInfo.xcconfig` — `PRODUCT_BUNDLE_IDENTIFIER` updated.
+  - `linux/CMakeLists.txt` — `APPLICATION_ID` updated.
+
 ## [1.3.5+11] - 2026-06-15
 
 ### Fixed

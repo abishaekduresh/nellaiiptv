@@ -1,3 +1,10 @@
+## [1.3.6+12] - SCPA (Flutter) - 2026-06-15
+
+### Single Channel Player App
+- **Fixed**: **Play Store package name rejection** — Renamed package from `com.nellaiiptv.buddhatv` to `com.nellaiiptv.com.athithoothartv` to match Play Console registration. Updated `build.gradle.kts` (namespace + applicationId), `MainActivity.kt` (moved to new directory + package declaration), iOS `project.pbxproj` (Runner + RunnerTests bundle IDs), macOS `AppInfo.xcconfig`, and Linux `CMakeLists.txt`.
+
+---
+
 ## [1.3.5+11] - SCPA (Flutter) - 2026-06-15
 
 ### Single Channel Player App
