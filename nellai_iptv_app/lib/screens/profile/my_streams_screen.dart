@@ -106,7 +106,8 @@ class _MyStreamsScreenState extends State<MyStreamsScreen> {
           _isLoading = false;
           _isSyncing = false;
         });
-        ToastService().show('Failed to load streams', type: ToastType.error);
+        final msg = e.toString().replaceFirst('Exception: ', '');
+        ToastService().show(msg.isNotEmpty ? msg : 'Failed to load streams', type: ToastType.error);
       }
     }
   }

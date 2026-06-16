@@ -9,14 +9,17 @@ use App\Models\StreamClient;
 use App\Services\Admin\StreamService;
 use App\Helpers\ResponseFormatter;
 use Exception;
+use Psr\Log\LoggerInterface;
 
 class CustomerStreamController
 {
     private StreamService $streamService;
+    private LoggerInterface $logger;
 
-    public function __construct(StreamService $streamService)
+    public function __construct(StreamService $streamService, LoggerInterface $logger)
     {
         $this->streamService = $streamService;
+        $this->logger        = $logger;
     }
 
     public function getMyStreams(Request $request, Response $response): Response
@@ -34,19 +37,20 @@ class CustomerStreamController
             }
 
             $data = $rows->map(function ($s) {
-                // Fetch latest 20 client sessions per stream
-                $clients = $s->clients()
-                    ->orderByDesc('opened_at')
-                    ->limit(20)
-                    ->get([
-                        'uuid', 'ip', 'user_agent', 'protocol', 'opened_at', 'closed_at',
-                        'country', 'ip_type', 'continent', 'continent_code', 'country_code',
-                        'region', 'region_code', 'city', 'latitude', 'longitude',
-                        'postal', 'org', 'isp', 'domain',
-                    ]);
+                // Fetch latest 20 client sessions per stream — select * so optional
+                // geo columns missing on older DB schemas don't break the query.
+                try {
+                    $clients = $s->clients()
+                        ->orderByDesc('opened_at')
+                        ->limit(20)
+                        ->get();
 
-                // Enrich any sessions that are still missing geo data
-                $clients = $this->enrichMissingGeo($clients);
+                    // Enrich any sessions that are still missing geo data
+                    $clients = $this->enrichMissingGeo($clients);
+                } catch (Exception $ce) {
+                    $this->logger->error('getMyStreams: client session query failed for stream ' . $s->uuid . ': ' . $ce->getMessage());
+                    $clients = collect();
+                }
 
                 return [
                     'uuid'             => $s->uuid,
@@ -98,7 +102,11 @@ class CustomerStreamController
 
             return ResponseFormatter::success($response, $data, 'Streams retrieved');
         } catch (Exception $e) {
-            return ResponseFormatter::error($response, 'Failed to load streams', 500);
+            $this->logger->error('getMyStreams failed for user ' . ($user->sub ?? 'unknown') . ': ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return ResponseFormatter::error($response, 'Failed to load streams: ' . $e->getMessage(), 500);
         }
     }
 
