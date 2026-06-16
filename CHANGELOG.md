@@ -1,3 +1,13 @@
+## [1.15.0+70] - App (Flutter) | [1.57.0] - Backend (Slim PHP) - 2026-06-16
+
+### Nellai IPTV App (Flutter)
+- **Changed**: **Persistent login session** (`lib/core/api_service.dart`) — `onResponse` Dio interceptor made async; detects `X-Auth-Token` response header and stores the renewed JWT in `SharedPreferences`. Users are never logged out while their session is alive — token renewal is fully transparent to the UI.
+
+### Backend (Slim PHP)
+- **Changed**: **JWT auto-renewal on expiry** (`app/Middleware/JwtMiddleware.php`) — `\Firebase\JWT\ExpiredException` is now caught separately before the generic `\Exception` handler. When an expired JWT arrives, the middleware base64-decodes the payload to extract the `jti`, queries `customer_sessions` for a matching record, and — if found — issues a fresh JWT with the same `jti` and a new `exp` window. `last_active` is stamped, the request continues as authenticated, and the new token is returned in an `X-Auth-Token` response header. If no session record exists (explicit logout or revocation), 401 is returned as before.
+
+---
+
 ## [1.3.6+12] - SCPA (Flutter) - 2026-06-15
 
 ### Single Channel Player App

@@ -1,3 +1,10 @@
+## [1.15.0+70] - 2026-06-16
+
+### Changed
+- **Persistent login session** (`lib/core/api_service.dart`) — The `onResponse` Dio interceptor now detects an `X-Auth-Token` header returned by the backend when a JWT is auto-renewed on an expired-but-active session. The new token is silently stored in `SharedPreferences`, replacing the expired one. Users are never logged out due to token expiry as long as their session remains active.
+
+---
+
 ## [1.14.0+69] - 2026-06-01
 
 ### Added

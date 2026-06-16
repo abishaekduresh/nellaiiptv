@@ -81,7 +81,18 @@ class ApiService {
         
         return handler.next(options);
       },
-      onResponse: (response, handler) {
+      onResponse: (response, handler) async {
+        // If the backend issued a renewed token (expired JWT but session still active), store it
+        final renewedToken = response.headers.value('x-auth-token');
+        if (renewedToken != null && renewedToken.isNotEmpty) {
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('auth_token', renewedToken);
+            debugPrint('Auth token auto-renewed from response header');
+          } catch (e) {
+            debugPrint('Error storing renewed token: $e');
+          }
+        }
         debugPrint('--- API Response ---');
         debugPrint('Status: ${response.statusCode}');
         debugPrint('URL: ${response.requestOptions.baseUrl}${response.requestOptions.path}');

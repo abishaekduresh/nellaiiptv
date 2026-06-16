@@ -11,6 +11,9 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.15.0+70
+- **Changed**: **Persistent login session** — The Dio `onResponse` interceptor now reads the `X-Auth-Token` response header sent by the backend whenever a JWT is silently renewed on an expired-but-active session. The refreshed token is stored in `SharedPreferences` immediately, so the user is never logged out due to token age as long as they remain signed in.
+
 ## Version: 1.14.0+69
 - **Added**: **My Streams Screen** — New screen (Profile → My Streams) showing all streams assigned to the logged-in customer. Each stream card displays: status dot (running = green, waiting = amber, others = red), stream name, stream-status and health-status badges, enabled/disabled pill, uptime, viewer count, published-via label, and video/audio codec chips.
 - **Added**: **Client Sessions** — Collapsible section per stream card listing each active/closed session with IP, protocol chip, country, and session duration.
