@@ -74,7 +74,7 @@ const monthlyPlans = [
       "RTMP & SRT Ingest",
       "HLS Delivery",
       "Full HD 1080p",
-      "5 Concurrent Viewers",
+      "3 Concurrent Viewers",
       "Basic Analytics",
       "Free Subdomain & SSL",
       "24/7 Support",
@@ -90,7 +90,7 @@ const monthlyPlans = [
       "RTMP & SRT Ingest",
       "HLS Delivery",
       "Full HD 1080p",
-      "8 Concurrent Viewers",
+      "7 Concurrent Viewers",
       "Real-time Analytics",
       "Free Subdomain & SSL",
       "Stream Dashboard",
@@ -107,7 +107,7 @@ const monthlyPlans = [
       "RTMP & SRT Ingest",
       "HLS Delivery",
       "Full HD 1080p",
-      "11 Concurrent Viewers",
+      "10 Concurrent Viewers",
       "Advanced Analytics",
       "Free Subdomain & SSL",
       "Stream Dashboard",
@@ -117,7 +117,7 @@ const monthlyPlans = [
   },
   {
     name: "Business",
-    price: "1899",
+    price: "1999",
     highlight: null,
     color: "from-purple-500/20 to-pink-500/20",
     border: "border-purple-500/30",
@@ -125,7 +125,7 @@ const monthlyPlans = [
       "RTMP & SRT Ingest",
       "HLS Delivery",
       "Full HD 1080p",
-      "22 Concurrent Viewers",
+      "21 Concurrent Viewers",
       "Advanced Analytics",
       "Free Subdomain & SSL",
       "Stream Dashboard",
@@ -138,51 +138,50 @@ const monthlyPlans = [
 
 const yearlyPlans = [
   {
-    name: "4TB Bandwidth /mo",
-    bandwidth: "4 TB / Year",
-    price: "8999",
+    name: "Annual Basic",
+    // bandwidth: "4 TB / Year",
+    price: "10999",
     highlight: null,
     color: "from-primary/20 to-cyan-600/20",
     border: "border-primary/40",
     features: [
       "1 RTMP & SRT Ingest",
-      "HLS Delivery",
+      "HLS(.m3u8), RTMP & SRT Delivery",
       "Full HD Stream",
       "Dedicated Server",
-      "Unlimited Viewers",
-      "Real-time Analytics",
+      "100Mbps NIC Port",
+      "Unlimited Viewers*",
       "Stream Dashboard",
-      "24/7 Priority Support",
     ],
   },
   {
-    name: "8TB Bandwidth /mo",
-    bandwidth: "8 TB / Year",
-    price: "12999",
+    name: "Annual Pro",
+    // bandwidth: "8 TB / Year",
+    price: "20999",
     highlight: "Most Popular",
     color: "from-yellow-500/20 to-orange-500/20",
     border: "border-yellow-500/40",
     features: [
-      "Everything in 4TB",
+      "Everything in Annual Basic",
       "2 RTMP & SRT Ingest",
-      "2× Bandwidth Capacity",
       "Free Domain & SSL",
       "Advanced Analytics",
+      "Real-time Analytics",
       "Priority CDN Routing*",
       "Dedicated Support",
     ],
   },
   {
-    name: "16TB Bandwidth /mo",
-    bandwidth: "16 TB / Year",
-    price: "19999",
+    name: "Annual Business",
+    // bandwidth: "16 TB / Year",
+    price: "28999",
     highlight: null,
     color: "from-purple-500/20 to-pink-500/20",
     border: "border-purple-500/30",
     features: [
-      "Everything in 8TB",
-      "4 RTMP & SRT Ingest",
-      "4× Bandwidth Capacity",
+      "Everything in Annual Pro",
+      "3 RTMP & SRT Ingest",
+      "200Mbps NIC Port",
       "SLA Guarantee",
       "Dedicated Support",
     ],
@@ -1205,8 +1204,12 @@ export default function StreamPage() {
                     <Phone size={13} className="text-primary" />
                   </div>
                   <div className="text-left">
-                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5">Call Us</p>
-                    <p className="text-white text-sm font-bold group-hover:text-primary transition-colors">+91 77084 43543</p>
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5">
+                      Call Us
+                    </p>
+                    <p className="text-white text-sm font-bold group-hover:text-primary transition-colors">
+                      +91 77084 43543
+                    </p>
                   </div>
                 </a>
                 <a
@@ -1217,14 +1220,19 @@ export default function StreamPage() {
                     <Mail size={13} className="text-primary" />
                   </div>
                   <div className="text-left">
-                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5">Email Us</p>
-                    <p className="text-white text-sm font-bold group-hover:text-primary transition-colors">nellaiiptv@gmail.com</p>
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5">
+                      Email Us
+                    </p>
+                    <p className="text-white text-sm font-bold group-hover:text-primary transition-colors">
+                      nellaiiptv@gmail.com
+                    </p>
                   </div>
                 </a>
               </div>
 
               <p className="mt-5 text-slate-600 text-xs">
-                www.nellaiiptv.com · High-Performance RTMP & HLS Streaming Servers
+                www.nellaiiptv.com · High-Performance RTMP & HLS Streaming
+                Servers
               </p>
             </div>
           </div>

@@ -157,7 +157,7 @@ export default function ChannelOnboardPage() {
           <h2 className="text-3xl font-black mb-3">Request Submitted!</h2>
           <p className="text-slate-400 text-base leading-relaxed mb-6">
             Thank you for submitting your channel. Our team will review it and
-            get back to you within 2–3 business days.
+            get back to you within 2-3 business days.
           </p>
           <a
             href="/"
