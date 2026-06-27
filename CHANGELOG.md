@@ -1,3 +1,11 @@
+## [1.15.1+71] - App (Flutter) - 2026-06-27
+
+### Nellai IPTV App (Flutter)
+- **Added**: **Invalid channel number feedback** (`lib/screens/classic/classic_screen.dart`) — When the user dials a number via TV remote that does not match any channel, a red "Invalid channel number" overlay appears at the top-right for 2 seconds. `_showInvalidChannel` bool + `_invalidChannelTimer` drive the overlay; both timer and flag are safely cancelled/cleared in `dispose()`.
+- **Changed**: **TV launcher banner** — Updated `tv_banner.png` in `drawable/` and `drawable-xhdpi/` with the new Nellai IPTV banner design.
+
+---
+
 ## [1.15.0+70] - App (Flutter) | [1.57.0] - Backend (Slim PHP) - 2026-06-16
 
 ### Nellai IPTV App (Flutter)

@@ -16,21 +16,19 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
-- **Version**: 1.15.0+70
-- **Key Features**: **Persistent login session** (Dio `onResponse` interceptor silently stores `X-Auth-Token` renewed tokens — users never log out due to JWT expiry), My Streams Screen (customer-facing stream management — stream cards with status/health/codec details, client sessions table, Sync button with 30 s cooldown, per-stream Restart with 2 s disable→enable sequence and 30 s cooldown, pull-to-refresh), Profile Screen portrait + landscape orientation support, Visual Pre-roll Ads (YouTube-style full-screen video ads on channel switch — skippable/non-skippable, countdown, skip button, mute toggle, click-through tracking, impression/skip/click analytics, per-session frequency limiting, double-tap fullscreen, `FittedBox.fill` stretch), `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, Enhanced ColorFilter contrast/colour matrix (1.22× contrast, cross-channel warmth, −16 bias), `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
+- **Version**: 1.15.1+71
+- **Key Features**: **Invalid channel number feedback** (red overlay on TV when dialled number has no match — 2 s auto-dismiss), Updated TV launcher banner, **Persistent login session** (Dio `onResponse` interceptor silently stores `X-Auth-Token` renewed tokens — users never log out due to JWT expiry), My Streams Screen (customer-facing stream management — stream cards with status/health/codec details, client sessions table, Sync button with 30 s cooldown, per-stream Restart with 2 s disable→enable sequence and 30 s cooldown, pull-to-refresh), Profile Screen portrait + landscape orientation support, Visual Pre-roll Ads (YouTube-style full-screen video ads on channel switch — skippable/non-skippable, countdown, skip button, mute toggle, click-through tracking, impression/skip/click analytics, per-session frequency limiting, double-tap fullscreen, `FittedBox.fill` stretch), `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, Enhanced ColorFilter contrast/colour matrix (1.22× contrast, cross-channel warmth, −16 bias), `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.5+11
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe), HLS-optimised ExoPlayer pipeline (`formatHint: VideoFormat.hls`), blue-themed exit dialog, Screenshot blocking (`FLAG_SECURE`), debug/root/emulator detection (`ENABLE_DEBUG_BLOCK`).
 
-## Recent Updates (v1.15.0+70 App | v1.57.0 Backend) — 2026-06-16
+## Recent Updates (v1.15.1+71 App) — 2026-06-27
 
 ### Nellai IPTV App (Flutter)
-- **Changed**: **Persistent login session** (`lib/core/api_service.dart`) — Dio `onResponse` interceptor now reads the `X-Auth-Token` header and silently updates the stored token. Users are never logged out due to JWT expiry while their session is active.
-
-### Backend (Slim PHP)
-- **Changed**: **JWT auto-renewal in middleware** (`app/Middleware/JwtMiddleware.php`) — `ExpiredException` is now caught separately. If the expired token's `jti` still exists in `customer_sessions` (i.e. the user hasn't logged out), a fresh JWT is issued with the same session ID, `last_active` is updated, and the new token is attached as `X-Auth-Token` in the response header. The current request proceeds normally. If the session record is missing, 401 is returned as before.
+- **Added**: **Invalid channel number feedback** (`lib/screens/classic/classic_screen.dart`) — When a TV remote digit dial resolves to no matching channel, a red "Invalid channel number" overlay appears at the top-right for 2 seconds and auto-dismisses. Previously the number buffer was silently cleared.
+- **Changed**: **TV launcher banner** — Updated `tv_banner.png` (`drawable/` + `drawable-xhdpi/`) with the new Nellai IPTV banner design.
 
 ---
 

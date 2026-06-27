@@ -11,6 +11,10 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.15.1+71
+- **Added**: **Invalid channel number feedback** — When a TV remote digit dial resolves to no matching channel, a red "Invalid channel number" overlay appears at the top-right for 2 seconds.
+- **Changed**: **TV banner** — Updated Android TV launcher banner image.
+
 ## Version: 1.15.0+70
 - **Changed**: **Persistent login session** — The Dio `onResponse` interceptor now reads the `X-Auth-Token` response header sent by the backend whenever a JWT is silently renewed on an expired-but-active session. The refreshed token is stored in `SharedPreferences` immediately, so the user is never logged out due to token age as long as they remain signed in.
 

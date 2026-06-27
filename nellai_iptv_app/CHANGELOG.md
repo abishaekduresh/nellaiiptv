@@ -1,3 +1,13 @@
+## [1.15.1+71] - 2026-06-27
+
+### Added
+- **Invalid channel number toast** (`lib/screens/classic/classic_screen.dart`) — When the user dials a channel number via TV remote that does not exist, a red "Invalid channel number" overlay now appears at the top-right for 2 seconds and auto-dismisses. Previously the buffer was silently cleared with no feedback.
+
+### Changed
+- **TV banner** (`android/app/src/main/res/drawable/tv_banner.png`, `drawable-xhdpi/tv_banner.png`) — Updated the Android TV launcher banner image.
+
+---
+
 ## [1.15.0+70] - 2026-06-16
 
 ### Changed

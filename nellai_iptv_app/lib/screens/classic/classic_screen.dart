@@ -101,6 +101,8 @@ class _ClassicScreenState extends State<ClassicScreen> {
   // Number Navigation State
   String _numberBuffer = "";
   Timer? _numberTimer;
+  bool _showInvalidChannel = false;
+  Timer? _invalidChannelTimer;
   final FocusNode _rootFocusNode = FocusNode();
   final FocusNode _playerFocusNode = FocusNode(); // Dedicated focus node for player area
   
@@ -364,6 +366,7 @@ class _ClassicScreenState extends State<ClassicScreen> {
   void dispose() {
     _adTimer?.cancel();
     _numberTimer?.cancel();
+    _invalidChannelTimer?.cancel();
     _sessionValidationTimer?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -422,6 +425,12 @@ class _ClassicScreenState extends State<ClassicScreen> {
         });
         _loadComments();
         _tryShowVisualAd();
+      } else if (mounted) {
+        _invalidChannelTimer?.cancel();
+        setState(() => _showInvalidChannel = true);
+        _invalidChannelTimer = Timer(const Duration(seconds: 2), () {
+          if (mounted) setState(() => _showInvalidChannel = false);
+        });
       }
     }
 
@@ -929,6 +938,29 @@ class _ClassicScreenState extends State<ClassicScreen> {
                                 ),
                               ),
                             ).animate().scale(duration: 200.ms, curve: Curves.easeOut),
+                          ),
+
+                        // Invalid Channel Number Overlay
+                        if (_showInvalidChannel)
+                          Positioned(
+                            top: 20,
+                            right: 20,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.85),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: const Text(
+                                'Invalid channel number',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ).animate().fadeIn(duration: 200.ms),
                           ),
 
                       ],
