@@ -1,6 +1,6 @@
 # Single Channel Player App
 
-**Version**: `1.3.7+13`
+**Version**: `1.3.7+13` — Play Store fix (ENABLE_DEBUG_BLOCK disabled) + build environment fix (cmdline-tools stub)
 **Framework**: Flutter 3.x
 
 A high-performance, native Android application for streaming HLS content, optimized for both Mobile and Android TV interfaces.

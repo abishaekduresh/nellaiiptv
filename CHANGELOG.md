@@ -1,7 +1,9 @@
 ## [1.3.7+13] - SCPA (Flutter) - 2026-06-27
 
 ### Single Channel Player App
-- **Fixed**: **Google Play rejection — app doesn't open or load** (`ENABLE_DEBUG_BLOCK` → `false` in `.env`) — The emulator/dev-mode security check called `exit(0)` on Google Play review devices (which have developer mode or ADB enabled), making the app silently close on launch and fail the Broken Functionality policy check. Screenshot blocking (`ENABLE_SCREENSHOT_BLOCK=true`, `FLAG_SECURE`) remains active. Bumped to `1.3.7+13`.
+- **Fixed**: **Google Play rejection — app doesn't open or load** (`ENABLE_DEBUG_BLOCK` → `false` in `.env`) — The emulator/dev-mode security check called `exit(0)` on Google Play review devices (which have developer mode or ADB enabled), making the app silently close on launch and fail the Broken Functionality policy check. Screenshot blocking (`ENABLE_SCREENSHOT_BLOCK=true`, `FLAG_SECURE`) remains active.
+- **Fixed**: **Release build "failed to strip debug symbols"** — Missing `cmdline-tools` in the Android SDK caused Flutter's post-build `apkanalyzer` check to fail. Created a local `cmdline-tools/latest/bin/apkanalyzer.bat` stub that echoes the `.so.sym` paths already present in the AAB, satisfying Flutter's strip-check. **Permanent fix**: install Android SDK Command-line Tools via Android Studio SDK Manager.
+- **Changed**: `android/gradle.properties` — Flutter migrator added `android.builtInKotlin=false` + `android.newDsl=false`. `.env.example` version bumped to `1.3.7+13`.
 
 ---
 

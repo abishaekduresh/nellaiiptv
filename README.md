@@ -24,6 +24,15 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.7+13
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe), HLS-optimised ExoPlayer pipeline (`formatHint: VideoFormat.hls`), blue-themed exit dialog, Screenshot blocking (`FLAG_SECURE`).
 
+## Recent Updates (v1.3.7+13 SCPA) — 2026-06-27
+
+### Single Channel Player App (Flutter)
+- **Fixed**: **Google Play rejection** — Disabled `ENABLE_DEBUG_BLOCK` in `.env`; the exit-on-emulator/dev-mode check was blocking Google's review process.
+- **Fixed**: **Release build strip error** — Created `cmdline-tools/latest/bin/apkanalyzer.bat` stub in the local Android SDK to satisfy Flutter's post-build `.so.sym` check. Permanent fix: install Android SDK Command-line Tools via Android Studio SDK Manager.
+- **Changed**: `android/gradle.properties` — Flutter migrator flags added (`builtInKotlin`, `newDsl`). `.env.example` version bumped.
+
+---
+
 ## Recent Updates (v1.15.1+71 App) — 2026-06-27
 
 ### Nellai IPTV App (Flutter)

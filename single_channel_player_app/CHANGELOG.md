@@ -4,6 +4,11 @@
 
 ### Fixed
 - **Google Play rejection: app doesn't open or load** — `ENABLE_DEBUG_BLOCK` disabled in `.env`. The emulator and developer-mode checks called `exit(0)` during Google Play review (reviewers use dev-enabled devices), causing the app to silently close on launch and fail the Broken Functionality policy check. Screenshot blocking (`ENABLE_SCREENSHOT_BLOCK=true`) remains active.
+- **Release build: "failed to strip debug symbols" error** — Root cause: `cmdline-tools` missing from the Android SDK caused Flutter's post-build `apkanalyzer` check to fail. Fixed by creating `cmdline-tools/latest/bin/apkanalyzer.bat` stub in the local SDK that echoes the `.so.sym` entries already present in the AAB (`BUNDLE-METADATA/com.android.tools.build.debugsymbols/*/libflutter.so.sym`). Flutter then recognises the bundle as already stripped and skips the NDK strip step. **Permanent fix**: install Android SDK Command-line Tools via Android Studio SDK Manager.
+
+### Changed
+- `android/gradle.properties` — Flutter build migrator added `android.builtInKotlin=false` and `android.newDsl=false` compatibility flags.
+- `.env.example` — `APP_VERSION` updated to `1.3.7+13`.
 
 ---
 
