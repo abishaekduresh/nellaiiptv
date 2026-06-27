@@ -1047,7 +1047,7 @@ export default function StreamPage() {
 
                   <div className="relative z-10 mb-6">
                     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">
-                      {plan.bandwidth}
+                      {/* {plan.bandwidth} */}
                     </p>
                     <h3 className="text-2xl font-black text-white mb-3">
                       {plan.name}
