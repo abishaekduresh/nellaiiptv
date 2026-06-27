@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.7+13] - 2026-06-27
+
+### Fixed
+- **Google Play rejection: app doesn't open or load** — `ENABLE_DEBUG_BLOCK` disabled in `.env`. The emulator and developer-mode checks called `exit(0)` during Google Play review (reviewers use dev-enabled devices), causing the app to silently close on launch and fail the Broken Functionality policy check. Screenshot blocking (`ENABLE_SCREENSHOT_BLOCK=true`) remains active.
+
+---
+
 ## [1.3.6+12] - 2026-06-15
 
 ### Fixed

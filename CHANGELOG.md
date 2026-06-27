@@ -1,3 +1,10 @@
+## [1.3.7+13] - SCPA (Flutter) - 2026-06-27
+
+### Single Channel Player App
+- **Fixed**: **Google Play rejection — app doesn't open or load** (`ENABLE_DEBUG_BLOCK` → `false` in `.env`) — The emulator/dev-mode security check called `exit(0)` on Google Play review devices (which have developer mode or ADB enabled), making the app silently close on launch and fail the Broken Functionality policy check. Screenshot blocking (`ENABLE_SCREENSHOT_BLOCK=true`, `FLAG_SECURE`) remains active. Bumped to `1.3.7+13`.
+
+---
+
 ## [1.15.1+71] - App (Flutter) - 2026-06-27
 
 ### Nellai IPTV App (Flutter)
