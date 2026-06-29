@@ -26,7 +26,14 @@ class CustomerStreamController
     {
         $user = $request->getAttribute('user');
         try {
-            $customer = Customer::where('uuid', $user->sub)->firstOrFail();
+            // The token is valid (JwtMiddleware), but its subject may not map to a
+            // customer row — e.g. an admin/reseller token. Those users simply have
+            // no personal assigned streams, so return an empty list instead of
+            // throwing a 500 (which the web client turns into a system-error redirect).
+            $customer = Customer::where('uuid', $user->sub)->first();
+            if (!$customer) {
+                return ResponseFormatter::success($response, [], 'No assigned streams');
+            }
             $rows     = $customer->assignedStreams()->get();
 
             // If the client requests a live sync, pull fresh data from Flussonic
@@ -242,7 +249,10 @@ class CustomerStreamController
     {
         $user = $request->getAttribute('user');
         try {
-            $customer = Customer::where('uuid', $user->sub)->firstOrFail();
+            $customer = Customer::where('uuid', $user->sub)->first();
+            if (!$customer) {
+                return ResponseFormatter::error($response, 'Stream not assigned to your account', 403);
+            }
 
             $assigned = $customer->assignedStreams()->where('streams.uuid', $streamUuid)->exists();
             if (!$assigned) {

@@ -135,6 +135,13 @@ class PaymentController
             return ResponseFormatter::error($response, 'Transaction not found');
         }
 
+        // Idempotency guard: if this transaction was already processed successfully
+        // (e.g. via webhook or a prior verify call), do not extend the subscription again.
+        // Without this, replaying a valid payment response would extend the plan for free.
+        if ($transaction->status === 'success') {
+            return ResponseFormatter::success($response, null, 'Payment already verified');
+        }
+
         // Check if gateway is enabled
         $isEnabled = false;
         if ($gateway === 'razorpay') {

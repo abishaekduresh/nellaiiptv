@@ -72,7 +72,8 @@ class ToastService {
   }
 
   void _showOverlayToast(BuildContext context, String message, ToastType type) {
-    OverlayState? overlay = Overlay.of(context);
+    // Use maybeOf so a missing overlay returns null instead of throwing.
+    OverlayState? overlay = Overlay.maybeOf(context);
     if (overlay == null) return;
 
     Color bgColor = Colors.black87;

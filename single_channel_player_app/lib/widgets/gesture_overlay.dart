@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:screen_brightness/screen_brightness.dart';
-import 'package:screen_brightness/screen_brightness.dart';
 import 'dart:async';
 import '../services/audio_manager.dart';
 

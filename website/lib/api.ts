@@ -46,11 +46,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const reqUrl: string = error.config?.url ?? '';
+    // Endpoints whose callers already handle their own failures. A 5xx on these
+    // is non-fatal (e.g. the "My Streams" side panel) and must NOT hijack the
+    // whole app into the /system-error page on load/refresh — let it reject so
+    // the local handler can deal with it.
+    const isNonCriticalEndpoint = reqUrl.includes('/customers/streams');
+
     // Handle Network Errors or Server/Database Errors
-    if (!error.response || error.response?.status >= 500) {
+    if (!isNonCriticalEndpoint && (!error.response || error.response?.status >= 500)) {
       // In development, let the error propagate so the page can show details
       const isDev = process.env.NEXT_PUBLIC_APP_ENV === 'development' || process.env.APP_ENV === 'development';
-      
+
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/system-error') && !isDev) {
           const msg = encodeURIComponent(error.response?.data?.message || error.message || 'System offline or network error');
           window.location.href = `/system-error?message=${msg}`;

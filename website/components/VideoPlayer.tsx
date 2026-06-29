@@ -152,6 +152,17 @@ function VideoPlayer({
         }
   }, [fallbackUrl, isFallbackPlaying]);
 
+  // Keep a ref to the latest playFallback. The HLS effect and the loading-timeout
+  // effect do NOT list playFallback in their dependency arrays (re-running the HLS
+  // effect on every fallbackUrl change would tear down playback), so calling
+  // playFallback directly would capture a stale closure from the first render —
+  // back when fallbackUrl was still null. Calling through the ref always uses the
+  // current fallbackUrl, so the 404/offline fallback MP4 actually plays.
+  const playFallbackRef = useRef(playFallback);
+  useEffect(() => {
+    playFallbackRef.current = playFallback;
+  }, [playFallback]);
+
   const handleRetry = useCallback(() => {
       setErrorMessage(null);
       setIsLoading(true);
@@ -286,9 +297,11 @@ function VideoPlayer({
      setControlsVisible(true);
      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
      controlsTimeoutRef.current = setTimeout(() => {
-         // Only hide if playing
+         // Only hide if actually playing. Read the live DOM state (vid.paused)
+         // rather than the isPlaying state value — this callback would otherwise
+         // capture a stale isPlaying from when showControls was last recreated.
          const vid = videoRef.current;
-         if (isPlaying) {
+         if (isYoutube || (vid && !vid.paused)) {
              setControlsVisible(false);
          }
      }, 4000);
@@ -642,7 +655,12 @@ function VideoPlayer({
     
     let hls: Hls | null = null;
     const video = videoRef.current;
-    
+
+    // Native HLS (Safari/iOS) listeners — declared here so cleanup can remove them.
+    let onNativeLoadedMetadata: (() => void) | null = null;
+    let onNativeCanPlay: (() => void) | null = null;
+    let onNativeError: (() => void) | null = null;
+
     // Reset State on source change
     setErrorMessage(null);
     setIsLoading(true);
@@ -827,14 +845,14 @@ function VideoPlayer({
             if (data.fatal) {
                 switch (data.type) {
                   case Hls.ErrorTypes.NETWORK_ERROR:
-                    playFallback();
+                    playFallbackRef.current();
                     break;
                   case Hls.ErrorTypes.MEDIA_ERROR:
                     hls?.recoverMediaError();
                     break;
                   default:
                     hls?.destroy();
-                    playFallback();
+                    playFallbackRef.current();
                     break;
               }
             }
@@ -844,19 +862,24 @@ function VideoPlayer({
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         // 🔒 Resolve stream URL: upgrades http:// → https:// when on HTTPS to prevent Mixed Content blocking
         video.src = resolveStreamUrl(src);
-        video.addEventListener('loadedmetadata', () => {
+        // Named handlers so they can be removed on cleanup — otherwise every
+        // src/retryKey change would stack new listeners on the <video> element.
+        onNativeLoadedMetadata = () => {
             video.play().catch(() => {});
             setIsPlaying(true);
-        });
-        video.addEventListener('canplay', () => setIsLoading(false));
-        video.addEventListener('error', () => {
+        };
+        onNativeCanPlay = () => setIsLoading(false);
+        onNativeError = () => {
              setIsLoading(false);
-             playFallback();
-        });
+             playFallbackRef.current();
+        };
+        video.addEventListener('loadedmetadata', onNativeLoadedMetadata);
+        video.addEventListener('canplay', onNativeCanPlay);
+        video.addEventListener('error', onNativeError);
     } else {
         setIsLoading(false);
         setErrorMessage("HLS not supported on this browser.");
-    } 
+    }
 
 
     return () => {
@@ -864,6 +887,10 @@ function VideoPlayer({
             hls.destroy();
         }
         hlsRef.current = null;
+        // Remove native HLS listeners attached above (if any) to prevent leaks.
+        if (onNativeLoadedMetadata) video.removeEventListener('loadedmetadata', onNativeLoadedMetadata);
+        if (onNativeCanPlay) video.removeEventListener('canplay', onNativeCanPlay);
+        if (onNativeError) video.removeEventListener('error', onNativeError);
     };
   }, [src, isYoutube, retryKey, isPaidRestricted]);
 
@@ -898,7 +925,7 @@ function VideoPlayer({
     if (isLoading && !errorMessage) {
         timeout = setTimeout(() => {
             console.warn("Connection Timeout - Triggering Fallback");
-            playFallback(); 
+            playFallbackRef.current();
             // setErrorMessage("Connection Timeout");
             // setIsLoading(false); // playFallback handles this
         }, 20000); // 20s Timeout
