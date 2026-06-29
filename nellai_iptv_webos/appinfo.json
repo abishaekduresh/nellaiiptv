@@ -1,0 +1,16 @@
+{
+  "id": "com.nellaiiptv.tv",
+  "version": "1.0.0",
+  "vendor": "Nellai IPTV",
+  "type": "web",
+  "main": "index.html",
+  "title": "Nellai IPTV",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "iconColor": "#E11D48",
+  "splashBackground": "splash.png",
+  "bgColor": "#0F172A",
+  "disableBackHistoryAPI": true,
+  "supportPortraitMode": false,
+  "resolution": "1920x1080"
+}

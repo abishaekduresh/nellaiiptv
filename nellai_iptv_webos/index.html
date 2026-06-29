@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1920, height=1080, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Nellai IPTV</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ================= SPLASH ================= -->
+  <section id="splash" class="view active">
+    <div class="splash-inner">
+      <img id="splash-logo" src="largeIcon.png" alt="Nellai IPTV" />
+      <h1 id="splash-title">Nellai IPTV</h1>
+      <div class="spinner"></div>
+      <p id="splash-status">Loading channels…</p>
+      <p id="splash-version" class="version"></p>
+    </div>
+  </section>
+
+  <!-- ================= BROWSE (sidebar + grid) ================= -->
+  <section id="browse" class="view">
+    <aside id="sidebar">
+      <div class="brand">
+        <img src="icon.png" alt="" class="brand-logo" />
+        <span class="brand-name">Nellai IPTV</span>
+      </div>
+      <nav id="category-list" class="category-list"><!-- categories injected --></nav>
+      <div class="sidebar-hint">
+        <span><b>Yellow</b> Favourite</span>
+        <span><b>Back</b> Exit</span>
+      </div>
+    </aside>
+
+    <main id="content">
+      <header id="content-header">
+        <h2 id="content-title">All Channels</h2>
+        <span id="content-count" class="count"></span>
+      </header>
+      <div id="channel-grid" class="channel-grid"><!-- channel cards injected --></div>
+      <div id="empty-state" class="empty-state hidden">No channels found.</div>
+    </main>
+  </section>
+
+  <!-- ================= PLAYER ================= -->
+  <section id="player" class="view">
+    <video id="video" playsinline webkit-playsinline></video>
+
+    <div id="player-loader" class="player-loader"><div class="spinner big"></div></div>
+
+    <div id="player-error" class="player-error hidden">
+      <h3 id="player-error-title">Stream unavailable</h3>
+      <p id="player-error-msg"></p>
+      <p class="hint">Press <b>OK</b> to retry · <b>Back</b> to return</p>
+    </div>
+
+    <!-- Channel info overlay (auto-hides) -->
+    <div id="player-overlay" class="player-overlay">
+      <div class="po-top">
+        <span id="po-number" class="po-number"></span>
+        <div class="po-meta">
+          <h3 id="po-name"></h3>
+          <span id="po-category" class="po-category"></span>
+        </div>
+        <span id="po-fav" class="po-fav hidden">★ Favourite</span>
+      </div>
+      <div class="po-bottom">
+        <span class="po-hint"><b>▲ ▼</b> Channel</span>
+        <span class="po-hint"><b>OK</b> Channel list</span>
+        <span class="po-hint"><b>Back</b> Exit player</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Top-level overlays (shown over any view) ===== -->
+  <!-- Direct channel-number entry -->
+  <div id="number-entry" class="number-entry hidden"><span id="number-entry-val"></span></div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- hls.js: try CDN, fall back to a locally-vendored copy (see lib/README.md) -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+  <script>
+    if (typeof Hls === 'undefined') {
+      document.write('<script src="lib/hls.min.js"><\/script>');
+    }
+  </script>
+
+  <!-- App scripts (load order matters; no bundler / no ES modules for old webOS) -->
+  <script src="js/config.js"></script>
+  <script src="js/keys.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/focus.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

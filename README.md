@@ -6,7 +6,7 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.82.0
+- **Version**: 1.82.1
 - **Key Features**: **Flussonic Media Server** (stream servers admin rebuilt — Flussonic API columns, Test Connectivity button with live liveness check, `StreamServerDetailsModal` with Flussonic sections, dashboard Stream Server stat cards, expandable sidebar group), Visual Ads System (YouTube-style pre-roll video ads — `.m3u8`/`.mp4`, skippable/non-skippable, countdown timer, skip button, unmuted by default, channel audio muted during ad via `adPlaying` prop restored on skip/complete, click-through tracking, impression/skip/click analytics, session-based frequency limiting, plan-level + guest/free-user targeting, weighted random selection), Visual Ads Admin CRUD (`/admin/visual-ads` — sidebar via layout.tsx, full table with live stats, create/edit modal), AdSense Policy Compliance (script restricted to content pages only; `sitemap.xml` + `robots.txt` generated), Expanded About Page (FAQ, How It Works, Channel Categories, Platform details), Payment Gateway UI (enable/disable toggle per gateway with inline Test Transaction button; credentials managed via backend `.env`), Channel Manager Stream Preview (HLS player modal with loading/buffering/error/retry states, live badge, copy URL, no-controls clean view), Channel Manager Confirm-Save Modal (per-channel diff of number and status changes with thumbnail, arrow indicators, sorted by new number), Full Admin Portal Redesign (modern slate theme, animated, mobile-responsive sidebar, dashboard, all CRUD pages), Admin Layout Isolation (public Navbar/Footer hidden on admin/reseller routes), Admin Branding (logo on login page + sidebar, sidebar logo links to home), Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
@@ -23,6 +23,24 @@ A premium multi-channel IPTV player built for Android and Android TV.
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
 - **Version**: 1.3.7+13
 - **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe), HLS-optimised ExoPlayer pipeline (`formatHint: VideoFormat.hls`), blue-themed exit dialog, Screenshot blocking (`FLAG_SECURE`).
+
+### `nellai_iptv_webos` (LG webOS / Web)
+A standalone LG webOS Smart-TV app — self-contained HTML/CSS/vanilla-JS that talks directly to the backend (no dependency on the website or Flutter app).
+- **Version**: 1.0.0
+- **Key Features**: Splash → channel browser (categories sidebar + grid) → fullscreen player; **D-pad spatial navigation** (geometric nearest-neighbour, no library) crossing sidebar/grid; categories (All · Favourites · per-category with live counts) from `/categories`; channel grid from `/channels?limit=-1`; **HLS playback** via hls.js with native fallback and `PAID_RESTRICTED`/`RESTRICTED:` handling; favourites (Yellow button, `localStorage`); direct channel-number entry; webOS remote handling incl. **Back (461)**; XHR backend client sending `X-API-KEY` + `X-Client-Platform: tv` + `X-Device-Id`; 10-foot 1920×1080 UI; packaging/deploy docs for LG Seller Lounge.
+
+## Recent Updates (v1.0.0 webOS) — 2026-06-30
+
+### LG webOS TV App (Web) — NEW
+- **Added**: **Standalone LG webOS app** (`nellai_iptv_webos/`, id `com.nellaiiptv.tv`) — splash → channel browser → fullscreen HLS player, D-pad spatial navigation, categories + favourites, direct channel-number entry, Back-key (461) handling, and packaging/deploy docs. Verified end-to-end against the live backend (252 channels). See `nellai_iptv_webos/CHANGELOG.md`.
+
+### Website (Next.js) + Backend (Slim PHP) — Fixes (v1.82.1)
+- **Fixed**: **`?message=Failed%20to%20load%20streams` redirect on refresh/back** — `CustomerStreamController::getMyStreams`/`toggleStream` now use `first()` (graceful empty list / 403) instead of `firstOrFail()`, so an admin/reseller token with no customer row no longer 500s; and `lib/api.ts` excludes `/customers/streams` from the global 5xx→`/system-error` redirect.
+- **Fixed**: **Payment replay** — `PaymentController::verifyPayment` now guards on `status === 'success'`, so replaying a valid payment response can no longer extend a subscription for free.
+- **Fixed**: **VideoPlayer** (`components/VideoPlayer.tsx`) — repaired the 404/offline fallback (stale-closure on `playFallback` before `fallbackUrl` loaded), stopped leaking native HLS (iOS/Safari) listeners, and fixed `showControls` reading stale `isPlaying`.
+- **Fixed**: **Apps** — `nellai_iptv_app` toast uses `Overlay.maybeOf` (real null guard) and ships a deterministic widget test; `single_channel_player_app` duplicate `screen_brightness` import removed.
+
+---
 
 ## Recent Updates (v1.3.7+13 SCPA) — 2026-06-27
 

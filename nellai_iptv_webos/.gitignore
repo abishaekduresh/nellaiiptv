@@ -1,0 +1,10 @@
+# webOS packaging output
+*.ipk
+.DS_Store
+Thumbs.db
+
+# webOS Studio / ares tooling state (environment-specific, not app source)
+Config/
+
+# Locally vendored libs (optional — uncomment if you don't want to commit hls.js)
+# lib/hls.min.js

@@ -1,3 +1,36 @@
+## [1.0.0] - webOS TV App (Web) - 2026-06-30
+
+### Nellai IPTV — LG webOS TV App (NEW)
+- **Added**: **Standalone LG webOS Smart-TV app** (`nellai_iptv_webos/`, `appinfo.json` id `com.nellaiiptv.tv`, type `web`, 1920×1080) — a self-contained HTML/CSS/vanilla-JS app that talks directly to the backend; independent of the Next.js website and the Flutter apps.
+- **Added**: **App flow** — animated Splash → Channel browser (categories sidebar + channel grid) → fullscreen Player.
+- **Added**: **D-pad spatial navigation** (`js/focus.js`) — geometric nearest-neighbour focus moving seamlessly between the sidebar and grid; no external library.
+- **Added**: **Categories** (`/categories`) — `All Channels`, `Favourites`, and each backend category that has channels, with live counts; **channel grid** from `/channels?limit=-1` with `PREMIUM`/favourite (★) badges and image fallback.
+- **Added**: **HLS playback** (`js/player.js`) — hls.js with TV-tuned buffering and a native-HLS fallback; `PAID_RESTRICTED`/`RESTRICTED:` streams show a message instead of failing silently.
+- **Added**: **Player controls** — `▲ ▼` / `Ch+ Ch-` change channel (wraps), `OK` returns to the channel list (retry on error), `Play/Pause`, auto-hiding info overlay; **Favourites** via the **Yellow** button (`localStorage`); **direct channel-number entry**.
+- **Added**: **Remote handling** (`js/keys.js`) — webOS key codes incl. **Back (461)** (grid → sidebar → exit app); **backend client** (`js/api.js`, XHR) sending `X-API-KEY`, `X-Client-Platform: tv`, persistent `X-Device-Id`, normalising flat-array and paginator responses.
+- **Added**: **TV UI** (`css/style.css`, 10-foot, overscan-safe), generated placeholder artwork (`icon.png`, `largeIcon.png`, `splash.png`), and docs (`README.md`, `CHANGELOG.md`, `lib/README.md`).
+- **Verified**: End-to-end against the live backend — `/channels?limit=-1` (252 channels), `/categories` (14), `/settings/public`; all consumed fields match the API response. See `nellai_iptv_webos/CHANGELOG.md`.
+
+---
+
+## [1.82.1] - Website + Backend (Fixes) - 2026-06-30
+
+### Website (Next.js)
+- **Fixed**: **`?message=Failed%20to%20load%20streams` system-error redirect on refresh/back** — `lib/api.ts` now excludes `/customers/streams` from the global 5xx→`/system-error` redirect; the "My Streams" panel fetch already handles its own errors, so a hiccup there no longer hijacks the whole app.
+- **Fixed**: **VideoPlayer 404/offline fallback was broken** (`components/VideoPlayer.tsx`) — the HLS `ERROR` handler and loading-timeout captured `playFallback` from the first render (before `fallbackUrl` loaded). Introduced `playFallbackRef` kept in sync via effect; the fallback MP4 now actually plays.
+- **Fixed**: **Native HLS (iOS/Safari) listener leak** — `loadedmetadata`/`canplay`/`error` were added as anonymous functions and never removed; converted to named handlers cleaned up on effect teardown.
+- **Fixed**: **`showControls` stale state** — the auto-hide timeout read a stale `isPlaying`; now uses the live `vid.paused` (matching `handleMouseMove`).
+
+### Backend (Slim PHP)
+- **Fixed**: **`/customers/streams` 500 for non-customer tokens** — `CustomerStreamController::getMyStreams` and `toggleStream` use `first()` instead of `firstOrFail()`; an admin/reseller JWT with no `customers` row now returns an empty list (200) / clean 403 instead of a `ModelNotFoundException` 500. This was the root cause of the streams system-error redirect.
+- **Fixed**: **Payment replay** — `PaymentController::verifyPayment` now guards on `status === 'success'` before activating, so replaying a valid payment response can no longer extend a subscription for free (matches the webhook handlers' idempotency).
+
+### Apps (Flutter)
+- **Fixed**: `nellai_iptv_app` — `toast_service` uses `Overlay.maybeOf` (a real null guard; `Overlay.of` throws rather than returning null) and ships a deterministic widget test (was an uncompilable placeholder referencing `NellaiApp`).
+- **Fixed**: `single_channel_player_app` — removed duplicate `screen_brightness` import in `gesture_overlay.dart`.
+
+---
+
 ## [1.3.7+13] - SCPA (Flutter) - 2026-06-27
 
 ### Single Channel Player App
