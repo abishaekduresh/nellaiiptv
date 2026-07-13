@@ -85,7 +85,7 @@ To build a production-ready APK optimized for size (< 20MB):
 
 ## 🔒 Security
 
-- **Package Name**: `com.nellaiiptv.com.athithoothartv` (Play Store)
+- **Package Name**: `com.nellaiiptv.vezhamugamtv` (Play Store)
 - **Permissions**:
     - `INTERNET`: For streaming.
     - `WAKE_LOCK`: To keep screen on during playback.

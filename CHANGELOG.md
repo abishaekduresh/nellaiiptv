@@ -1,3 +1,10 @@
+## [1.3.7+13] - SCPA package rename - 2026-07-13
+
+### Single Channel Player App
+- **Changed**: Package renamed `com.nellaiiptv.com.athithoothartv` → `com.nellaiiptv.vezhamugamtv` across Android (`build.gradle.kts`, `MainActivity.kt` relocated), iOS (`project.pbxproj`), macOS (`AppInfo.xcconfig`), and Linux (`CMakeLists.txt`).
+
+---
+
 ## [1.0.0] - webOS TV App (Web) - 2026-06-30
 
 ### Nellai IPTV — LG webOS TV App (NEW)

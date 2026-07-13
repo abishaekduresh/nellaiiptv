@@ -1,4 +1,4 @@
-package com.nellaiiptv.com.athithoothartv
+package com.nellaiiptv.vezhamugamtv
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
