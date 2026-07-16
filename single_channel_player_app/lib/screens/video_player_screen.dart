@@ -459,7 +459,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindi
               ),
 
             // 5. Watermark
-            if (!_hasError && _appLogoUrl != null && !_isPipMode)
+            if (!_hasError && _appLogoUrl != null && !_isPipMode &&
+                (dotenv.env['ENABLE_WATERMARK'] ?? 'true').toLowerCase() == 'true')
               Positioned(
                 bottom: 10,
                 left: 20,

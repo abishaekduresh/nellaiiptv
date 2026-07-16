@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.8+14] - 2026-07-16
+
+### Added
+- **`ENABLE_WATERMARK` env flag** (`.env` / `.env.example`) — boolean (`true`/`false`) to show or hide the channel logo watermark on the player. Defaults to `true` if absent.
+
+### Changed
+- **Preloader redesigned** (`lib/widgets/pulse_loader.dart`) — replaced the 3-dot bounce animation with a spinning ring: 270° arc over a faint circular track, `StrokeCap.round` ends, 900 ms rotation. `StatefulWidget` with `AnimationController`; same `color`/`size` API, no call-site changes.
+
+---
+
 ## [1.3.7+13] - 2026-07-13
 
 ### Changed

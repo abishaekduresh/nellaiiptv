@@ -21,9 +21,9 @@ A premium multi-channel IPTV player built for Android and Android TV.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
-- **Version**: 1.3.7+13
+- **Version**: 1.3.8+14
 - **Package**: `com.nellaiiptv.vezhamugamtv`
-- **Key Features**: Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe), HLS-optimised ExoPlayer pipeline (`formatHint: VideoFormat.hls`), blue-themed exit dialog, Screenshot blocking (`FLAG_SECURE`).
+- **Key Features**: `ENABLE_WATERMARK` flag (show/hide channel logo watermark), Spinning ring preloader, Android TV Launcher (LEANBACK_LAUNCHER), TV Remote D-pad & Media Key support, Runtime TV Detection, Auto-Reconnect on network loss, Double-tap to Mute, PiP (mobile), Session Volume, Gesture Controls (brightness/volume swipe), HLS-optimised ExoPlayer pipeline (`formatHint: VideoFormat.hls`), blue-themed exit dialog, Screenshot blocking (`FLAG_SECURE`).
 
 ### `nellai_iptv_webos` (LG webOS / Web)
 A standalone LG webOS Smart-TV app — self-contained HTML/CSS/vanilla-JS that talks directly to the backend (no dependency on the website or Flutter app).

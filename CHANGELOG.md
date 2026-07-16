@@ -1,3 +1,11 @@
+## [1.3.8+14] - SCPA (Flutter) - 2026-07-16
+
+### Single Channel Player App
+- **Added**: `ENABLE_WATERMARK` env flag — boolean to show/hide the channel logo watermark on the player (default `true`).
+- **Changed**: Preloader (`lib/widgets/pulse_loader.dart`) — 3-dot bounce replaced with a spinning ring (270° arc, faint track, `StrokeCap.round`, 900 ms rotation).
+
+---
+
 ## [1.3.7+13] - SCPA package rename - 2026-07-13
 
 ### Single Channel Player App
