@@ -1,4 +1,4 @@
-package com.nellaiiptv.vezhamugamtv
+package com.nellaiiptv.com.vezhamugamtv
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine

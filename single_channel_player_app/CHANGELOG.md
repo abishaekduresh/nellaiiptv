@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.8+15] - 2026-07-16
+
+### Changed
+- **Package renamed** — `com.nellaiiptv.vezhamugamtv` → `com.nellaiiptv.com.vezhamugamtv` across all platforms (Android `build.gradle.kts` + `MainActivity.kt`, iOS `project.pbxproj`, macOS `AppInfo.xcconfig`, Linux `CMakeLists.txt`).
+
+---
+
 ## [1.3.8+14] - 2026-07-16
 
 ### Added
