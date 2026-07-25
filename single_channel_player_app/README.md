@@ -1,6 +1,6 @@
 # Single Channel Player App
 
-**Version**: `1.3.8+14` — ENABLE_WATERMARK flag + spinning ring preloader
+**Version**: `1.3.9+15` — Privacy Policy link + package rename fix
 **Framework**: Flutter 3.x
 
 A high-performance, native Android application for streaming HLS content, optimized for both Mobile and Android TV interfaces.
@@ -85,7 +85,7 @@ To build a production-ready APK optimized for size (< 20MB):
 
 ## 🔒 Security
 
-- **Package Name**: `com.nellaiiptv.com.vezhamugamtv` (Play Store)
+- **Package Name**: `com.nellaiiptv.vezhamugamtv` (Play Store)
 - **Permissions**:
     - `INTERNET`: For streaming.
     - `WAKE_LOCK`: To keep screen on during playback.

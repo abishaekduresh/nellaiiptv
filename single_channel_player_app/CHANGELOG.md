@@ -1,9 +1,13 @@
 # Changelog
 
-## [1.3.8+15] - 2026-07-16
+## [1.3.9+15] - 2026-07-25
+
+### Added
+- **Privacy Policy link** (`lib/screens/splash_screen.dart`) — tappable "Privacy Policy" text on the splash screen reads `PRIVACY_POLICY_URL` from `.env` and opens it via `url_launcher` (`LaunchMode.externalApplication`). Required for Google Play policy compliance when using `device_info_plus` and network permissions.
+- **`PRIVACY_POLICY_URL` env key** (`.env.example`) — defaults to `https://www.nellaiiptv.com/privacy-policy`.
 
 ### Changed
-- **Package renamed** — `com.nellaiiptv.vezhamugamtv` → `com.nellaiiptv.com.vezhamugamtv` across all platforms (Android `build.gradle.kts` + `MainActivity.kt`, iOS `project.pbxproj`, macOS `AppInfo.xcconfig`, Linux `CMakeLists.txt`).
+- **Package renamed** (`android/app/build.gradle.kts`, `ios/Runner.xcodeproj/project.pbxproj`, etc.) — `com.nellaiiptv.com.vezhamugamtv` → `com.nellaiiptv.vezhamugamtv` (removed the extra `.com.` segment added in error in v1.3.8+15).
 
 ---
 

@@ -77,13 +77,28 @@ class _SplashScreenState extends State<SplashScreen> {
             GestureDetector(
               onTap: _launchUrl,
               child: Padding(
-                padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 8.0),
+                padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0, bottom: 4.0),
                 child: Text(
                   dotenv.env['POWERED_BY_TEXT'] ?? "Powered by Nellai IPTV",
                   style: const TextStyle(
                     color: Colors.white54,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.underline,
+                    decorationColor: Colors.white24,
+                  ),
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: _launchPrivacyPolicy,
+              child: const Padding(
+                padding: EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  'Privacy Policy',
+                  style: TextStyle(
+                    color: Colors.white30,
+                    fontSize: 12,
                     decoration: TextDecoration.underline,
                     decorationColor: Colors.white24,
                   ),
@@ -110,7 +125,15 @@ class _SplashScreenState extends State<SplashScreen> {
     final String urlString = dotenv.env['POWERED_BY_URL'] ?? 'https://www.nellaiiptv.com';
     final Uri url = Uri.parse(urlString);
     if (!await launchUrl(url)) {
-      print("Could not launch $url");
+      debugPrint("Could not launch $url");
+    }
+  }
+
+  Future<void> _launchPrivacyPolicy() async {
+    final String urlString = dotenv.env['PRIVACY_POLICY_URL'] ?? 'https://www.nellaiiptv.com/privacy-policy';
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      debugPrint("Could not launch $url");
     }
   }
 }
