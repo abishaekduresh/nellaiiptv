@@ -120,7 +120,7 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
   void _startFocusHighlightTimer() {
     _focusHighlightTimer?.cancel();
     setState(() => _showFocusHighlight = true);
-    _focusHighlightTimer = Timer(const Duration(seconds: 3), () {
+    _focusHighlightTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _showFocusHighlight = false);
       }
@@ -700,13 +700,16 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
                     // shows its raw green initialisation colour behind SD
                     // (4:3) or pillarboxed content on 16:9 TV screens.
                     color: Colors.black,
+                    // In fullscreen the cyan focus border auto-hides after the
+                    // focus-highlight timer expires (2s); when windowed it stays
+                    // visible while focused so the user can navigate to it.
                     border: Border.all(
-                      color: hasFocus
+                      color: (hasFocus && (!widget.isFullScreen || _showFocusHighlight))
                           ? const Color(0xFF06B6D4).withOpacity(0.5)
                           : Colors.transparent,
                       width: 2,
                     ),
-                    boxShadow: hasFocus ? [
+                    boxShadow: (hasFocus && (!widget.isFullScreen || _showFocusHighlight)) ? [
                       BoxShadow(
                         color: const Color(0xFF06B6D4).withOpacity(0.2),
                         blurRadius: 10,

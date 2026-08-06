@@ -17,6 +17,13 @@ import 'core/device_utils.dart'; // Import DeviceUtils
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Replace Flutter's default red-background / yellow-text ErrorWidget (the
+  // "red screen of death") with a branded, dark placeholder. This shows up
+  // wherever a widget throws during build — most notably the stream player
+  // subtree when a channel URL is bad — instead of the raw framework error.
+  ErrorWidget.builder = (FlutterErrorDetails details) => const _AppErrorFallback();
+
   await DeviceUtils.init(); // Initialize Device Detection
 
   
@@ -97,6 +104,46 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         fontFamily: 'Roboto', // Or whatever font you use
       ),
       home: const SplashScreen(),
+    );
+  }
+}
+
+/// Branded fallback rendered in place of Flutter's default red/yellow
+/// ErrorWidget whenever a widget throws during build. Kept intentionally
+/// small and self-contained (no Scaffold) so it looks correct whether it
+/// replaces the whole screen or just a sub-region such as the video surface.
+class _AppErrorFallback extends StatelessWidget {
+  const _AppErrorFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFF0F172A),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(16),
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline_rounded, color: Color(0xFF06B6D4), size: 44),
+          SizedBox(height: 12),
+          Text(
+            "Something went wrong",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 6),
+          Text(
+            "Please try again in a moment.",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white60, fontSize: 13),
+          ),
+        ],
+      ),
     );
   }
 }

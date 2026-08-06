@@ -16,8 +16,8 @@ RESTful API with role-based access control and subscription management.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
-- **Version**: 1.15.1+71
-- **Key Features**: **Invalid channel number feedback** (red overlay on TV when dialled number has no match — 2 s auto-dismiss), Updated TV launcher banner, **Persistent login session** (Dio `onResponse` interceptor silently stores `X-Auth-Token` renewed tokens — users never log out due to JWT expiry), My Streams Screen (customer-facing stream management — stream cards with status/health/codec details, client sessions table, Sync button with 30 s cooldown, per-stream Restart with 2 s disable→enable sequence and 30 s cooldown, pull-to-refresh), Profile Screen portrait + landscape orientation support, Visual Pre-roll Ads (YouTube-style full-screen video ads on channel switch — skippable/non-skippable, countdown, skip button, mute toggle, click-through tracking, impression/skip/click analytics, per-session frequency limiting, double-tap fullscreen, `FittedBox.fill` stretch), `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, Enhanced ColorFilter contrast/colour matrix (1.22× contrast, cross-channel warmth, −16 bias), `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
+- **Version**: 1.15.2+72
+- **Key Features**: **Fullscreen player border auto-hide** (cyan focus border fades after 2 s in fullscreen for a clean borderless view; reappears on interaction), **Branded stream-error fallback** (global `ErrorWidget.builder` replaces Flutter's red/yellow "red screen of death" on bad streams), Invalid channel number feedback (red overlay on TV when dialled number has no match — 2 s auto-dismiss), Updated TV launcher banner, **Persistent login session** (Dio `onResponse` interceptor silently stores `X-Auth-Token` renewed tokens — users never log out due to JWT expiry), My Streams Screen (customer-facing stream management — stream cards with status/health/codec details, client sessions table, Sync button with 30 s cooldown, per-stream Restart with 2 s disable→enable sequence and 30 s cooldown, pull-to-refresh), Profile Screen portrait + landscape orientation support, Visual Pre-roll Ads (YouTube-style full-screen video ads on channel switch — skippable/non-skippable, countdown, skip button, mute toggle, click-through tracking, impression/skip/click analytics, per-session frequency limiting, double-tap fullscreen, `FittedBox.fill` stretch), `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, Enhanced ColorFilter contrast/colour matrix (1.22× contrast, cross-channel warmth, −16 bias), `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
@@ -29,6 +29,15 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 A standalone LG webOS Smart-TV app — self-contained HTML/CSS/vanilla-JS that talks directly to the backend (no dependency on the website or Flutter app).
 - **Version**: 1.0.0
 - **Key Features**: Splash → channel browser (categories sidebar + grid) → fullscreen player; **D-pad spatial navigation** (geometric nearest-neighbour, no library) crossing sidebar/grid; categories (All · Favourites · per-category with live counts) from `/categories`; channel grid from `/channels?limit=-1`; **HLS playback** via hls.js with native fallback and `PAID_RESTRICTED`/`RESTRICTED:` handling; favourites (Yellow button, `localStorage`); direct channel-number entry; webOS remote handling incl. **Back (461)**; XHR backend client sending `X-API-KEY` + `X-Client-Platform: tv` + `X-Device-Id`; 10-foot 1920×1080 UI; packaging/deploy docs for LG Seller Lounge.
+
+## Recent Updates (v1.15.2+72 App) — 2026-08-06
+
+### Nellai IPTV App (Flutter)
+- **Fixed**: **Fullscreen player colour border** (`lib/screens/classic/embedded_player.dart`) — The cyan focus border around the video now auto-hides after 2 s in fullscreen (was persistent while focused), for a clean borderless view; it reappears on tap / D-pad interaction and fades again. Windowed grid mode unchanged.
+- **Fixed**: **Bad-stream "red screen of death"** (`lib/main.dart`) — Replaced Flutter's default red-background / yellow-text `ErrorWidget` with a branded dark fallback ("Something went wrong") via a global `ErrorWidget.builder`, shown when the video subtree throws on a bad stream. The existing "Stream Unavailable" + Retry overlay is unaffected.
+- **Changed**: Focus-highlight auto-hide timer reduced 3 s → 2 s.
+
+---
 
 ## Recent Updates (v1.0.0 webOS) — 2026-06-30
 

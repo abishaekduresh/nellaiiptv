@@ -1,3 +1,14 @@
+## [1.15.2+72] - 2026-08-06
+
+### Fixed
+- **Fullscreen player colour border** (`lib/screens/classic/embedded_player.dart`) — In fullscreen the cyan focus border painted around the whole video surface stayed on the entire time the player held focus (which it always does in fullscreen). It now auto-hides once the focus-highlight timer expires (2 s), leaving a clean, borderless fullscreen. The border reappears on any tap / D-pad interaction and fades again after 2 s. Windowed (grid) mode is unchanged — the border stays visible while focused so the user can see where focus is.
+- **Bad-stream "red screen of death"** (`lib/main.dart`) — When a channel URL was bad, the video subtree could throw during build, and Flutter fell back to its default `ErrorWidget` — a raw red background with yellow text. Added a global `ErrorWidget.builder` that renders a branded dark fallback (`#0F172A` background, cyan `error_outline` icon, "Something went wrong" / "Please try again in a moment.") instead. Kept `Scaffold`-free so it looks correct whether it replaces a full screen or just the video region. The existing graceful "Stream Unavailable" overlay with Retry is unaffected — this only catches unexpected widget-build exceptions.
+
+### Changed
+- **Focus-highlight auto-hide** (`lib/screens/classic/embedded_player.dart`) — `_focusHighlightTimer` duration reduced 3 s → 2 s.
+
+---
+
 ## [1.15.1+71] - 2026-06-27
 
 ### Added

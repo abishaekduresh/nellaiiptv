@@ -11,6 +11,11 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.15.2+72
+- **Fixed**: **Fullscreen player colour border** — The cyan focus border around the video now auto-hides after 2 seconds in fullscreen (was persistent while focused), giving a clean borderless viewing experience; it reappears on interaction and fades again. Windowed grid mode unchanged.
+- **Fixed**: **Bad-stream "red screen of death"** — Replaced Flutter's default red-background / yellow-text `ErrorWidget` with a branded dark fallback ("Something went wrong") via a global `ErrorWidget.builder`, shown when the video subtree throws on a bad stream.
+- **Changed**: Focus-highlight auto-hide timer reduced 3 s → 2 s.
+
 ## Version: 1.15.1+71
 - **Added**: **Invalid channel number feedback** — When a TV remote digit dial resolves to no matching channel, a red "Invalid channel number" overlay appears at the top-right for 2 seconds.
 - **Changed**: **TV banner** — Updated Android TV launcher banner image.

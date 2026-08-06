@@ -1,3 +1,12 @@
+## [1.15.2+72] - App (Flutter) - 2026-08-06
+
+### Nellai IPTV App (Flutter)
+- **Fixed**: **Fullscreen player colour border** (`lib/screens/classic/embedded_player.dart`) — The cyan focus border painted around the video surface stayed on for the entire fullscreen session (the player always holds focus in fullscreen). It now auto-hides once the focus-highlight timer expires (2 s) for a clean, borderless fullscreen, and reappears on any tap / D-pad interaction before fading again. Windowed (grid) mode is unchanged — the border stays while focused so the user can see focus.
+- **Fixed**: **Bad-stream "red screen of death"** (`lib/main.dart`) — When a channel URL was bad the video subtree could throw during build, and Flutter rendered its default `ErrorWidget` (raw red background, yellow text). Added a global `ErrorWidget.builder` that shows a branded dark fallback instead (`#0F172A` bg, cyan `error_outline` icon, "Something went wrong"). `Scaffold`-free so it fits both full-screen and sub-region failures; the existing graceful "Stream Unavailable" + Retry overlay is unaffected.
+- **Changed**: `_focusHighlightTimer` auto-hide duration reduced 3 s → 2 s.
+
+---
+
 ## [1.3.8+14] - SCPA (Flutter) - 2026-07-16
 
 ### Single Channel Player App
