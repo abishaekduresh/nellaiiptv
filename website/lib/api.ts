@@ -46,12 +46,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const reqUrl: string = error.config?.url ?? '';
-    // Endpoints whose callers already handle their own failures. A 5xx on these
-    // is non-fatal (e.g. the "My Streams" side panel) and must NOT hijack the
-    // whole app into the /system-error page on load/refresh — let it reject so
-    // the local handler can deal with it.
-    const isNonCriticalEndpoint = reqUrl.includes('/customers/streams');
+    // Reserved for endpoints whose callers handle their own failures (a 5xx must
+    // not hijack the whole app into /system-error). None currently.
+    const isNonCriticalEndpoint = false;
 
     // Handle Network Errors or Server/Database Errors
     if (!isNonCriticalEndpoint && (!error.response || error.response?.status >= 500)) {
@@ -69,7 +66,7 @@ api.interceptors.response.use(
       // a logged-in session. Optional-auth endpoints (channels, ads, etc.) can legitimately
       // return 401 for restricted content — that is NOT a session expiry.
       const url: string = error.config?.url ?? '';
-      const isAuthEndpoint = url.includes('/customers/') || url.includes('/payments/') ||
+      const isAuthEndpoint = url.includes('/customers/') ||
                              url.includes('/favorites') || url.includes('/sessions');
       if (isAuthEndpoint && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
          const { token, tempToken } = useAuthStore.getState();
@@ -87,11 +84,6 @@ api.interceptors.response.use(
                 useAuthStore.getState().setTempToken(tempToken);
             }
             window.location.href = '/devices';
-        }
-    } else if (error.response?.status === 403 && error.response?.data?.error === 'subscription_required') {
-        // Handle global subscription requirement
-        if (typeof window !== 'undefined' && !window.location.pathname.includes('/plans')) {
-             window.location.href = '/plans?error=subscription_required';
         }
     }
     return Promise.reject(error);

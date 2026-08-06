@@ -47,11 +47,7 @@ adminApi.interceptors.response.use(
         localStorage.removeItem('user');
         
         // Force redirect
-        if (window.location.pathname.startsWith('/reseller')) {
-            window.location.href = '/login?error=session_expired';
-        } else {
-            window.location.href = '/admin'; 
-        } 
+        window.location.href = '/admin';
       }
     }
     return Promise.reject(error);

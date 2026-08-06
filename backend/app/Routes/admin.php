@@ -38,31 +38,12 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'show']);
         $group->put('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'update']);
         $group->delete('/customers/{uuid}', [\App\Controllers\Admin\CustomerController::class, 'delete']);
-        $group->post('/customers/{uuid}/wallet/topup', [\App\Controllers\Admin\AdminWalletController::class, 'topupWallet']);
-        $group->get('/customers/{uuid}/wallet/transactions', [\App\Controllers\Admin\AdminWalletController::class, 'getWalletTransactions']);
-        $group->get('/customers/{uuid}/streams', [\App\Controllers\Admin\CustomerStreamController::class, 'getStreams']);
-        $group->post('/customers/{uuid}/streams/{streamUuid}', [\App\Controllers\Admin\CustomerStreamController::class, 'assignStream']);
-        $group->delete('/customers/{uuid}/streams/{streamUuid}', [\App\Controllers\Admin\CustomerStreamController::class, 'unassignStream']);
-        
+
         // Settings Management
         $group->get('/settings', [\App\Controllers\Admin\SettingController::class, 'index']);
-        $group->get('/settings/cron-key', [\App\Controllers\Admin\SettingController::class, 'getCronKey']);
-        $group->post('/settings/regenerate-cron-key', [\App\Controllers\Admin\SettingController::class, 'regenerateCronKey']);
         $group->put('/settings/{key}', [\App\Controllers\Admin\SettingController::class, 'update']);
         $group->post('/settings/logo', [\App\Controllers\Admin\SettingController::class, 'uploadLogo']);
         $group->post('/settings/logo-png', [\App\Controllers\Admin\SettingController::class, 'uploadAppLogoPng']);
-        $group->post('/settings/test-payment', [\App\Controllers\Admin\SettingController::class, 'testPayment']);
-        
-        // Subscription Plans
-        $group->get('/plans', [\App\Controllers\Admin\SubscriptionPlanController::class, 'index']);
-        $group->post('/plans', [\App\Controllers\Admin\SubscriptionPlanController::class, 'create']);
-        $group->get('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'show']);
-        $group->put('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'update']);
-        $group->delete('/plans/{uuid}', [\App\Controllers\Admin\SubscriptionPlanController::class, 'delete']);
-        
-        // Transactions
-        $group->get('/transactions', [\App\Controllers\Admin\AdminTransactionController::class, 'index']);
-        $group->get('/transactions/unified', [\App\Controllers\Admin\AdminTransactionController::class, 'getUnifiedLogs']);
 
         // Scrolling Ads Management
         $group->get('/scrolling-ads', [\App\Controllers\Admin\ScrollingAdAdminController::class, 'index']);
@@ -106,29 +87,6 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->get('/categories', [\App\Controllers\GeoController::class, 'getCategories']);
         $group->get('/languages', [\App\Controllers\GeoController::class, 'getLanguages']);
         $group->get('/states', [\App\Controllers\GeoController::class, 'getStates']);
-
-        // Stream Servers Management
-        $group->get('/stream-servers', [\App\Controllers\Admin\StreamServerController::class, 'index']);
-        $group->post('/stream-servers/ping-all', [\App\Controllers\Admin\StreamServerController::class, 'pingAll']);
-        $group->post('/stream-servers/test-connection', [\App\Controllers\Admin\StreamServerController::class, 'testConnection']);
-        $group->post('/stream-servers', [\App\Controllers\Admin\StreamServerController::class, 'create']);
-        $group->get('/stream-servers/{uuid}', [\App\Controllers\Admin\StreamServerController::class, 'show']);
-        $group->put('/stream-servers/{uuid}', [\App\Controllers\Admin\StreamServerController::class, 'update']);
-        $group->delete('/stream-servers/{uuid}', [\App\Controllers\Admin\StreamServerController::class, 'delete']);
-
-        // Streams Management (read-only + sync + delete; no create/update — streams come from Flussonic sync)
-        $group->get('/streams', [\App\Controllers\Admin\StreamController::class, 'index']);
-        $group->post('/streams/sync', [\App\Controllers\Admin\StreamController::class, 'sync']);
-        $group->get('/streams/{uuid}', [\App\Controllers\Admin\StreamController::class, 'show']);
-        $group->post('/streams/{uuid}/toggle', [\App\Controllers\Admin\StreamController::class, 'toggle']);
-        $group->get('/streams/{uuid}/clients', [\App\Controllers\Admin\StreamController::class, 'clients']);
-        $group->delete('/streams/{uuid}', [\App\Controllers\Admin\StreamController::class, 'delete']);
-
-        // Server Monitoring
-        $group->get('/monitoring', [\App\Controllers\Admin\MonitoringController::class, 'index']);
-        $group->post('/monitoring/record-all', [\App\Controllers\Admin\MonitoringController::class, 'recordAll']);
-        $group->get('/monitoring/{serverUuid}/history', [\App\Controllers\Admin\MonitoringController::class, 'history']);
-        $group->post('/monitoring/{serverUuid}/record', [\App\Controllers\Admin\MonitoringController::class, 'record']);
 
         // Reports
         $group->group('/reports', function (RouteCollectorProxy $group) {

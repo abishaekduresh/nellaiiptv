@@ -1,6 +1,6 @@
-# Nellai IPTV - Backend API (v1.56.0)
+# Nellai IPTV - Backend API (v1.59.0)
 
-**Version 1.56.0** | RESTful API built with Slim PHP Framework
+**Version 1.59.0** | RESTful API built with Slim PHP Framework
 
 ## Overview
 
@@ -137,7 +137,8 @@ For **root folder deployments**, the application automatically detects the base 
 ## Database Schema
 
 ### Main Tables
-- `channels`, `customers`, `subscription_plans`, `transactions`, `channel_views`, `contact_messages`, `feedback`, `stream_servers`, `streams`, `viewer_sessions`, `server_monitoring`, `tenants`
+- `channels`, `customers`, `channel_views`, `contact_messages`, `feedback`, `channel_onboarding`, `scrolling_ads`, `visual_ads`, `api_keys`, `tenants`
+- _Removed in v1.58.0–1.59.0:_ `subscription_plans`, `transactions`, `wallet_transactions` (billing) and `stream_servers`, `streams`, `server_monitoring`, `stream_clients`, `customer_stream_assignments` (stream hosting). See `database/migrations/remove_billing_and_reseller.sql` and `remove_stream_infrastructure.sql`.
 
 ## Authentication
 
@@ -151,6 +152,12 @@ The API uses a dual-layer security model:
 
 ## Rate Limiting
 Public endpoints are rate-limited to **100 requests per minute** per IP address to prevent abuse.
+
+## Latest Updates (v1.59.0)
+- **Removed — Flussonic stream-hosting infrastructure**: Deleted the stream-server / stream / monitoring / my-streams / cron controllers, the Flussonic + Mist services, the `StreamServer` · `Stream` · `ServerMonitoring` · `StreamClient` models, `CronSecretMiddleware`, and `cron/ping_stream_servers.php`. Removed the `/api/cron` group, `/customers/streams*`, admin `/stream-servers*` · `/streams*` · `/monitoring*` · `/customers/{uuid}/streams*`, and `/settings/cron-key` + `/regenerate-cron-key`. Dropped 5 tables via `database/migrations/remove_stream_infrastructure.sql`. The public per-channel HLS status check (`StreamController`) is unrelated and retained.
+
+## Latest Updates (v1.58.0)
+- **Removed — Monetization subsystem (plans, payments, transactions, reseller, wallet)**: Deleted the payment/plan/reseller/wallet controllers, models, Razorpay/Cashfree drivers, and reseller middleware; removed the corresponding routes (kept `/webhooks/resend`). Rewrote `AuthService` / `JwtMiddleware` / `ChannelController` / `ChannelService` to permanent **open-access** (no subscription-plan requirement, no premium redaction, unlimited devices). Dropped `subscription_plans`, `transactions`, `wallet_transactions` and the `customers` billing columns via `database/migrations/remove_billing_and_reseller.sql`.
 
 ## Latest Updates (v1.55.0)
 - **Fix**: **On-read geo enrichment in `CustomerStreamController`** — `getMyStreams()` now calls `enrichMissingGeo()` after loading client sessions from DB. Any session where `city` is null has its IP geocoded via `ipwho.is` using `curl_multi` (concurrent), the result is applied to the model and persisted back to `stream_clients` immediately so subsequent reads are instant. Fixes customer stream sync not showing Location / ISP / Org data when the sync-time geocoding silently failed.

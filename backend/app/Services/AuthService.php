@@ -95,7 +95,7 @@ class AuthService
 
     public function login(string $phone, string $password, array $deviceInfo = []): array
     {
-        $customer = Customer::with('plan')->where('phone', $phone)->first();
+        $customer = Customer::where('phone', $phone)->first();
 
         if (!$customer || !password_verify($password, $customer->password)) {
             throw new Exception('Invalid credentials');
@@ -105,50 +105,13 @@ class AuthService
             throw new Exception('Account is not active');
         }
 
-        // Subscription Checks (skip for resellers and in Open Access mode)
-        $isOpenAccessVal = \App\Models\Setting::get('is_open_access', 0);
-        $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
+        // Open-access model: subscription, plan-expiry and platform gating have been removed.
+        // Every active customer has full access on any platform.
 
-        $isReseller = ($customer->role === 'reseller');
-        if (!$isReseller && !$isOpenAccess) {
-            $plan = $customer->plan;
-            
-            // 1. Expiry Check
-            if ($plan && !empty($customer->subscription_expires_at)) {
-                 try {
-                    if ($customer->subscription_expires_at instanceof \DateTimeInterface) {
-                        if ($customer->subscription_expires_at < new \DateTime()) {
-                            throw new Exception('Subscription expired', 403);
-                        }
-                    } elseif (is_string($customer->subscription_expires_at)) {
-                        $expiry = new \DateTime($customer->subscription_expires_at);
-                        if ($expiry < new \DateTime()) {
-                            throw new Exception('Subscription expired', 403);
-                        }
-                    }
-                 } catch (\Exception $e) {
-                     if ($e->getCode() === 403) throw $e;
-                     error_log("Date Error in AuthService: " . $e->getMessage());
-                 }
-            }
-        } else {
-            $plan = ($isReseller) ? null : $customer->plan; // Resellers don't use subscription plans
-        }
-        
-        // 2. Platform Access Check: Ensure the user's plan permits access from the current device type
-        // Skip for Open Access
-        $currentPlatform = $deviceInfo['platform'] ?? 'web';
-        if ($plan && !empty($plan->platform_access) && !$isOpenAccess) {
-            $allowedPlatforms = $plan->platform_access;
-            if (!in_array($currentPlatform, $allowedPlatforms)) {
-                throw new Exception("Access denied on {$currentPlatform} platform. Upgrade plan.", 403);
-            }
-        }
-
-        // 3. Industry-Standard Device Limit System: Only count unique devices (slots)
+        // Device Slot System: still track sessions per physical device, but the limit is
+        // effectively unlimited now that plan-based device caps no longer exist.
         $deviceId = $deviceInfo['device_id'] ?? null;
-        // Resellers always have device limit of 1
-        $deviceLimit = ($customer->role === 'reseller') ? 1 : ($plan ? $plan->device_limit : 1);
+        $deviceLimit = 999; // Effectively unlimited (open-access model)
 
         // Slot Reuse: Check if this specific physical device already has an active session slot
         $existingSession = null;
@@ -254,9 +217,6 @@ class AuthService
                 'email' => $customer->email,
                 'role' => $customer->role,
                 'status' => $customer->status,
-                'subscription_plan_id' => $customer->subscription_plan_id,
-                'subscription_expires_at' => $customer->subscription_expires_at,
-                'plan' => $customer->plan,
             ]
         ];
     }
@@ -287,8 +247,6 @@ class AuthService
                 'email' => $customer->email,
                 'role' => $customer->role,
                 'status' => $customer->status,
-                'subscription_plan_id' => $customer->subscription_plan_id,
-                'plan' => $customer->plan,
             ]
         ];
     }
@@ -322,9 +280,7 @@ class AuthService
 
             if ($attemptAutoLogin) {
                 $activeSessions = \App\Models\CustomerSession::where('customer_id', $customer->id)->count();
-                // Fetch customer's plan limit (resellers always have limit of 1)
-                $customer->load('plan');
-                $deviceLimit = ($customer->role === 'reseller') ? 1 : ($customer->plan ? $customer->plan->device_limit : 1);
+                $deviceLimit = 999; // Effectively unlimited (open-access model)
 
                 if ($activeSessions < $deviceLimit) {
                     $tokens = $this->generateTokens($customer, $deviceInfo);

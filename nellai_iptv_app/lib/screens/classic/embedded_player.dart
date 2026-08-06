@@ -9,7 +9,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
@@ -327,17 +326,11 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
     if (widget.initialChannel != null) {
        debugPrint("Instant Play Triggered for: ${widget.initialChannel!.name}");
       _channel = widget.initialChannel;
-      _isPremiumContent = _channel!.isPremium;
-      
-      if (!_isPremiumContent && _channel!.hlsUrl != null) {
+      // Open-access model: premium gating removed — every channel plays for all users.
+      _isPremiumContent = false;
+
+      if (_channel!.hlsUrl != null) {
         await _initVideoPlayer(_channel!.hlsUrl!);
-      } else if (_isPremiumContent) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-        WakelockPlus.enable();
       }
     }
 
@@ -346,22 +339,17 @@ class EmbeddedPlayerState extends State<EmbeddedPlayer> with WidgetsBindingObser
       if (!mounted || _currentLoadId != loadId) return;
       
       if (mounted) {
-        bool wasPremium = _isPremiumContent;
         setState(() {
           _channel = channel;
-          _isPremiumContent = channel.isPremium;
-          // If we had no initial data, or if premium status changed, trigger UI update
+          // Open-access model: premium gating removed — every channel plays for all users.
+          _isPremiumContent = false;
           if (widget.initialChannel == null) {
             _isLoading = false;
           }
         });
 
-        if (channel.isPremium) {
-           _tvPlayer.stop(); 
-           _viewCountTimer?.cancel();
-           WakelockPlus.enable();   
-        } else if (channel.hlsUrl != null && (widget.initialChannel == null || wasPremium)) {
-          // Only init if we haven't already OR if we are switching FROM a premium state
+        if (channel.hlsUrl != null && widget.initialChannel == null) {
+          // Only init if we haven't already started from initialChannel data.
           await _initVideoPlayer(channel.hlsUrl!);
         }
 

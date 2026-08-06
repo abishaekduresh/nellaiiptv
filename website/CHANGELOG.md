@@ -1,3 +1,39 @@
+## [1.84.0] - 2026-08-06
+
+### Removed — Stream-hosting infrastructure (admin + My Streams)
+- **Deleted pages**: `app/admin/stream-servers` (+ `[uuid]`, `create`), `app/admin/streams` (+ `[uuid]`, `create`),
+  `app/admin/monitoring`.
+- **Deleted components/stores**: `StreamServerForm`, `StreamServerDetailsModal`, `StreamForm`, `StreamInfraSubNav`,
+  `StreamInfraLayout`, `CustomerStreamsModal`, `CronUrlCard`, `stores/streamStatusStore`.
+- **Nav/UI**: removed the "Stream Servers" sidebar group (All Servers / Streams / Monitoring); removed the
+  customer-facing **My Streams** panels from `Navbar` and `ClassicHome` (incl. the `StreamDetailModal`, sync/restart
+  handlers, and OpenStreetMap session view); removed the Dashboard server stat cards + recent-servers table; removed
+  the "Assigned Streams" action from the Customers page; removed the Settings **Stream Server Health** (ping interval)
+  and **Cron Keys & Automation** sections.
+- The separate **Nellai IPTV Stream** RTMP/SRT marketing pages (`/stream` + homepage promo) are **kept**.
+
+---
+
+## [1.83.0] - 2026-08-06
+
+### Removed — Plans, Transactions, Payments, Reseller & Wallet (open-access pivot)
+- **Deleted pages/components**: `app/admin/plans`, `app/admin/transactions`, `app/plans` (public pricing),
+  `app/reseller/*` (dashboard, plans, customers), `components/admin/PlanForm`, `components/admin/AdminTopupModal`,
+  `components/reseller/*` (wallet card/history, plan-assignment, add-funds).
+- **Navigation**: removed Plans + Transactions + reseller entries from `AdminSidebar`, `Navbar`, and `Footer`;
+  dropped reseller redirects/guards from `AdminLayout`, `LiteRouteGuard`, `login`, admin `page`/`dashboard`.
+- **Admin**: removed the Payment Gateway section + Test-Transaction modal from Settings; removed wallet top-up,
+  plan assignment, and premium/wallet columns from Customers, `CustomerForm`, and `CustomerOverviewModal`;
+  pruned the removed endpoints from API Docs.
+- **Public**: removed the subscription card from Profile, the premium crown from `Navbar`/`UserMenu`, and the
+  `PAID_RESTRICTED` premium-lock handling from `VideoPlayer` (all channels play). Updated About-page copy to "free".
+  `is_premium` kept as a dormant channel badge.
+- **API/types**: removed plan/payment/wallet/reseller helpers and the `subscription_required` redirect from
+  `lib/api.ts` / `lib/adminApi.ts`; removed `SubscriptionPlan`/`Transaction`/subscription fields from `types`.
+- Note: the separate **Nellai IPTV Stream** (RTMP/SRT hosting, `/stream`) product is unaffected.
+
+---
+
 ## [1.82.0] - 2026-06-03
 
 ### Added

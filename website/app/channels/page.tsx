@@ -68,20 +68,9 @@ export default function ChannelsPage() {
             rawIsOpenAccess === '1'
         );
         
-        // Auth Check Logic
-        if (!isOpenAccess) {
-            if (!user) {
-                router.push('/plans?error=subscription_required');
-                return;
-            }
-            const isReseller = (user as any).role === 'reseller';
-            if (!isReseller && !(user as any).plan) {
-                router.push('/plans?error=subscription_required');
-                return;
-            }
-        }
+        // Open-access model: all channels are free to watch — no subscription gating.
 
-        // If we get here, access is allowed. Fetch Channels.
+        // Access is allowed. Fetch Channels.
         await fetchChannelsData(settingsRes.data.data);
 
     } catch (e) {

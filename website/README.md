@@ -1,10 +1,16 @@
-# Nellai IPTV - Frontend v1.82.0
+# Nellai IPTV - Frontend v1.84.0
 
 A Next.js 14 application providing a modern, responsive interface for the Nellai IPTV platform. Optimized for Web, Mobile, and TV browsers.
 
 ## 🚀 Features
 
-### **Latest Updates (v1.82.0)**
+### **Latest Updates (v1.84.0)**
+- **Removed — Stream-hosting infrastructure**: Deleted the Stream Servers / Streams / Monitoring admin pages and all infra components (`StreamServerForm`, `StreamServerDetailsModal`, `StreamForm`, `StreamInfraSubNav`/`Layout`, `CustomerStreamsModal`, `CronUrlCard`, `stores/streamStatusStore`). Removed the Stream Servers sidebar group, the customer-facing **My Streams** panels (Navbar + Classic Mode), the dashboard server stat cards + recent-servers table, the Customers "Assigned Streams" action, and the Settings "Stream Server Health" + "Cron Keys & Automation" sections. The separate `/stream` RTMP/SRT **marketing** pages are kept.
+
+### **Previous Updates (v1.83.0)**
+- **Removed — Monetization (plans, transactions, payments, reseller, wallet)**: Deleted `/admin/plans`, `/admin/transactions`, `/plans`, `/reseller/*` and their components (`PlanForm`, `AdminTopupModal`, `components/reseller/*`). Removed the payment-gateway settings + Test-Transaction modal, wallet/plan customer fields, the profile subscription card, the premium `PAID_RESTRICTED` player gating, and all plan/payment/wallet/reseller API helpers + types. The platform is now free / open-access.
+
+### **Previous Updates (v1.82.0)**
 - **Added**: Admin `layout.tsx` for `/admin/channel-onboarding` — ensures sidebar and mobile header render correctly.
 - **Fixed**: Channel logo not displaying in admin page — `logoSrc()` helper prepends backend base URL to relative upload paths.
 - **Fixed**: `package.json` UTF-8 BOM corruption causing Next.js JSON parse failure.

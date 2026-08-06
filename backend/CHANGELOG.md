@@ -1,3 +1,53 @@
+## [1.59.0] - 2026-08-06
+
+### Removed — Flussonic stream-hosting infrastructure
+- **Deleted controllers**: `Admin/StreamServerController`, `Admin/StreamController`, `Admin/MonitoringController`,
+  `Admin/CustomerStreamController`, `CustomerStreamController`, and all `Controllers/Cron/*`
+  (`StreamSyncController`, `PingServersCronController`, `RecordMonitoringCronController`).
+- **Deleted services / models / middleware**: `Services/Admin/StreamServerService`, `StreamServerPingService`,
+  `MonitoringService`, `StreamService`; `Services/Flussonic/FlussonicApiService`; `Services/MistServer/MistAuthService`;
+  models `StreamServer`, `Stream`, `ServerMonitoring`, `StreamClient`; `Middleware/CronSecretMiddleware`;
+  `cron/ping_stream_servers.php`.
+- **Routes** — removed the `/api/cron` group; customer `/customers/streams` + `/customers/streams/{uuid}/toggle`;
+  admin `/stream-servers*`, `/streams*`, `/monitoring*`, `/customers/{uuid}/streams*`, and
+  `/settings/cron-key` + `/settings/regenerate-cron-key`.
+- **Edited**: `Models/Customer` (removed `assignedStreams()`), `Admin/DashboardController` (removed `total_servers` /
+  `online_servers` stats), `Admin/SettingController` (removed `getCronKey` / `regenerateCronKey` / `resolveCaBundle`).
+  `StreamController` (public per-channel HLS online check via `ChannelService`) is **unrelated and retained**.
+- **Database**: `database/migrations/remove_stream_infrastructure.sql` drops `customer_stream_assignments`,
+  `stream_clients`, `server_monitoring`, `streams`, `stream_servers` (children-first for the RESTRICT FK) and removes
+  the `stream_server_ping_interval` / `stream_server_last_ping_run` / `cron_secret` settings. Reversible; run after a `mysqldump`.
+
+---
+
+## [1.58.0] - 2026-08-06
+
+### Removed — Monetization subsystem (plans, payments, transactions, reseller, wallet)
+- **Deleted**: `Controllers/Api/PaymentController`, `Controllers/Admin/AdminTransactionController`,
+  `Controllers/Admin/SubscriptionPlanController`, `Controllers/PlanController`, `Controllers/Admin/AdminWalletController`,
+  the whole `Controllers/Reseller/` directory, models `Transaction` / `SubscriptionPlan` / `WalletTransaction`,
+  `Services/Payment/*` (Razorpay + Cashfree drivers + interface), `Interfaces/PaymentGatewayInterface`,
+  `Middleware/ResellerAuthMiddleware`.
+- **Routes** — removed public `/plans`, `/payments/*`, `/webhooks/razorpay`, and the entire `/reseller` group
+  (`Routes/api.php`); removed `/plans*`, `/transactions*`, the wallet routes, and `POST /settings/test-payment`
+  (`Routes/admin.php`). **Kept** `POST /webhooks/resend` (email delivery — `WebhookController` trimmed accordingly).
+
+### Changed — Open-access model
+- `Services/AuthService` and `Middleware/JwtMiddleware` no longer require a subscription plan or enforce plan-based
+  device / platform limits (device cap defaults to effectively unlimited); login response no longer returns plan data.
+- `Controllers/ChannelController` + `Services/ChannelService` never redact `is_premium` streams (`allowPremium` is always
+  true) — every channel is available to every user. `is_premium` is retained as a dormant column.
+- `Controllers/VisualAdController` treats all viewers as free users (no paid-plan ad exemption).
+- `Models/Customer`, `Controllers/Admin/CustomerController`, `Controllers/Admin/SettingController` cleaned of
+  subscription / wallet / gateway fields.
+
+### Database
+- **`database/migrations/remove_billing_and_reseller.sql`** — drops `transactions`, `subscription_plans`,
+  `wallet_transactions`; drops `customers.subscription_plan_id` / `subscription_expires_at` / `wallet_balance`;
+  removes `gateway_*` settings rows. Reversible (backup tables + rollback). **Run on the live DB after a `mysqldump`.**
+
+---
+
 ## [1.56.0] - 2026-06-03
 
 ### Added

@@ -1,3 +1,80 @@
+## [Stream Infrastructure Removal] - App 1.17.0+74 · Website 1.84.0 · Backend 1.59.0 - 2026-08-06
+
+### Removed (all layers) — Flussonic stream-hosting infrastructure
+The entire stream-hosting subsystem (`/admin/stream-servers` and everything it powered) was torn out:
+stream servers, streams, server monitoring, client sessions, customer stream assignments, the customer-facing
+**My Streams** feature, and the cron automation. The public `/stream` + homepage RTMP/SRT **marketing** pages were
+kept per request.
+
+**Database** (`backend/database/migrations/remove_stream_infrastructure.sql`)
+- **Dropped 5 tables** (children-first for the `streams`→`stream_servers` RESTRICT FK):
+  `customer_stream_assignments`, `stream_clients`, `server_monitoring`, `streams`, `stream_servers`.
+- **Removed settings**: `stream_server_ping_interval`, `stream_server_last_ping_run`, `cron_secret`.
+- Reversible (backup tables + rollback); `db.sql` mirrors the change. Take a `mysqldump` first.
+
+**Backend (Slim PHP)** — bumped to 1.59.0
+- **Deleted**: `Admin/StreamServerController`, `Admin/StreamController`, `Admin/MonitoringController`,
+  `Admin/CustomerStreamController`, `CustomerStreamController`, all three `Controllers/Cron/*`,
+  `Services/Admin/StreamServerService` · `StreamServerPingService` · `MonitoringService` · `StreamService`,
+  `Services/Flussonic/FlussonicApiService`, `Services/MistServer/MistAuthService`, models
+  `StreamServer` · `Stream` · `ServerMonitoring` · `StreamClient`, `Middleware/CronSecretMiddleware`,
+  `cron/ping_stream_servers.php`.
+- **Routes**: removed the `/api/cron` group, customer `/customers/streams*`, admin `/stream-servers*`,
+  `/streams*`, `/monitoring*`, `/customers/{uuid}/streams*`, and `/settings/cron-key` + `/regenerate-cron-key`.
+- `Customer` model (`assignedStreams()`), `Admin/DashboardController` (server stat cards), `Admin/SettingController`
+  (cron-key methods) cleaned up. `StreamController` (public per-channel HLS status check) is unrelated and kept.
+
+**Website (Next.js)** — bumped to 1.84.0
+- **Deleted**: `app/admin/stream-servers`, `app/admin/streams`, `app/admin/monitoring`, and infra components
+  (`StreamServerForm`, `StreamServerDetailsModal`, `StreamForm`, `StreamInfraSubNav`, `StreamInfraLayout`,
+  `CustomerStreamsModal`, `CronUrlCard`, `stores/streamStatusStore`).
+- Removed the Stream Servers sidebar group, the **My Streams** panels (Navbar + ClassicHome), the dashboard
+  server stat cards + recent-servers table, the customers "Assigned Streams" action, and the Settings
+  "Stream Server Health" + "Cron Keys & Automation" sections. The `/stream` marketing page is untouched.
+
+**Flutter app (`nellai_iptv_app`)** — bumped to 1.17.0+74
+- Removed the **My Streams** screen + `CustomerStream` model, the `getMyStreams` / `toggleStream` API methods,
+  and the "My Streams" button from Profile.
+
+---
+
+## [Monetization Removal] - App 1.16.0+73 · Website 1.83.0 · Backend 1.58.0 - 2026-08-06
+
+### Removed (all layers) — Plans, Transactions, Payments, Reseller & Wallet
+The entire monetization subsystem was torn out. The platform is now **free / open-access**:
+every channel plays for any user; there are no subscription plans, payments, reseller tier, or wallet.
+
+**Database** (`backend/database/migrations/remove_billing_and_reseller.sql`)
+- **Dropped tables**: `transactions`, `subscription_plans`, `wallet_transactions`.
+- **Dropped columns** on `customers`: `subscription_plan_id`, `subscription_expires_at`, `wallet_balance`.
+- **Removed settings**: `gateway_razorpay_enabled`, `gateway_cashfree_enabled`.
+- Migration is reversible (backup tables + rollback script); take a `mysqldump` first. `db.sql` mirrors the change.
+
+**Backend (Slim PHP)** — bumped to 1.58.0
+- **Deleted**: `PaymentController`, `AdminTransactionController`, `SubscriptionPlanController`, public `PlanController`,
+  `AdminWalletController`, the whole `Controllers/Reseller/` dir, `Transaction` / `SubscriptionPlan` / `WalletTransaction`
+  models, `Services/Payment/*` (Razorpay/Cashfree drivers), `PaymentGatewayInterface`, `ResellerAuthMiddleware`.
+- **Routes**: removed `/plans`, `/payments/*`, `/webhooks/razorpay`, the entire `/reseller` group (api.php); removed
+  `/plans*`, `/transactions*`, wallet, and `settings/test-payment` (admin.php). Kept `/webhooks/resend`.
+- **Access control → open-access**: `AuthService` / `JwtMiddleware` no longer require a plan or enforce plan-based
+  device/platform limits (device cap now effectively unlimited); `ChannelController` / `ChannelService` never redact
+  `is_premium` streams (`allowPremium` always true). `VisualAdController` treats everyone as a free user.
+- `Customer` model, `Admin/CustomerController`, `WebhookController`, `Admin/SettingController` cleaned of billing fields.
+
+**Website (Next.js)** — bumped to 1.83.0
+- **Deleted pages/components**: `app/admin/plans`, `app/admin/transactions`, `app/plans`, `app/reseller/*`,
+  `PlanForm`, `AdminTopupModal`, `components/reseller/*`.
+- Removed Plans/Transactions/reseller nav (Sidebar, Navbar, Footer), the payment-gateway section + Test-Transaction
+  modal (Settings), wallet/plan fields (Customers, CustomerForm, CustomerOverviewModal), subscription card (Profile),
+  premium `PAID_RESTRICTED` gating (VideoPlayer), and plan/payment/wallet/reseller endpoints & types (`lib/api.ts`,
+  `lib/adminApi.ts`, `types`). `is_premium` kept as a dormant channel flag.
+
+**Flutter app (`nellai_iptv_app`)** — bumped to 1.16.0+73
+- Removed the subscription card from Profile and the premium "Upgrade Now" overlay/gating in the player
+  (`_isPremiumContent` forced false) — all channels play for everyone.
+
+---
+
 ## [1.15.2+72] - App (Flutter) - 2026-08-06
 
 ### Nellai IPTV App (Flutter)

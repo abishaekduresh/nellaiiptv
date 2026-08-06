@@ -10,7 +10,7 @@ export default function LiteRouteGuard({ children }: { children: React.ReactNode
     const pathname = usePathname();
     const { isInitialized } = useViewMode();
     const isLite = pathname?.startsWith('/lite');
-    const isAdmin = pathname?.startsWith('/admin') || pathname?.startsWith('/reseller');
+    const isAdmin = pathname?.startsWith('/admin');
 
     // Immersive paths (No Navbar/Footer)
     const isPlayerPage = pathname?.startsWith('/channels') || pathname?.startsWith('/channel/') || isLite || pathname?.startsWith('/system-error') || pathname?.startsWith('/player');

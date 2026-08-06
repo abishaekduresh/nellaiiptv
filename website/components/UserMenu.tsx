@@ -53,11 +53,6 @@ const UserMenu = ({ user }: UserProps) => {
       >
         <div className="relative w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
           {displayName.charAt(0).toUpperCase()}
-          {((user as any).plan && (user as any).status === 'active') && (
-            <div className="absolute -top-1 -right-1 bg-yellow-500 text-slate-900 rounded-full p-0.5 shadow-sm border border-slate-900" title="Premium">
-                <Crown size={10} fill="currentColor" />
-            </div>
-          )}
         </div>
         <span className="hidden md:block">{displayName}</span>
         <svg

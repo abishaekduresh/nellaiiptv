@@ -9,13 +9,6 @@ $app->get('/', function (Request $request, Response $response) {
     return $response->withHeader('Content-Type', 'application/json');
 });
 
-// ── Cron Routes (secret-key protected, no JWT) ───────────────────────────────
-$app->group('/api/cron', function (RouteCollectorProxy $group) {
-    $group->post('/sync-streams',        [\App\Controllers\Cron\StreamSyncController::class,       'syncStreams']);
-    $group->get('/ping-servers',         [\App\Controllers\Cron\PingServersCronController::class,  'ping']);
-    $group->get('/record-monitoring',    [\App\Controllers\Cron\RecordMonitoringCronController::class, 'record']);
-})->add(new \App\Middleware\CronSecretMiddleware());
-
 // ── Public / Customer API ─────────────────────────────────────────────────────
 $app->group('/api', function (RouteCollectorProxy $group) {
     
@@ -30,13 +23,9 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     
     // Webhooks
     $group->post('/webhooks/resend', [\App\Controllers\WebhookController::class, 'handleResend']);
-    $group->post('/webhooks/razorpay', [\App\Controllers\WebhookController::class, 'handleRazorpay']);
-    
+
     // Public Routes with Optional Auth
     $group->group('', function (RouteCollectorProxy $group) {
-        // Plans (Public)
-        $group->get('/plans', [\App\Controllers\PlanController::class, 'index']);
-
         // Search
         $group->get('/channels/search', [\App\Controllers\SearchController::class, 'searchChannels']);
 
@@ -103,10 +92,6 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         $group->post('/channels/{uuid}/rate', [\App\Controllers\ChannelController::class, 'rate']);
         $group->post('/channels/{uuid}/comments', [\App\Controllers\ChannelController::class, 'addComment']);
 
-        // Customer Assigned Streams
-        $group->get('/customers/streams', [\App\Controllers\CustomerStreamController::class, 'getMyStreams']);
-        $group->post('/customers/streams/{streamUuid}/toggle', [\App\Controllers\CustomerStreamController::class, 'toggleStream']);
-
         // Favorites
         $group->get('/customers/favorites', [\App\Controllers\FavoriteController::class, 'index']);
         $group->get('/customers/favorites/ids', [\App\Controllers\FavoriteController::class, 'getIds']);
@@ -121,33 +106,10 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         // $group->get('/channels/{uuid}/ratings', [\App\Controllers\ChannelController::class, 'getRatings']);
         // $group->get('/channels/{uuid}/comments', [\App\Controllers\ChannelController::class, 'getComments']);
         // $group->get('/channels/related/{uuid}', [\App\Controllers\ChannelController::class, 'getRelated']);
-        
+
         // $group->post('/channels/{uuid}/heartbeat', [\App\Controllers\ChannelController::class, 'heartbeat']);
         // $group->post('/channels/{uuid}/view', [\App\Controllers\ChannelController::class, 'incrementView']);
         // $group->post('/channels/{uuid}/report', [\App\Controllers\ChannelController::class, 'report']);
-
-        // Payments
-        $group->get('/payments/gateways', [\App\Controllers\Api\PaymentController::class, 'getGateways']);
-        $group->post('/payments/create-order', [\App\Controllers\Api\PaymentController::class, 'createOrder']);
-        $group->post('/payments/verify', [\App\Controllers\Api\PaymentController::class, 'verifyPayment']);
-
-
-        // Reseller Routes (Protected by ResellerAuthMiddleware)
-        $group->group('/reseller', function (RouteCollectorProxy $group) {
-            $group->get('/customers/search', [\App\Controllers\Reseller\ResellerCustomerController::class, 'searchByPhone']);
-            $group->get('/customers', [\App\Controllers\Reseller\ResellerCustomerController::class, 'listCustomers']);
-            $group->post('/customers', [\App\Controllers\Reseller\ResellerCustomerController::class, 'createCustomer']);
-            $group->post('/customers/{uuid}/assign-plan', [\App\Controllers\Reseller\ResellerCustomerController::class, 'assignPlan']);
-
-            // Wallet
-            $group->get('/wallet', [\App\Controllers\Reseller\ResellerWalletController::class, 'getBalance']);
-            $group->get('/wallet/transactions', [\App\Controllers\Reseller\ResellerWalletController::class, 'getTransactions']);
-            $group->post('/wallet/add-funds', [\App\Controllers\Reseller\ResellerWalletController::class, 'addFunds']);
-            $group->post('/wallet/verify', [\App\Controllers\Reseller\ResellerWalletController::class, 'verifyPayment']);
-
-            // Dashboard
-            $group->get('/dashboard/stats', [\App\Controllers\Reseller\ResellerDashboardController::class, 'getStats']);
-        })->add(new \App\Middleware\ResellerAuthMiddleware());
 
     })->add(new \App\Middleware\JwtMiddleware());
 

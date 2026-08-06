@@ -1,15 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Users, UserCheck, UserX, Crown, Eye, Wallet, Radio, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Trash2, Ban, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Users, UserCheck, UserX, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/lib/adminApi';
 import { Customer } from '@/types';
 import Modal from '@/components/ui/Modal';
 import CustomerForm from '@/components/admin/CustomerForm';
 import CustomerOverviewModal from '@/components/admin/CustomerOverviewModal';
-import AdminTopupModal from '@/components/admin/AdminTopupModal';
-import CustomerStreamsModal from '@/components/admin/CustomerStreamsModal';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -25,9 +23,7 @@ export default function CustomersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [viewCustomerUuid, setViewCustomerUuid] = useState<string | null>(null);
-  const [topupCustomer, setTopupCustomer] = useState<{ uuid: string; name: string; wallet_balance: number } | null>(null);
-  const [streamsCustomer, setStreamsCustomer] = useState<{ uuid: string; name: string } | null>(null);
-  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, blocked: 0, premium: 0 });
+  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, blocked: 0 });
 
   const fetchStats = async () => {
     try {
@@ -90,7 +86,6 @@ export default function CustomersPage() {
     { label: 'Total', value: stats.total, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
     { label: 'Active', value: stats.active, icon: UserCheck, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20' },
     { label: 'Inactive / Blocked', value: stats.inactive + stats.blocked, icon: UserX, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-    { label: 'Premium', value: stats.premium, icon: Crown, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
   ];
 
   const selectClass = "bg-slate-800 border border-slate-700 text-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all";
@@ -107,7 +102,7 @@ export default function CustomersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-up" style={{ animationDelay: '0.05s' }}>
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Customers</h1>
-          <p className="text-slate-400 text-sm mt-1">Manage registered users and resellers</p>
+          <p className="text-slate-400 text-sm mt-1">Manage registered users</p>
         </div>
         <button
           onClick={() => { setSelectedCustomer(null); setIsModalOpen(true); }}
@@ -167,7 +162,6 @@ export default function CustomersPage() {
             <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} className={selectClass}>
               <option value="">All Roles</option>
               <option value="customer">Customer</option>
-              <option value="reseller">Reseller</option>
             </select>
           </div>
         </div>
@@ -223,8 +217,8 @@ export default function CustomersPage() {
                   <td className="px-5 py-3.5 text-slate-300 text-sm">{cu.phone}</td>
                   <td className="px-5 py-3.5 text-slate-400 text-xs">{new Date(cu.created_at).toLocaleDateString()}</td>
                   <td className="px-5 py-3.5">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${(cu as any).role === 'reseller' ? 'bg-purple-500/15 text-purple-400' : 'bg-blue-500/15 text-blue-400'}`}>
-                      {(cu as any).role === 'reseller' ? 'Reseller' : 'Customer'}
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/15 text-blue-400">
+                      Customer
                     </span>
                   </td>
                   <td className="px-5 py-3.5">
@@ -241,16 +235,6 @@ export default function CustomersPage() {
                       <button onClick={() => setViewCustomerUuid(cu.uuid)}
                         className="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors" title="View">
                         <Eye size={14} />
-                      </button>
-                      {(cu as any).role === 'reseller' && (
-                        <button onClick={() => setTopupCustomer({ uuid: cu.uuid, name: cu.name, wallet_balance: (cu as any).wallet_balance || 0 })}
-                          className="p-1.5 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors" title="Topup">
-                          <Wallet size={14} />
-                        </button>
-                      )}
-                      <button onClick={() => setStreamsCustomer({ uuid: cu.uuid, name: cu.name })}
-                        className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors" title="Assigned Streams">
-                        <Radio size={14} />
                       </button>
                       <button onClick={() => { setSelectedCustomer(cu.uuid); setIsModalOpen(true); }}
                         className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors" title="Edit">
@@ -297,17 +281,6 @@ export default function CustomersPage() {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={selectedCustomer ? 'Edit Customer' : 'Add New Customer'}>
         <CustomerForm customerUuid={selectedCustomer} onSuccess={() => { setIsModalOpen(false); fetchCustomers(); }} onCancel={() => setIsModalOpen(false)} />
       </Modal>
-      {topupCustomer && (
-        <AdminTopupModal customer={topupCustomer} onClose={() => setTopupCustomer(null)} onSuccess={() => { setTopupCustomer(null); fetchCustomers(); }} />
-      )}
-      {streamsCustomer && (
-        <CustomerStreamsModal
-          customerUuid={streamsCustomer.uuid}
-          customerName={streamsCustomer.name}
-          isOpen={!!streamsCustomer}
-          onClose={() => setStreamsCustomer(null)}
-        />
-      )}
     </div>
   );
 }

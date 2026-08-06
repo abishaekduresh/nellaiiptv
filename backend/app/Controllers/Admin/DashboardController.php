@@ -6,7 +6,6 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Models\Channel;
 use App\Models\Customer;
-use App\Models\StreamServer;
 use App\Helpers\ResponseFormatter;
 
 class DashboardController
@@ -18,8 +17,6 @@ class DashboardController
             'active_channels'  => Channel::where('status', 'active')->count(),
             'total_customers'  => Customer::count(),
             'active_customers' => Customer::where('status', 'active')->count(),
-            'total_servers'    => StreamServer::whereNull('deleted_at')->count(),
-            'online_servers'   => StreamServer::whereNull('deleted_at')->where('health_status', 'online')->count(),
         ];
 
         return ResponseFormatter::success($response, $stats);

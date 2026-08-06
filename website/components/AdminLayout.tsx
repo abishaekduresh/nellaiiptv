@@ -20,27 +20,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     if (!token) {
-      if (window.location.pathname.startsWith('/reseller')) {
-        router.push('/login');
-      } else {
-        router.push('/admin');
-      }
+      router.push('/admin');
     } else if (!user) {
-      const authStorage = localStorage.getItem('auth-storage');
-      let isReseller = false;
-
-      if (window.location.pathname.startsWith('/reseller')) {
-        isReseller = true;
-      } else if (authStorage) {
-        try {
-          const parsed = JSON.parse(authStorage);
-          isReseller = parsed?.state?.user?.role === 'reseller';
-        } catch (e) {}
-      }
-
       import('@/lib/adminApi').then(({ default: adminApi }) => {
-        const profileEndpoint = isReseller ? '/customers/profile' : '/admin/profile';
-        adminApi.get(profileEndpoint)
+        adminApi.get('/admin/profile')
           .then(res => {
             if (res.data?.data) {
               useAuthStore.getState().setAuth(token, res.data.data, true);
@@ -49,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           .catch((err) => {
             if (err.response?.status === 401) {
               localStorage.removeItem('admin_token');
-              router.push(window.location.pathname.startsWith('/reseller') ? '/login' : '/admin');
+              router.push('/admin');
             }
           });
       });
@@ -58,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (!mounted) return null;
 
-  const roleLabel = user?.role === 'reseller' ? 'Reseller Panel' : 'Admin Panel';
+  const roleLabel = 'Admin Panel';
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">

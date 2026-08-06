@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
       const { access_token, user } = res.data.data;
       localStorage.setItem('admin_token', access_token);
       setAuth(access_token, user, true);
-      router.push(user?.role === 'reseller' ? '/reseller' : '/admin/dashboard');
+      router.push('/admin/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {

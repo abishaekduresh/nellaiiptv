@@ -134,7 +134,7 @@ export default function AboutPage() {
               { step: '1', title: 'Create a Free Account', desc: 'Sign up with your email address in under 30 seconds. No credit card required for basic access.' },
               { step: '2', title: 'Browse 200+ Channels',  desc: 'Explore our full channel directory, filter by category, language, or region, and add favourites to your personal list.' },
               { step: '3', title: 'Stream Instantly',       desc: 'Click any channel to start watching live in your browser or the Nellai IPTV Android app — HD playback begins immediately.' },
-              { step: '4', title: 'Upgrade for Premium',    desc: 'Unlock ad-free viewing, priority streams, and exclusive channels with an affordable monthly or annual subscription.' },
+              { step: '4', title: 'Watch Everything Free',  desc: 'Every channel in the directory is available to all users at no cost — no plans, no paywalls, no subscription required.' },
             ].map(({ step, title, desc }) => (
               <div key={step} className="flex items-start gap-4">
                 <div className="w-8 h-8 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0 font-black text-primary text-sm">
@@ -174,7 +174,7 @@ export default function AboutPage() {
             {[
               {
                 q: 'Is Nellai IPTV free to use?',
-                a: 'Yes — basic access is completely free. You can watch a wide selection of live channels after creating a free account. Premium plans unlock additional channels, ad-free viewing, and higher quality streams.',
+                a: 'Yes — Nellai IPTV is completely free. Create a free account and watch the entire live channel directory in HD. There are no premium plans or subscriptions.',
               },
               {
                 q: 'Which devices are supported?',

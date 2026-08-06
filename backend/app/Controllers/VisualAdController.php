@@ -23,21 +23,9 @@ class VisualAdController
             $customer = Customer::where('uuid', $jwtUser->sub)->first();
         }
 
-        // If the user has an active paid plan with show_visual_ads = 0, serve nothing
-        $now = date('Y-m-d H:i:s');
-        if ($customer && $customer->subscription_plan_id) {
-            $activeUntil = $customer->subscription_expires_at
-                ? (string) $customer->subscription_expires_at
-                : null;
-
-            if ($activeUntil && $activeUntil >= $now) {
-                $plan = $customer->plan;
-                if ($plan && !$plan->show_visual_ads) {
-                    return ResponseFormatter::success($response, null, 'Ad-free plan');
-                }
-            }
-        }
-
+        // Open-access model: no paid plans exist, so every viewer is treated as a
+        // free user. Guests see ads flagged show_for_guests; logged-in users see
+        // ads flagged show_for_free_users.
         $today = date('Y-m-d');
 
         $query = VisualAd::where('status', 'active')
@@ -48,19 +36,10 @@ class VisualAdController
                 $q->whereNull('end_date')->orWhere('end_date', '>=', $today);
             });
 
-        // Guest filter
         if (!$customer) {
             $query->where('show_for_guests', 1);
         } else {
-            // Logged-in user with no active paid plan → free-user filter
-            $expiresAt   = $customer->subscription_expires_at
-                ? (string) $customer->subscription_expires_at
-                : null;
-            $hasPaidPlan = $customer->subscription_plan_id && $expiresAt && $expiresAt >= $now;
-
-            if (!$hasPaidPlan) {
-                $query->where('show_for_free_users', 1);
-            }
+            $query->where('show_for_free_users', 1);
         }
 
         $ads = $query->get();

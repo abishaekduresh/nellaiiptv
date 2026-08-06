@@ -6,18 +6,18 @@ This repository contains the source code for the Nellai IPTV ecosystem, includin
 
 ### `website` (Next.js)
 Premium web interface optimized for Browsers and Smart TV.
-- **Version**: 1.82.1
+- **Version**: 1.84.0
 - **Key Features**: **Flussonic Media Server** (stream servers admin rebuilt — Flussonic API columns, Test Connectivity button with live liveness check, `StreamServerDetailsModal` with Flussonic sections, dashboard Stream Server stat cards, expandable sidebar group), Visual Ads System (YouTube-style pre-roll video ads — `.m3u8`/`.mp4`, skippable/non-skippable, countdown timer, skip button, unmuted by default, channel audio muted during ad via `adPlaying` prop restored on skip/complete, click-through tracking, impression/skip/click analytics, session-based frequency limiting, plan-level + guest/free-user targeting, weighted random selection), Visual Ads Admin CRUD (`/admin/visual-ads` — sidebar via layout.tsx, full table with live stats, create/edit modal), AdSense Policy Compliance (script restricted to content pages only; `sitemap.xml` + `robots.txt` generated), Expanded About Page (FAQ, How It Works, Channel Categories, Platform details), Payment Gateway UI (enable/disable toggle per gateway with inline Test Transaction button; credentials managed via backend `.env`), Channel Manager Stream Preview (HLS player modal with loading/buffering/error/retry states, live badge, copy URL, no-controls clean view), Channel Manager Confirm-Save Modal (per-channel diff of number and status changes with thumbnail, arrow indicators, sorted by new number), Full Admin Portal Redesign (modern slate theme, animated, mobile-responsive sidebar, dashboard, all CRUD pages), Admin Layout Isolation (public Navbar/Footer hidden on admin/reseller routes), Admin Branding (logo on login page + sidebar, sidebar logo links to home), Redesigned Home Page (animated hero, stats counter, feature cards, app download section, CTA), Modernised Navbar (scroll-aware glass, active routing, TV link), Modernised Footer (gradient hairline, icons on links, status dot), Channel Manager (inline renumber + status edit, number search), Channel IP View Details Modal, Feedback System, Admin Feedback Management, Backend-Only Auth, HTTP Mixed-Content Warning, ClapprPlayer SD→HD Stretch, Portrait Mobile Letterbox, Universal Media Player (`/player`) with real-time stats & sparkline graphs, Google Play badge, Player Promo Section, Scrolling Ads Ticker, RTMP URL Support.
 
 ### `backend` (Slim PHP)
-RESTful API with role-based access control and subscription management.
-- **Version**: 1.57.0
+RESTful API with role-based access control (open-access / free — no billing).
+- **Version**: 1.59.0
 - **Key Features**: **JWT Session Persistence** (expired tokens auto-renewed in `JwtMiddleware` when the session record still exists — `X-Auth-Token` header carries the fresh token; 401 only on explicit logout or revocation), **Flussonic Media Server** (`FlussonicApiService` — TCP pre-check, HTTP→HTTPS auto-detection, Basic Auth + Bearer token, liveness endpoint; `test-connection` API endpoint; `stream_servers` table rebuilt to 18 clean Flussonic columns; `total_servers` + `online_servers` in dashboard stats; MistServer `MistAuthService` and challenge-response auth removed), Visual Ads API — `GET /api/visual-ads/active` (plan-aware, guest/free-user targeting, date range, weighted random), `POST /api/visual-ads/{uuid}/impression|skip|click` (analytics counters), Admin CRUD (`GET|POST|PUT|DELETE /api/admin/visual-ads`), `visual_ads` table migration, `show_visual_ads` column on `subscription_plans`. `ChannelController` `isTrustedApp` now checks `API_SECRET` env var first (fixes master-key 401). Payment Gateway Test API (`POST /api/admin/settings/test-payment`) — reads Razorpay/Cashfree credentials from `.env`; SSL-safe CA bundle resolution for WAMP. Batch Channel Update API (number + status, swap-safe two-phase update), AES-256 Password Encryption, Feedback API, Password Reset Service, Email Templates, CORS/OPTIONS Stability, Scrolling Ads API, Channel View Details API.
 
 ### `nellai_iptv_app` (Flutter)
 A premium multi-channel IPTV player built for Android and Android TV.
-- **Version**: 1.15.2+72
-- **Key Features**: **Fullscreen player border auto-hide** (cyan focus border fades after 2 s in fullscreen for a clean borderless view; reappears on interaction), **Branded stream-error fallback** (global `ErrorWidget.builder` replaces Flutter's red/yellow "red screen of death" on bad streams), Invalid channel number feedback (red overlay on TV when dialled number has no match — 2 s auto-dismiss), Updated TV launcher banner, **Persistent login session** (Dio `onResponse` interceptor silently stores `X-Auth-Token` renewed tokens — users never log out due to JWT expiry), My Streams Screen (customer-facing stream management — stream cards with status/health/codec details, client sessions table, Sync button with 30 s cooldown, per-stream Restart with 2 s disable→enable sequence and 30 s cooldown, pull-to-refresh), Profile Screen portrait + landscape orientation support, Visual Pre-roll Ads (YouTube-style full-screen video ads on channel switch — skippable/non-skippable, countdown, skip button, mute toggle, click-through tracking, impression/skip/click analytics, per-session frequency limiting, double-tap fullscreen, `FittedBox.fill` stretch), `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, Enhanced ColorFilter contrast/colour matrix (1.22× contrast, cross-channel warmth, −16 bias), `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
+- **Version**: 1.17.0+74
+- **Key Features**: **Free / open-access** (subscription & premium gating removed — every channel plays for all users), **Fullscreen player border auto-hide** (cyan focus border fades after 2 s in fullscreen for a clean borderless view; reappears on interaction), **Branded stream-error fallback** (global `ErrorWidget.builder` replaces Flutter's red/yellow "red screen of death" on bad streams), Invalid channel number feedback (red overlay on TV when dialled number has no match — 2 s auto-dismiss), Updated TV launcher banner, **Persistent login session** (Dio `onResponse` interceptor silently stores `X-Auth-Token` renewed tokens — users never log out due to JWT expiry), My Streams Screen (customer-facing stream management — stream cards with status/health/codec details, client sessions table, Sync button with 30 s cooldown, per-stream Restart with 2 s disable→enable sequence and 30 s cooldown, pull-to-refresh), Profile Screen portrait + landscape orientation support, Visual Pre-roll Ads (YouTube-style full-screen video ads on channel switch — skippable/non-skippable, countdown, skip button, mute toggle, click-through tracking, impression/skip/click analytics, per-session frequency limiting, double-tap fullscreen, `FittedBox.fill` stretch), `video_player` (ExoPlayer) engine for universal Android TV hardware support, `ValueListenableBuilder` buffering overlay, Enhanced ColorFilter contrast/colour matrix (1.22× contrast, cross-channel warmth, −16 bias), `FilterQuality.high`, stall-free ExoPlayer error/buffering via `VideoPlayerValue`, TV audio mute fix, Contact Us form (`POST /contact`), Feedback System, Forgot Password Flow, Responsive Classic Screen Header, Storage Management, Enhanced Channel Search, Deep Link Share, Focus Persistence.
 
 ### `single_channel_player_app` (Flutter)
 A lightweight single-channel HLS player optimized for Mobile and Android TV.
@@ -29,6 +29,44 @@ A lightweight single-channel HLS player optimized for Mobile and Android TV.
 A standalone LG webOS Smart-TV app — self-contained HTML/CSS/vanilla-JS that talks directly to the backend (no dependency on the website or Flutter app).
 - **Version**: 1.0.0
 - **Key Features**: Splash → channel browser (categories sidebar + grid) → fullscreen player; **D-pad spatial navigation** (geometric nearest-neighbour, no library) crossing sidebar/grid; categories (All · Favourites · per-category with live counts) from `/categories`; channel grid from `/channels?limit=-1`; **HLS playback** via hls.js with native fallback and `PAID_RESTRICTED`/`RESTRICTED:` handling; favourites (Yellow button, `localStorage`); direct channel-number entry; webOS remote handling incl. **Back (461)**; XHR backend client sending `X-API-KEY` + `X-Client-Platform: tv` + `X-Device-Id`; 10-foot 1920×1080 UI; packaging/deploy docs for LG Seller Lounge.
+
+## Recent Updates (Stream Infrastructure Removal) — App 1.17.0+74 · Website 1.84.0 · Backend 1.59.0 — 2026-08-06
+
+**The Flussonic stream-hosting infrastructure was removed across all layers** — `/admin/stream-servers` and
+everything it powered: stream servers, streams, monitoring, client sessions, customer stream assignments, the
+customer-facing **My Streams** feature, and the cron automation. The public `/stream` + homepage RTMP/SRT
+**marketing** pages were kept.
+
+- **Database** — dropped `customer_stream_assignments`, `stream_clients`, `server_monitoring`, `streams`,
+  `stream_servers` (children-first for the `streams`→`stream_servers` RESTRICT FK); removed the
+  `stream_server_ping_interval` / `stream_server_last_ping_run` / `cron_secret` settings. Reversible migration
+  `backend/database/migrations/remove_stream_infrastructure.sql` — run after a `mysqldump`.
+- **Backend** — deleted the stream-server/stream/monitoring/my-streams/cron controllers, services, models, and
+  middleware; removed their routes; cleaned dashboard/settings/customer-model references. The public per-channel
+  HLS status check (`StreamController`) is unrelated and retained.
+- **Website** — deleted the Stream Servers / Streams / Monitoring admin, all infra components, the My Streams panels
+  (Navbar + Classic Mode), dashboard server cards, and the Settings cron/health sections.
+- **Flutter app** — removed the My Streams screen + model + API methods and the Profile "My Streams" button.
+
+---
+
+## Recent Updates (Monetization Removal) — App 1.16.0+73 · Website 1.83.0 · Backend 1.58.0 — 2026-08-06
+
+**The entire monetization subsystem was removed across all layers — the platform is now free / open-access.**
+No subscription plans, payments, transactions, reseller tier, or wallet; every channel plays for any user.
+
+- **Database** — dropped tables `transactions`, `subscription_plans`, `wallet_transactions`; dropped
+  `customers.subscription_plan_id` / `subscription_expires_at` / `wallet_balance`; removed `gateway_*` settings.
+  Reversible migration `backend/database/migrations/remove_billing_and_reseller.sql` (backup + rollback) — run after a `mysqldump`.
+- **Backend** — deleted payment/plan/reseller/wallet controllers, models, services, driver & middleware; removed the
+  corresponding routes (kept `/webhooks/resend`); `AuthService`/`JwtMiddleware`/`ChannelController` rewritten to
+  permanent open-access (no plan requirement, no premium redaction, unlimited devices).
+- **Website** — deleted `/admin/plans`, `/admin/transactions`, `/plans`, `/reseller/*` and their components; removed
+  the payment-gateway settings, wallet/plan customer fields, profile subscription card, and premium player gating.
+  (The separate RTMP/SRT **Stream** product at `/stream` is unaffected.)
+- **Flutter app** — removed the profile subscription card and the player's premium "Upgrade Now" overlay/gating.
+
+---
 
 ## Recent Updates (v1.15.2+72 App) — 2026-08-06
 

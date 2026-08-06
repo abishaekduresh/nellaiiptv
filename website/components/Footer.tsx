@@ -18,7 +18,6 @@ const Footer = () => {
   const quickLinks = [
     { href: '/',         label: 'Home',       icon: Home        },
     { href: '/channels', label: 'Watch TV',   icon: Tv          },
-    { href: '/plans',    label: 'Plans',      icon: CreditCard  },
     { href: '/about',    label: 'About Us',   icon: Info        },
     { href: '/contact',  label: 'Contact',    icon: Mail        },
     { href: '/feedback',        label: 'Feedback',        icon: MessageCircle  },

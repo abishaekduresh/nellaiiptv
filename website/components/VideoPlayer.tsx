@@ -93,7 +93,9 @@ function VideoPlayer({
   
   // Detect Media Type
   const isYoutube = src && (src.includes('youtube.com') || src.includes('youtu.be'));
-  const isPaidRestricted = src === 'PAID_RESTRICTED';
+  // Open-access model: premium/paid gating removed — the backend no longer returns
+  // 'PAID_RESTRICTED', so this is always false (retained to keep downstream guards valid).
+  const isPaidRestricted = false;
   const isPlatformRestricted = src && src.startsWith('RESTRICTED:');
   const platformRestrictionMessage = isPlatformRestricted ? src.replace('RESTRICTED:', '').trim() : '';
 

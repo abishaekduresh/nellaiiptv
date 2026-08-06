@@ -36,20 +36,14 @@ class ChannelController
         //      return ResponseFormatter::error($response, 'Unauthorized', 401);
         // }
 
-        // Perform Subscription Check for Premium Redaction in List
-        $allowPremium = $isOpenAccess; // defaulting to true if open access
-        
+        // Open-access model: all channels are available to everyone.
+        $allowPremium = true;
+
         if ($user) {
              $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
              if ($customer) {
                  // Pass customer ID for fetching user-specific ratings
                  $filters['customer_id'] = $customer->id;
-                 
-                 if ($customer->status === 'active' && $customer->subscription_plan_id) {
-                     if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
-                         $allowPremium = true;
-                     }
-                 }
              }
         }
 
@@ -70,15 +64,8 @@ class ChannelController
              // return ResponseFormatter::error($response, 'Unauthorized', 401);
         }
 
-        $allowPremium = $isOpenAccess;
-        if ($user) {
-             $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
-             if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
-                 if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
-                     $allowPremium = true;
-                 }
-             }
-        }
+        // Open-access model: all channels are available to everyone.
+        $allowPremium = true;
 
         $channels = $this->channelService->getFeatured((int)$limit, strtolower($platform), $allowPremium);
         return ResponseFormatter::success($response, $channels, 'Featured channels retrieved successfully');
@@ -114,118 +101,11 @@ class ChannelController
             $isOpenAccessVal = Setting::get('is_open_access', 0);
             $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
 
-            // Check if Channel is Public Preview
-            // We need to fetch the channel first to check this flag.
-            
-            // Optimization: Fetch just the is_preview_public flag? 
-            // Or just fetch the channel and if it fails due to premium, we handle it?
-            
-            // Let's try to fetch it first. 
-            // We pass false for allowPremium initially to see if we can get basic info.
-            // But ChannelService::getOne might return restricted object.
-            
-            $allowPremium = $isOpenAccess;
+            // Open-access model: every channel is available to all users. Platform-level
+            // availability (RESTRICTED per device type) is still enforced inside
+            // ChannelService::getOne(); subscription/premium gating has been removed.
+            $allowPremium = true;
             $channel = $this->channelService->getOne($uuid, $platform, $allowPremium);
-            
-            // Check if preview is public
-            $isPreviewPublic = false;
-            if (is_object($channel)) {
-                $isPreviewPublic = $channel->is_preview_public ?? false;
-            } elseif (is_array($channel)) {
-                $isPreviewPublic = $channel['is_preview_public'] ?? false;
-            }
-
-            // Check if User is Admin
-            $isAdmin = false;
-            if ($user && isset($user->type) && $user->type === 'admin') {
-                $isAdmin = true;
-            }
-
-            // Access Rules:
-            // 1. If Admin -> ALLOW
-            // 2. If Public Preview -> ALLOW
-            // 3. If API Key & Platform Present (Single Channel/Trusted App) -> ALLOW
-            // 4. If User is Customer -> ALLOW
-            
-            $apiKey = $request->getHeaderLine('X-API-KEY');
-            // Platform already fetched above as $platform
-
-            $isTrustedApp = false;
-            if (!empty($apiKey) && !empty($platform)) {
-                // Accept the master API key (env) as a trusted app — the web/app
-                // frontend uses this key and it is validated by ApiKeyMiddleware.
-                $masterKey = trim($_ENV['API_SECRET'] ?? '');
-                if (!empty($masterKey) && $apiKey === $masterKey) {
-                    $isTrustedApp = true;
-                }
-
-                // Also accept any active DB key with matching platform
-                if (!$isTrustedApp) {
-                    $keyRecord = \App\Models\ApiKey::where('key_string', $apiKey)
-                        ->where('status', 'active')
-                        ->first();
-
-                    if ($keyRecord) {
-                        $allowedPlatforms = explode(',', strtolower($keyRecord->allowed_platforms));
-                        if (in_array(strtolower($platform), $allowedPlatforms)) {
-                            $isTrustedApp = true;
-                            $keyRecord->last_used_at = date('Y-m-d H:i:s');
-                            $keyRecord->save();
-                        }
-                    }
-                }
-            }
-
-            if ($isAdmin) {
-                $allowPremium = true;
-            } elseif ($isPreviewPublic) {
-                $allowPremium = true;
-            } elseif ($isTrustedApp) {
-                $allowPremium = true;
-            } elseif ($user) {
-                // logged-in customer — allowPremium already set above based on plan
-            } else {
-                // Guest with no valid API key — allow read with non-premium access
-                // (same behaviour as the channel list endpoint; never block with 401)
-                $allowPremium = false;
-            }
-
-            // If Public Preview is enabled, we might want to ensure they get the stream URL even if it's premium?
-            // Usually "Public Preview" implies they can watch it.
-            // If the channel is Premium AND Public Preview, we should probably allow it.
-            if ($isPreviewPublic) {
-                $allowPremium = true;
-                // Re-fetch if we need to unlock premium content that might have been redacted
-                // But ChannelService::getOne handles redaction based on $allowPremium passed to it.
-                // We passed $allowPremium (which was false/true based on auth) initially.
-                // If we now decide it's allowed, we might need to re-fetch or manually un-redact if service supports it?
-                // Simpler: Fetch it again if we decided to allow it and didn't before.
-                
-                $initialAllowPremium = $isOpenAccess;
-                 if ($user) {
-                    $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
-                    if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
-                         if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
-                             $initialAllowPremium = true;
-                         }
-                    }
-                }
-                
-                if (!$initialAllowPremium) {
-                     $channel = $this->channelService->getOne($uuid, $platform, true);
-                }
-            }
-            
-            // If channel is premium and user not allowed, we can return 403 or just the Restricted URL.
-            // Returning the object with 'PAID_RESTRICTED' allows frontend to show "Upgrade to Premium" UI.
-            // But if we want strict 403:
-            if (!empty($channel->is_premium) && !$allowPremium) {
-                 // Option A: Return 403
-                 // return ResponseFormatter::error($response, 'Premium subscription required', 403);
-                 
-                 // Option B: Return object with restricted URL (Current behavior of Service)
-                 // Let's stick to returning object so UI can show "Locked" state
-            }
 
             // Fetch User Rating if Authenticated
             if ($user && isset($user->sub)) {
@@ -341,15 +221,8 @@ class ChannelController
                 // return ResponseFormatter::error($response, 'Unauthorized', 401);
             }
 
-            $allowPremium = $isOpenAccess;
-            if ($user) {
-                 $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
-                 if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
-                     if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
-                         $allowPremium = true;
-                     }
-                 }
-            }
+            // Open-access model: all channels are available to everyone.
+            $allowPremium = true;
 
             $channels = $this->channelService->getRelated($uuid, strtolower($platform), $allowPremium);
             return ResponseFormatter::success($response, $channels, 'Related channels retrieved successfully');
@@ -368,15 +241,8 @@ class ChannelController
                 // return ResponseFormatter::error($response, 'Unauthorized', 401);
         }
 
-        $allowPremium = $isOpenAccess;
-        if ($user) {
-             $customer = \App\Models\Customer::where('uuid', $user->sub)->first();
-             if ($customer && $customer->status === 'active' && $customer->subscription_plan_id) {
-                 if ($customer->subscription_expires_at && $customer->subscription_expires_at->isFuture()) {
-                     $allowPremium = true;
-                 }
-             }
-        }
+        // Open-access model: all channels are available to everyone.
+        $allowPremium = true;
 
         $channels = $this->channelService->getNew(strtolower($platform), $allowPremium);
         return ResponseFormatter::success($response, $channels, 'New channels retrieved successfully');

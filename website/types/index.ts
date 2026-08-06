@@ -3,28 +3,8 @@ export interface Customer {
   name: string;
   email: string;
   phone: string;
-  role?: 'customer' | 'reseller';
+  role?: 'customer';
   status: string;
-  created_at: string;
-  subscription_plan_id?: number;
-  subscription_expires_at?: string;
-  plan?: SubscriptionPlan;
-}
-
-export interface SubscriptionPlan {
-  id: number;
-  uuid: string;
-  name: string;
-  price: number | string;
-  reseller_price: number | string;
-  duration: number;
-  device_limit: number;
-  platform_access: string[];
-  features?: string[];
-  description: string;
-  status: string;
-  is_popular?: boolean;
-  show_to?: 'customer' | 'reseller' | 'both';
   created_at: string;
 }
 

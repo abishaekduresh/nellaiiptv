@@ -35,18 +35,7 @@ export default function ChannelPage() {
             rawIsOpenAccess === '1'
         );
         
-        // 2. Auth Check Logic (Only if NOT Open Access)
-        if (!isOpenAccess) {
-            if (!user) {
-                router.push('/plans?error=subscription_required');
-                return;
-            }
-            const isReseller = (user as any).role === 'reseller';
-            if (!isReseller && !(user as any).plan) {
-                router.push('/plans?error=subscription_required');
-                return;
-            }
-        }
+        // Open-access model: all channels are free to watch — no subscription gating.
 
         // 3. Fetch Content
         const [channelsRes, trendingRes] = await Promise.all([

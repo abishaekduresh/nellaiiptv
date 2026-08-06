@@ -11,6 +11,12 @@ A premium Flutter-based IPTV application built for Android TV and Mobile devices
 - **Responsive Design**: Adapts to Mobile and TV landscape orientations.
 - **Ads Integration**: Server-controlled ad rotation system.
 
+## Version: 1.17.0+74
+- **Removed**: **My Streams feature** — Deleted the My Streams screen + `CustomerStream` model, the `getMyStreams()` / `toggleStream()` API methods, and the Profile "My Streams" button. Part of the platform-wide removal of the Flussonic stream-hosting infrastructure.
+
+## Version: 1.16.0+73
+- **Removed**: **Subscription & premium gating** — Removed the Profile subscription card and the player's "Premium Content / Upgrade Now" overlay (`_isPremiumContent` forced false, so every channel plays for all users). Part of the platform-wide monetization removal; the app is now free / open-access. `is_premium` remains a dormant channel flag.
+
 ## Version: 1.15.2+72
 - **Fixed**: **Fullscreen player colour border** — The cyan focus border around the video now auto-hides after 2 seconds in fullscreen (was persistent while focused), giving a clean borderless viewing experience; it reappears on interaction and fades again. Windowed grid mode unchanged.
 - **Fixed**: **Bad-stream "red screen of death"** — Replaced Flutter's default red-background / yellow-text `ErrorWidget` with a branded dark fallback ("Something went wrong") via a global `ErrorWidget.builder`, shown when the video subtree throws on a bad stream.

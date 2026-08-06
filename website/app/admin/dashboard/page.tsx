@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Tv, BarChart3, TrendingUp, ArrowRight, Server, Wifi } from 'lucide-react';
+import { Users, Tv, BarChart3, TrendingUp, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import adminApi from '@/lib/adminApi';
 import TrendingChart from '@/components/admin/TrendingChart';
@@ -13,12 +13,9 @@ export default function AdminDashboard() {
     channels: 0,
     customers: 0,
     activeChannels: 0,
-    totalServers: 0,
-    onlineServers: 0,
   });
   const [channels, setChannels] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
-  const [servers, setServers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,29 +25,24 @@ export default function AdminDashboard() {
     const userStr = localStorage.getItem('auth-storage');
     if (userStr) {
       try {
-        const authData = JSON.parse(userStr);
-        if (authData?.state?.user?.role === 'reseller') { router.push('/reseller'); return; }
+        JSON.parse(userStr);
       } catch (e) {}
     }
 
     const fetchData = async () => {
       try {
-        const [channelsRes, customersRes, statsRes, serversRes] = await Promise.all([
+        const [channelsRes, customersRes, statsRes] = await Promise.all([
           adminApi.get('/admin/channels?per_page=5'),
           adminApi.get('/admin/customers?per_page=5'),
           adminApi.get('/admin/dashboard/stats'),
-          adminApi.get('/admin/stream-servers?per_page=5&sort_by=id&sort_order=desc'),
         ]);
         setChannels(channelsRes.data.data?.data || []);
         setCustomers(customersRes.data.data?.data || []);
-        setServers(serversRes.data.data?.data || []);
         const s = statsRes.data.data;
         setStats({
           channels:      s.total_channels,
           customers:     s.total_customers,
           activeChannels: s.active_channels,
-          totalServers:  s.total_servers  ?? 0,
-          onlineServers: s.online_servers ?? 0,
         });
       } catch (error) {
         console.error(error);
@@ -89,24 +81,6 @@ export default function AdminDashboard() {
       border: 'border-purple-500/20',
       href:   '/admin/customers',
     },
-    {
-      label:  'Stream Servers',
-      value:  stats.totalServers,
-      icon:   Server,
-      color:  'text-orange-400',
-      bg:     'bg-orange-500/10',
-      border: 'border-orange-500/20',
-      href:   '/admin/stream-servers',
-    },
-    {
-      label:  'Online Servers',
-      value:  stats.onlineServers,
-      icon:   Wifi,
-      color:  'text-emerald-400',
-      bg:     'bg-emerald-500/10',
-      border: 'border-emerald-500/20',
-      href:   '/admin/stream-servers',
-    },
   ];
 
   if (loading) {
@@ -132,7 +106,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 animate-fade-up" style={{ animationDelay: '0.12s' }}>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-fade-up" style={{ animationDelay: '0.12s' }}>
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -169,7 +143,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 animate-fade-up" style={{ animationDelay: '0.28s' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-up" style={{ animationDelay: '0.28s' }}>
 
         {/* Recent Channels */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
@@ -233,45 +207,6 @@ export default function AdminDashboard() {
                   cu.status === 'active' ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'
                 }`}>
                   {cu.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Stream Servers */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-            <h2 className="font-bold text-white">Stream Servers</h2>
-            <Link href="/admin/stream-servers" className="text-primary text-xs hover:text-cyan-400 transition-colors flex items-center gap-1">
-              View all <ArrowRight size={12} />
-            </Link>
-          </div>
-          <div className="divide-y divide-slate-800/70">
-            {servers.length === 0 ? (
-              <p className="px-5 py-6 text-slate-500 text-sm text-center">No servers configured</p>
-            ) : servers.map((sv) => (
-              <div key={sv.uuid} className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-800/30 transition-colors">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${
-                    sv.health_status === 'online'
-                      ? 'bg-emerald-500/10 border-emerald-500/20'
-                      : 'bg-slate-800 border-slate-700'
-                  }`}>
-                    <Server size={14} className={sv.health_status === 'online' ? 'text-emerald-400' : 'text-slate-500'} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-white text-sm font-medium truncate">{sv.server_name}</p>
-                    <p className="text-slate-500 text-xs font-mono">{sv.server_host_ip}</p>
-                  </div>
-                </div>
-                <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                  sv.health_status === 'online'
-                    ? 'bg-green-500/15 text-green-400'
-                    : 'bg-red-500/15 text-red-400'
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${sv.health_status === 'online' ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
-                  {sv.health_status}
                 </span>
               </div>
             ))}

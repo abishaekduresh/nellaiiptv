@@ -1,3 +1,22 @@
+## [1.17.0+74] - 2026-08-06
+
+### Removed
+- **My Streams feature** — Part of the platform-wide removal of the Flussonic stream-hosting infrastructure.
+  - Deleted `lib/screens/profile/my_streams_screen.dart` and `lib/models/customer_stream.dart`.
+  - Removed `ApiService.getMyStreams()` / `toggleStream()` (`lib/core/api_service.dart`).
+  - Removed the "My Streams" button + its focus node from the Profile screen.
+
+---
+
+## [1.16.0+73] - 2026-08-06
+
+### Removed
+- **Subscription & premium gating** — Part of a platform-wide monetization teardown; the app is now free / open-access.
+  - **Profile** (`lib/screens/profile/profile_screen.dart`) — removed the subscription card (plan / expiry / device-usage) and its helpers.
+  - **Player** (`lib/screens/classic/embedded_player.dart`) — removed the "Premium Content / Upgrade Now" overlay and premium blocking; `_isPremiumContent` is forced `false`, so every channel plays for all users. `channels.is_premium` remains a dormant flag (the "PREMIUM" card badge is cosmetic only).
+
+---
+
 ## [1.15.2+72] - 2026-08-06
 
 ### Fixed

@@ -6,7 +6,6 @@ import '../auth/manage_devices_screen.dart';
 import '../auth/login_screen.dart';
 import '../../core/toast_service.dart';
 import 'feedback_screen.dart';
-import 'my_streams_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,7 +22,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Focus Nodes
   late FocusNode _manageDevicesFocusNode;
-  late FocusNode _myStreamsFocusNode;
   late FocusNode _feedbackFocusNode;
   late FocusNode _logoutFocusNode;
 
@@ -38,7 +36,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       DeviceOrientation.landscapeRight,
     ]);
     _manageDevicesFocusNode = FocusNode();
-    _myStreamsFocusNode = FocusNode();
     _feedbackFocusNode = FocusNode();
     _logoutFocusNode = FocusNode();
     _loadProfile();
@@ -54,7 +51,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ]);
     }
     _manageDevicesFocusNode.dispose();
-    _myStreamsFocusNode.dispose();
     _feedbackFocusNode.dispose();
     _logoutFocusNode.dispose();
     super.dispose();
@@ -169,8 +165,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           _buildUserInfoCard(compact: false),
           const SizedBox(height: 20),
-          _buildSubscriptionCard(),
-          const SizedBox(height: 20),
           _buildActionButtons(),
         ],
       ),
@@ -200,8 +194,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildSubscriptionCard(),
-                const SizedBox(height: 16),
                 _buildActionButtons(),
               ],
             ),
@@ -304,111 +296,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSubscriptionCard() {
-    final plan = _profileData!['plan'];
-
-    if (plan == null) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white10),
-        ),
-        child: const Column(
-          children: [
-            Icon(Icons.subscriptions_outlined, size: 48, color: Colors.white30),
-            SizedBox(height: 12),
-            Text('No Active Subscription',
-                style: TextStyle(color: Colors.white70, fontSize: 16)),
-            SizedBox(height: 8),
-            Text('Subscribe to enjoy premium content',
-                style: TextStyle(color: Colors.white38, fontSize: 12)),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF10B981), Color(0xFF059669)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF10B981).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.workspace_premium, color: Colors.white, size: 28),
-              SizedBox(width: 12),
-              Text('Active Subscription',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (plan['name'] != null)
-            _buildSubscriptionRow(
-                icon: Icons.card_membership,
-                label: 'Plan',
-                value: plan['name'].toString()),
-          if (_profileData!['expiry_date'] != null ||
-              _profileData!['expires_at'] != null)
-            _buildSubscriptionRow(
-              icon: Icons.calendar_today,
-              label: 'Expires',
-              value: _formatDate(
-                  (_profileData!['expiry_date'] ?? _profileData!['expires_at'])
-                      .toString()),
-            ),
-          if (plan['device_limit'] != null)
-            _buildSubscriptionRow(
-              icon: Icons.devices,
-              label: 'Devices',
-              value:
-                  '${_profileData!['active_devices'] ?? 0} / ${plan['device_limit']}',
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubscriptionRow(
-      {required IconData icon, required String label, required String value}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.white70),
-          const SizedBox(width: 12),
-          Text('$label: ',
-              style: const TextStyle(color: Colors.white70, fontSize: 14)),
-          Expanded(
-            child: Text(value,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildActionButtons() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -420,15 +307,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           label: 'Manage Devices',
           color: const Color(0xFF0EA5E9),
           onTap: _navigateToManageDevices,
-        ),
-        const SizedBox(height: 12),
-        _buildBtn(
-          focusNode: _myStreamsFocusNode,
-          icon: Icons.wifi_tethering,
-          label: 'My Streams',
-          color: const Color(0xFF1E3A5F),
-          onTap: () => Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => const MyStreamsScreen())),
         ),
         const SizedBox(height: 12),
         _buildBtn(
@@ -473,14 +351,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 2,
       ),
     );
-  }
-
-  String _formatDate(String dateStr) {
-    try {
-      final date = DateTime.parse(dateStr);
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (_) {
-      return dateStr;
-    }
   }
 }

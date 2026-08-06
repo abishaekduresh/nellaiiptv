@@ -6,8 +6,8 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen,
-  CreditCard, Mail, MessageSquare, BarChart2, ChevronDown, ThumbsUp,
-  Server, Megaphone, Film, Hash, X, Radio, ClipboardList,
+  Mail, MessageSquare, BarChart2, ChevronDown, ThumbsUp,
+  Megaphone, Film, X, Radio, ClipboardList,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -18,14 +18,6 @@ const menuItems = [
     children: [
       { title: 'All Channels',     href: '/admin/channels' },
       { title: 'Channel Numbers',  href: '/admin/channels/renumber' },
-    ],
-  },
-  {
-    title: 'Stream Servers', icon: Server, href: '#',
-    children: [
-      { title: 'All Servers', href: '/admin/stream-servers' },
-      { title: 'Streams',     href: '/admin/streams' },
-      { title: 'Monitoring',  href: '/admin/monitoring' },
     ],
   },
   { title: 'Ch. Onboarding', icon: ClipboardList, href: '/admin/channel-onboarding' },
@@ -41,10 +33,8 @@ const menuItems = [
   { title: 'Comments',     icon: MessageSquare, href: '/admin/comments' },
   { title: 'Messages',     icon: Mail,          href: '/admin/contacts' },
   { title: 'Feedback',     icon: ThumbsUp,      href: '/admin/feedback' },
-  { title: 'Transactions', icon: CreditCard,    href: '/admin/transactions' },
   { title: 'API Keys',     icon: Shield,        href: '/admin/api-keys' },
   { title: 'API Docs',     icon: BookOpen,      href: '/admin/api-docs' },
-  { title: 'Plans',        icon: Hash,          href: '/admin/plans' },
   { title: 'Settings',     icon: Settings,      href: '/admin/settings' },
 ];
 
@@ -60,7 +50,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
     Channels: true,
-    'Stream Servers': true,
     Reports: true,
   });
 
@@ -76,24 +65,14 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     router.push('/admin');
   };
 
-  const filteredItems = menuItems.filter(item => {
-    if (user?.role === 'reseller') return ['Dashboard', 'Plans', 'Customers'].includes(item.title);
-    return true;
-  });
+  const filteredItems = menuItems;
 
-  const resolveHref = (item: (typeof menuItems)[0]) => {
-    if (user?.role === 'reseller') {
-      if (item.title === 'Dashboard') return '/reseller';
-      if (item.title === 'Customers') return '/reseller/customers';
-      if (item.title === 'Plans') return '/reseller/plans';
-    }
-    return item.href;
-  };
+  const resolveHref = (item: (typeof menuItems)[0]) => item.href;
 
   const isItemActive = (href: string) =>
     href !== '#' && (pathname === href || (href.length > 10 && pathname.startsWith(href)));
 
-  const roleLabel = user?.role === 'reseller' ? 'Reseller Panel' : 'Admin Panel';
+  const roleLabel = 'Admin Panel';
   const userName = (user as any)?.name || (user as any)?.username || 'Admin';
   const userInitial = userName.charAt(0).toUpperCase();
 

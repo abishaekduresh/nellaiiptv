@@ -26,12 +26,7 @@ function LoginForm() {
     // Only auto-redirect if we are NOT in the middle of a manual login submission
     // This allows handleSubmit to handle the specific redirect logic
     if (!isSubmittingRef.current && token && user) {
-      // Redirect based on user role
-      if (user.role === 'reseller') {
-        router.push('/reseller');
-      } else {
-        router.push('/');
-      }
+      router.push('/');
     }
   }, [token, user, router]);
 
@@ -87,17 +82,11 @@ function LoginForm() {
       if (response.data.status) {
         const { token, user } = response.data.data;
         setAuth(token, user, false);
-        
-        // Check if user is reseller and redirect to reseller panel
-        if (user?.role === 'reseller') {
-          // Set admin flag for resellers to access admin layout
-          setAuth(token, user, true);
-          localStorage.setItem('admin_token', token);
-          router.push('/reseller');
-        } else {
+
+        {
           // Handle regular customer redirection
           const redirectPath = searchParams.get('redirect') || '/';
-          
+
           // Verify redirect path is safe (internal)
           if (redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
              router.push(redirectPath);

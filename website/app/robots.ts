@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/', '/reseller/', '/api/', '/test/'],
+        disallow: ['/admin/', '/api/', '/test/'],
       },
     ],
     sitemap: 'https://nellaiiptv.com/sitemap.xml',

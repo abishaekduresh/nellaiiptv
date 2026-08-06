@@ -61,8 +61,11 @@ class ChannelService
         return $normalized . $suffix;
     }
 
-    private function processChannelOutput($channel, bool $allowPremium = false)
+    private function processChannelOutput($channel, bool $allowPremium = true)
     {
+        // Open-access model: premium redaction removed — every channel returns its real
+        // stream URL to any user. $allowPremium is retained for signature compatibility
+        // but is always treated as true.
         // Helper to extract user rating if relation loaded
         $userRatingVal = 0;
         
@@ -94,12 +97,7 @@ class ChannelService
         if (is_array($channel)) {
             // Set User Rating
             $channel['user_rating'] = $userRatingVal;
-            
-            // Redact Paid URL if not allowed
-            if (!empty($channel['is_premium']) && !$allowPremium) {
-                $channel['hls_url'] = 'PAID_RESTRICTED';
-            }
-            
+
             // Calculate Total Views (Column + Logs)
             $manual = (int)($channel['viewers_count'] ?? 0);
             $calculated = (int)($channel['calculated_views_count'] ?? 0);
@@ -116,11 +114,6 @@ class ChannelService
         } elseif (is_object($channel)) {
             // Set User Rating
             $channel->user_rating = $userRatingVal;
-
-            // Redact Paid URL if not allowed
-            if (!empty($channel->is_premium) && !$allowPremium) {
-                $channel->hls_url = 'PAID_RESTRICTED';
-            }
 
             // Calculate Total Views (Column + Logs)
             $manual = (int)($channel->viewers_count ?? 0);
