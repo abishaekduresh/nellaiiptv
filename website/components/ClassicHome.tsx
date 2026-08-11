@@ -49,7 +49,6 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
 
   // Filtering State
   const [showTopTrending, setShowTopTrending] = useState(true);
-  const [isOpenAccess, setIsOpenAccess] = useState(false);
 
   useEffect(() => {
       const fetchSettings = async () => {
@@ -67,9 +66,6 @@ export default function ClassicHome({ channels, topTrending = [], initialChannel
                   // Ensure it is array (Controller returns array)
                   const platformsArray = Array.isArray(platforms) ? platforms : (typeof platforms === 'string' ? platforms.split(',') : []);
                   setShowTopTrending(platformsArray.includes('tv'));
-
-                  // Open Access Logic
-                  setIsOpenAccess(!!response.data.data.is_open_access);
               }
           } catch (err) {
               // fallback
@@ -560,12 +556,8 @@ function FilterTabItem({ label, index, isSelected, onSelect }: { label: string; 
                           Login
                         </Link>
                       )}
-                      {!isOpenAccess && (
-                        <>
-                          <ClassicBackButton />
-                          <ClassicMenuButton onClick={() => setIsMenuOpen(true)} />
-                        </>
-                      )}
+                      <ClassicBackButton />
+                      <ClassicMenuButton onClick={() => setIsMenuOpen(true)} />
                   </div>
               </div>
 

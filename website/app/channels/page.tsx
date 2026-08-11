@@ -8,6 +8,8 @@ import ChannelCardSkeleton from '@/components/ChannelCardSkeleton';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
 import ClassicHome from '@/components/ClassicHome';
+import ChannelsDisabledScreen from '@/components/ChannelsDisabledScreen';
+import { isWebChannelsDisabled } from '@/lib/utils';
 
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'next/navigation';
@@ -17,11 +19,12 @@ export default function ChannelsPage() {
   const { history } = useWatchHistory();
   const { user } = useAuthStore();
   const router = useRouter();
-  
+
   const [rawChannels, setRawChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [topTrending, setTopTrending] = useState<Channel[]>([]);
+  const [channelsDisabled, setChannelsDisabled] = useState(false);
 
   // Fetch Logic moved here to be accessible
   const fetchChannelsData = async (settingsData: any) => {
@@ -46,6 +49,12 @@ export default function ChannelsPage() {
 
       if (allRes.data.status) {
         let channels = allRes.data.data.data || allRes.data.data || [];
+        // When the admin disables the "web" platform the API returns an empty
+        // channel list — show the "not available on web" screen, not a blank grid.
+        if (!Array.isArray(channels) || channels.length === 0) {
+          setChannelsDisabled(true);
+          return;
+        }
         channels.sort((a: Channel, b: Channel) => (a.channel_number || 9999) - (b.channel_number || 9999));
         setRawChannels(channels);
       }
@@ -59,15 +68,15 @@ export default function ChannelsPage() {
   const checkAuthAndFetch = async () => {
     try {
         setLoading(true);
-        const settingsRes = await api.get('/settings/public');
-        
-        const rawIsOpenAccess = settingsRes.data.data.is_open_access;
-        const isOpenAccess = settingsRes.data.status && (
-            rawIsOpenAccess === true || 
-            rawIsOpenAccess === 1 || 
-            rawIsOpenAccess === '1'
-        );
-        
+        const settingsRes = await api.get('/settings/public', { params: { _t: Date.now() } });
+
+        // If the admin has disabled the "web" platform, show an error message.
+        if (settingsRes.data.status && isWebChannelsDisabled(settingsRes.data.data)) {
+            setChannelsDisabled(true);
+            setLoading(false);
+            return;
+        }
+
         // Open-access model: all channels are free to watch — no subscription gating.
 
         // Access is allowed. Fetch Channels.
@@ -103,6 +112,10 @@ export default function ChannelsPage() {
 
   // Deprecated direct call, now used by checkAuthAndFetch
   const fetchChannels = async () => { /* no-op or proxy */ };
+
+  if (channelsDisabled) {
+    return <ChannelsDisabledScreen />;
+  }
 
   if (loading) {
     return (

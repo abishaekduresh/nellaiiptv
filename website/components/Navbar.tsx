@@ -10,6 +10,7 @@ import UserMenu from './UserMenu';
 import api from '@/lib/api';
 import { Channel } from '@/types';
 import { useTVFocus } from '@/hooks/useTVFocus';
+import { isWebChannelsDisabled } from '@/lib/utils';
 
 export default function Navbar() {
   const { user, isAdmin } = useAuthStore();
@@ -24,10 +25,25 @@ export default function Navbar() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [logoUrl, setLogoUrl] = useState('/icon.jpg');
   const [scrolled, setScrolled] = useState(false);
+  const [webChannelsDisabled, setWebChannelsDisabled] = useState(false);
 
   useEffect(() => {
-    api.get('/settings/public').then(res => {
-      if (res.data.status && res.data.data.logo_url) setLogoUrl(res.data.data.logo_url);
+    api.get('/settings/public', { params: { _t: Date.now() } }).then(res => {
+      if (res.data.status) {
+        if (res.data.data.logo_url) setLogoUrl(res.data.data.logo_url);
+        // Preferred signal (once the backend exposes it): explicit disabled_platforms.
+        if (isWebChannelsDisabled(res.data.data)) setWebChannelsDisabled(true);
+      }
+    }).catch(() => {});
+
+    // Fallback that works today: disabling the "web" platform makes the channels
+    // API return an empty list, so hide "Watch TV" when there are no channels.
+    api.get('/channels', { params: { limit: 1, _t: Date.now() } }).then(res => {
+      const d = res.data?.data;
+      const list = Array.isArray(d) ? d : (d?.data ?? []);
+      if (res.data?.status && Array.isArray(list) && list.length === 0) {
+        setWebChannelsDisabled(true);
+      }
     }).catch(() => {});
   }, []);
 
@@ -103,7 +119,7 @@ export default function Navbar() {
             {/* Desktop Nav Links */}
             <div className="hidden md:flex items-center gap-1">
               <NavLink href="/" label="Home" pathname={pathname} />
-              <NavLink href="/channels" label="Watch TV" pathname={pathname} />
+              {!webChannelsDisabled && <NavLink href="/channels" label="Watch TV" pathname={pathname} />}
               <NavLink href="/stream" label="Streaming" pathname={pathname} />
             </div>
 
@@ -202,7 +218,7 @@ export default function Navbar() {
               { href: '/',         label: 'Home',               icon: null    },
               { href: '/channels', label: 'Watch TV',           icon: Tv      },
               { href: '/stream',   label: 'Streaming',          icon: Radio   },
-            ].map(({ href, label, icon: Icon }) => (
+            ].filter(item => !webChannelsDisabled || item.href !== '/channels').map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}

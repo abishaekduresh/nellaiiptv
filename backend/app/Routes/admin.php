@@ -45,6 +45,13 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
         $group->post('/settings/logo', [\App\Controllers\Admin\SettingController::class, 'uploadLogo']);
         $group->post('/settings/logo-png', [\App\Controllers\Admin\SettingController::class, 'uploadAppLogoPng']);
 
+        // Banner / Inline / Video Ads Management
+        $group->get('/ads', [\App\Controllers\Admin\AdAdminController::class, 'index']);
+        $group->post('/ads', [\App\Controllers\Admin\AdAdminController::class, 'create']);
+        $group->get('/ads/{uuid}', [\App\Controllers\Admin\AdAdminController::class, 'show']);
+        $group->put('/ads/{uuid}', [\App\Controllers\Admin\AdAdminController::class, 'update']);
+        $group->delete('/ads/{uuid}', [\App\Controllers\Admin\AdAdminController::class, 'delete']);
+
         // Scrolling Ads Management
         $group->get('/scrolling-ads', [\App\Controllers\Admin\ScrollingAdAdminController::class, 'index']);
         $group->post('/scrolling-ads', [\App\Controllers\Admin\ScrollingAdAdminController::class, 'create']);

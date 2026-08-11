@@ -57,8 +57,11 @@ class PublicSettingController
         
         $fallbackMp4Url = Setting::get('fallback_404_mp4_url', '');
 
-        $isOpenAccessVal = Setting::get('is_open_access', '0');
-        $isOpenAccess = ($isOpenAccessVal == '1' || $isOpenAccessVal == 1 || $isOpenAccessVal === true);
+        // Platforms the admin has disabled via "Disable Specific Platforms". The
+        // website reads this to show an error message on /channels and /channel
+        // when 'web' is disabled.
+        $disabledPlatformsStr = Setting::get('disabled_platforms', '');
+        $disabledPlatforms = array_values(array_filter(array_map('trim', explode(',', $disabledPlatformsStr))));
 
         return ResponseFormatter::success($response, [
             'logo_url' => $logoUrl,
@@ -68,7 +71,7 @@ class PublicSettingController
             'maintenance_title' => $maintenanceTitle,
             'maintenance_message' => $maintenanceMessage,
             'top_trending_platforms' => $trendingPlatforms,
-            'is_open_access' => $isOpenAccess,
+            'disabled_platforms' => $disabledPlatforms,
         ]);
     }
 }

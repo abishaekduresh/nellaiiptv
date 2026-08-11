@@ -2557,7 +2557,6 @@ INSERT INTO `settings` (`id`, `setting_key`, `setting_value`, `created_at`, `upd
 	(7, 'app_logo_png_path', '/uploads/branding/app_logo_1779631097.png', '2026-01-20 09:19:07', '2026-05-24 13:58:17'),
 	(9, 'logo_path', '/uploads/branding/logo_1779631105.jpg', '2026-01-20 02:03:36', '2026-05-24 13:58:26'),
 	(10, 'XXapp_about_info', '', '2026-01-25 14:35:40', '2026-01-27 11:18:01'),
-	(11, 'is_open_access', '1', '2026-01-27 10:46:52', '2026-05-25 07:58:37'),
 	(12, 'gateway_razorpay_enabled', '1', '2026-01-31 08:10:58', '2026-05-25 04:52:06'),
 	(13, 'gateway_cashfree_enabled', '0', '2026-01-31 08:11:01', '2026-05-25 05:12:38'),
 	(14, 'contact_webhook_url', '', '2026-01-31 09:12:05', '2026-01-31 12:23:52'),

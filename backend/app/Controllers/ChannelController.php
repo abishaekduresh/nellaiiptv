@@ -7,7 +7,6 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Services\ChannelService;
 use App\Helpers\ResponseFormatter;
 use App\Helpers\Validator;
-use App\Models\Setting;
 use Exception;
 
 class ChannelController
@@ -28,15 +27,8 @@ class ChannelController
         $filters['platform'] = strtolower($platform);
 
         $user = $request->getAttribute('user');
-        $isOpenAccessVal = Setting::get('is_open_access', 0);
-        $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
-        
-        // Enforce Auth if not Open Access - REMOVED for Public API
-        // if (!$user && !$isOpenAccess) {
-        //      return ResponseFormatter::error($response, 'Unauthorized', 401);
-        // }
 
-        // Open-access model: all channels are available to everyone.
+        // All channels are available to everyone (public).
         $allowPremium = true;
 
         if ($user) {
@@ -56,15 +48,7 @@ class ChannelController
         $limit = $request->getQueryParams()['limit'] ?? 20;
         $platform = $request->getHeaderLine('X-Client-Platform');
         
-        $user = $request->getAttribute('user');
-        $isOpenAccessVal = Setting::get('is_open_access', 0);
-        $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
-
-        if (!$user && !$isOpenAccess) {
-             // return ResponseFormatter::error($response, 'Unauthorized', 401);
-        }
-
-        // Open-access model: all channels are available to everyone.
+        // All channels are available to everyone (public).
         $allowPremium = true;
 
         $channels = $this->channelService->getFeatured((int)$limit, strtolower($platform), $allowPremium);
@@ -98,8 +82,6 @@ class ChannelController
             $platform = !empty($platform) ? strtolower($platform) : 'web';
 
             $user = $request->getAttribute('user');
-            $isOpenAccessVal = Setting::get('is_open_access', 0);
-            $isOpenAccess = ($isOpenAccessVal == 1 || $isOpenAccessVal === true || $isOpenAccessVal === '1');
 
             // Open-access model: every channel is available to all users. Platform-level
             // availability (RESTRICTED per device type) is still enforced inside
@@ -214,14 +196,8 @@ class ChannelController
     {
         try {
             $platform = $request->getHeaderLine('X-Client-Platform');
-            $user = $request->getAttribute('user');
-            $isOpenAccess = Setting::get('is_open_access', 0) == 1;
 
-            if (!$user && !$isOpenAccess) {
-                // return ResponseFormatter::error($response, 'Unauthorized', 401);
-            }
-
-            // Open-access model: all channels are available to everyone.
+            // All channels are available to everyone (public).
             $allowPremium = true;
 
             $channels = $this->channelService->getRelated($uuid, strtolower($platform), $allowPremium);
@@ -234,14 +210,8 @@ class ChannelController
     public function getNew(Request $request, Response $response): Response
     {
         $platform = $request->getHeaderLine('X-Client-Platform');
-        $user = $request->getAttribute('user');
-        $isOpenAccess = Setting::get('is_open_access', 0) == 1;
 
-        if (!$user && !$isOpenAccess) {
-                // return ResponseFormatter::error($response, 'Unauthorized', 401);
-        }
-
-        // Open-access model: all channels are available to everyone.
+        // All channels are available to everyone (public).
         $allowPremium = true;
 
         $channels = $this->channelService->getNew(strtolower($platform), $allowPremium);

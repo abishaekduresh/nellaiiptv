@@ -72,19 +72,35 @@ export default function Home() {
   const userCount = useCountUp(1000, 2000, statsInView);
   const uptimeCount = useCountUp(99, 1500, statsInView);
 
+  const PLAY_STORE_URL =
+    "https://play.google.com/store/apps/details?id=com.nellaiiptv";
+  const [webChannelsDisabled, setWebChannelsDisabled] = useState(false);
+
   useEffect(() => {
+    // When the admin disables the "web" platform, the channels API returns an
+    // empty list — in that case send "Watch Now" to the Play Store app instead.
     api
-      .get("/settings/public")
+      .get("/channels", { params: { limit: 1, _t: Date.now() } })
       .then((res) => {
-        if (res.data.status && res.data.data.is_open_access && !user) {
-          router.push("/channels");
-        }
+        const d = res.data?.data;
+        const list = Array.isArray(d) ? d : d?.data ?? [];
+        setWebChannelsDisabled(
+          res.data?.status === true && Array.isArray(list) && list.length === 0
+        );
       })
       .catch(() => {});
-  }, [user, router]);
+  }, []);
+
+  const goWatch = () => {
+    if (webChannelsDisabled) {
+      window.open(PLAY_STORE_URL, "_blank", "noopener,noreferrer");
+    } else {
+      router.push("/channels");
+    }
+  };
 
   const { focusProps: watchFocus, isFocused: isWatchFocused } = useTVFocus({
-    onEnter: () => router.push("/channels"),
+    onEnter: () => goWatch(),
     className:
       "w-full sm:w-auto px-8 py-4 bg-primary hover:bg-cyan-500 text-white rounded-xl font-bold text-lg shadow-xl shadow-primary/30 transition-all duration-300 flex items-center justify-center gap-2 group outline-none",
   });

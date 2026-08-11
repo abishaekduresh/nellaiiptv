@@ -6,6 +6,8 @@ import api from '@/lib/api';
 import { Channel } from '@/types';
 import { Loader2 } from 'lucide-react';
 import ClassicHome from '@/components/ClassicHome';
+import ChannelsDisabledScreen from '@/components/ChannelsDisabledScreen';
+import { isWebChannelsDisabled } from '@/lib/utils';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'next/navigation';
 
@@ -14,10 +16,11 @@ export default function ChannelPage() {
   const uuid = params.id as string;
   const { user } = useAuthStore();
   const router = useRouter();
-  
+
   const [channels, setChannels] = useState<Channel[]>([]);
   const [topTrending, setTopTrending] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [channelsDisabled, setChannelsDisabled] = useState(false);
 
   useEffect(() => {
     checkAuthAndFetch();
@@ -27,14 +30,15 @@ export default function ChannelPage() {
     try {
         setLoading(true);
         // 1. Fetch Settings First
-        const settingsRes = await api.get('/settings/public'); 
-        const rawIsOpenAccess = settingsRes.data.data.is_open_access;
-        const isOpenAccess = settingsRes.data.status && (
-            rawIsOpenAccess === true || 
-            rawIsOpenAccess === 1 || 
-            rawIsOpenAccess === '1'
-        );
-        
+        const settingsRes = await api.get('/settings/public', { params: { _t: Date.now() } });
+
+        // If the admin has disabled the "web" platform, show an error message.
+        if (settingsRes.data.status && isWebChannelsDisabled(settingsRes.data.data)) {
+            setChannelsDisabled(true);
+            setLoading(false);
+            return;
+        }
+
         // Open-access model: all channels are free to watch — no subscription gating.
 
         // 3. Fetch Content
@@ -45,6 +49,13 @@ export default function ChannelPage() {
 
         if (channelsRes.data.status) {
           const allChannels = channelsRes.data.data.data || channelsRes.data.data || [];
+          // When the admin disables the "web" platform the API returns an empty
+          // channel list — show the "not available on web" screen.
+          if (!Array.isArray(allChannels) || allChannels.length === 0) {
+            setChannelsDisabled(true);
+            setLoading(false);
+            return;
+          }
           allChannels.sort((a: Channel, b: Channel) => (a.channel_number || 9999) - (b.channel_number || 9999));
           setChannels(allChannels);
         }
@@ -59,6 +70,10 @@ export default function ChannelPage() {
         setLoading(false);
     }
   };
+
+  if (channelsDisabled) {
+    return <ChannelsDisabledScreen />;
+  }
 
   if (loading) {
     return (

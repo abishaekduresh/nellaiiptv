@@ -6,6 +6,20 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 
+/**
+ * Whether the admin has disabled the "web" platform via the "Disable Specific
+ * Platforms" setting. Reads `disabled_platforms` from the /settings/public
+ * payload (array or comma-separated string). When true the website shows an
+ * error message on /channels and /channel instead of the channel grid.
+ */
+export function isWebChannelsDisabled(publicSettings: any): boolean {
+  const dp = publicSettings?.disabled_platforms;
+  const list = Array.isArray(dp)
+    ? dp
+    : (typeof dp === 'string' ? dp.split(',') : []);
+  return list.map((p: string) => String(p).trim().toLowerCase()).includes('web');
+}
+
 export function formatDate(date: string): string {
   return new Date(date).toLocaleDateString('en-IN', {
     year: 'numeric',

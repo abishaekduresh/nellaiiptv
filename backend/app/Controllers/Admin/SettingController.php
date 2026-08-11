@@ -52,7 +52,7 @@ class SettingController
             $value = $data['value'];
             
             // Handle boolean settings that might come as strings from FormData/JSON
-            if ($key === 'is_open_access' || $key === 'maintenance_mode') {
+            if ($key === 'maintenance_mode') {
                 $value = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? '1' : '0';
             }
 

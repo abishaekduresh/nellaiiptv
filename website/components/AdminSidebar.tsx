@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Tv, Settings, LogOut, Users, Shield, BookOpen,
   Mail, MessageSquare, BarChart2, ChevronDown, ThumbsUp,
-  Megaphone, Film, X, Radio, ClipboardList,
+  Megaphone, Film, X, Radio, ClipboardList, Image as ImageIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -21,6 +21,7 @@ const menuItems = [
     ],
   },
   { title: 'Ch. Onboarding', icon: ClipboardList, href: '/admin/channel-onboarding' },
+  { title: 'Banner Ads',     icon: ImageIcon,    href: '/admin/ads' },
   { title: 'Scrolling Ads',  icon: Megaphone,    href: '/admin/scrolling-ads' },
   { title: 'Visual Ads',     icon: Film,         href: '/admin/visual-ads' },
   {
